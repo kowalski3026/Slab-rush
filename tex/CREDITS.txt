@@ -1,0 +1,12 @@
+Slab Rush texture detail maps (v152)
+
+asphalt_c.jpg, asphalt_n.jpg
+  "Asphalt 031" by ambientCG (https://ambientcg.com/a/Asphalt031), CC0 1.0.
+  Resized to 512 px.
+slab_n.jpg, slab_m.jpg
+  "Concrete 034" by ambientCG (https://ambientcg.com/a/Concrete034), CC0 1.0.
+  slab_n is the OpenGL normal map as published; slab_m is a normalised luminance mottle made from the colour map.
+*_n.jpg (all others)
+  Normal maps generated from the game's own embedded photo textures (high-pass luminance height, Sobel normals).
+
+ambientCG files were copied from github.com/null3d-engine/sample-assets, which mirrors them unchanged under CC0.
