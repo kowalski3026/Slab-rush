@@ -40,8 +40,9 @@ button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink);borde
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 (function(){
-const MODEL_CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_133410_44376faf-b03e-4955-87c7-1b7a67a89663.glb';
-const MODEL='/models/kowalski-worker.glb';
+const MODEL_CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134317_9f434fab-1da5-4a88-a0c8-f026e1c91126.glb';
+const MODEL='/models/foreman-idle.glb';
+const WALK=['/models/foreman-walk.glb','https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134320_262215c4-3ad9-42d2-8e5d-b1d816ef2abe.glb'];
 const T3=THREE,lin=h=>new T3.Color(h).convertSRGBToLinear();
 const R=new T3.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
 R.outputEncoding=T3.sRGBEncoding;R.toneMapping=T3.ACESFilmicToneMapping;R.shadowMap.enabled=true;R.shadowMap.type=T3.PCFSoftShadowMap;
@@ -91,9 +92,13 @@ function onLoad(g){
   if(g.animations&&g.animations.length){mixer=new T3.AnimationMixer(model);
     g.animations.forEach((c,i)=>{const a=mixer.clipAction(c);actions[c.name||('Clip '+(i+1))]=a;});
     Object.keys(actions).forEach((n,i)=>{const b=btn('moves',n.replace(/_/g,' '),()=>play(n,b));if(i===0)play(n,b);});}
-  const bi=btn('moves','Idle',()=>{proc='idle';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bi);});
+  const bi=btn('moves','Breathe',()=>{proc='idle';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bi);});
   const bs=btn('moves','Still',()=>{proc='still';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bs);});
   if(!cur)press('moves',bi);
+  const addWalk=(i)=>new T3.GLTFLoader().load(WALK[i],w=>{if(!w.animations||!w.animations[0])return;if(!mixer)mixer=new T3.AnimationMixer(model);const c=w.animations[0];
+    c.tracks.forEach(tr=>{if(/position$/.test(tr.name)){const v=tr.values;for(let j=3;j<v.length;j+=3){v[j]=v[0];v[j+2]=v[2]}}});
+    actions.Walk=mixer.clipAction(c);const bw=btn('moves','Walk',()=>play('Walk',bw));const row=document.getElementById('moves');row.insertBefore(bw,row.children[2]||null);},null,()=>{if(i===0)addWalk(1)});
+  addWalk(0);
   note.textContent=`${Math.round(tris).toLocaleString()} triangles · ${boneCount} bones · ${(h*(model.scale.x)).toFixed(2)} m tall${g.animations.length?' · '+g.animations.length+' clip(s)':''}`;
   load.hidden=true;
 }
