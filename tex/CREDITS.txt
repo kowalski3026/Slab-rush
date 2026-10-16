@@ -10,3 +10,16 @@ slab_n.jpg, slab_m.jpg
   Normal maps generated from the game's own embedded photo textures (high-pass luminance height, Sobel normals).
 
 ambientCG files were copied from github.com/null3d-engine/sample-assets, which mirrors them unchanged under CC0.
+
+Sky lighting (v161)
+sky_day.hdr, sky_morning.hdr, sky_golden.hdr, sky_overcast.hdr
+  From Poly Haven HDRIs, CC0 1.0: "Rooitou Park", "Spruit Sunrise", "Venice Sunset", "Immenstadter Horn"
+  (https://polyhaven.com/hdris). Copied from the three.js and pmndrs/drei-assets repositories, which mirror them unchanged.
+  Downsampled to 512x256, sun disc clipped, saturation reduced 40%, sky normalised to mean 1.
+
+Trees (v161)
+tree_pine_a.bin, tree_pine_b.bin, tree_oak.bin, tree_ash.bin
+  Geometry generated with ez-tree (https://github.com/dgreenheck/ez-tree), presets Pine Medium, Pine Large, Oak Medium,
+  Ash Medium. ez-tree is MIT licensed, Copyright (c) 2024 Daniel Greenheck.
+leaf_oak.png, leaf_ash.png, leaf_pine.png, bark_c.jpg
+  Painted procedurally for Slab Rush.
