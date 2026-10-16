@@ -77,6 +77,13 @@ for(const v in VIEWS){const b=btn('views',v,()=>{const o=VIEWS[v];cam.position.s
 document.getElementById('bSkel').onclick=e=>{if(!skel)return;skel.visible=!skel.visible;e.target.setAttribute('aria-pressed',String(skel.visible));};
 document.getElementById('bSpin').onclick=e=>{spin=!spin;e.target.setAttribute('aria-pressed',String(spin));};
 
+function skinBox(root){root.updateMatrixWorld(true);const b=new T3.Box3(),v=new T3.Vector3();let n=0;
+  root.traverse(o=>{if(!o.isMesh||!o.geometry)return;const p=o.geometry.attributes.position;if(!p)return;const st=Math.max(1,Math.floor(p.count/4000));
+    if(o.isSkinnedMesh&&o.skeleton)o.skeleton.update();
+    for(let i=0;i<p.count;i+=st){v.fromBufferAttribute(p,i);if(o.isSkinnedMesh&&o.boneTransform)o.boneTransform(i,v);v.applyMatrix4(o.matrixWorld);b.expandByPoint(v);n++}});return n?b:new T3.Box3().setFromObject(root)}
+function fitSkinned(obj,H){const b=skinBox(obj),h=b.max.y-b.min.y;if(h>1e-4)obj.scale.multiplyScalar(H/h);obj.updateMatrixWorld(true);const b2=skinBox(obj),c=b2.getCenter(new T3.Vector3());
+  const pi=obj.parent?new T3.Matrix4().copy(obj.parent.matrixWorld).invert():null;const off=new T3.Vector3(c.x,b2.min.y,c.z);const o0=new T3.Vector3(0,0,0);
+  if(pi){off.applyMatrix4(pi);o0.applyMatrix4(pi)}obj.position.x-=off.x-o0.x;obj.position.y-=off.y-o0.y;obj.position.z-=off.z-o0.z;obj.updateMatrixWorld(true);return h}
 function findBone(re){let f=null;model.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o;});return f;}
 function onLoad(g){
   model=g.scene;let tris=0,boneCount=0;
@@ -84,22 +91,21 @@ function onLoad(g){
     const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.anisotropy=8;m.envMapIntensity=.9;});}
     if(o.isBone)boneCount++;});
   scene.add(model);model.updateMatrixWorld(true);
-  const box=new T3.Box3().setFromObject(model),h=box.max.y-box.min.y;
-  if(h>0){const k=h<.5||h>4?1.83/h:1;model.scale.multiplyScalar(k);model.updateMatrixWorld(true);const b2=new T3.Box3().setFromObject(model),c=b2.getCenter(new T3.Vector3());model.position.x-=c.x;model.position.z-=c.z;model.position.y-=b2.min.y;}
   skel=new T3.SkeletonHelper(model);skel.visible=false;scene.add(skel);
   bones={spine:findBone(/spine0?2|chest|spine1/i)||findBone(/spine/i),head:findBone(/head/i),neck:findBone(/neck/i),hips:findBone(/hips|pelvis/i)};
   if(bones.head)bones.head.userData.r0=bones.head.rotation.clone();if(bones.spine)bones.spine.userData.r0=bones.spine.rotation.clone();if(bones.hips)bones.hips.userData.p0=bones.hips.position.clone();
   if(g.animations&&g.animations.length){mixer=new T3.AnimationMixer(model);
     g.animations.forEach((c,i)=>{const a=mixer.clipAction(c);actions[c.name||('Clip '+(i+1))]=a;});
-    Object.keys(actions).forEach((n,i)=>{const b=btn('moves',n.replace(/_/g,' '),()=>play(n,b));if(i===0)play(n,b);});}
+    Object.keys(actions).forEach((n,i)=>{const b=btn('moves',(n.split('|').filter(x=>x&&!/armature|baselayer/i.test(x)).join(' ')||n).replace(/_/g,' '),()=>play(n,b));if(i===0)play(n,b);});}
   const bi=btn('moves','Breathe',()=>{proc='idle';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bi);});
   const bs=btn('moves','Still',()=>{proc='still';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bs);});
   if(!cur)press('moves',bi);
+  if(mixer)mixer.update(0);const h=fitSkinned(model,1.83);
   const addWalk=(i)=>new T3.GLTFLoader().load(WALK[i],w=>{if(!w.animations||!w.animations[0])return;if(!mixer)mixer=new T3.AnimationMixer(model);const c=w.animations[0];
     c.tracks.forEach(tr=>{if(/position$/.test(tr.name)){const v=tr.values;for(let j=3;j<v.length;j+=3){v[j]=v[0];v[j+2]=v[2]}}});
     actions.Walk=mixer.clipAction(c);const bw=btn('moves','Walk',()=>play('Walk',bw));const row=document.getElementById('moves');row.insertBefore(bw,row.children[2]||null);},null,()=>{if(i===0)addWalk(1)});
   addWalk(0);
-  note.textContent=`${Math.round(tris).toLocaleString()} triangles · ${boneCount} bones · ${(h*(model.scale.x)).toFixed(2)} m tall${g.animations.length?' · '+g.animations.length+' clip(s)':''}`;
+  note.textContent=`${Math.round(tris).toLocaleString()} triangles · ${boneCount} bones · 1.83 m tall${g.animations.length?' · '+g.animations.length+' clip(s)':''}`;
   load.hidden=true;
 }
 function onProg(ev){if(ev.total)load.textContent='Loading model… '+Math.round(ev.loaded/ev.total*100)+'%';}
