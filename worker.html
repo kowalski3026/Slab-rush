@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kowalski Worker 3D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{--ink:#121416;--panel:rgba(16,18,20,.88);--steel:#2a2e33;--steel-hi:#3d434a;--bone:#ece6da;--dim:#9ba1a7;--amber:#f08a24;--amber-ink:#1c1206;
+--f-display:'Archivo Black','Arial Black',Impact,sans-serif;--f-ui:'Saira Condensed','Arial Narrow',system-ui,sans-serif;color-scheme:dark}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--bone);font-family:var(--f-ui);overflow:hidden}
+#stage{position:fixed;inset:0}#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 12px) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));pointer-events:none}
+h1{font-family:var(--f-display);font-size:20px;line-height:1;margin:0;text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+h1 small{display:block;font-family:var(--f-ui);font-weight:600;font-size:12px;letter-spacing:.16em;opacity:.85;margin-top:5px}
+h1 i{display:block;width:44px;height:4px;background:var(--amber);margin-top:6px}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--steel-hi);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(16px,env(safe-area-inset-left,0px));display:grid;gap:9px}
+.note{font-size:15px;line-height:1.25;min-height:1.25em}
+.row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.row::-webkit-scrollbar{display:none}
+.lab{font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;align-self:center;flex:0 0 auto;margin-right:2px}
+button{font-family:var(--f-ui);font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase;background:var(--steel);color:var(--bone);border:1px solid var(--steel-hi);border-radius:5px;padding:8px 12px;white-space:nowrap;cursor:pointer;flex:0 0 auto}
+button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
+#load{position:fixed;inset:0;display:grid;place-items:center;font-weight:700;letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="load">Loading model…</div>
+<div class="top"><h1>Kowalski Worker<small>HIGGSFIELD · MESHY 7 · RIGGED</small><i></i></h1></div>
+<div class="dock">
+  <div class="note" id="note">Drag to orbit, pinch to zoom.</div>
+  <div class="row" id="moves"><span class="lab">Move</span></div>
+  <div class="row" id="views"><span class="lab">View</span></div>
+  <div class="row" id="opts"><span class="lab">Show</span><button id="bSkel" type="button" aria-pressed="false">Skeleton</button><button id="bSpin" type="button" aria-pressed="false">Turntable</button></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+(function(){
+const MODEL='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_133410_44376faf-b03e-4955-87c7-1b7a67a89663.glb';
+const T3=THREE,lin=h=>new T3.Color(h).convertSRGBToLinear();
+const R=new T3.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+R.outputEncoding=T3.sRGBEncoding;R.toneMapping=T3.ACESFilmicToneMapping;R.shadowMap.enabled=true;R.shadowMap.type=T3.PCFSoftShadowMap;
+document.getElementById('stage').appendChild(R.domElement);
+const scene=new T3.Scene();const SKY=lin('#a9c2d8');scene.background=SKY;scene.fog=new T3.Fog(SKY,20,70);
+const cam=new T3.PerspectiveCamera(40,1,.05,200);const ctl=new T3.OrbitControls(cam,R.domElement);
+ctl.enableDamping=true;ctl.minDistance=.4;ctl.maxDistance=12;ctl.maxPolarAngle=1.53;ctl.target.set(0,1,0);cam.position.set(1.6,1.5,3.2);
+{const es=new T3.Scene(),g=new T3.SphereGeometry(10,32,16),c=[],p=g.attributes.position,top=lin('#8fb3d9'),hor=lin('#e9eef2'),gnd=lin('#5b5a45');
+ for(let i=0;i<p.count;i++){const y=p.getY(i)/10,col=y>0?hor.clone().lerp(top,Math.pow(y,.6)):hor.clone().lerp(gnd,Math.min(1,-y*3));c.push(col.r,col.g,col.b);}
+ g.setAttribute('color',new T3.Float32BufferAttribute(c,3));es.add(new T3.Mesh(g,new T3.MeshBasicMaterial({vertexColors:true,side:T3.BackSide})));
+ const s=new T3.Mesh(new T3.SphereGeometry(.8,12,8),new T3.MeshBasicMaterial({color:new T3.Color(14,12,10)}));s.position.set(5,7,4);es.add(s);
+ const pm=new T3.PMREMGenerator(R);scene.environment=pm.fromScene(es,.03).texture;}
+scene.add(new T3.HemisphereLight(lin('#e2ecf5'),lin('#6e5d46'),.35));
+const sun=new T3.DirectionalLight(lin('#fff0d8'),2.4);sun.position.set(3.5,7,2.5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-2.5,right:2.5,top:2.5,bottom:-2.5,near:.5,far:20});sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;scene.add(sun);
+// ground: grass + slab + forms
+function noiseTex(base,amt,n,rep){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,256,256);
+ for(let i=0;i<n;i++){const v=(Math.random()-.5)*amt;g.fillStyle=v>0?`rgba(255,255,255,${v})`:`rgba(0,0,0,${-v})`;g.fillRect(Math.random()*256,Math.random()*256,2,2);}
+ const t=new T3.CanvasTexture(c);t.encoding=T3.sRGBEncoding;t.wrapS=t.wrapT=T3.RepeatWrapping;t.repeat.set(rep,rep);return t;}
+const grass=new T3.Mesh(new T3.PlaneGeometry(80,80).rotateX(-Math.PI/2),new T3.MeshStandardMaterial({map:noiseTex('#55703a',.25,20000,30),roughness:1}));grass.position.y=-.005;grass.receiveShadow=true;scene.add(grass);
+const slab=new T3.Mesh(new T3.BoxGeometry(6,.08,4.5),new T3.MeshStandardMaterial({map:noiseTex('#8a8780',.1,20000,3),roughness:.35}));slab.position.set(0,-.03,.6);slab.receiveShadow=true;scene.add(slab);
+const wood=new T3.MeshStandardMaterial({color:lin('#b58a5a'),roughness:.75});
+[[0,-1.67,6.1,.04],[0,2.87,6.1,.04],[-3.02,.6,.04,4.5],[3.02,.6,.04,4.5]].forEach(([x,z,w,d])=>{const m=new T3.Mesh(new T3.BoxGeometry(w,.15,d),wood);m.position.set(x,-.055,z);m.castShadow=m.receiveShadow=true;scene.add(m);});
+
+const note=document.getElementById('note'),load=document.getElementById('load');
+let mixer=null,actions={},cur=null,skel=null,model=null,bones={},spin=false,proc='idle';
+const clock=new T3.Clock();
+function btn(row,label,on,id){const b=document.createElement('button');b.type='button';b.textContent=label;if(id)b.id=id;b.onclick=on;document.getElementById(row).appendChild(b);return b;}
+function press(row,b){document.querySelectorAll('#'+row+' button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));}
+const VIEWS={'¾':[1.6,1.5,3.2,1],'Front':[0,1.2,3.4,1],'Side':[3.4,1.2,0,1],'Back':[0,1.4,-3.4,1],'Face':[.25,1.7,.95,1.65]};
+for(const v in VIEWS){const b=btn('views',v,()=>{const o=VIEWS[v];cam.position.set(o[0],o[1],o[2]);ctl.target.set(0,o[3],0);press('views',b);});if(v==='¾')b.setAttribute('aria-pressed','true');}
+document.getElementById('bSkel').onclick=e=>{if(!skel)return;skel.visible=!skel.visible;e.target.setAttribute('aria-pressed',String(skel.visible));};
+document.getElementById('bSpin').onclick=e=>{spin=!spin;e.target.setAttribute('aria-pressed',String(spin));};
+
+function findBone(re){let f=null;model.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o;});return f;}
+new T3.GLTFLoader().load(MODEL,g=>{
+  model=g.scene;let tris=0,boneCount=0;
+  model.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.frustumCulled=false;const gi=o.geometry.index;tris+=(gi?gi.count:o.geometry.attributes.position.count)/3;
+    const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.anisotropy=8;m.envMapIntensity=.9;});}
+    if(o.isBone)boneCount++;});
+  scene.add(model);model.updateMatrixWorld(true);
+  const box=new T3.Box3().setFromObject(model),h=box.max.y-box.min.y;
+  if(h>0){const k=h<.5||h>4?1.83/h:1;model.scale.multiplyScalar(k);model.updateMatrixWorld(true);const b2=new T3.Box3().setFromObject(model),c=b2.getCenter(new T3.Vector3());model.position.x-=c.x;model.position.z-=c.z;model.position.y-=b2.min.y;}
+  skel=new T3.SkeletonHelper(model);skel.visible=false;scene.add(skel);
+  bones={spine:findBone(/spine0?2|chest|spine1/i)||findBone(/spine/i),head:findBone(/head/i),neck:findBone(/neck/i),hips:findBone(/hips|pelvis/i)};
+  if(bones.head)bones.head.userData.r0=bones.head.rotation.clone();if(bones.spine)bones.spine.userData.r0=bones.spine.rotation.clone();if(bones.hips)bones.hips.userData.p0=bones.hips.position.clone();
+  if(g.animations&&g.animations.length){mixer=new T3.AnimationMixer(model);
+    g.animations.forEach((c,i)=>{const a=mixer.clipAction(c);actions[c.name||('Clip '+(i+1))]=a;});
+    Object.keys(actions).forEach((n,i)=>{const b=btn('moves',n.replace(/_/g,' '),()=>play(n,b));if(i===0)play(n,b);});}
+  const bi=btn('moves','Idle',()=>{proc='idle';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bi);});
+  const bs=btn('moves','Still',()=>{proc='still';if(cur){cur.fadeOut(.4);cur=null;}press('moves',bs);});
+  if(!cur)press('moves',bi);
+  note.textContent=`${Math.round(tris).toLocaleString()} triangles · ${boneCount} bones · ${(h*(model.scale.x)).toFixed(2)} m tall${g.animations.length?' · '+g.animations.length+' clip(s)':''}`;
+  load.hidden=true;
+},ev=>{if(ev.total)load.textContent='Loading model… '+Math.round(ev.loaded/ev.total*100)+'%';},
+err=>{load.textContent='Model failed to load';note.textContent='Could not load the model file from Higgsfield. Check your connection and reload.';});
+function play(n,b){const a=actions[n];if(cur&&cur!==a)cur.fadeOut(.4);a.reset().fadeIn(.4).play();cur=a;proc='clip';press('moves',b);}
+
+function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.fov=w<h?52:40;cam.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+let t=0;
+(function frame(){const dt=Math.min(.05,clock.getDelta());t+=dt;
+  if(mixer)mixer.update(dt);
+  if(model&&proc==='idle'&&!cur){const b=Math.sin(t*1.7);
+    if(bones.spine&&bones.spine.userData.r0){bones.spine.rotation.x=bones.spine.userData.r0.x+.015*b;}
+    if(bones.head&&bones.head.userData.r0){bones.head.rotation.y=bones.head.userData.r0.y+.3*Math.sin(t*.23)*Math.sin(t*.11+1);}
+  }
+  if(model&&spin)model.rotation.y+=dt*.5;
+  ctl.update();R.render(scene,cam);requestAnimationFrame(frame);})();
+})();
+</script>
+</body>
+</html>
