@@ -9287,12 +9287,12 @@ function boardPlan(){const k=boardDay();let h=19;for(const ch of k)h=(h*31+ch.ch
     out.push({c,L,id:L.id,who:BNAMES[Math.floor(R()*BNAMES.length)],town:(BTOWNS[r]||BTOWNS.on)[Math.floor(R()*(BTOWNS[r]||BTOWNS.on).length)],tw:tw[0],twTxt:tw[1],
       need:prem?80:65,pay:Math.round((90+d*30)*tw[2]*(prem?1.6:1)/10)*10,wx:tw[0]==='hotwx'?'hot':['cool','mild','mild'][Math.floor(R()*3)],seed:h%99991+c*77+5})}
   return out}
-function boardState(){let b=store.get('bts-jobB',null);if(!b||b.d!==boardDay())b={d:boardDay(),done:[]};return b}
+function boardState(){let b=store.get('bts-board',null);if(!b||b.d!==boardDay())b={d:boardDay(),done:[]};return b}
 function streakState(){const s=store.get('bts-streak',{last:null,n:0,best:0});if(s.last){const y=new Date();y.setDate(y.getDate()-1);const yk=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
   if(s.last!==boardDay()&&s.last!==yk)s.n=0}return s}
 function renderBoard(){const el=$('boardCard');if(!el)return;const P=boardPlan(),B=boardState(),st=streakState();
   if(!P.length){el.innerHTML='';return}
-  el.innerHTML=`<div class="bhead"><span class="label">Job jobB · today</span><span class="bstreak ${st.n?'on':''}">🔥 ${st.n} day${st.n===1?'':'s'}${st.best>1?` · best ${st.best}`:''}</span></div>
+  el.innerHTML=`<div class="bhead"><span class="label">Job board · today</span><span class="bstreak ${st.n?'on':''}">🔥 ${st.n} day${st.n===1?'':'s'}${st.best>1?` · best ${st.best}`:''}</span></div>
    ${P.map(p=>{const dn=B.done.includes(p.c),on=jobB&&jobB.c===p.c&&jobB.d===boardDay();return `<button class="bjob ${dn?'done':''}" data-c="${p.c}" aria-pressed="${on}">
      <div class="bt"><b>${p.L.name}</b><em>${dn?'Paid ✓':'🪙 '+Math.round(p.pay*(seasonNow().x(p.L)?seasonNow().k2:1))+(seasonNow().x(p.L)&&seasonNow().k2>1?' 🍂':'')}</em></div>
      <span>${p.who} · ${p.town}, ${regById(regOf(p.L)).name}${p.need>65?' · <i class="prem">Premium: needs a B</i>':''}</span><small>${p.twTxt}</small></button>`}).join('')}
@@ -9305,29 +9305,29 @@ function boardStart(){if(!boardActive())return;const t=jobB.tw;
   else if(t==='hot'&&S.pour!=null){SITE={hot:{on:false}}}
   else if(t==='insp'&&S.screed!=null&&S.screed+1<STAGES.length){SITE={insp:{phase:'wait'}}}}
 function boardFinish(total,out){if(!boardActive()||practice)return;const B=boardState();if(B.done.includes(jobB.c))return;
-  if(total<jobB.need){out.push(['Job jobB',`${jobB.who} wanted a ${jobB.need>=80?'B':'C'} or better. No payout this time.`,0]);return}
-  const se=seasonNow(),pay=Math.round(jobB.pay*(se.x(jobB.L)?se.k2:1));B.done.push(jobB.c);store.set('bts-jobB',B);coinsAdd(pay);out.push(['Job jobB',`${jobB.who} in ${jobB.town} paid up`+(pay>jobB.pay?` (${se.n} bonus)`:''),pay]);
+  if(total<jobB.need){out.push(['Job board',`${jobB.who} wanted a ${jobB.need>=80?'B':'C'} or better. No payout this time.`,0]);return}
+  const se=seasonNow(),pay=Math.round(jobB.pay*(se.x(jobB.L)?se.k2:1));B.done.push(jobB.c);store.set('bts-board',B);coinsAdd(pay);out.push(['Job board',`${jobB.who} in ${jobB.town} paid up`+(pay>jobB.pay?` (${se.n} bonus)`:''),pay]);
   const s=streakState();if(s.last!==boardDay()){s.n=(s.n||0)+1;s.last=boardDay();s.best=Math.max(s.best||0,s.n);const bon=Math.min(250,25*s.n);coinsAdd(bon);out.push(['Streak',`${s.n} day${s.n>1?'s':''} in a row`,bon]);store.set('bts-streak',s)}
   jobB=null}
 
 /* ---------- v172 come-back loops: seasons, badges, the portfolio wall ---------- */
-// seasons follow the real calendar; each one pays extra coins on the jobB for the jobs that fit it
+// seasons follow the real calendar; each one pays extra coins on the board for the jobs that fit it
 function seasonNow(){const m=new Date().getMonth();
-  if(m>=9&&m<=10)return{k:'fall',n:'Fall Freeze-Up',d:'Cold-weather and blanket jobs pay double on the jobB.',x:L=>L.wx==='cold'||L.steps.includes('blanket')||regOf(L)==='nt',k2:2};
-  if(m===11||m<=1)return{k:'winter',n:'Winter Heat',d:'Heated slabs and northern jobs pay +50% on the jobB.',x:L=>L.steps.includes('tube')||regOf(L)==='nt'||regOf(L)==='rk',k2:1.5};
-  if(m>=2&&m<=4)return{k:'spring',n:'Spring Rush',d:'Every jobB contract pays +25%. Phones are ringing.',x:()=>true,k2:1.25};
+  if(m>=9&&m<=10)return{k:'fall',n:'Fall Freeze-Up',d:'Cold-weather and blanket jobs pay double on the board.',x:L=>L.wx==='cold'||L.steps.includes('blanket')||regOf(L)==='nt',k2:2};
+  if(m===11||m<=1)return{k:'winter',n:'Winter Heat',d:'Heated slabs and northern jobs pay +50% on the board.',x:L=>L.steps.includes('tube')||regOf(L)==='nt'||regOf(L)==='rk',k2:1.5};
+  if(m>=2&&m<=4)return{k:'spring',n:'Spring Rush',d:'Every board contract pays +25%. Phones are ringing.',x:()=>true,k2:1.25};
   return{k:'summer',n:'Summer Heat',d:'Hot-weather contracts pay +50%. Hydrate.',x:L=>jobB&&jobB.wx==='hot',k2:1.5}}
 const BADGES=[
   ['first','First pour','Finish any job',r=>true,50],['b','Solid','Get a B or better',r=>r.total>=80,75],['a','Kowalski-grade','Get an A',r=>r.total>=90,150],['s95','Mirror finish','Score 95 or better',r=>r.total>=95,300],
   ['steps3','Stair builder','Finish 3 stair jobs',r=>r.stairN>=3,150],['stamp','Stamp artist','B or better on a stamped job',r=>r.stamp&&r.total>=80,120],['cold','Cold hands','Finish a cold-weather job',r=>r.wx==='cold',100],
   ['night','Night owl','Finish the night pour',r=>r.id==='night',100],['rain','Tarp master','Finish a job after rain hit',r=>r.rain,100],['pump','Pump operator','Finish a boom pump job',r=>r.pump,100],
   ['reg3','Road trip','Finish jobs in 3 regions',r=>r.regN>=3,200],['reg7','Coast to coast','Finish a job in every region',r=>r.regN>=7,600],
-  ['st3','On a roll','3-day job jobB streak',r=>r.streak>=3,150],['st7','Full week','7-day job jobB streak',r=>r.streak>=7,400],['bd10','Repeat customers','Finish 10 jobB contracts',r=>r.boardN>=10,300],
+  ['st3','On a roll','3-day job job board streak',r=>r.streak>=3,150],['st7','Full week','7-day job job board streak',r=>r.streak>=7,400],['bd10','Repeat customers','Finish 10 board contracts',r=>r.boardN>=10,300],
   ['j25','Seasoned','Finish 25 jobs',r=>r.jobsN>=25,250],['bc','Wet coast','C or better on every BC job',r=>r.regAll.bc,250],['nt','True north','C or better on every northern job',r=>r.regAll.nt,300]];
-function badgesOnFinish(total,out){const got=store.get('bts-badges',[]),cnt=store.get('bts-counts',{jobs:0,jobB:0,stairs:0});cnt.jobs++;if(LV.stair)cnt.stairs++;
-  if(out.some(o=>o[0]==='Job jobB'&&o[2]>0))cnt.jobB++;store.set('bts-counts',cnt);
+function badgesOnFinish(total,out){const got=store.get('bts-badges',[]),cnt=store.get('bts-counts',{jobs:0,board:0,stairs:0});cnt.jobs++;if(LV.stair)cnt.stairs++;
+  if(out.some(o=>o[0]==='Job board'&&o[2]>0))cnt.board++;store.set('bts-counts',cnt);
   const regs=new Set(LEVELS.filter(L=>bestOf(L.id)>0&&!L.free&&!L.tut).map(regOf)),all={};REGIONS.forEach(R=>{const js=LEVELS.filter(L=>regOf(L)===R.id&&!L.tut&&!L.free);all[R.id]=js.length>0&&js.every(L=>bestOf(L.id)>=65)});
-  const r={id:LV.id,total,wx:wxKeyNow(),stamp:STAGES.some(x=>x.key==='stamp'),rain:!!(ev&&ev.type==='rain'&&ev.phase!=='wait'),pump:!!LV.pump,stairN:cnt.stairs,regN:regs.size,streak:streakState().n,boardN:cnt.jobB,jobsN:cnt.jobs,regAll:all};
+  const r={id:LV.id,total,wx:wxKeyNow(),stamp:STAGES.some(x=>x.key==='stamp'),rain:!!(ev&&ev.type==='rain'&&ev.phase!=='wait'),pump:!!LV.pump,stairN:cnt.stairs,regN:regs.size,streak:streakState().n,boardN:cnt.board,jobsN:cnt.jobs,regAll:all};
   BADGES.forEach(([k,n,d,t,c])=>{if(!got.includes(k)&&t(r)){got.push(k);coinsAdd(c);out.push(['Badge',n+' · '+d,c])}});store.set('bts-badges',got)}
 // portfolio: the overhead photo of your best score on every job
 function portSave(id,total){try{const p=store.get('bts-port',{});if(p[id]&&p[id].s>=total)return;const src=photoA||photoB;if(!src)return;
