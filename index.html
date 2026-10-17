@@ -1,4 +1,13 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.rmap{position:relative;margin:0 0 10px;border-radius:14px;overflow:hidden;border:1px solid var(--glass-line);background:radial-gradient(120% 90% at 50% 0%,#24405a,#132230 70%)}
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+.xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
+.board{display:grid;gap:7px;margin:10px 0}.bhead{display:flex;justify-content:space-between;align-items:center}.bstreak{font:700 12px var(--f-label);color:var(--dim)}.bstreak.on{color:#ffb22a}
+.bjob{display:grid;gap:2px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--glass-line);background:linear-gradient(135deg,rgba(255,171,31,.1),rgba(255,255,255,.04));color:var(--ink)}
+.bjob[aria-pressed="true"]{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}.bjob.done{opacity:.55}.bjob .bt{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bjob b{font:400 15px var(--f-game)}.bjob em{font-style:normal;font:700 13px var(--f-label);color:var(--amber);white-space:nowrap}.bjob span{font-size:12.5px;color:var(--muted)}.bjob small{font-size:12px;color:#9fd2e6}.bjob .prem{font-style:normal;color:#ffb22a}
+.bnote{margin:0;font-size:11.5px;color:var(--dim)}
+.rmap{position:relative;margin:0 0 10px;border-radius:14px;overflow:hidden;border:1px solid var(--glass-line);background:radial-gradient(120% 90% at 50% 0%,#24405a,#132230 70%)}
 .rmap svg{display:block;width:100%;height:auto;max-height:190px}.rmap .cl{fill:#3f5f4a;stroke:#9cc4a4;stroke-width:1;stroke-linejoin:round;opacity:.9}
 .rpin{cursor:pointer}.rpin .hit{fill:transparent}.rpin .dot{fill:#ff8a12;stroke:#fff;stroke-width:2}.rpin.on .dot{fill:#ffd23a;filter:drop-shadow(0 0 6px #ffb22a)}
 .rpin.lk .dot{fill:#5b6672;stroke:#b8c2cc}.rpin .lock{font-size:9px;text-anchor:middle}.rpin .lbl{fill:#f4efe2;font:700 10.5px var(--f-label,sans-serif);text-anchor:middle;text-transform:uppercase;letter-spacing:.04em;paint-order:stroke;stroke:#0d1720;stroke-width:3px}
@@ -683,6 +692,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
     <dl class="spec" id="spec"></dl>
     <p class="protip" id="proTip"></p>
     <button class="daily" id="dailyBtn" aria-pressed="false"><span class="label">Daily challenge</span><b id="dailyJob">Today</b><span id="dailyInfo"></span></button>
+    <div class="board" id="boardCard"></div>
     <p class="crashnote" id="crashNote" hidden></p>
     <button class="daily practice" id="practiceBtn"><span class="label">Practice yard</span><b>Practice any tool</b><span>No clock, no score. Excavator, screed, broom, power trowel, stamping and more.</span></button>
     <div class="goals" id="goalsCard"></div>
@@ -1042,6 +1052,24 @@ const LEVELS=[
    scene:()=>foundationScene(),
    lede:'Basement walls for a new house: 35 by 16 ft with the garage jog, eight feet of form, ten inch walls all the way around. It takes a lot of mud, so the boom pump is set up on the road. Work around the house in lifts. Pile it up in one spot and the forms take the pressure. Trowel the tops for the sill plate.',
    slab:'10 in walls, 8 ft tall, full house perimeter',finish:'Hand troweled tops for the sill plate'},
+  {id:'cottage',name:'Muskoka Cottage Patio',tag:'20 × 10 ft · on the lake',sea:{x:36},shape:rectPoly(-10,-5,10,5),steps:['pour','screed','float','edge','trowel','joint','broom'],
+   wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,truck:{x:-12,z:0,ry:Math.PI},sunFlip:true,
+   scene:()=>cottageScene(),dress:()=>cottageDock(),
+   lede:'A patio between the cottage and the lake, up in Muskoka. Loons on the water, the dock out front, and the owners watching from their Muskoka chairs. Light trowel, joints at 10 ft, a fine broom.',
+   slab:'20 × 10 ft patio, 4 in thick',finish:'Light trowel, fine broom, joints at 10 ft'},
+  {id:'firehall',name:'Fire Hall Apron',tag:'44 × 16 ft · pump · heavy duty',ls:2.4,pump:true,shape:rectPoly(-22,-8,22,8),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'16 ft',pTxt:'15 ft',maxPanel:15.5,minPanel:5,truck:{x:-28,z:17,ry:Math.PI},mix:'35 MPa, 5-8% air, 8 in',
+   scene:()=>fireHall(),
+   lede:'The apron in front of the new fire hall in Innisfil, where the pumpers roll out on a call. Eight inches thick, three bays wide, pumped from the side so the trucks can still get out. Joints at 15 ft and a broom.',
+   slab:'44 × 16 ft apron, 8 in thick',finish:'Broom, joints at 15 ft'},
+  {id:'bridge',name:'Highway 400 Bridge Deck',tag:'48 × 24 ft · night · deck finisher',ls:2.4,elev:20,pump:true,bridge:true,wx:'night',
+   wxNote:'Night pour: lanes closed under the bridge from 10 to 5. Work lights on the deck, traffic still moving below.',
+   shape:[[-24,-12,1],[24,-12,1],[24,12,1],[-24,12,1]],steps:['pour','screed','float','broom','cure'],names:{screed:'Deck finisher',broom:'Tine broom'},
+   desc:{screed:'The deck finisher rides the rails on both parapets. Drag along the span and the carriage strikes off the full width as it rolls. Make passes until it reads flat: this deck carries the 400.',broom:'Pull a tine broom across the deck in straight passes so tires grip in the rain.',cure:'Spray the white curing compound over the whole deck, even coats, no bare spots. It has to cure slow and hard.'},
+   wTxt:'24 ft',pTxt:'48 ft',maxPanel:99,minPanel:1,truck:{x:-40,z:22,ry:0},sunFlip:true,mix:'50 MPa HPC, silica fume, 5-8% air',
+   scene:()=>bridgeSite(),dress:()=>bridgeDress(),
+   lede:'One span of a new bridge deck on the Highway 400 extension in Barrie, poured at night with the lanes closed underneath. The boom pump reaches up from the shoulder, the deck finisher rides the parapet rails, and the whole span gets tined and cured before the sun comes up. Kris\'s biggest job, now yours.',
+   slab:'48 × 24 ft bridge deck span, 9 in thick',finish:'Deck finisher strike-off, bull float, tine broom, white cure'},
   {id:'bcsteps',reg:'bc',name:'Hillside Steps',tag:'5 steps + landing · North Shore',stair:{c:[8,11,14,17,20,23,35],rise:7},ls:.8,depth:8,clk:.45,
    shape:[[-5.3333,-2.6667],[3.6667,-2.6667,1],[3.6667,2.6667],[-5.3333,2.6667]],steps:['sform','riser','sbar','pour','vibe','tread'],
    wTxt:'5 ft 4 in',pTxt:'12 in',maxPanel:99,minPanel:1,truck:{x:6.5,z:11,ry:Math.PI},mix:'32 MPa, 5-8% air, 20 mm stone',
@@ -1069,6 +1097,100 @@ const LEVELS=[
    scene:()=>gastownSite(),
    lede:'A run of sidewalk in Gastown, under the brick and the street clock. Foot traffic all day, and the forecast says rain by the time you\'re edging. Tarp it the moment it starts, and shoo the tourists off your wet concrete.',
    slab:'5 × 30 ft sidewalk, 4 in thick',finish:'Broom, joints every 5 ft'},
+  {id:'plexsteps',reg:'qc',name:'Plex Front Steps',tag:'4 steps + landing · Plateau',stair:{c:[10,13,16,19,22,34],rise:7.5},ls:.8,depth:8,clk:.5,
+   shape:[[-4.6667,-2.6667],[3.3333,-2.6667,1],[3.3333,2.6667],[-4.6667,2.6667]],steps:['sform','riser','sbar','pour','vibe','tread'],
+   wTxt:'5 ft 4 in',pTxt:'12 in',maxPanel:99,minPanel:1,truck:{x:6,z:10.5,ry:Math.PI},mix:'32 MPa, 5-8% air, 20 mm stone',
+   scene:()=>{house(3.4,0,30,-90,[['door',0,undefined,true],['win',-7],['win',7],['light',2.3],['light',-2.3]],{raise:3.2,h:12});plex(18,-30,26,-Math.PI/2);plex(18,32,26,-Math.PI/2);shrub(1.4,-6.6,1);shrub(1.4,6.6,1);lawn()},
+   lede:'New concrete steps up to a brick plex on the Plateau. Four risers and a landing. The old wooden ones rotted out after forty winters. Form it, bar it, vibrate it, and hand finish each tread. Mind the neighbours\' stairs.',
+   slab:'4 steps + 4 × 5 ft landing, 7½ in risers, 12 in treads',finish:'Hand trowel, tooled nosings, light broom'},
+  {id:'ruelle',reg:'qc',name:'Ruelle Verte Walk',tag:'5 × 30 ft · back lane',ls:1.5,shape:[[-15,-1],[15,-1],[15,4],[-15,4]],steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'5 ft',pTxt:'5 ft',maxPanel:5.5,minPanel:2.5,truck:{x:-15.4,z:9.8,ry:0},sunFlip:true,
+   scene:()=>{plex(-26,-14,26,0);plex(0,-14,26,0);plex(26,-14,26,0);fence(-60,-2.4,60,-2.4);for(let x=-40;x<=40;x+=8){shrub(x,6.4,1.2);shrub(x+3,7.2,.9)}lumber(36,12);lawn()},
+   lede:'A greened back lane in Montreal: the neighbours tore out the asphalt and want a concrete path down the middle, with gardens on both sides. Kids on bikes, cats on fences. Joints every 5 ft, broom it, and don\'t step in the tomatoes.',
+   slab:'5 × 30 ft lane walk, 4 in thick',finish:'Broom, joints every 5 ft'},
+  {id:'cabane',reg:'qc',name:'Sugar Shack Pad',tag:'20 × 12 ft · in the maples',ls:1.2,shape:rectPoly(-10,-6,10,6),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'12 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:4,
+   scene:()=>{house(0,-12,30,0,[['door',-4,0x6b2a22],['win',4],['win',-10],['light',-1.8]],{h:10,d:18,col:'#9e4b3c',chimney:8});lumber(-18,-4);for(let k=0;k<9;k++)shadeTree(-26+Math.random()*52,-28-Math.random()*16,.9+Math.random()*.3);shadeTree(-20,10,1);lawn()},
+   lede:'A pad in front of the sugar shack so the tour buses have somewhere to unload in the spring. It\'s in the bush, the truck had to crawl in on the farm road, and the boss wants it done before the sap runs.',
+   slab:'20 × 12 ft pad, 5 in thick',finish:'Broom, joint at 10 ft'},
+  {id:'vieuxqc',reg:'qc',name:'Old Québec Plaza',tag:'Stamped · ashlar',shape:rectPoly(-10,-5,10,5),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can.'},
+   wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(196,182,160)',sunFlip:true,
+   scene:()=>{[[-24,16,22,'BOULANGERIE','#6b2a22'],[-8,16,26,'CAFÉ DU COIN','#2a3f66'],[8,16,22,'ÉPICERIE','#2f4f4a'],[24,16,24,'BISTRO','#7a3a2a']].forEach(([x,w,H,n,a])=>storefront(x,w,-8.5,H,n,a));lampPost(-14,6.5);lampPost(14,6.5);lawn()},
+   lede:'A little plaza between the shops in the old town. It has to look like the stone it\'s replacing: colour hardener, then stamp it in ashlar slate, then saw the joints the next morning in the grout lines.',
+   slab:'20 × 10 ft plaza, 4 in thick',finish:'Colour hardener, ashlar stamp, saw-cut joints'},
+  {id:'binpad',reg:'pr',name:'Grain Bin Pad',tag:'18 ft round · farmyard',ls:2,shape:[[9.0,0.0],[8.863,1.563],[8.457,3.078],[7.794,4.5],[6.894,5.785],[5.785,6.894],[4.5,7.794],[3.078,8.457],[1.563,8.863],[0.0,9.0],[-1.563,8.863],[-3.078,8.457],[-4.5,7.794],[-5.785,6.894],[-6.894,5.785],[-7.794,4.5],[-8.457,3.078],[-8.863,1.563],[-9.0,0.0],[-8.863,-1.563],[-8.457,-3.078],[-7.794,-4.5],[-6.894,-5.785],[-5.785,-6.894],[-4.5,-7.794],[-3.078,-8.457],[-1.563,-8.863],[-0.0,-9.0],[1.563,-8.863],[3.078,-8.457],[4.5,-7.794],[5.785,-6.894],[6.894,-5.785],[7.794,-4.5],[8.457,-3.078],[8.863,-1.563]],steps:['pour','screed','float','edge','broom'],
+   wTxt:'18 ft',pTxt:'18 ft',maxPanel:99,minPanel:1,
+   scene:()=>{grainBin(-20,-12,7,20);grainBin(-4,-16,7,20);grainBin(12,-16,7,20);gravelRoad(-30,14);house(-50,20,38,90,[['door',-4],['win',4],['win',-12],['light',-1.8]]);shelterbelt(-60,60,-40);lawn()},
+   lede:'A pad for a new grain bin on a farm outside Saskatoon. Round forms, no joints, and wind coming across the stubble the whole time. It dries the top before you know it, so float early and keep moving.',
+   slab:'18 ft round bin pad, 6 in thick',finish:'Broom, tooled edge'},
+  {id:'shopapron',reg:'pr',name:'Shop Apron',tag:'30 × 12 ft · in front of the shop',ls:1.6,shape:rectPoly(-15,-6,15,6),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'12 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:4,truck:{x:-6,z:13.5,ry:0},
+   scene:()=>{steelShop(0,-6.3,40,30,18);gravelRoad(-40,16);grainBin(36,-22,6,18);shelterbelt(-70,70,-50);lawn()},
+   lede:'The apron in front of a new steel shop, where the tractors and the combine roll in and out. Big and flat, prairie wind on it all afternoon. Joints every 10 ft and a good broom so it isn\'t slick in winter.',
+   slab:'30 × 12 ft apron, 6 in thick',finish:'Broom, joints at 10 ft'},
+  {id:'acreage',reg:'pr',name:'Acreage Driveway',tag:'12 × 31 ft · gravel road',ls:1.6,shape:[[-15.6,-6],[15.75,-6,1],[15.75,6],[-15.6,6]],steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'12 ft',pTxt:'12 ft',maxPanel:12.5,minPanel:4,truck:'street',curb:-21,view:-Math.PI/2,
+   scene:()=>{house(15.75,-4,40,-90,[['garage',4,10],['door',-9],['win',-15],['win',13],['light',-1.6],['light',9.6]]);gravelRoad(-21,24);shelterbelt(-60,60,-34);shelterbelt(-60,60,30);lawn()},
+   lede:'A driveway out on an acreage, from the garage to the gravel road. Nothing but sky in every direction, and the wind finds you. Joints every 12 ft and broom it.',
+   slab:'12 × 31 ft driveway, 4 in thick',finish:'Broom, joints at 12 ft or less'},
+  {id:'windpatio',reg:'pr',name:'Windy Day Patio',tag:'20 × 10 ft · gusts',shape:rectPoly(-10,-5,10,5),steps:['pour','screed','float','edge','trowel','joint','broom'],ev:'wind',
+   wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,sunFlip:true,
+   scene:()=>{house(0,-6.6,48,0,[['slider',0],['win',-9],['win',9],['spout',-13.5],['ac',-17],['bed',14,6]]);shelterbelt(-50,50,-40);lawn()},
+   lede:'A back patio in Regina. The forecast says 50 km/h gusts by noon, which on the prairies means a nice day. It\'ll skin over on top while it\'s still soft under, so keep moving and don\'t go home early.',
+   slab:'20 × 10 ft patio, 4 in thick',finish:'Light trowel, broom, joints at 10 ft'},
+  {id:'lodge',reg:'rk',name:'Lodge Patio',tag:'Stamped · mountain lodge',shape:rectPoly(-10,-5,10,5),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can.'},
+   wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(150,140,128)',sunFlip:true,
+   scene:()=>{house(0,-7.5,56,0,[['slider',-8],['slider',8],['win',-20],['win',20],['light',0],['bed',-24,6]],{h:13,d:28,chimney:14});chair(14,6,-.4);chair(17,4,-.7);lawn()},
+   lede:'The patio off the back of a lodge in Canmore, looking up at the Three Sisters. Grey hardener and a slate stamp so it looks like the mountain. Thin dry air: it sets up quicker than you think.',
+   slab:'20 × 10 ft patio, 4 in thick',finish:'Colour hardener, slate stamp, saw-cut joints'},
+  {id:'hotspring',reg:'rk',name:'Hot Springs Deck',tag:'Pool deck · broom',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,sunFlip:true,
+   scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['light',11]],{h:11,d:24});chair(17.4,-8.6,0);chair(17.4,-12.6,0);lawn()},
+   lede:'A deck around a hot springs pool in Banff. It\'s poured to the coping, so no form on that side. Bathers in robes watching you work. Broom it so wet feet grip, and joints every 10 ft.',
+   slab:'Wrap-around pool deck, {A} sq ft, 4 in thick',finish:'Broom, joints at 10 ft'},
+  {id:'rksteps',reg:'rk',name:'Chalet Steps',tag:'3 steps + landing · cold',stair:{c:[13,16,19,22,34],rise:7.5},ls:.8,depth:8,clk:.5,wx:'cold',
+   wxNote:'Cold job: 4°C at the chalet, frost overnight. It sets slow, but you\'re in the shade of the mountain all afternoon.',
+   shape:[[-3.6667,-2.6667],[3.3333,-2.6667,1],[3.3333,2.6667],[-3.6667,2.6667]],steps:['sform','riser','sbar','pour','vibe','tread'],
+   wTxt:'5 ft 4 in',pTxt:'12 in',maxPanel:99,minPanel:1,truck:{x:6,z:10.5,ry:Math.PI},mix:'32 MPa, 5-8% air, 20 mm stone, accelerator',
+   scene:()=>{house(3.4,0,32,-90,[['door',0,undefined,true],['win',-7],['win',7],['light',2.3],['light',-2.3]],{raise:2.55,h:12,chimney:-8});shrub(1.4,-6.2,1);shrub(1.4,6.2,1);lawn(true)},
+   lede:'Front steps up to a ski chalet. Three risers and a landing, poured in the cold under the peaks. Form it, bar it, vibrate it, and hand finish every tread before the light goes.',
+   slab:'3 steps + 4 × 5 ft landing, 7½ in risers, 12 in treads',finish:'Hand trowel, tooled nosings, light broom'},
+  {id:'wharf',reg:'at',name:'Wharf Slab',tag:'22 × 11 ft · salt water',ls:1.2,sea:{x:26},shape:rectPoly(-11,-5.5,11,5.5),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'11 ft',pTxt:'11 ft',maxPanel:11.5,minPanel:4,truck:{x:0,z:-6,ry:Math.PI/2},mix:'35 MPa, 5-8% air, marine',
+   scene:()=>{fishShack(-22,-14,0,'#c0392b');fishShack(-34,-12,.2,'#f2c230');fishShack(-10,-20,-.1,'#2a6fb0');house(-40,16,26,90,[['door',0],['win',-6],['win',6]],{col:'#2f8a5a'});lawn()},
+   dress:()=>marinaDocks(),
+   lede:'The slab at the head of the wharf in a Nova Scotia fishing village, where the lobster crates come off the boats. Salt spray and fog. Heavy broom so it isn\'t a skating rink, joints every 11 ft.',
+   slab:'22 × 11 ft wharf slab, 6 in thick',finish:'Heavy broom, joints at 11 ft'},
+  {id:'jellybean',reg:'at',name:'Jellybean Row Steps',tag:'3 steps + landing · St. John\'s',stair:{c:[13,16,19,22,34],rise:7.5},ls:.8,depth:8,clk:.5,
+   shape:[[-3.6667,-2.6667],[3.3333,-2.6667,1],[3.3333,2.6667],[-3.6667,2.6667]],steps:['sform','riser','sbar','pour','vibe','tread'],
+   wTxt:'5 ft 4 in',pTxt:'12 in',maxPanel:99,minPanel:1,truck:{x:6,z:10.5,ry:Math.PI},mix:'32 MPa, 5-8% air, 20 mm stone',
+   scene:()=>{house(3.4,0,24,-90,[['door',0,undefined,true],['win',-6],['win',6],['light',2.3]],{raise:2.55,h:20,col:'#f2c230'});house(3.4,-26,24,-90,[['door',0],['win',-6],['win',6]],{raise:2.55,h:20,col:'#c0392b'});house(3.4,26,24,-90,[['door',0],['win',-6],['win',6]],{raise:2.55,h:20,col:'#2a6fb0'});lawn()},
+   lede:'Steps up to a yellow rowhouse on Jellybean Row in St. John\'s, right on the hill. Three risers and a landing, poured between the red one and the blue one. Fog\'s rolling in off the harbour.',
+   slab:'3 steps + 4 × 5 ft landing, 7½ in risers, 12 in treads',finish:'Hand trowel, tooled nosings, light broom'},
+  {id:'lighthouse',reg:'at',name:'Lighthouse Path',tag:'4 ft · S-curve · cliffside',sea:{x:30},shape:curvePoly(x=>2.4*Math.cos(Math.PI*(x+10)/20),4,-10,10,.5),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'4 ft',pTxt:'5 ft',maxPanel:6.25,minPanel:2.5,
+   scene:()=>{lighthouse(8,-18);lawn()},
+   lede:'A new walk out to the lighthouse at Peggy\'s Cove for the tour crowds. It curves across the rock, the wind\'s off the ocean, and the fog horn goes every thirty seconds. Joints every 5 ft and broom it.',
+   slab:'4 ft curved walk, {A} sq ft, 4 in thick',finish:'Broom, joints every 5 ft'},
+  {id:'ykpad',reg:'nt',name:'Heated Garage Pad',tag:'20 × 10 ft · snowmelt + blankets',shape:rectPoly(-10,-5,10,5),steps:['tube','pour','screed','float','edge','joint','broom','blanket'],wx:'cold',
+   wxNote:'Cold job: −2°C in Yellowknife and falling. Heated loop under it, blankets on top before dark, or it freezes.',
+   wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,sunFlip:true,
+   scene:()=>{house(0,-6.6,40,0,[['garage',-6,12],['door',8],['win',14],['light',1.2]]);box(1.2,3,2.2,new THREE.MeshStandardMaterial({color:0x5a5f66,metalness:.5,roughness:.4}),16,1.2,-5.6);lawn(true)},
+   lede:'A heated pad in front of a Yellowknife garage. Lay the PEX loop before the truck shows, pour and finish it in the cold, then get the insulated blankets on before the sun goes down at four.',
+   slab:'20 × 10 ft heated pad, 5 in thick',finish:'Broom, joints, PEX loop, insulated blankets'},
+  {id:'ntwalk',reg:'nt',name:'Northern Store Walk',tag:'5 × 30 ft · −5°C',ls:1.5,shape:[[-15,-1],[15,-1],[15,4],[-15,4]],steps:['pour','screed','float','edge','joint','broom','blanket'],wx:'cold',peds:true,
+   wxNote:'Cold job: −5°C, the sun is low all day. Blankets on before you leave.',
+   wTxt:'5 ft',pTxt:'5 ft',maxPanel:5.5,minPanel:2.5,truck:{x:-15.4,z:9.8,ry:0},sunFlip:true,
+   scene:()=>{northStore(0,-9);streetX(6.5);lawn(true)},
+   lede:'The walk in front of the general store in a northern town. Everybody in town comes by for groceries, so shoo them off. Finish it, broom it, and get the blankets down before it freezes.',
+   slab:'5 × 30 ft sidewalk, 4 in thick',finish:'Broom, joints every 5 ft, blankets'},
+  {id:'ntsteps',reg:'nt',name:'Cabin Steps',tag:'3 steps + landing · frozen',stair:{c:[13,16,19,22,34],rise:7.5},ls:.8,depth:8,clk:.55,wx:'cold',
+   wxNote:'Cold job: −3°C at the cabin. It sets slow, so you have time, but the light doesn\'t last.',
+   shape:[[-3.6667,-2.6667],[3.3333,-2.6667,1],[3.3333,2.6667],[-3.6667,2.6667]],steps:['sform','riser','sbar','pour','vibe','tread'],
+   wTxt:'5 ft 4 in',pTxt:'12 in',maxPanel:99,minPanel:1,truck:{x:6,z:10.5,ry:Math.PI},mix:'32 MPa, 5-8% air, accelerator, hot water',
+   scene:()=>{house(3.4,0,28,-90,[['door',0,undefined,true],['win',-6],['win',6],['light',2.3]],{raise:2.55,col:'#9e4b3c',chimney:-6});lawn(true)},
+   lede:'Steps up to a cabin outside Whitehorse, snow already on the ground. Hot water in the mix and an accelerator. Three risers and a landing, finished tread by tread before your hands quit.',
+   slab:'3 steps + 4 × 5 ft landing, 7½ in risers, 12 in treads',finish:'Hand trowel, tooled nosings, light broom'},
   {id:'custom',name:'Design Your Own',tag:'Draw any shape',free:true,shape:()=>custPoly(),steps:['pour','screed','float','edge','trowel','joint','broom'],
    wTxt:'full',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,sunFlip:true,
    scene:()=>{house(0,-7,50,0,[['slider',-3],['win',-11],['win',6],['spout',12.5],['bed',-17,6],['light',1.4]]);lawn()},
@@ -1628,10 +1750,10 @@ const treeIMs=[],treeSpots=[],bgPine={ims:[]};
  for(let i=0;i<n;i++){const a=Math.PI*(-.05+Math.random()*1.1),r=i<34?34+Math.random()*55:48+Math.random()*80;treeSpots.push([-Math.cos(a)*r,-Math.sin(a)*r*.85-8,10+Math.random()*12])}
  layers.forEach(([w,hgt,y0])=>{const im=new THREE.InstancedMesh(new THREE.ConeGeometry(1,1,9),tm,n);im.castShadow=true;im.userData={w,hgt,y0};scene.add(im);treeIMs.push(im)});
  const tr=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.35,1,6),new THREE.MeshStandardMaterial({color:0x4a3a2a,roughness:1}),n);tr.userData={trunk:true};scene.add(tr);treeIMs.push(tr)}
-function setTrees(roadX,wide,clr){const dm=new THREE.Object3D(),tk=(typeof RT==='function'&&RT().treeK)||1,dn=typeof RT==='function'&&!!RT().dense;bgPine.last=roadX;bgPine.lastW=wide;bgPine.lastC=clr;
-  treeIMs.forEach(im=>{const u=im.userData;if(u.real){u.idx.forEach((i,j)=>{const[x,z,H0]=treeSpots[i],H=H0*tk,hide=(i>=34&&!dn)||(roadX!=null&&x<roadX+2&&x>roadX-(wide||34))||(clr&&x>clr[0]&&x<clr[2]&&z>clr[1]&&z<clr[3]),k=H*1.45/u.h;
+function setTrees(roadX,wide,clr){const dm=new THREE.Object3D(),tk=(typeof RT==='function'&&RT().treeK)||1,dn=typeof RT==='function'&&!!RT().dense,sp=typeof RT==='function'&&RT().sparse;bgPine.last=roadX;bgPine.lastW=wide;bgPine.lastC=clr;
+  treeIMs.forEach(im=>{const u=im.userData;if(u.real){u.idx.forEach((i,j)=>{const[x,z,H0]=treeSpots[i],H=H0*tk,hide=(i>=34&&!dn)||(sp&&(i*.618%1)>sp)||(roadX!=null&&x<roadX+2&&x>roadX-(wide||34))||(clr&&x>clr[0]&&x<clr[2]&&z>clr[1]&&z<clr[3]),k=H*1.45/u.h;
       dm.position.set(x,-.3+terrY(x,z),z);dm.rotation.set(0,i*2.39,0);dm.scale.setScalar(hide?1e-4:k);dm.updateMatrix();im.setMatrixAt(j,dm.matrix)});im.instanceMatrix.needsUpdate=true;im.computeBoundingSphere();return}
-    treeSpots.forEach(([x,z,H0],i)=>{const H=H0*tk,hide=(i>=34&&!dn)||(roadX!=null&&x<roadX+2&&x>roadX-(wide||34))||(clr&&x>clr[0]&&x<clr[2]&&z>clr[1]&&z<clr[3]);
+    treeSpots.forEach(([x,z,H0],i)=>{const H=H0*tk,hide=(i>=34&&!dn)||(sp&&(i*.618%1)>sp)||(roadX!=null&&x<roadX+2&&x>roadX-(wide||34))||(clr&&x>clr[0]&&x<clr[2]&&z>clr[1]&&z<clr[3]);
     const ty=terrY(x,z);if(u.trunk){dm.position.set(x,1+ty,z);dm.scale.set(1,2.6,1)}else{dm.position.set(x,u.y0*H+u.hgt*H/2+1+ty,z);dm.scale.set(u.w*H*.3,u.hgt*H,u.w*H*.3)}
     if(hide)dm.scale.set(1e-4,1e-4,1e-4);dm.updateMatrix();im.setMatrixAt(i,dm.matrix)});im.instanceMatrix.needsUpdate=true})}
 setTrees(null);
@@ -1984,7 +2106,7 @@ function terrTrees(){try{setTrees(bgPine.last,bgPine.lastW,bgPine.lastC)}catch(e
    Ontario is home; the others unlock with C grades back home. REG is var so setTrees can read it before this runs. ---------- */
 var REG=null;
 const REGIONS=[
-  {id:'on',name:'Ontario',sub:'Simcoe · Muskoka · the GTA',pin:[288,190],cats:['learn','walks','patios','drives','deco','floors','walls','free']},
+  {id:'on',name:'Ontario',sub:'Simcoe · Muskoka · the GTA',pin:[288,190],cats:['learn','walks','patios','drives','deco','floors','walls','big','free']},
   {id:'bc',name:'BC Coast',sub:'North Shore · Vancouver · Sunshine Coast',pin:[46,160],cats:['bc'],need:{reg:'on',n:3},
     twist:'Wet coast: rain rolls in a lot more often. Keep the tarp handy.',
     theme:{siding:['#7a5236','#9a6a44','#5b4a3e','#3f4a45','#e9e4d8','#6e7e72','#b88a5c','#2f3a3f'],brick:.06,roof:[0x2b2d30,0x3a3d40,0x4a4c4e,0x56504a],lawn:0xd2efc2,
@@ -2023,7 +2145,7 @@ function regDress(){REGG.children.slice().forEach(o=>{REGG.remove(o);freeDeep(o)
   if(LV.dress)try{LV.dress()}catch(e){console.warn('dress',e)}}
 // a ring of coast mountains just inside the sky dome: dark forest at the foot, grey rock, snow on the high peaks
 function mtnRing(q){const n=180,R0=126*q,R1=146*q,R2=156*q,s=TERR.seed||1,P=[],C=[],I=[];const forest=new THREE.Color(0x2c4434),rock=new THREE.Color(0x6a6e70),snow=new THREE.Color(0xf1f3f5),c=new THREE.Color();
-  const pk=a=>{let h=46+20*Math.sin(a*3+s)+14*Math.sin(a*7.3-s*1.7)+8*Math.sin(a*17+s*2.9)+5*Math.sin(a*31-s);return Math.max(22,h)*q};
+  const mk2=RT().mtnK||1,pk=a=>{let h=(46+20*Math.sin(a*3+s)+14*Math.sin(a*7.3-s*1.7)+8*Math.sin(a*17+s*2.9)+5*Math.sin(a*31-s))*mk2;return Math.max(22,h)*q};
   const col=(y,top)=>{const u=y/top;c.copy(forest);if(u>.42)c.lerp(rock,Math.min(1,(u-.42)/.2));if(u>.78)c.lerp(snow,Math.min(1,(u-.78)/.1));return c};
   let top=0;for(let i=0;i<n;i++)top=Math.max(top,pk(i/n*6.283));
   for(let i=0;i<=n;i++){const a=i/n*6.283,h=pk(a),ca=Math.cos(a),sa=Math.sin(a),jit=(Math.sin(i*12.9898)*43758.5453)%1*4*q;
@@ -2083,6 +2205,115 @@ function marinaScene(){flatP(30,40,asphaltM,-34,-.29,0);
     const hull=new THREE.Mesh(new THREE.BoxGeometry(17,2.4,5.2),new THREE.MeshStandardMaterial({color:0xf3f1ec,roughness:.4}));hull.position.set(1,3,0);hull.castShadow=true;G.add(hull);
     const st=new THREE.Mesh(new THREE.BoxGeometry(17.1,.4,5.3),new THREE.MeshStandardMaterial({color:0x1f4e8c,roughness:.4}));st.position.set(1,3.6,0);G.add(st)}
   shrub(-12,-12,1.2);shrub(-6,-13,1);lawn()}
+
+/* ---------- v172 more of Canada: Quebec, Prairies, Rockies, Atlantic, the North. Themes + scene pieces. ---------- */
+Object.assign(regById('qc'),{soon:false,cats:['qc'],need:{reg:'on',n:4},twist:'Old-country brick, tin roofs, tight lots. Plexes stacked three high.',
+  theme:{siding:['#e9e4d8','#c9c4b8','#5d6166','#8a8f96','#ece6d8','#a9bccb'],brick:.75,roof:[0x9aa3ab,0xb8c0c6,0x2b2d30,0x56504a],hump:.8,hill:1,tod:['morning','afternoon','overcast','golden','afternoon']}});
+Object.assign(regById('pr'),{soon:false,cats:['pr'],need:{reg:'on',n:6},twist:'Flat as a table and the wind never quits. It dries the top fast.',
+  theme:{siding:['#ece6d8','#e3d9c2','#c9c4b8','#9e4b3c','#f2efe6','#d8c8a4'],brick:.04,roof:[0xd9c8b4,0x9a8a7a,0x6b2a22,0x3a3d40],lawn:0xf2e2a0,hump:.18,hill:.22,sparse:.22,treeK:.75,
+    tod:['midday','midday','afternoon','golden','morning'],wind:.65}});
+Object.assign(regById('rk'),{soon:false,cats:['rk'],need:{reg:'bc',n:3},twist:'Big peaks, steep lots, cold nights. Thin air sets it up quick.',
+  theme:{siding:['#7a5236','#6b4a2e','#9a6a44','#5b4a3e','#3f4a45','#b88a5c'],brick:.08,roof:[0x2b2d30,0x3a3d40,0x56504a,0x6b2a22],lawn:0xcfe6bf,hump:1.8,hill:2.6,treeK:1.45,dense:true,mtn:true,mtnK:1.9,
+    tod:['morning','afternoon','overcast','golden','midday']}});
+Object.assign(regById('at'),{soon:false,cats:['at'],need:{reg:'qc',n:2},twist:'Salt air, fog banks, jellybean houses. Rain\'s never far off.',
+  theme:{siding:['#c0392b','#f2c230','#2a6fb0','#2f8a5a','#e07a2a','#7a3a8a','#f2efe6','#1d7a8a'],brick:.02,roof:[0x2b2d30,0x3a3d40,0x56504a],lawn:0xd6efc8,hump:1.2,hill:1.3,sparse:.5,treeK:.9,
+    tod:['overcast','overcast','morning','afternoon','golden'],rain:.45}});
+Object.assign(regById('nt'),{soon:false,cats:['nt'],need:{reg:'rk',n:2},twist:'Snow on the ground, −10 by supper. Heat it, blanket it, keep moving.',
+  theme:{siding:['#c9c4b8','#a9bccb','#5d6166','#9e4b3c','#e3d9c2','#2a6fb0'],brick:0,roof:[0x5a5f66,0x2b2d30,0x9aa3ab],snow:true,hump:.7,hill:1.5,sparse:.6,treeK:.65,
+    tod:['overcast','overcast','morning','golden']}});
+let _snowM=null;const snowMat=()=>_snowM||(_snowM=layerM(new THREE.MeshStandardMaterial({map:ctex(256,256,(g,w,h)=>{g.fillStyle='#eef2f6';g.fillRect(0,0,w,h);for(let i=0;i<5000;i++){const v=Math.random();g.fillStyle=v<.5?`rgba(160,175,195,${.12*Math.random()})`:`rgba(255,255,255,${.6*Math.random()})`;g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*3,1+Math.random()*3)}},30,30),roughness:.75}),6));
+const qcBrick=()=>{const b=photoTex(brickTex.clone(),'brick',1);b.needsUpdate=true;return b};
+// Montreal plex: three storeys of brick, flat roof with a tin cornice, balconies and the black outdoor stair
+function plex(x,z,w,ry,col){const G=new THREE.Group();G.position.set(x,-.3,z);G.rotation.y=ry||0;sceneG.add(G);const H=30,D=32,c=Math.cos(ry||0),sn=Math.sin(ry||0);
+  {const pts=[[-w/2,-D],[w/2,-D],[-w/2,11],[w/2,11]].map(([lx,lz])=>[x+lx*c+lz*sn,z-lx*sn+lz*c]);addOb(Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1])))}
+  const t=qcBrick();t.repeat.set(w/4,H/1.8);const bm=new THREE.MeshStandardMaterial({map:t,roughness:.92,color:col||0xffffff});box(w,H,D,bm,0,H/2,-D/2,0,G);
+  const tin=new THREE.MeshStandardMaterial({color:0x8d969c,metalness:.6,roughness:.35}),blk=new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.5,metalness:.4}),wn=new THREE.MeshStandardMaterial({color:0x1c2830,roughness:.06,metalness:.3}),fr=new THREE.MeshStandardMaterial({color:0xf0ece2,roughness:.6});
+  box(w+1,1.6,1.4,tin,0,H+.4,.2,0,G);
+  for(let f=0;f<3;f++){const y=2+f*9.6;[-w/4,w/4].forEach(dx=>{box(3.2,5,.2,fr,dx,y+3,.06,0,G);box(2.6,4.4,.22,wn,dx,y+3,.1,0,G)});
+    if(f>0){box(w-2,.3,4,new THREE.MeshStandardMaterial({color:0x6b6e72,roughness:.7}),0,y-.2,2,0,G);box(w-2,2.6,.12,blk,0,y+1.1,4,0,G)}}
+  // the outdoor stair: a straight run of black steel treads from the sidewalk to the second-floor balcony
+  for(let k=0;k<14;k++){box(3,.18,1,blk,w/2-3,.4+k*.83,10.5-k*.7,0,G)}box(.15,12.5,.15,blk,w/2-1.4,6,5.5,0,G);
+  return G}
+function grainBin(x,z,r,h){addOb(x-r-1,z-r-1,x+r+1,z+r+1);const G=new THREE.Group();G.position.set(x,-.3,z);sceneG.add(G);
+  const t=ctex(256,256,(g,w,hh)=>{g.fillStyle='#c9ccd0';g.fillRect(0,0,w,hh);for(let y=0;y<hh;y+=6){g.fillStyle=y%12?'rgba(255,255,255,.35)':'rgba(60,64,70,.35)';g.fillRect(0,y,w,2)}for(let x2=0;x2<w;x2+=64){g.fillStyle='rgba(70,74,80,.4)';g.fillRect(x2,0,2,hh)}},r/2,h/6);
+  const m=new THREE.MeshStandardMaterial({map:t,metalness:.55,roughness:.4});const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32),m);c.position.y=h/2;c.castShadow=c.receiveShadow=true;G.add(c);
+  const rf=new THREE.Mesh(new THREE.ConeGeometry(r*1.04,r*.62,32),new THREE.MeshStandardMaterial({color:0xb8bcc1,metalness:.6,roughness:.35}));rf.position.y=h+r*.31;rf.castShadow=true;G.add(rf);
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(r+.6,r+.6,.5,32),oldConcM);pad.position.y=.15;G.add(pad);return G}
+function steelShop(x,z,w,d,h,ry){const G=new THREE.Group();G.position.set(x,-.3,z);G.rotation.y=ry||0;sceneG.add(G);addOb(x-w/2-1,z-d-1,x+w/2+1,z+1);
+  const t=ctex(256,128,(g,ww,hh)=>{g.fillStyle='#e8e6e0';g.fillRect(0,0,ww,hh);for(let x2=0;x2<ww;x2+=10){g.fillStyle='rgba(120,120,120,.35)';g.fillRect(x2,0,2,hh);g.fillStyle='rgba(255,255,255,.5)';g.fillRect(x2+4,0,2,hh)}},w/8,1);
+  const m=new THREE.MeshStandardMaterial({map:t,metalness:.35,roughness:.5});box(w,h,d,m,0,h/2,-d/2,0,G);
+  const rf=new THREE.MeshStandardMaterial({color:0x2e5a3a,metalness:.4,roughness:.45}),pl=(d/2+1.2)/Math.cos(.24);
+  [-1,1].forEach(sd=>{const r=box(w+1.2,.3,pl,rf,0,h+Math.tan(.24)*d/4,-d/2+sd*d/4,0,G);r.rotation.x=sd*.24});
+  box(w*.42,h*.72,.3,new THREE.MeshStandardMaterial({color:0xf2efe8,roughness:.5}),-w*.18,h*.36,.1,0,G);box(3.2,7,.3,new THREE.MeshStandardMaterial({color:0x2e5a3a,roughness:.5}),w*.32,3.5,.1,0,G);
+  {const sg=new THREE.Mesh(new THREE.PlaneGeometry(14,2.4),signMat('KOWALSKI FARMS','#2e5a3a','#f4efe2'));sg.position.set(0,h-1.6,.3);G.add(sg)}return G}
+function gravelRoad(x,w){flatP(w||22,240,new THREE.MeshStandardMaterial({map:stoneTex(8,'#a49a88'),roughness:1}),x-(w||22)/2,-.292,0,6)}
+function shelterbelt(x0,x1,z){for(let x=x0;x<=x1;x+=7)shadeTree(x+(Math.random()-.5)*2,z+(Math.random()-.5)*2,.8+Math.random()*.25)}
+function lighthouse(x,z){addOb(x-5,z-5,x+5,z+5);const G=new THREE.Group();G.position.set(x,-.3,z);sceneG.add(G);
+  const t=ctex(64,256,(g,w,h)=>{for(let y=0;y<h;y+=64){g.fillStyle=(y/64)%2?'#c0392b':'#f6f3ec';g.fillRect(0,y,w,64)}},1,1);
+  const tw=new THREE.Mesh(new THREE.CylinderGeometry(2.6,4,36,24),new THREE.MeshStandardMaterial({map:t,roughness:.6}));tw.position.y=18;tw.castShadow=true;G.add(tw);
+  const gal=new THREE.Mesh(new THREE.CylinderGeometry(4,4,.6,24),new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.5}));gal.position.y=36.3;G.add(gal);
+  const lan=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,4,16),new THREE.MeshStandardMaterial({color:0xfff6d8,emissive:0xffe9a8,emissiveIntensity:.6,roughness:.1}));lan.position.y=38.6;G.add(lan);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(2.8,3,16),new THREE.MeshStandardMaterial({color:0xc0392b,roughness:.5}));cap.position.y=42.1;G.add(cap);
+  house(x-14,z+2,16,90,[['door',0],['win',-4]],{h:8.5,d:12,col:'#f6f3ec'})}
+function fishShack(x,z,ry,col){const G=new THREE.Group();G.position.set(x,-.3,z);G.rotation.y=ry||0;sceneG.add(G);addOb(x-6,z-6,x+6,z+6);
+  const t=sidingTex(col);t.repeat.set(2,1.4);box(10,8,9,new THREE.MeshStandardMaterial({map:t,roughness:.85}),0,4,0,0,G);
+  const rf=new THREE.MeshStandardMaterial({color:0x2b2d30,roughness:.8});[-1,1].forEach(sd=>{const r=box(11,.3,5.6,rf,0,9.4,sd*2.4,0,G);r.rotation.x=sd*.5});
+  box(3,5,.2,new THREE.MeshStandardMaterial({color:0xf2efe8,roughness:.6}),0,2.5,4.55,0,G);
+  for(let k=0;k<4;k++){const tr=box(2.2,1.2,1.6,new THREE.MeshStandardMaterial({color:[0xd9a441,0x3a6b8c,0xc0392b,0x2f8a5a][k],roughness:.7}),-3+k*.3,.3+k*1.2,6.2,0,G);tr.rotation.y=k*.3}return G}
+function northStore(x,z){const G=new THREE.Group();G.position.set(x,-.3,z);sceneG.add(G);addOb(x-21,z-24,x+21,z+1);
+  const t=sidingTex('#2a6fb0');t.repeat.set(7,2);box(40,13,24,new THREE.MeshStandardMaterial({map:t,roughness:.85}),0,6.5,-12,0,G);box(41,1,25,new THREE.MeshStandardMaterial({color:0x5a5f66,roughness:.6}),0,13.4,-12,0,G);
+  box(8,7.5,.3,new THREE.MeshStandardMaterial({color:0x1c2830,roughness:.06,metalness:.3}),-8,3.8,.1,0,G);box(8,7.5,.3,new THREE.MeshStandardMaterial({color:0x1c2830,roughness:.06,metalness:.3}),10,3.8,.1,0,G);
+  box(4,8,.3,new THREE.MeshStandardMaterial({color:0xf2efe8,roughness:.6}),2,4,.1,0,G);
+  {const sg=new THREE.Mesh(new THREE.PlaneGeometry(22,3),signMat('NORTHERN GENERAL STORE','#c0392b','#f4efe2'));sg.position.set(0,10.5,.35);G.add(sg)}
+  // a plug-in post for block heaters by the lot
+  for(let k=0;k<5;k++){box(.4,3.4,.4,new THREE.MeshStandardMaterial({color:0xf2c230,roughness:.5}),-16+k*8,1.4,8)}return G}
+
+/* ---------- v172 Ontario pack: the 400 bridge deck, a Muskoka cottage pad, a fire hall apron ---------- */
+// the bridge: this span is the pour; the spans either side are already done. Girders and pier caps underneath,
+// the 400 running under it with traffic, parapets along both sides, rails for the deck finisher.
+function bridgeSite(){const E=LV.elev,W=26,y0=E-.3,gm=new THREE.MeshStandardMaterial({color:0xb9b4aa,roughness:.9}),dk=new THREE.MeshStandardMaterial({color:0xa8a39a,roughness:.95});
+  flatP(46,260,asphaltM,0,-.29,0,6);[-11.5,0,11.5].forEach(x=>flatP(.35,260,lineM,x,-.284,0));flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),-22.6,-.284,0);flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),22.6,-.284,0);
+  addOb(-24,-130,24,130);
+  [[-90,-24.2],[24.2,90]].forEach(([a,b])=>{box(b-a,1.2,W,dk,(a+b)/2,y0-.3,0)});
+  for(let k=-3;k<=3;k++){const z=k*3.6;box(180,4.2,1.4,gm,0,y0-3,z)}
+  [-24,24,-70,70].forEach(x=>{box(3.5,2.6,W+3,gm,x,y0-6.3,0);[-8,0,8].forEach(z=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.6,y0-7.6,16),gm);c.position.set(x,(y0-7.6)/2-.3,z);c.castShadow=true;sceneG.add(c)});addOb(x-3,-15,x+3,15)});
+  [-1,1].forEach(sd=>{const z=sd*(W/2-.1);box(180,3.2,1.3,gm,0,E+1.3,z);box(180,.3,1.6,gm,0,E-.3,z)});
+  lightTower(-34,-26);lightTower(34,26);
+  // approach embankments so the bridge meets the land
+  [-1,1].forEach(sd=>{const g=new THREE.BoxGeometry(60,y0+.3,W+8);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x6b5a44,roughness:1}));m.position.set(sd*120,(y0+.3)/2-.3,0);m.receiveShadow=true;sceneG.add(m);addOb(sd*120-30,-W/2-4,sd*120+30,W/2+4)})}
+function bridgeDress(){const E=LV.elev,W=26,st=new THREE.MeshStandardMaterial({color:0xd8a21c,roughness:.45,metalness:.3}),bk=new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.6}),rl=new THREE.MeshStandardMaterial({color:0x8a8d91,metalness:.7,roughness:.35});
+  [-1,1].forEach(sd=>{const r=new THREE.Mesh(new THREE.BoxGeometry(60,.25,.25),rl);r.position.set(0,E+.35,sd*(W/2-1.6));REGG.add(r)});
+  const G=new THREE.Group();G.userData.finisher=true;REGG.add(G);const span=W-3.2;
+  const top=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.6,span+1.4),st);top.position.y=4.6;top.castShadow=true;G.add(top);
+  const bot=new THREE.Mesh(new THREE.BoxGeometry(1.4,.5,span),st);bot.position.y=2.4;G.add(bot);
+  for(let k=0;k<12;k++){const d=new THREE.Mesh(new THREE.BoxGeometry(.18,2.4,.18),st);d.position.set(0,3.5,-span/2+k*span/11);d.rotation.x=k%2?.6:-.6;G.add(d)}
+  [-1,1].forEach(sd=>{const l=new THREE.Mesh(new THREE.BoxGeometry(2.4,4.4,1.4),st);l.position.set(0,2.6,sd*(span/2+.3));l.castShadow=true;G.add(l);
+    [-.8,.8].forEach(dx=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.5,12),bk);w.rotation.x=Math.PI/2;w.position.set(dx,.55,sd*(span/2+.3));G.add(w)})});
+  const car=new THREE.Mesh(new THREE.BoxGeometry(2.6,1.4,2.4),bk);car.position.y=1.5;car.userData.car=true;G.add(car);const aug=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,3,10).rotateX(Math.PI/2),rl);aug.position.y=.5;car.add(aug);
+  const seat=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.2,1.4),st);seat.position.set(-1.2,5.9,span/2-1);G.add(seat);
+  G.position.set(wx(RX0)-3,E,0);LV._fin=G;
+  // highway traffic under the bridge
+  const cols=[0xc0392b,0xf1f1ec,0x1f3561,0x2b2b2b,0x7a7f86,0x2f8a5a];for(let k=0;k<10;k++){const lane=[-17,-6,6,17][k%4],dir=lane<0?1:-1,c=new THREE.Group();
+    const b=new THREE.Mesh(new THREE.BoxGeometry(6,2.2,14),new THREE.MeshStandardMaterial({color:cols[k%cols.length],roughness:.4,metalness:.3}));b.position.y=1.3;b.castShadow=true;c.add(b);
+    const cab=new THREE.Mesh(new THREE.BoxGeometry(5.4,1.8,6),new THREE.MeshStandardMaterial({color:0x1c2830,roughness:.08,metalness:.4}));cab.position.set(0,2.9,-dir*1);c.add(cab);
+    [[-2.4,4],[2.4,4],[-2.4,-4],[2.4,-4]].forEach(([x,z])=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.8,12),bk);t.rotation.z=Math.PI/2;t.position.set(x,.7,z);c.add(t)});
+    [-1.8,1.8].forEach(x=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.8,.4,.1),new THREE.MeshBasicMaterial({color:dir>0?0xfff2c8:0xff3a2a}));l.position.set(x,1.6,dir*7.05);c.add(l)});
+    c.position.set(lane,-.3,-120+k*26);c.userData.drive=dir*(38+Math.random()*16);REGG.add(c)}}
+function bridgeTick(dt){REGG.children.forEach(o=>{const v=o.userData.drive;if(!v)return;o.position.z+=v*dt;if(o.position.z>130)o.position.z-=260;if(o.position.z<-130)o.position.z+=260});
+  const G=LV&&LV._fin;if(!G)return;const k=STAGES[stage]&&STAGES[stage].key;let tx=G.userData.tx!=null?G.userData.tx:wx(RX0)-3;
+  if(k==='screed'&&running)tx=wx(Math.max(RX0-1,Math.min(RX1+1,boardX)));else if(S.screed!=null&&stage>S.screed)tx=wx(RX1)+4;
+  G.userData.tx=tx;G.position.x+=(tx-G.position.x)*Math.min(1,dt*6);const c=G.children.find(o=>o.userData.car);if(c){c.position.z=Math.sin(performance.now()*.0016)*9;c.children[0].rotation.z+=dt*12}}
+// Muskoka: a cottage on the lake, dock, Muskoka chairs
+function cottageScene(){house(-2,-9,40,0,[['slider',-6],['win',6],['win',14],['door',-15],['light',-1.2]],{col:'#6b4a2e',chimney:12});
+  chair(10,8,-.5);chair(13.5,6.5,-.9);shadeTree(-18,10,1.1);for(let k=0;k<6;k++)shadeTree(-40+Math.random()*16,-20+Math.random()*40,.9+Math.random()*.3);lawn()}
+function cottageDock(){const sx=LV.sea.x,wd=new THREE.MeshStandardMaterial({map:wood,roughness:.85,color:0xb59a7a});const b=new THREE.Mesh(new THREE.BoxGeometry(40,.4,6),wd);b.position.set(sx+14,-.8,RCZ+2);b.castShadow=b.receiveShadow=true;REGG.add(b);
+  const t=new THREE.Mesh(new THREE.BoxGeometry(10,.4,16),wd);t.position.set(sx+30,-.8,RCZ+2);t.castShadow=t.receiveShadow=true;REGG.add(t);
+  const k=new THREE.Group();k.position.set(sx+22,-1.4,RCZ+10);k.userData.bob=1;REGG.add(k);const hull=new THREE.Mesh(new THREE.CapsuleGeometry(.9,11,4,10),new THREE.MeshStandardMaterial({color:0xd8481c,roughness:.4}));hull.rotation.z=Math.PI/2;hull.scale.set(1,1,.6);k.add(hull)}
+function fireHall(){const G=new THREE.Group();G.position.set(0,-.3,-9);sceneG.add(G);addOb(-30,-40,30,-8);const t=photoTex(brickTex.clone(),'brick',1);t.needsUpdate=true;t.repeat.set(14,6);
+  box(60,22,30,new THREE.MeshStandardMaterial({map:t,roughness:.92,color:0xd9a090}),0,11,-15,0,G);box(61,1.4,31,new THREE.MeshStandardMaterial({color:0xe8e1cf,roughness:.7}),0,22.4,-15,0,G);
+  [-18,0,18].forEach(x=>{box(13,14,.3,new THREE.MeshStandardMaterial({color:0xc0392b,roughness:.45}),x,7,.1,0,G);for(let r=0;r<4;r++)box(12,.15,.32,new THREE.MeshStandardMaterial({color:0xf2efe8}),x,9+r*1.2,.15,0,G)});
+  {const sg=new THREE.Mesh(new THREE.PlaneGeometry(26,3),signMat('INNISFIL FIRE STATION 1','#c0392b','#f4efe2'));sg.position.set(0,18.5,.35);G.add(sg)}
+  lampPost(-34,4);lampPost(34,4);lawn()}
 
 function buildSite(){
   siteG.children.slice().forEach(o=>{siteG.remove(o);o.traverse(c=>{if(c.geometry)c.geometry.dispose()})});formPieces=[];formStakes=[];
@@ -2307,7 +2538,7 @@ function pool(x0,z0,x1,z1){addOb(x0-2,z0-2,x1+2,z1+2); // water inside x0..x1, z
   const c=1;[[x0-c,z0-c,x1+c,z0],[x0-c,z1,x1+c,z1+c],[x0-c,z0,x0,z1],[x1,z0,x1+c,z1]].forEach(([ax,az,bx,bz])=>box(bx-ax,.26,bz-az,copingM,(ax+bx)/2,-.11,(az+bz)/2));
   const ld=new THREE.MeshStandardMaterial({color:0xd8dcdf,metalness:.9,roughness:.25});[0,1.1].forEach(o=>{const r=box(.08,2.2,.08,ld,x0+3+o,.9,z1-.3);const t=box(.08,.08,.9,ld,x0+3+o,2,z1+.1)});
 }
-function lawn(cold){lawnOn=true;lawnM.color.set(cold?0xc9d3cf:(RT().lawn||0xe4edd2));ground.material=lawnM}
+function lawn(cold){lawnOn=true;lawnM.color.set(cold?0xc9d3cf:(RT().lawn||0xe4edd2));ground.material=RT().snow?snowMat():lawnM}
 function lumber(x,z){addOb(x-6,z-2.5,x+6,z+2);const m=new THREE.MeshStandardMaterial({map:woodTex(),roughness:.85});for(let r=0;r<4;r++)for(let k=0;k<6;k++)box(10,.3,.45,m,x,-.15+r*.32,z-1.4+k*.5)}
 function hotTub(x,z){addOb(x-4.5,z-4.5,x+4.5,z+4.5);box(7.4,.5,7.4,new THREE.MeshStandardMaterial({color:0xb28b5e,roughness:.8}),x,-.05,z);
   box(7,3,7,new THREE.MeshStandardMaterial({color:0x5b4636,roughness:.7}),x,1.7,z);box(7.2,.35,7.2,new THREE.MeshStandardMaterial({color:0x6b6d70,roughness:.6}),x,3.35,z)}
@@ -3655,7 +3886,7 @@ function renderGoals(){const el=$('goalsCard');if(!el)return;const st=totalStars
    <div class="ghead"><span>Today's goals</span><span>🪙 50 each</span></div>
    <div class="glist">${g.ids.map(id=>`<div class="gl ${g.done.includes(id)?'done':''}"><span class="ck">${g.done.includes(id)?'✓':''}</span><span>${GOALT[id][0]}</span><em>+50</em></div>`).join('')}</div>
    <div class="ghead"><span>This week: ${Math.min(g.ws,WEEKLY)} / ${WEEKLY} ★</span><span>${g.wdone?'Done ✓':'🪙 +300'}</span></div><div class="gbar"><i style="width:${Math.min(100,g.ws/WEEKLY*100)}%"></i></div>
-   <div class="gfoot"><span class="coins">🪙 ${coinsGet().toLocaleString()}</span><button class="btn" id="paintOpen">🎨 Paint shop</button></div>`;
+   <div class="gfoot"><span class="coins">🪙 ${coinsGet().toLocaleString()}</span><button class="btn" id="paintOpen">🎨 Paint shop</button></div>`+extrasHTML();
   $('paintOpen').addEventListener('click',()=>{renderPaint();$('paintShop').hidden=false;buzz(8)})}
 $('pClose').addEventListener('click',()=>{$('paintShop').hidden=true;renderGoals()});
 function showResultStars(n,goalsOut,rankUp){const el=$('rStars');const ST='<svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9l-6.4 3.5L7 14.3l-5.3-5 7.2-.9z"/></svg>';el.innerHTML=[0,1,2].map(i=>`<i class="${i<n?'on':''}">${ST}</i>`).join('');
@@ -4526,7 +4757,7 @@ function relax(iters,k){
 const SCRSEG0=document.getElementById('scrSeg').innerHTML;const scr={ok:true};const SCR={on:false,lane:0,ph:0,done:[false,false],lanes:null,told:false,pourTold:false,ptrSide:0};
 let carryC=new Float32Array(GW),boardY=-2,lastDirY=1,lastRow=null;
 function scrSetup(){SCR.lane=0;SCR.ph=0;SCR.done=[false,false];SCR.stripDone=false;SCR.bx=0;SCR.told=SCR.pourTold=false;carryC=new Float32Array(GW);boardY=-2;lastRow=null;
-  SCR.on=RD>14.5&&!(LV&&(LV.wall||LV.slip));SCR.multi=false;if(!SCR.on){SCR.lanes=null;return}
+  SCR.on=RD>14.5&&!(LV&&(LV.wall||LV.slip||LV.bridge));SCR.multi=false;if(!SCR.on){SCR.lanes=null;return}
   const rc=Math.round((RY0+RY1)/2),hs=Math.max(2,Math.round(1.5*12/CELL_IN));SCR.rc=rc;SCR.lanes=[[rc-hs,rc+hs],[RY0,rc+hs],[rc-hs,RY1]];
   if(LV&&LV.strips)msSetup(LV.strips)}
 // v147 big floors: several wet screed strips run the full length (struck across, like the middle strip), then each bay
@@ -5037,9 +5268,9 @@ let jobIdx=0;
 function bestOf(id){try{return +(localStorage.getItem('bts-best-'+id)||(id==='patio'?localStorage.getItem('bts-best'):0)||0)}catch(e){return -1}}
 const CAT_IMG={learn:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135545_f805ff07-9d47-4a1b-9a19-58491d308185_min.webp',walks:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135546_5b37c5dd-fe0f-482f-bdb3-097916e974a5_min.webp',patios:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135556_f4e03170-b5a2-4940-bcd2-9cf5d6e88589_min.webp',drives:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135515_0726e4fc-a81a-44fd-9ddb-9463502589f7_min.webp',deco:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135555_5a5bfbc8-bd8f-4e78-a5e6-ab6eb1083700_min.webp',floors:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135639_5d3c9481-d36a-469b-8d8d-0288cd882bb0_min.webp',walls:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135515_9cf0ee3f-f2b5-4f6f-a548-f7306f52c415_min.webp',free:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135513_bfc26c64-5b67-4a0b-99a5-1cd931231df0_min.webp'};const HOME_BG='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_135512_2c155dcb-63ae-45d9-9ecb-8fae2c053509_min.webp';
 const DRILL_IMG={ride:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261015_194608_d48a03fa-b186-49ba-8215-ef283cec248f_min.webp',buggy:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_200749_f46cb2ac-da47-47ff-a5f5-d4da1af6ecb6_min.webp',cab:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195155_78bbc343-d6ed-4360-bb00-579c934f16dd_min.webp',dig:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195154_8803a2eb-3829-46ac-8566-2e104f608b19_min.webp',grav:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195153_2523ff7f-78aa-45af-be29-ac375fb3d253_min.webp',pack:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195206_b226a97b-96af-4c2a-a8c4-37b9835ccdb7_min.webp',slip:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195207_f2f5dda3-2239-457c-8192-f688358fb664_min.webp',form:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195207_9b048a7e-680e-4257-a71e-4616afaa9d33_min.webp',rebar:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195221_d6e92669-a83f-43a8-abbe-b5408bbe2e20_min.webp',pour:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195220_6f4aabc1-60c5-402c-becb-4353d59f8def_min.webp',screed:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195220_29a56a53-111e-4680-a396-76cd6ba88da7_min.webp',float:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195230_03e00cd3-756f-4a37-bf9d-f7f6ae36b14e_min.webp',edge:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_213249_76619cad-7a34-4be1-9151-e970ae52e912_min.webp',trowel:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195254_729d1bac-394b-4fe6-9e82-c6f84561f20a_min.webp',joint:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195255_00b49036-b01d-4ace-936b-11310d484876_min.webp',broom:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195306_b1780d71-b0a1-4454-94a6-1507d10f0925_min.webp',power:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195306_977cf679-48ae-4663-a98f-9029fcbc93ef_min.webp',stamp:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195307_2320f20b-367b-4106-8508-958672efd45a_min.webp',expose:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195358_4c1f48a3-aa19-4f50-8097-87a855a9c22d_min.webp',blanket:'https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261014_195358_c6eed2fa-d826-41e6-bbe7-c31f76f675df_min.webp'};
-const CATS=[['learn','Start here'],['walks','Walks'],['patios','Patios & pads'],['drives','Driveways'],['deco','Decorative'],['floors','Floors'],['walls','Curbs & walls'],['free','Free build'],['bc','BC Coast']];
-const CATOF={tutorial:'learn',walk:'walks',sidewalk:'walks',curvewalk:'walks',downtown:'walks',patio:'patios',hottub:'patios',shed:'patios',porch:'patios',stairs:'patios',bcsteps:'bc',lane:'bc',coastpatio:'bc',marina:'bc',gastown:'bc',court:'patios',drive1:'drives',drivewalk:'drives',heated:'drives',drive2:'drives',freeze:'drives',exposed:'deco',stamp:'deco',stampdrive:'deco',garage:'floors',night:'floors',warehouse:'floors',curb:'walls',retain:'walls',foundation:'walls',custom:'free'};
-const DIFF={bcsteps:3,lane:3,coastpatio:3,marina:3,gastown:4,stairs:3,tutorial:1,patio:1,walk:1,hottub:1,sidewalk:2,curvewalk:2,porch:2,shed:2,court:2,drive1:2,downtown:3,exposed:3,garage:3,drive2:3,heated:3,drivewalk:3,stamp:4,night:4,freeze:4,curb:4,retain:4,stampdrive:5,foundation:5,warehouse:5,custom:1};
+const CATS=[['learn','Start here'],['walks','Walks'],['patios','Patios & pads'],['drives','Driveways'],['deco','Decorative'],['floors','Floors'],['walls','Curbs & walls'],['big','Big jobs'],['free','Free build'],['bc','BC Coast'],['qc','Quebec'],['pr','Prairies'],['rk','Rockies'],['at','Atlantic'],['nt','The North']];
+const CATOF={tutorial:'learn',walk:'walks',sidewalk:'walks',curvewalk:'walks',downtown:'walks',patio:'patios',hottub:'patios',shed:'patios',porch:'patios',stairs:'patios',cottage:'patios',firehall:'big',bridge:'big',bcsteps:'bc',plexsteps:'qc',ruelle:'qc',cabane:'qc',vieuxqc:'qc',binpad:'pr',shopapron:'pr',acreage:'pr',windpatio:'pr',lodge:'rk',hotspring:'rk',rksteps:'rk',wharf:'at',jellybean:'at',lighthouse:'at',ykpad:'nt',ntwalk:'nt',ntsteps:'nt',lane:'bc',coastpatio:'bc',marina:'bc',gastown:'bc',court:'patios',drive1:'drives',drivewalk:'drives',heated:'drives',drive2:'drives',freeze:'drives',exposed:'deco',stamp:'deco',stampdrive:'deco',garage:'floors',night:'floors',warehouse:'floors',curb:'walls',retain:'walls',foundation:'walls',custom:'free'};
+const DIFF={cottage:2,firehall:4,bridge:5,plexsteps:3,ruelle:2,cabane:2,vieuxqc:4,binpad:3,shopapron:3,acreage:3,windpatio:3,lodge:4,hotspring:3,rksteps:4,wharf:3,jellybean:3,lighthouse:3,ykpad:4,ntwalk:4,ntsteps:4,bcsteps:3,lane:3,coastpatio:3,marina:3,gastown:4,stairs:3,tutorial:1,patio:1,walk:1,hottub:1,sidewalk:2,curvewalk:2,porch:2,shed:2,court:2,drive1:2,downtown:3,exposed:3,garage:3,drive2:3,heated:3,drivewalk:3,stamp:4,night:4,freeze:4,curb:4,retain:4,stampdrive:5,foundation:5,warehouse:5,custom:1};
 const catOf=L=>CATOF[L.id]||'free',catJobs=c=>LEVELS.filter(L=>catOf(L)===c);
 function prevInCat(L){const a=catJobs(catOf(L)).filter(x=>!x.tut&&!x.free),k=a.indexOf(L);return k>0?a[k-1]:null}
 function unlocked(i){const L=LEVELS[i];if(L.free||L.tut||(daily&&daily.L===L)||bestOf(L.id)>0)return true;if(!regOk(regOf(L)))return false;const p=prevInCat(L);if(!p)return true;const b=bestOf(p.id);return b<0||b>=65}
@@ -5083,7 +5314,7 @@ function renderSpec(){{const p=$('proTip');if(p){p.innerHTML=tipHTML(LV);p.hidde
 }
 const CATICON={"learn": "<path d=\"M7 33a17 15 0 0 1 34 0z\" fill=\"#f2b23a\"/><path d=\"M21 17.5h6V33h-6z\" fill=\"#d9951c\"/><path d=\"M13 31c0-6 3.4-10.3 7-12.4\" stroke=\"#fff\" stroke-opacity=\".5\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"3.5\" y=\"32\" width=\"41\" height=\"5.5\" rx=\"2.7\" fill=\"#c98412\"/><path d=\"M3.5 37.5h41\" stroke=\"#8a5a0c\" stroke-width=\"1\"/>", "walks": "<path d=\"M0 6h19L7 44H0z\" fill=\"#5fa548\"/><path d=\"M48 6H29l12 38h7z\" fill=\"#5fa548\"/><path d=\"M19 6h10l12 38H7z\" fill=\"#d6d1c6\"/><path d=\"M19 6h10l12 38H7z\" fill=\"none\" stroke=\"#a49e92\" stroke-width=\"1.2\"/><path d=\"M17.1 12h13.8M14.6 20h18.8M11.4 30h25.2M8.6 39h30.8\" stroke=\"#8f897e\" stroke-width=\"1.4\"/><circle cx=\"13\" cy=\"17\" r=\"1\" fill=\"#3f7a2f\"/><circle cx=\"37\" cy=\"26\" r=\"1.2\" fill=\"#3f7a2f\"/>", "patios": "<rect x=\"3\" y=\"4\" width=\"42\" height=\"13\" fill=\"#a8473a\"/><path d=\"M3 8.3h42M3 12.6h42M10 4v4.3M24 4v4.3M38 4v4.3M17 8.3v4.3M31 8.3v4.3M10 12.6V17M24 12.6V17M38 12.6V17\" stroke=\"#7c3128\" stroke-width=\".8\"/><rect x=\"17\" y=\"6\" width=\"14\" height=\"11\" fill=\"#2d3a44\" stroke=\"#eee\" stroke-width=\"1.2\"/><path d=\"M24 6v11\" stroke=\"#eee\" stroke-width=\"1\"/><path d=\"M3 17h42v19a8 8 0 0 1-8 8H11a8 8 0 0 1-8-8z\" fill=\"#d6d1c6\"/><path d=\"M24 17v27M3 30h42\" stroke=\"#8f897e\" stroke-width=\"1.3\"/><circle cx=\"35\" cy=\"24\" r=\"4.2\" fill=\"#f2b23a\"/><path d=\"M35 24v8\" stroke=\"#555\" stroke-width=\"1.2\"/><rect x=\"9\" y=\"33\" width=\"7\" height=\"5\" rx=\"1\" fill=\"#6b4a2f\"/>", "drives": "<path d=\"M5 15 24 4l19 11z\" fill=\"#4a4f57\"/><rect x=\"8\" y=\"14\" width=\"32\" height=\"13\" fill=\"#e9e4d8\"/><rect x=\"13\" y=\"16.5\" width=\"22\" height=\"10.5\" fill=\"#c9ccd1\"/><path d=\"M13 19.2h22M13 21.8h22M13 24.4h22\" stroke=\"#9aa0a8\" stroke-width=\".9\"/><path d=\"M13 27h22l9 18H4z\" fill=\"#d6d1c6\"/><path d=\"M13 27h22l9 18H4z\" fill=\"none\" stroke=\"#a49e92\" stroke-width=\"1.1\"/><path d=\"M8.8 36h30.4M24 27v18\" stroke=\"#8f897e\" stroke-width=\"1.2\"/><path d=\"M0 27h13L4 45H0zM48 27H35l9 18h4z\" fill=\"#5fa548\"/>", "deco": "<rect x=\"3\" y=\"3\" width=\"42\" height=\"42\" rx=\"7\" fill=\"#6b4a36\"/><path d=\"M5 5h16v11H5zM23 5h20v8H23zM23 15h9v12H23zM34 15h9v12h-9zM5 18h16v9H5zM5 29h11v14H5zM18 29h14v14H18zM34 29h9v14h-9z\" fill=\"#c4906b\" stroke=\"#6b4a36\" stroke-width=\"1.4\" stroke-linejoin=\"round\"/><path d=\"M8 9l4 3M27 8l6 2M7 22l5 1M21 35l6-2M37 34l3 4M26 19l3 4\" stroke=\"#a46f4f\" stroke-width=\"1\" stroke-linecap=\"round\"/>", "floors": "<ellipse cx=\"24\" cy=\"35\" rx=\"19\" ry=\"7\" fill=\"#9aa3ad\"/><ellipse cx=\"24\" cy=\"33.5\" rx=\"19\" ry=\"7\" fill=\"none\" stroke=\"#5c646d\" stroke-width=\"2\"/><path d=\"M8 33l32 1M15 28.5l18 10M33 28.5l-18 10\" stroke=\"#46505a\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><rect x=\"17\" y=\"21\" width=\"14\" height=\"10\" rx=\"2\" fill=\"#e2694c\"/><rect x=\"19\" y=\"18\" width=\"10\" height=\"4\" rx=\"1\" fill=\"#2b2b2b\"/><path d=\"M28 22 40 6\" stroke=\"#3a3a3a\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M36 5.5h8\" stroke=\"#3a3a3a\" stroke-width=\"3\" stroke-linecap=\"round\"/>", "walls": "<path d=\"M0 38h48v8H0z\" fill=\"#3b3e42\"/><path d=\"M2 38V31l18 2.2 2.4-8.6c.5-1.8 2-3.1 3.9-3.1H46v16.5z\" fill=\"#d6d1c6\"/><path d=\"M2 38V31l18 2.2 2.4-8.6c.5-1.8 2-3.1 3.9-3.1H46v16.5z\" fill=\"none\" stroke=\"#8f897e\" stroke-width=\"1.3\" stroke-linejoin=\"round\"/><circle cx=\"10\" cy=\"35\" r=\".9\" fill=\"#9b958a\"/><circle cx=\"29\" cy=\"30\" r=\"1.1\" fill=\"#9b958a\"/><circle cx=\"38\" cy=\"27\" r=\".9\" fill=\"#9b958a\"/><circle cx=\"34\" cy=\"34\" r=\"1\" fill=\"#9b958a\"/><path d=\"M0 46h48\" stroke=\"#2a2c2f\"/><rect x=\"28\" y=\"6\" width=\"17\" height=\"15\" fill=\"#a9a398\"/><path d=\"M28 11h17M28 16h17M36 6v5M32 11v5M40 11v5M36 16v5\" stroke=\"#7d776c\" stroke-width=\"1\"/>", "free": "<rect x=\"3\" y=\"3\" width=\"42\" height=\"42\" rx=\"7\" fill=\"#245a9c\"/><path d=\"M3 13h42M3 23h42M3 33h42M13 3v42M23 3v42M33 3v42\" stroke=\"#fff\" stroke-opacity=\".18\" stroke-width=\"1\"/><path d=\"M9 15h18v8h10v14H9z\" fill=\"none\" stroke=\"#f2f6ff\" stroke-width=\"1.8\" stroke-dasharray=\"3.5 2.5\"/><path d=\"m29 33 11-11 4 4-11 11-5.5 1.5z\" fill=\"#f2b23a\"/><path d=\"m40 22 2-2 4 4-2 2z\" fill=\"#e2694c\"/><path d=\"m28.5 34.5-1 4 4-1z\" fill=\"#3a2a1a\"/>"};
 const catIcon=c=>`<svg viewBox="0 0 48 48" aria-hidden="true">${CATICON[c]||CATICON.walls}</svg>`;
-const CATMETA={learn:[catIcon('learn'),'#f2b23a'],walks:[catIcon('walks'),'#6fb3d9'],patios:[catIcon('patios'),'#8ccf6e'],drives:[catIcon('drives'),'#c9a27a'],deco:[catIcon('deco'),'#e08ad1'],floors:[catIcon('floors'),'#9aa3b0'],walls:[catIcon('walls'),'#e2694c'],bc:[catIcon('patios'),'#4fb3a6'],free:[catIcon('free'),'#f2d24a']};
+const CATMETA={learn:[catIcon('learn'),'#f2b23a'],walks:[catIcon('walks'),'#6fb3d9'],patios:[catIcon('patios'),'#8ccf6e'],drives:[catIcon('drives'),'#c9a27a'],deco:[catIcon('deco'),'#e08ad1'],floors:[catIcon('floors'),'#9aa3b0'],walls:[catIcon('walls'),'#e2694c'],bc:[catIcon('patios'),'#4fb3a6'],big:[catIcon('floors'),'#ff8a12'],qc:[catIcon('deco'),'#5b7fd6'],pr:[catIcon('floors'),'#e0b84a'],rk:[catIcon('walls'),'#8a9aa8'],at:[catIcon('walks'),'#e2694c'],nt:[catIcon('drives'),'#9fd2e6'],free:[catIcon('free'),'#f2d24a']};
 // a little top-down drawing of the slab for each job card
 // v125: job cards show the slab footprint as a blueprint: grid paper, white outline, dimension strings, title block
 function ftIn(v){v=Math.abs(v);let f=Math.floor(v+1e-6),n=Math.round((v-f)*12);if(n===12){f++;n=0}return `${f}'-${n}"`}
@@ -5141,7 +5372,7 @@ function renderJobs(){
   const L=LEVELS[jobIdx];applyFinish(L);renderFinish(L);
   $('stampOpts').hidden=!L.steps.includes('stamp');renderStampOpts();$('customBox').hidden=L.id!=='custom';
   const dl=daily&&daily.L===L;$('wxPick').hidden=!!L.wx||dl;$('wxNote').hidden=!L.wx&&!dl;if(dl)$('wxNote').textContent=`Daily challenge: ${({cool:'cool 12°C',mild:'mild 20°C',hot:'hot 31°C'})[daily.wx]}, and the weather has a surprise in store. Same job for everyone today.`;else if(L.wx)$('wxNote').textContent=L.wxNote;
-  renderCareer();renderDaily();$('prepOpt').hidden=false;{const b=$('pumpOpt');b.disabled=!!L.pump;b.setAttribute('aria-pressed',String(!!(L.pump||pumpOn)));b.textContent=L.pump?'Boom pump truck (needed for tall walls)':'Boom pump truck for the pour'}
+  renderCareer();renderDaily();try{renderBoard()}catch(e){console.warn('board',e)}$('prepOpt').hidden=false;{const b=$('pumpOpt');b.disabled=!!L.pump;b.setAttribute('aria-pressed',String(!!(L.pump||pumpOn)));b.textContent=L.pump?'Boom pump truck (needed for tall walls)':'Boom pump truck for the pour'}
   renderSpec();
 }
 
@@ -5938,7 +6169,7 @@ function updateTruck(dt,t){
   splash.instanceMatrix.needsUpdate=true;
 }
 function updateTools(dt,t){
-  const k=curK();try{regTick(t)}catch(e){}
+  const k=curK();try{regTick(t)}catch(e){}try{if(LV.bridge)bridgeTick(dt)}catch(e){}
   rideTick(dt,t);
   screedG.visible=mound.visible=k==='screed';{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
   if(SCR.on&&SCR.multi){stripBand.visible=false;const pr=running&&k==='pour'&&(placed>0||SCR.pourTold),sc=running&&k==='screed',pulse=.16+.06*Math.sin(performance.now()*.004);
@@ -6230,7 +6461,7 @@ function startJob(){
   careerRun=mode==='career'&&!LV.free;
   weather=WEATHER[wxKeyNow()];pickTOD();$('wxLabel').textContent=weather.label+(TOD.n?' · '+TOD.n:'');
   if(LV.steps.includes('stamp')){LV.color=STAMP_COLORS.find(c=>c.id===stampSel.color).c;STILE=makeStampTile()}try{pbrApply(scene)}catch(e){}try{buildEnv(todEnv(weather))}catch(e){window.__showErr('env: '+e.message)}try{gpsShape();gpsSync()}catch(e){console.warn('gps',e)}reset();setStageUI();
-  runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
+  runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));try{boardStart()}catch(e){console.warn('board',e)}BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
   $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;
 }
 $('start').addEventListener('click',()=>{try{const L=LEVELS[jobIdx];if(L&&!L.tut&&!practice){planOpen();return}plan.on=false;startJob()}catch(e){window.__showErr('start: '+e.message)}});
@@ -6460,7 +6691,7 @@ function finish(timedOut){
   const crack=noJ?['Low','lo']:!hasJ?['Saw cut','mid']:maxP>LV.maxPanel*1.15?['High','hi']:maxP>LV.maxPanel?['Moderate','mid']:['Low','lo'];
   const crackTxt=noJ?'Small square pad. No joints needed at this size.':!hasJ?'Saw-cut the joints within 24 hours, before it cracks on its own.':crack[1]==='lo'?'Joints are close enough to control it.':'Panels are too long to control shrinkage.';
   {const ranked=!practice&&!LV.free,st0=ranked?totalStars():0;let gout=[],rankUp=null;
-   if(ranked){const before=rankOf(st0Prev(st0,best,total));gout=goalsOnFinish({id:LV.id,total,stars:starsOf(total),prep:isPrep(),wx:wxKeyNow(),cab:cab.used,cat:catOf(LV),broom:STAGES.some(x=>x.key==='broom'),crack:crack[1]});const after=rankOf(totalStars());if(after>before)rankUp=RANKS[after][1]}
+   if(ranked){const before=rankOf(st0Prev(st0,best,total));gout=goalsOnFinish({id:LV.id,total,stars:starsOf(total),prep:isPrep(),wx:wxKeyNow(),cab:cab.used,cat:catOf(LV),broom:STAGES.some(x=>x.key==='broom'),crack:crack[1]});try{boardFinish(total,gout)}catch(e){console.warn('board',e)}try{badgesOnFinish(total,gout)}catch(e){console.warn('badge',e)}try{portSave(LV.id,total)}catch(e){}const after=rankOf(totalStars());if(after>before)rankUp=RANKS[after][1]}
    showResultStars(ranked?starsOf(total):0,gout,rankUp);renderGoals()}
   const scale=wk<.04?['Low','lo']:wk<.12?['Moderate','mid']:['High','hi'];
   const leafRisk=leafStains?`<div class="risk">Leaf stains<b class="mid">${leafStains}</b>${leafStains} leaf${leafStains>1?'s':''} set into the surface. They leave tannin stains and pits.</div>`:'';
@@ -7119,7 +7350,7 @@ function farHouse(cx,cz,len,dir,opts){const items=[['door',-len*.18],['win',-len
   if(Math.random()<.6)items.push(['garage',len*.2,9]);const g=house(cx,cz,len,dir,items,Object.assign({chimney:Math.random()<.4?len*.3:undefined},opts||{}));g.traverse(o=>{if(o.isMesh)o.castShadow=false});return g}
 function fenceRun(ax,az,bx,bz){fence(ax,az,bx,bz,5.6)}
 function neighbourhood(){
-  const skipIds=/^(downtown|night|sidewalk|curb|retain|foundation|garage|warehouse|lane|coastpatio|marina|gastown)$/;if(skipIds.test(LV.id)||LV.tut||safeGfx||!lawnOn||!houseLog.length)return;
+  const skipIds=/^(downtown|night|sidewalk|curb|retain|foundation|garage|warehouse|lane|coastpatio|marina|gastown|ruelle|vieuxqc|cabane|binpad|shopapron|acreage|wharf|lighthouse|ntwalk|jellybean|plexsteps|cottage|firehall|bridge)$/;if(skipIds.test(LV.id)||LV.tut||safeGfx||!lawnOn||!houseLog.length)return;
   const H=houseLog[0],rnd=(a,b)=>a+Math.random()*(b-a),len0=H.len;
   const nl=()=>Math.round(rnd(30,42));
   if(LV.truck==='street'&&H.dir===-90){
@@ -7254,7 +7485,7 @@ function sceneExtras(){
   let n=0;for(let t=0;t<80&&n<(lawnOn?4:2);t++){const a=Math.random()*Math.PI*2,r=RW/2+10+Math.random()*24,x=RCX+Math.cos(a)*r,z=RCZ+Math.sin(a)*r*.8;
     if(!clear(x,z)||!freeSpot(x,z,4))continue;shadeTree(x,z,.85+Math.random()*.5);addOb(x-3,z-3,x+3,z+3);n++}
   // grass tufts around the dirt ring
-  if(lawnOn){const NT=safeGfx?400:1100,tm=new THREE.InstancedMesh(tuftG,tuftM,NT),d=new THREE.Object3D();let k=0;
+  if(lawnOn&&!RT().snow){const NT=safeGfx?400:1100,tm=new THREE.InstancedMesh(tuftG,tuftM,NT),d=new THREE.Object3D();let k=0;
     for(let t=0;t<NT*5&&k<NT;t++){const x=RCX+(Math.random()-.5)*(RW+26),z=RCZ+(Math.random()-.5)*(RD+26);if(pointInPoly(x,z,SHAPE))continue;const dd=nearestOnPoly(x,z)[2];if(dd<2.2||dd>14||obst.some(o=>x>o[0]&&x<o[2]&&z>o[1]&&z<o[3]))continue;
       d.position.set(x,-.28,z);d.rotation.set((Math.random()-.5)*.25,Math.random()*6.28,(Math.random()-.5)*.25);d.scale.setScalar(.65+Math.random()*.8);d.updateMatrix();tm.setMatrixAt(k,d.matrix);{const v=.72+Math.random()*.4,y=Math.random()<.15?1.15:1;tm.setColorAt(k,new THREE.Color(v*y,v,v*(y>1?.75:1)))}k++}
     tm.count=k;if(tm.instanceColor)tm.instanceColor.needsUpdate=true;sceneG.add(tm)}
@@ -8835,8 +9066,8 @@ function tarpTick(dt){if(!tarpMesh.visible||!TC.mesh)return;TC.acc+=Math.min(dt,
   if(!isFinite(TC.P[0])){tarpBuild();return}TC.pa.needsUpdate=true;TC.geo.computeVertexNormals()}
 function tarpYAt(x,z){const C=TC;if(!C.mesh)return .92+ELV();const F=3.28084,i=Math.max(0,Math.min(C.NX-1,Math.round(((x-RCX)/F+C.Wm/2)/(C.Wm/(C.NX-1))))),k=Math.max(0,Math.min(C.NZ-1,Math.round(((z-RCZ)/F+C.Dm/2)/(C.Dm/(C.NZ-1)))));return C.P[(k*C.NX+i)*3+1]*F+.04}
 function planEvent(rng,maySkip){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;$('evBtn').hidden=true;
-  if(LV.free||S.blanket!=null||(typeof practice!=='undefined'&&practice))return;const r=rng||Math.random;if(LV.ev){ev={type:LV.ev,at:.3+r()*.2,phase:'wait',t:0,hits:0};return}const rn=RT().rain||0;if((!rng||maySkip)&&r()>(rn?.93:.7))return;
-  ev={type:r()<rn?'rain':(weather&&weather.night?['rain','wind','wind']:['rain','wind','sun'])[Math.floor(r()*3)],at:.3+r()*.28,phase:'wait',t:0,hits:0}}
+  if(LV.free||S.blanket!=null||(typeof practice!=='undefined'&&practice))return;const r=rng||Math.random;if(LV.ev){ev={type:LV.ev,at:.3+r()*.2,phase:'wait',t:0,hits:0};return}const rn=RT().rain||0,wn=RT().wind||0;if((!rng||maySkip)&&r()>(rn||wn?.93:.7))return;
+  ev={type:r()<rn?'rain':r()<wn?'wind':(weather&&weather.night?['rain','wind','wind']:['rain','wind','sun'])[Math.floor(r()*3)],at:.3+r()*.28,phase:'wait',t:0,hits:0}}
 function evStep(dt){
   if(!ev||!running)return 1;
   if(ev.phase==='wait'){if(set>=ev.at&&stage!==S.pour&&stage!==S.tube){ev.t=0;
@@ -9040,6 +9271,73 @@ function renderDaily(){const p=dailyPlan(),ev=['Rain','Wind','Sun'][Math.floor(s
   $('dailyBtn').setAttribute('aria-pressed',String(!!daily))}
 $('dailyBtn').addEventListener('click',()=>{const p=dailyPlan();daily=p;jobIdx=LEVELS.indexOf(p.L);if(!running){applyLevel(LEVELS[jobIdx]);reset();setStageUI()}renderJobs();buzz(8);try{planOpen()}catch(e){window.__showErr('daily: '+e.message)}});
 
+/* ---------- v172 job board: three fresh contracts a day from every region you've unlocked, each with a customer, a town,
+   a twist and a coin bonus. Finish one at C or better (premium: B) to get paid. A contract a day keeps a streak going. ---------- */
+let jobB=null;
+const BTOWNS={on:['Innisfil','Barrie','Orillia','Gravenhurst','Bracebridge','Huntsville','Collingwood','Newmarket','Alliston','Wasaga Beach'],bc:['North Vancouver','Squamish','Gibsons','Kitsilano','Nanaimo','Whistler'],
+  qc:['Montréal','Laval','Québec City','Sherbrooke','Trois-Rivières'],pr:['Saskatoon','Regina','Moose Jaw','Brandon','Swift Current'],rk:['Canmore','Banff','Cochrane','Golden','Jasper'],
+  at:['Halifax','Lunenburg','Moncton','Charlottetown','St. John\'s'],nt:['Yellowknife','Whitehorse','Hay River','Inuvik']};
+const BNAMES=['Dave','Linda','Raj','Marie-Claude','Tom','Jen','Mike','Priya','Gord','Sandra','Kevin','Anne','Luc','Mo','Carol','Ian','Sophie','Bill','Nadia','Doug'];
+const BTWIST=[['none','No surprises. Just do it right.',1],['rain','Rain in the forecast. Keep the tarp close.',1.25],['wind','Gusty all day. It\'ll skin over fast.',1.2],['hot','Hot load from the plant. Move fast.',1.3],['insp','City inspector is dropping by.',1.2],['hotwx','Heat wave: 31°C.',1.35]];
+function boardDay(){return todayKey()}
+function boardPlan(){const k=boardDay();let h=19;for(const ch of k)h=(h*31+ch.charCodeAt(0))%2147483647;const R=seeded(h%99991+41);for(let i=0;i<4;i++)R();
+  const pool=LEVELS.map((L,i)=>[L,i]).filter(([L,i])=>!L.free&&!L.tut&&regOk(regOf(L))&&unlocked(i));const out=[],used=new Set();
+  for(let c=0;c<3&&pool.length;c++){let tries=0,pk;do{pk=pool[Math.floor(R()*pool.length)];tries++}while(used.has(pk[0].id)&&tries<20);used.add(pk[0].id);const L=pk[0],r=regOf(L);
+    const tw=BTWIST[c===0?0:1+Math.floor(R()*(BTWIST.length-1))],prem=c===2,d=DIFF[L.id]||2;
+    out.push({c,L,id:L.id,who:BNAMES[Math.floor(R()*BNAMES.length)],town:(BTOWNS[r]||BTOWNS.on)[Math.floor(R()*(BTOWNS[r]||BTOWNS.on).length)],tw:tw[0],twTxt:tw[1],
+      need:prem?80:65,pay:Math.round((90+d*30)*tw[2]*(prem?1.6:1)/10)*10,wx:tw[0]==='hotwx'?'hot':['cool','mild','mild'][Math.floor(R()*3)],seed:h%99991+c*77+5})}
+  return out}
+function boardState(){let b=store.get('bts-jobB',null);if(!b||b.d!==boardDay())b={d:boardDay(),done:[]};return b}
+function streakState(){const s=store.get('bts-streak',{last:null,n:0,best:0});if(s.last){const y=new Date();y.setDate(y.getDate()-1);const yk=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+  if(s.last!==boardDay()&&s.last!==yk)s.n=0}return s}
+function renderBoard(){const el=$('boardCard');if(!el)return;const P=boardPlan(),B=boardState(),st=streakState();
+  if(!P.length){el.innerHTML='';return}
+  el.innerHTML=`<div class="bhead"><span class="label">Job jobB · today</span><span class="bstreak ${st.n?'on':''}">🔥 ${st.n} day${st.n===1?'':'s'}${st.best>1?` · best ${st.best}`:''}</span></div>
+   ${P.map(p=>{const dn=B.done.includes(p.c),on=jobB&&jobB.c===p.c&&jobB.d===boardDay();return `<button class="bjob ${dn?'done':''}" data-c="${p.c}" aria-pressed="${on}">
+     <div class="bt"><b>${p.L.name}</b><em>${dn?'Paid ✓':'🪙 '+Math.round(p.pay*(seasonNow().x(p.L)?seasonNow().k2:1))+(seasonNow().x(p.L)&&seasonNow().k2>1?' 🍂':'')}</em></div>
+     <span>${p.who} · ${p.town}, ${regById(regOf(p.L)).name}${p.need>65?' · <i class="prem">Premium: needs a B</i>':''}</span><small>${p.twTxt}</small></button>`}).join('')}
+   <p class="bnote">New contracts every day. Finish at least one a day to keep your streak.</p>`;
+  el.querySelectorAll('.bjob').forEach(b=>b.addEventListener('click',()=>{const p=P[+b.dataset.c];if(B.done.includes(p.c)){say('Already paid for that one. New contracts tomorrow.','info','bdone');return}
+    jobB=Object.assign({d:boardDay()},p);daily=null;jobIdx=LEVELS.indexOf(p.L);renderJobs.rv=regOf(p.L);if(!running){applyLevel(LEVELS[jobIdx]);reset();setStageUI()}renderJobs();renderBoard();buzz(8);try{planOpen()}catch(e){}}))}
+function boardActive(){return !!(jobB&&jobB.d===boardDay()&&LV&&jobB.L===LV)}
+function boardStart(){if(!boardActive())return;const t=jobB.tw;
+  if(t==='rain'||t==='wind'){ev={type:t,at:.3+Math.random()*.2,phase:'wait',t:0,hits:0}}
+  else if(t==='hot'&&S.pour!=null){SITE={hot:{on:false}}}
+  else if(t==='insp'&&S.screed!=null&&S.screed+1<STAGES.length){SITE={insp:{phase:'wait'}}}}
+function boardFinish(total,out){if(!boardActive()||practice)return;const B=boardState();if(B.done.includes(jobB.c))return;
+  if(total<jobB.need){out.push(['Job jobB',`${jobB.who} wanted a ${jobB.need>=80?'B':'C'} or better. No payout this time.`,0]);return}
+  const se=seasonNow(),pay=Math.round(jobB.pay*(se.x(jobB.L)?se.k2:1));B.done.push(jobB.c);store.set('bts-jobB',B);coinsAdd(pay);out.push(['Job jobB',`${jobB.who} in ${jobB.town} paid up`+(pay>jobB.pay?` (${se.n} bonus)`:''),pay]);
+  const s=streakState();if(s.last!==boardDay()){s.n=(s.n||0)+1;s.last=boardDay();s.best=Math.max(s.best||0,s.n);const bon=Math.min(250,25*s.n);coinsAdd(bon);out.push(['Streak',`${s.n} day${s.n>1?'s':''} in a row`,bon]);store.set('bts-streak',s)}
+  jobB=null}
+
+/* ---------- v172 come-back loops: seasons, badges, the portfolio wall ---------- */
+// seasons follow the real calendar; each one pays extra coins on the jobB for the jobs that fit it
+function seasonNow(){const m=new Date().getMonth();
+  if(m>=9&&m<=10)return{k:'fall',n:'Fall Freeze-Up',d:'Cold-weather and blanket jobs pay double on the jobB.',x:L=>L.wx==='cold'||L.steps.includes('blanket')||regOf(L)==='nt',k2:2};
+  if(m===11||m<=1)return{k:'winter',n:'Winter Heat',d:'Heated slabs and northern jobs pay +50% on the jobB.',x:L=>L.steps.includes('tube')||regOf(L)==='nt'||regOf(L)==='rk',k2:1.5};
+  if(m>=2&&m<=4)return{k:'spring',n:'Spring Rush',d:'Every jobB contract pays +25%. Phones are ringing.',x:()=>true,k2:1.25};
+  return{k:'summer',n:'Summer Heat',d:'Hot-weather contracts pay +50%. Hydrate.',x:L=>jobB&&jobB.wx==='hot',k2:1.5}}
+const BADGES=[
+  ['first','First pour','Finish any job',r=>true,50],['b','Solid','Get a B or better',r=>r.total>=80,75],['a','Kowalski-grade','Get an A',r=>r.total>=90,150],['s95','Mirror finish','Score 95 or better',r=>r.total>=95,300],
+  ['steps3','Stair builder','Finish 3 stair jobs',r=>r.stairN>=3,150],['stamp','Stamp artist','B or better on a stamped job',r=>r.stamp&&r.total>=80,120],['cold','Cold hands','Finish a cold-weather job',r=>r.wx==='cold',100],
+  ['night','Night owl','Finish the night pour',r=>r.id==='night',100],['rain','Tarp master','Finish a job after rain hit',r=>r.rain,100],['pump','Pump operator','Finish a boom pump job',r=>r.pump,100],
+  ['reg3','Road trip','Finish jobs in 3 regions',r=>r.regN>=3,200],['reg7','Coast to coast','Finish a job in every region',r=>r.regN>=7,600],
+  ['st3','On a roll','3-day job jobB streak',r=>r.streak>=3,150],['st7','Full week','7-day job jobB streak',r=>r.streak>=7,400],['bd10','Repeat customers','Finish 10 jobB contracts',r=>r.boardN>=10,300],
+  ['j25','Seasoned','Finish 25 jobs',r=>r.jobsN>=25,250],['bc','Wet coast','C or better on every BC job',r=>r.regAll.bc,250],['nt','True north','C or better on every northern job',r=>r.regAll.nt,300]];
+function badgesOnFinish(total,out){const got=store.get('bts-badges',[]),cnt=store.get('bts-counts',{jobs:0,jobB:0,stairs:0});cnt.jobs++;if(LV.stair)cnt.stairs++;
+  if(out.some(o=>o[0]==='Job jobB'&&o[2]>0))cnt.jobB++;store.set('bts-counts',cnt);
+  const regs=new Set(LEVELS.filter(L=>bestOf(L.id)>0&&!L.free&&!L.tut).map(regOf)),all={};REGIONS.forEach(R=>{const js=LEVELS.filter(L=>regOf(L)===R.id&&!L.tut&&!L.free);all[R.id]=js.length>0&&js.every(L=>bestOf(L.id)>=65)});
+  const r={id:LV.id,total,wx:wxKeyNow(),stamp:STAGES.some(x=>x.key==='stamp'),rain:!!(ev&&ev.type==='rain'&&ev.phase!=='wait'),pump:!!LV.pump,stairN:cnt.stairs,regN:regs.size,streak:streakState().n,boardN:cnt.jobB,jobsN:cnt.jobs,regAll:all};
+  BADGES.forEach(([k,n,d,t,c])=>{if(!got.includes(k)&&t(r)){got.push(k);coinsAdd(c);out.push(['Badge',n+' · '+d,c])}});store.set('bts-badges',got)}
+// portfolio: the overhead photo of your best score on every job
+function portSave(id,total){try{const p=store.get('bts-port',{});if(p[id]&&p[id].s>=total)return;const src=photoA||photoB;if(!src)return;
+  const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),w=180,h=Math.round(180*im.height/im.width);c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
+    p[id]={s:total,img:c.toDataURL('image/jpeg',.6),d:boardDay()};try{store.set('bts-port',p)}catch(e){}};im.src=src}catch(e){}}
+function extrasHTML(){const got=store.get('bts-badges',[]),p=store.get('bts-port',{}),ids=Object.keys(p).filter(id=>LEVELS.some(L=>L.id===id)).sort((a,b)=>p[b].s-p[a].s),se=seasonNow();
+  return `<div class="season"><b>${se.n}</b><span>${se.d}</span></div>
+   <details class="xbox"><summary>🏅 Badges <em>${got.length}/${BADGES.length}</em></summary><div class="bgrid">${BADGES.map(([k,n,d,t,c])=>`<div class="bdg ${got.includes(k)?'on':''}"><b>${got.includes(k)?'🏅':'🔒'} ${n}</b><span>${d}</span><em>🪙 ${c}</em></div>`).join('')}</div></details>
+   <details class="xbox"><summary>🖼️ Portfolio <em>${ids.length} job${ids.length===1?'':'s'}</em></summary>${ids.length?`<div class="pgrid">${ids.map(id=>{const L=LEVELS.find(x=>x.id===id);return `<figure><img src="${p[id].img}" alt=""><figcaption>${L.name}<b>${p[id].s}</b></figcaption></figure>`}).join('')}</div>`:'<p class="bnote">Your best pour on every job shows up here.</p>'}</details>`}
+
 /* ---------- scoring points + shared leaderboard ---------- */
 const WXMULT={cool:.8,mild:1,hot:1.35,cold:1.15,night:1.1},RANKED=()=>LEVELS.filter(L=>!L.free);
 const ptsFor=(score,wk)=>Math.round(score*(WXMULT[wk]||1)*10);
@@ -9071,7 +9369,7 @@ async function lbRecord(score){
   const tot=res.newTotal!=null?res.newTotal:((lbMine()||{}).total||0);res.rank=lbDocs.filter(d=>d.id!==lbMe&&(d.total||0)>tot).length+1;res.total=tot;
   return res}
 function weekKey(){const d=new Date(),y=d.getFullYear(),j=new Date(y,0,1),wn=Math.ceil(((d-j)/864e5+j.getDay()+1)/7);return y+'-w'+wn}
-function wxKeyNow(){return LV.wx||(daily&&daily.L===LV?daily.wx:wxKey)}
+function wxKeyNow(){return LV.wx||(daily&&daily.L===LV?daily.wx:boardActive()?jobB.wx:wxKey)}
 const GAME_URL='https://claude.ai/artifact/Dbw5fbJCnqopZogG3zKxbW',WEEK_PRIZE='Top score this week wins $100 off a Kowalski Concrete job';
 function openQuote(){const sel=$('qType'),id=LV&&LV.id||'',m=/drive|heated|freeze/.test(id)?'Driveway':/patio|stamp|hottub|court|shed/.test(id)?'Patio':/walk|sidewalk/.test(id)?'Walkway':id==='porch'?'Steps / porch':id==='garage'||id==='warehouse'?'Garage floor':id==='retain'?'Retaining wall':null;
   if(m)sel.value=id==='stamp'||id==='stampdrive'?'Stamped or coloured':id==='heated'?'Heated driveway':m;$('qMsg').hidden=true;$('quote').dataset.from=!$('results').hidden?'results':'intro';$('results').hidden=true;$('intro').hidden=true;$('quote').hidden=false}
