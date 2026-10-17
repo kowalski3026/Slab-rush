@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v179: bridge always starts with Tear out, Soffit forms and Deck steel (job scope on or off). Tear-out breaks the deck under a quick swipe (every chunk the finger passes over takes a hit), hammer catches up to the finger, hoe ram always shown in Tear out. -->
 <!-- v178: Highway 400 bridge deck reworked: tear the old deck off the girders with a hoe ram, hang the soffit forms between girders and on overhang brackets, tie the deck steel, then pump it while a Bid-Well truss paver strikes off and drum-finishes the deck (pump feeds ahead of the augers). No gravel, no float, no broom. Tall light towers and a Bid-Well light so the night pour is lit. -->
 <!-- v177: job scope, quote, finish/stamp and pour conditions moved onto the Job plan screen, so everything for a job is picked on one page after Back it in (tutorial too) -->
 <!-- v176: 27 more jobs so every category in every region has at least 2 (stairs 2-5 steps, stamped/exposed/heated/blanket drives and walks, floors, aprons). v175: fix region tile photos (two layered urls broke the background shorthand, now one png). v174: every region gets real categories (Walks, Patios & pads, Driveways, Decorative, Floors, Steps, Big jobs) with its own photo tiles (REGCAT_IMG, 35 Higgsfield images); 18 more region jobs (each region now 6-7); new Steps category; grass tufts, clods and leaves hide under the rain tarp. v173: real Canada map on the job screen: all 13 provinces and territories from public GeoJSON (Lambert conformal conic, simplified), coloured by game region, tap a province or pin to switch region, city dots. v172: all 7 regions live (Quebec, Prairies, Rockies, Atlantic, North: 17 jobs + themes: snow, sparse trees, flat prairie, big Rockies peaks, coloured Atlantic houses), Ontario pack (Muskoka Cottage Patio, Fire Hall Apron, Highway 400 Bridge Deck with deck finisher + traffic under), daily job board (3 contracts/day, payouts, streaks), seasons, 18 badges, portfolio of best pours. v171: Canada map + regions (REGIONS, regOf, RT theme, regDress). Ontario home, BC Coast unlocks after 3 Ontario C grades: Hillside Steps, Laneway Garage Pad, Ocean-View Patio, Marina Launch Apron, Gastown Sidewalk. BC theme: cedar siding, dark roofs, taller denser forest, coast mountains, more rain; sea + docks + boats. Quebec, Prairies, Rockies, Atlantic, North pinned as coming soon. v170: rolling ground (TERR, terrApply after sceneExtras): yard, streets, houses, scenery and the truck lane stay flat; past that low humps and a ring of hills toward the tree line, per-job seed; background trees sit on it; skipped in battery saver. v169: stair vibrator is now a handheld unit: brass head on a straight black whip up to a red drill-style motor in the finisher's hand (no motor on the lawn, no hanging hose). v168: Front Steps fixes: side-form kickers run from the top of the form down to the stake; hand finish is Trowel/Edge/Broom only (no float, trowel strikes to the forms and works early); rain tarp starts laid over the steps, pinned at the lawn and the wall, sandbags along the sides. v167: Front Steps job (Patios & pads, after Front Porch): form the sides, hang the riser boards, bend the bar, pour + rake, vibrate with a pencil vibrator, then hand finish each tread one at a time (Float/Edge/Trowel/Broom picker per tread). Each tread is its own level (STR, strGeo, strPick). v166: two-finger drag/twist orbits around the job (pinch zooms, three fingers slide); desktop right-drag orbits, shift/middle-drag slides. v165: two-finger pan + pinch zoom on every step; right-drag/wheel on desktop; tap zoom % to recentre. v163: removed the cool-morning fog that hazed the opening camera pan. v162: daylight wet sheen: full clearcoat, glossier film, extra sky reflection, plus wet glare (bright horizon reflection across the far slab + sun glint) that dries off with the slab. v161: HDRI sky light, baked AO, generated trees. v160: finish marks. v159: three.js r186 | main: v159d: foreman avoids yard props (barrow, buckets, pallets) and tries more spots per corner; v159c: foreman also loads on battery saver (no shadow); v159b: foreman sized from the posed skinned mesh (was giant); Higgsfield foreman (rigged GLB with idle + walk) stands off a slab corner and strolls between corners -->
@@ -2581,6 +2582,10 @@ function brgChunk(i){const c=BRG.ch[i],im=BRG.chIM;if(!im)return;let y=-.37,s=1,
 const brgPct=a=>a.length?a.filter(p=>p.placed).length/a.length:1;
 const brgDemoPct=()=>BRG.ch.length?BRG.ch.filter(c=>c.gone).length/BRG.ch.length:1;
 function brgChunkLeft(xa,xb,za,zb){return BRG.ch.some(c=>!c.gone&&c.x+1>xa+.2&&c.x-1<xb-.2&&c.z+1>za+.2&&c.z-1<zb-.2)}
+function brgHammer(x0,z0,x1,z1){if(!BRG.on||!running)return;const E=LV.elev,L=Math.hypot(x1-x0,z1-z0),n=Math.max(1,Math.ceil(L/.7));let br=0;
+  BRG.ch.forEach((c,i)=>{if(c.gone)return;let best=9;for(let s=0;s<=n;s++){const x=x0+(x1-x0)*s/n,z=z0+(z1-z0)*s/n;best=Math.min(best,Math.hypot(c.x-x,c.z-z))}if(best>1.7)return;
+    c.hp-=.55*(1.2-best/2);if(c.hp<=0){c.hp=0;c.gone=1;c.t=0;br++;brgPuff(c.x,E+.6,c.z)}brgChunk(i)});
+  if(br){BRG.broke+=br;buzz(14);if(BRG.broke%8<br)try{bark(pick(BARKS.demo),2600)}catch(e){}}}
 function brgSoffitAt(X,Z){let n=0,blk=0;BRG.pan.forEach(p=>{if(p.placed||X<p.xa-.3||X>p.xb+.3||Z<p.za-.4||Z>p.zb+.4)return;
     if(S.demo!=null&&brgChunkLeft(p.xa,p.xb,p.za-(p.ov?0:.7),p.zb+(p.ov?0:.7))){blk++;return}p.placed=1;n++});
   if(n){rebClick(1500);buzz(10);brgVis();if(brgPct(BRG.pan)>=1)say('Soffit\'s hung, brackets and rail are on. Tie the top mat.','good','sofDone',0)}
@@ -2664,10 +2669,11 @@ function bwCol(c){if(c<RX0||c>=RX1)return;const eff=bwEff();let moved=0;
   surfDirty=geoDirty=true}
 function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,E=LV.elev;
   // tear-out
+  if(BRG.ex){const sh=k==='demo';if(BRG.ex.visible!==sh)BRG.ex.visible=sh;if(sh&&!BRG.ex.parent)REGG.add(BRG.ex)}
   if(k==='demo'&&BRG.ex){const tg=BRG.tgt;if(ptr.down&&running){tg.set(wx(ptr.x),E,wz(ptr.y))}else if(!BRG.tip.lengthSq())tg.set(-20,E,0);
-    const d=new THREE.Vector3().subVectors(tg,BRG.tip);d.y=0;const L=d.length(),mx=16*dt;if(L>mx)d.multiplyScalar(mx/L);BRG.tip.add(d);BRG.tip.y=E;
-    BRG.hit=ptr.down&&running&&L<3;
-    if(BRG.hit){let br=0;BRG.ch.forEach((c,i)=>{if(c.gone)return;const q=Math.hypot(c.x-BRG.tip.x,c.z-BRG.tip.z);if(q>2.1)return;c.hp-=dt*2.8*(1.15-q/2.4);
+    const d=new THREE.Vector3().subVectors(tg,BRG.tip);d.y=0;const L=d.length(),mx=Math.max(40,L*8)*dt;if(L>mx)d.multiplyScalar(mx/L);BRG.tip.add(d);BRG.tip.y=E;
+    BRG.hit=ptr.down&&running;
+    if(BRG.hit){let br=0;BRG.ch.forEach((c,i)=>{if(c.gone)return;const q=Math.hypot(c.x-BRG.tip.x,c.z-BRG.tip.z);if(q>2.3)return;c.hp-=dt*4.5*(1.2-q/2.6);
         if(c.hp<=0){c.hp=0;c.gone=1;c.t=0;br++;brgPuff(c.x,E+.6,c.z)}brgChunk(i)});
       if(br){BRG.broke+=br;buzz(14);if(BRG.broke%6===0)try{bark(pick(BARKS.demo),2600)}catch(e){}}
       BRG.clk+=dt;if(BRG.clk>.11){BRG.clk=0;rebClick(220+Math.random()*80);if(Math.random()<.3)brgPuff(BRG.tip.x,E+.4,BRG.tip.z)}}
@@ -5620,7 +5626,7 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   if(k==='pour'&&pourTool!=='rake'&&placeMode()){if(RUN.empty)say('Truck\'s empty. Rake it out or hit Next.','info','empty2');else runTap(p.wx,p.wz)}
   else if(k==='pour'){if(pourTool==='rake'){rk.x=p.x;rk.y=p.y;rk.load=0;rk.used=true}else if(stowChute){say('Drum\'s empty. Switch to the rake or hit Next.','info','empty2')}else{pourAim(p);pourStep.hold=true;pouring=true;buzz(12)}}
   else if(k==='screed'&&LV.bridge){BW.tx=Math.max(RX0-3,Math.min(RX1+3,p.x))}
-  else if(k==='demo'){}
+  else if(k==='demo')brgHammer(p.wx,p.wz,p.wx,p.wz);
   else if(k==='soffit')brgSoffitAt(p.wx,p.wz);
   else if(k==='screed'){scrTip();if(scrStrip()){const [LA,LB]=SCR.lanes[0];boardY=Math.max(LA-1.5,Math.min(LB+1.5,p.y));SCR.bx=p.x;lastRow=null;carryC.fill(0)}else{boardX=Math.max(RX0-1,Math.min(RX1+1,p.x));lastCol=null}scr.ok=scrOk()}
   else if(k==='color')colorAt(p.x,p.y);
@@ -5644,7 +5650,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   if(k==='float'||k==='broom'||(k==='pour'&&pourTool==='rake'))steerFeed(k==='pour'?'rake':k,dx,dy);
   if(k==='pour'){if(pourTool==='rake')rakeMove(p.x,p.y);else if(!stowChute&&!placeMode())pourAim(p)}
   else if(k==='screed'&&LV.bridge){}
-  else if(k==='demo'){}
+  else if(k==='demo')brgHammer(wx(ptr.x),wz(ptr.y),p.wx,p.wz);
   else if(k==='soffit'){const ox=wx(ptr.x),oz=wz(ptr.y),n=Math.max(1,Math.ceil(Math.hypot(p.wx-ox,p.wz-oz)/.8));for(let q=1;q<=n;q++)brgSoffitAt(ox+(p.wx-ox)*q/n,oz+(p.wz-oz)*q/n)}
   else if(k==='screed'){if(scrStrip()){const [LA,LB]=SCR.lanes[0];const nb=SCR.bx+(p.x-ptr.x)*.85;if(Math.abs(Math.round(nb-scrBL()/2)-Math.round(SCR.bx-scrBL()/2))>=1){lastRow=null}SCR.bx=nb;if(scr.ok)screedMoveY(ptr.y,Math.max(LA-2,Math.min(LB+2,p.y)))}else screedMove(ptr.x,Math.max(RX0-1.5,Math.min(RX1+1.5,p.x)))}
   else if(k==='stamp')stampAt(p.wx,p.wz);
@@ -5692,7 +5698,7 @@ function applyLevel(L){
   S={};STAGES.forEach((s,i)=>S[s.key]=i);
   setLot(L.ls||1);
   if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
-  if(prepOn&&L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
+  if(L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
   try{brgSetup(L)}catch(e){console.warn('brg',e)}
   if(L.stair){S.float=S.edge=S.trowel=S.broom=S.tread;const st=STAGES[S.tread];Object.defineProperty(st,'win',{get:()=>trdWin(TRD.tool)});Object.defineProperty(st,'soft',{get:()=>DEFS[TRD.tool].soft})}
   setShape(typeof L.shape==='function'?L.shape():L.shape);buildMask();strSetup(L);buildVerts();strVerts();
