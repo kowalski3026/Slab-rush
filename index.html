@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v185: full graphics on every phone. Auto (now labelled Full) never switches to battery saver on its own: no low-memory check, no forcing after a crash or a lost 3D view, no slow-frame drop to low quality, Android 1.35x resolution on all phones. Battery saver only when picked. -->
 <!-- v184: bridge: Bid-Well drum and wheels spin on their axles (they were swinging in circles), drum has paddles; rebar lanes and tie rings are bright blue on a dark brown HDO soffit; boom pump swings clear of the deck when it isn't placing. -->
 <!-- v183: battery-saver graphics now build each job's dress (bridge Bid-Well, hoe ram, light towers, traffic; region extras like docks and boats), it was skipped with the terrain. Bridge follows job scope again: off starts at Pour with the deck torn out, soffit hung and steel tied. -->
 <!-- v182: Bid-Well parks at the top-of-screen end of the span (away from the camera, or the end you started pouring) from the steel step on, so it's waiting there before the pour and runs back toward you. -->
@@ -741,7 +742,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
       <button class="btn" id="shopOpen" style="margin-top:6px">🛠 Equipment yard</button>
     </div>
     <div class="label">Graphics</div>
-    <div class="seg" id="gfxSeg" style="grid-template-columns:1fr 1.5fr 1fr"><button data-g="auto">Auto</button><button data-g="saver">Battery saver</button><button data-g="sharp">Sharp</button></div>
+    <div class="seg" id="gfxSeg" style="grid-template-columns:1fr 1.5fr 1fr"><button data-g="auto">Full</button><button data-g="saver">Battery saver</button><button data-g="sharp">Sharp</button></div>
     <details class="howbox"><summary>How to play</summary><ol class="how">
       <li>Press and drag on the slab to work each tool. During the pour, switch between the chute and the rake.</li>
       <li>Hold <b>fast-forward</b> while bleed water comes and goes. It speeds up the longer you hold and brakes when the window opens.</li>
@@ -863,7 +864,7 @@ try{(()=>{
 const GW=48, GH=24, N=GW*GH;let DEPTH=4,CELL_IN=5,LS=1;
 let SLAB_W=20, SLAB_D=10;const EX=3.1;
 const GFX=(()=>{try{return localStorage.getItem('bts-gfx')||'auto'}catch(e){return'auto'}})();
-const TEXLOW=GFX==='saver'?true:GFX==='sharp'?false:(()=>{try{const v=localStorage.getItem('bts-safegfx');return !!localStorage.getItem('bts-alive')||v==='1'||(v!=='0'&&(navigator.deviceMemory||8)<=4)}catch(e){return false}})();// battery-saver: smaller slab canvases (about half the memory)
+const TEXLOW=GFX==='saver';// battery-saver: smaller slab canvases (about half the memory)
 const TW=TEXLOW?768:1024, TH=TW/2, CPX=TW/GW;
 const XT={n:0,m3:0,fee:0,wait:0,ask:0,amt:0};let NEED_M3=1.89, LOAD_M3=2.25, lateT=null, blow=null, printN=0, practice=null, practiceSave=null,nextArm=0,exY=-.3,REBX=[],rebTieIM=null,rebDotIM=null,rebN=0,REB=null,shakeA=0,hapT=0,sparkT=0;
 const EXCLS=[{n:'Mini 3.5 t',s:1},{n:'8 ton',s:1.45},{n:'20 ton',s:2}],BUCKETS=[{n:'24 in',w:.8,c:.7},{n:'36 in',w:1,c:1},{n:'48 in',w:1.3,c:1.5}];
@@ -1835,9 +1836,9 @@ try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'
 if(!renderer){const d=document.createElement('div');d.className='nogl';d.textContent='This game needs WebGL. Try opening it in Chrome.';$('stagewrap').appendChild(d);cv.style.height='240px'}
 const IS_AND=/Android/i.test(navigator.userAgent),LOWMEM=(navigator.deviceMemory||8)<=4;
 let crashLast=null;try{crashLast=JSON.parse(localStorage.getItem('bts-alive')||'null')}catch(e){}
-let safeGfx=false;try{const v=localStorage.getItem('bts-safegfx');safeGfx=!!crashLast||v==='1'||(v!=='0'&&LOWMEM)}catch(e){safeGfx=LOWMEM}
+let safeGfx=false;// v185: full graphics unless the player picks Battery saver
 if(GFX==='saver')safeGfx=true;else if(GFX==='sharp')safeGfx=false;const FPSCAP=GFX==='saver'||(IS_AND&&GFX!=='sharp');
-if(crashLast)try{localStorage.setItem('bts-safegfx','1')}catch(e){}
+try{localStorage.removeItem('bts-safegfx')}catch(e){}
 /* r186 colour grade: the film curve plus the punch/warmth that the old CSS canvas filter used to add, done inside the shader (no extra pass, no compositor filter) */
 const GRADE={base:'aces',sat:1.2,con:.25,warm:.06,lift:0};
 function gradeChunk(){const src=THREE.ShaderChunk.tonemapping_pars_fragment.split('vec3 CustomToneMapping')[0],f=n=>(+n).toFixed(4),
@@ -1853,7 +1854,7 @@ function gradeChunk(){const src=THREE.ShaderChunk.tonemapping_pars_fragment.spli
 gradeChunk();
 function setGrade(o){Object.assign(GRADE,o||{});gradeChunk();scene.traverse(m=>{if(m.material)(Array.isArray(m.material)?m.material:[m.material]).forEach(x=>x.needsUpdate=true)})}
 let TONE=THREE.CustomToneMapping;
-if(!renderer);else{renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=TONE;renderer.shadowMap.enabled=true;renderer.shadowMap.type=IS_AND&&GFX!=='sharp'?THREE.PCFShadowMap:THREE.PCFShadowMap;renderer.setPixelRatio(Math.min(safeGfx?1:GFX==='sharp'?1.75:IS_AND?((navigator.deviceMemory||4)>=6?1.35:1.15):1.5,window.devicePixelRatio||1))}
+if(!renderer);else{renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=TONE;renderer.shadowMap.enabled=true;renderer.shadowMap.type=IS_AND&&GFX!=='sharp'?THREE.PCFShadowMap:THREE.PCFShadowMap;renderer.setPixelRatio(Math.min(safeGfx?1:GFX==='sharp'?1.75:IS_AND?1.35:1.5,window.devicePixelRatio||1))}
 let glLost=false,glLostT=0;
 /* ---------- Sharp-mode finishing filter: HDR render, glow on bright wet sheen, film tone curve, light colour grade, vignette ---------- */
 const POST={on:false,ok:null,w:0,h:0};
@@ -1894,8 +1895,8 @@ function drawFrame(){if(!renderer)return;
       POST.blur.uniforms.t.value=POST.b.texture;POST.blur.uniforms.d.value.set(0,1/POST.a.height*(k+1));pass(POST.blur,POST.a)}
     const f=POST.fin.uniforms;f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;pass(POST.fin,null)}
   catch(e){console.warn('post failed',e);POST.on=false;renderer.setRenderTarget(null);renderer.toneMapping=TONE;renderer.render(scene,camera)}}
-cv.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;glLostT=performance.now();try{localStorage.setItem('bts-safegfx','1')}catch(_){}},false);
-cv.addEventListener('webglcontextrestored',()=>{glLost=false;$('glMsg')&&($('glMsg').hidden=true);if(!lowQ)enterLowQ();try{slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;resize()}catch(_){}},false);
+cv.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;glLostT=performance.now();},false);
+cv.addEventListener('webglcontextrestored',()=>{glLost=false;$('glMsg')&&($('glMsg').hidden=true);try{slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;resize()}catch(_){}},false);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1.4,.5,420);
 
@@ -4291,10 +4292,8 @@ $('glReload').addEventListener('click',()=>location.reload());
 document.addEventListener('visibilitychange',()=>{if(document.hidden)try{localStorage.removeItem('bts-alive')}catch(e){}});
 addEventListener('pagehide',()=>{try{localStorage.removeItem('bts-alive')}catch(e){}});
 try{localStorage.removeItem('bts-alive')}catch(e){}
-{const n=$('crashNote');const showSafe=()=>{n.hidden=false;n.innerHTML=(crashLast?'The game closed unexpectedly last time'+(crashLast.j?' ('+crashLast.j+(crashLast.s&&crashLast.s!=='menu'?' · '+crashLast.s:'')+')':'')+'. ':'')+'Battery-saver graphics are on to keep it stable.<button id="gfxFull">Use full graphics</button>';
-  $('gfxFull').addEventListener('click',()=>{try{localStorage.setItem('bts-safegfx','0');localStorage.setItem('bts-gfx','auto')}catch(e){}location.reload()})};
- let forced='';try{forced=localStorage.getItem('bts-safegfx')}catch(e){}
- if(crashLast||(safeGfx&&forced==='1'&&GFX!=='saver'))showSafe()}
+{const n=$('crashNote');if(crashLast&&GFX!=='saver'){n.hidden=false;n.innerHTML='The game closed unexpectedly last time'+(crashLast.j?' ('+crashLast.j+(crashLast.s&&crashLast.s!=='menu'?' · '+crashLast.s:'')+')':'')+'. If it keeps happening, try Battery saver.<button id="gfxFull">Battery saver</button>';
+  $('gfxFull').addEventListener('click',()=>{try{localStorage.setItem('bts-gfx','saver')}catch(e){}location.reload()})}}
 function gu(x){return (x+SLAB_W/2)/SLAB_W*GW}function gv(z){return (z+SLAB_D/2)/SLAB_D*GH}// world x/z to grid column/row
 
 /* ---------- game feel: camera shake, trowel glints, a different buzz for every tool ---------- */
@@ -7220,7 +7219,7 @@ function frame(t){
 }
 function step(t,dt){
   ema=ema*.95+dt*.05;
-  if(!lowQ&&ema>.045&&GFX!=='sharp')enterLowQ()
+  /* v185: no auto low-quality drop */
   if(running&&!document.hidden){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
     if(autoFF&&!flags.aff){flags.aff=1;say('Bleed water\'s still coming up. Skipping ahead, get ready to thumb-test.','info','aff',0)}if(!autoFF&&flags.aff===1&&set>=.43){flags.aff=2;buzz(25);say('Close now. Thumb-test it.','good','aff2',0)}
