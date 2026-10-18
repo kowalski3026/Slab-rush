@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v183: battery-saver graphics now build each job's dress (bridge Bid-Well, hoe ram, light towers, traffic; region extras like docks and boats), it was skipped with the terrain. Bridge follows job scope again: off starts at Pour with the deck torn out, soffit hung and steel tied. -->
 <!-- v182: Bid-Well parks at the top-of-screen end of the span (away from the camera, or the end you started pouring) from the steel step on, so it's waiting there before the pour and runs back toward you. -->
 <!-- v181: bridge Bid-Well finishes right behind the pour: starts at the far end (top of screen), Start Bid-Well button once 15 ft is placed in front of it, then it runs on its own down the span, holding only when there's no mud ahead. -->
 <!-- v180: night bridge is lit by the light plant (strong warm key + fill, not moonlight); soffit bays can always be hung, whatever was left in the tear-out (it still costs on the Tear out score). -->
@@ -2343,7 +2344,7 @@ function terrMask(){const T=TERR,q=ground.scale.x,half=160*q,G=T.G=4*Math.max(1,
   const W=new Float32Array(M);for(let k=0;k<M;k++){const u=Math.min(1,Math.max(0,(d[k]-3)/30));W[k]=u*u*(3-2*u)}T.w=W}
 // rebuild the ground as a fine grid (with the dug hole cut out on prep jobs) and lift it
 function terrApply(){const T=TERR;T.on=false;T.w=null;
-  if(safeGfx||!LV){terrTrees();return}
+  if(safeGfx||!LV){terrTrees();if(LV)try{regDress()}catch(e){console.warn('reg',e)}return}
   try{T.seed=(LV.id||'').split('').reduce((a,c)=>a+c.charCodeAt(0),0)*.37%6.283;T.cx=RCX;T.cz=RCZ;terrMask();T.on=true;
     const q=ground.scale.x,S=160,Gl=2,n=Math.round(2*S/Gl)+1,PP=isPrep(),hx=SLAB_W/2,hz=SLAB_D/2;
     const P=new Float32Array(n*n*3),UV=new Float32Array(n*n*2),idx=[];
@@ -5718,7 +5719,7 @@ function applyLevel(L){
   S={};STAGES.forEach((s,i)=>S[s.key]=i);
   setLot(L.ls||1);
   if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
-  if(L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
+  if(prepOn&&L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
   try{brgSetup(L)}catch(e){console.warn('brg',e)}
   if(L.stair){S.float=S.edge=S.trowel=S.broom=S.tread;const st=STAGES[S.tread];Object.defineProperty(st,'win',{get:()=>trdWin(TRD.tool)});Object.defineProperty(st,'soft',{get:()=>DEFS[TRD.tool].soft})}
   setShape(typeof L.shape==='function'?L.shape():L.shape);buildMask();strSetup(L);buildVerts();strVerts();
