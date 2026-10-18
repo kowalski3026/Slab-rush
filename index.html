@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v189: Effects graphics mode (bts-gfx 'fx'): Full resolution + the Sharp filter (HDR, bloom, MSAA) + new screen-space contact shadows (POST.aoM/aoB, half res). Sharp also gets the contact shadows. -->
 <!-- v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v187: rake furrows and screed strike-off lines drawn as real-scale shape in the slab shader (GPS.mr / GPS.ms); floated out by the bull float. -->
 <!-- v186: real concrete in the slab shader: stone showing in fresh paste, mud lumps, bleed water pooling in lows, blotchy drying from the edges. -->
@@ -745,7 +746,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
       <button class="btn" id="shopOpen" style="margin-top:6px">🛠 Equipment yard</button>
     </div>
     <div class="label">Graphics</div>
-    <div class="seg" id="gfxSeg" style="grid-template-columns:1fr 1.5fr 1fr"><button data-g="auto">Full</button><button data-g="saver">Battery saver</button><button data-g="sharp">Sharp</button></div>
+    <div class="seg" id="gfxSeg" style="grid-template-columns:1fr 1.2fr 1fr 1.5fr"><button data-g="auto">Full</button><button data-g="fx">Effects</button><button data-g="sharp">Sharp</button><button data-g="saver">Battery saver</button></div>
     <details class="howbox"><summary>How to play</summary><ol class="how">
       <li>Press and drag on the slab to work each tool. During the pour, switch between the chute and the rake.</li>
       <li>Hold <b>fast-forward</b> while bleed water comes and goes. It speeds up the longer you hold and brakes when the window opens.</li>
@@ -1865,9 +1866,13 @@ let glLost=false,glLostT=0;
 /* ---------- Sharp-mode finishing filter: HDR render, glow on bright wet sheen, film tone curve, light colour grade, vignette ---------- */
 const POST={on:false,ok:null,w:0,h:0};
 function postInit(){if(POST.ok!==null)return POST.ok;POST.ok=false;
-  try{if(!renderer||GFX!=='sharp'||!renderer.capabilities.isWebGL2||!(renderer.extensions.get('EXT_color_buffer_float')||renderer.extensions.get('EXT_color_buffer_half_float')))return false;
+  try{if(!renderer||(GFX!=='sharp'&&GFX!=='fx')||!renderer.capabilities.isWebGL2||!(renderer.extensions.get('EXT_color_buffer_float')||renderer.extensions.get('EXT_color_buffer_half_float')))return false;
     const o={type:THREE.HalfFloatType,format:THREE.RGBAFormat,depthBuffer:true};
     POST.main=new THREE.WebGLRenderTarget(4,4,Object.assign({samples:4},o));
+    /* v189: contact shadows (screen-space ambient occlusion) from the depth buffer, half resolution, depth-aware blur */
+    try{POST.main.depthTexture=new THREE.DepthTexture(4,4);POST.main.depthTexture.type=THREE.UnsignedIntType;
+      const ao={type:THREE.UnsignedByteType,format:THREE.RGBAFormat,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter};
+      POST.ao=new THREE.WebGLRenderTarget(4,4,ao);POST.ao2=new THREE.WebGLRenderTarget(4,4,ao);POST.aoOn=true}catch(e){POST.aoOn=false}
     const so={type:THREE.HalfFloatType,format:THREE.RGBAFormat,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter};
     POST.a=new THREE.WebGLRenderTarget(4,4,so);POST.b=new THREE.WebGLRenderTarget(4,4,so);
     POST.cam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);POST.scene=new THREE.Scene();
@@ -1876,20 +1881,38 @@ function postInit(){if(POST.ok!==null)return POST.ok;POST.ok=false;
       fragmentShader:'uniform sampler2D t;uniform float th;varying vec2 vUv;void main(){vec3 c=min(texture2D(t,vUv).rgb,vec3(8.));float l=dot(c,vec3(.2126,.7152,.0722));gl_FragColor=vec4(c*(max(0.,l-th)/max(l,.001))*.5,1.);}'});
     POST.blur=new THREE.ShaderMaterial({uniforms:{t:{value:null},d:{value:new THREE.Vector2()}},vertexShader:vs,depthTest:false,depthWrite:false,
       fragmentShader:'uniform sampler2D t;uniform vec2 d;varying vec2 vUv;void main(){vec3 c=texture2D(t,vUv).rgb*.227;c+=(texture2D(t,vUv+d*1.385).rgb+texture2D(t,vUv-d*1.385).rgb)*.316;c+=(texture2D(t,vUv+d*3.231).rgb+texture2D(t,vUv-d*3.231).rgb)*.07;gl_FragColor=vec4(c,1.);}'});
-    POST.fin=new THREE.ShaderMaterial({uniforms:{t:{value:null},bl:{value:null},ex:{value:1},bs:{value:.2},vg:{value:.2},asp:{value:1}},vertexShader:vs,depthTest:false,depthWrite:false,
-      fragmentShader:`uniform sampler2D t,bl;uniform float ex,bs,vg,asp;varying vec2 vUv;
+    POST.fin=new THREE.ShaderMaterial({uniforms:{t:{value:null},bl:{value:null},ao:{value:null},aoK:{value:0},ex:{value:1},bs:{value:.2},vg:{value:GFX==='fx'?.12:.2},asp:{value:1}},vertexShader:vs,depthTest:false,depthWrite:false,
+      fragmentShader:`uniform sampler2D t,bl,ao;uniform float ex,bs,vg,asp,aoK;varying vec2 vUv;
 vec3 rrt(vec3 v){vec3 a=v*(v+.0245786)-.000090537;vec3 b=v*(.983729*v+.4329510)+.238081;return a/b;}
 vec3 aces(vec3 c){const mat3 i=mat3(.59719,.07600,.02840,.35458,.90834,.13383,.04823,.01566,.83777);const mat3 o=mat3(1.60475,-.10208,-.00327,-.53108,1.10813,-.07276,-.07367,-.00605,1.07602);c*=ex/.6;c=i*c;c=rrt(c);c=o*c;return clamp(c,0.,1.);}
 vec3 srgb(vec3 c){return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
-void main(){vec3 c=texture2D(t,vUv).rgb+texture2D(bl,vUv).rgb*bs;c=aces(c);
+void main(){vec3 c=texture2D(t,vUv).rgb;if(aoK>0.)c*=mix(1.,texture2D(ao,vUv).r,aoK);c+=texture2D(bl,vUv).rgb*bs;c=aces(c);
  float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,1.04);c*=mix(vec3(.995,1.,1.01),vec3(1.02,1.,.975),smoothstep(.15,.8,l));
  c=srgb(c);c=mix(c,c*c*(3.-2.*c),.12);
  vec2 q=(vUv-.5)*vec2(asp,1.);c*=1.-vg*smoothstep(.35,1.05,length(q)*1.1);
  gl_FragColor=vec4(c,1.);}`});
+    if(POST.aoOn){const vp=`uniform sampler2D dT;uniform mat4 pInv;
+vec3 vpos(vec2 u){float d=texture2D(dT,u).x;vec4 v=pInv*vec4(u*2.-1.,d*2.-1.,1.);return v.xyz/v.w;}`;
+      POST.aoM=new THREE.ShaderMaterial({uniforms:{dT:{value:null},pInv:{value:new THREE.Matrix4()},p11:{value:1},res:{value:new THREE.Vector2(1,1)},rad:{value:1.5},k:{value:1}},vertexShader:vs,depthTest:false,depthWrite:false,
+        fragmentShader:vp+`uniform float p11,rad,k;uniform vec2 res;varying vec2 vUv;
+void main(){float d0=texture2D(dT,vUv).x;if(d0>.99995){gl_FragColor=vec4(1.);return;}
+ vec3 p=vpos(vUv);vec2 px=1./res;vec3 a=vpos(vUv+vec2(px.x,0.))-p,b=p-vpos(vUv-vec2(px.x,0.)),c=vpos(vUv+vec2(0.,px.y))-p,e=p-vpos(vUv-vec2(0.,px.y));
+ vec3 dx=abs(a.z)<abs(b.z)?a:b,dy=abs(c.z)<abs(e.z)?c:e;vec3 n=normalize(cross(dx,dy));
+ float sr=clamp(rad*p11*.5*res.y/-p.z,2.,70.);float ig=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));
+ float occ=0.;const int NS=12;
+ for(int i=0;i<NS;i++){float t=(float(i)+.5)/float(NS);float an=t*29.+ig*6.2832;vec2 o=vec2(cos(an),sin(an))*sr*t*px;
+  vec3 v=vpos(vUv+o)-p;float vv=dot(v,v);float vn=dot(v,n);occ+=max(0.,vn-.012*-p.z)/(vv+.01)*max(0.,1.-vv/(rad*rad*4.));}
+ float ao=clamp(1.-occ*k*4.5/float(NS)*rad,0.,1.);ao=ao*ao;ao=mix(1.,ao,1.-smoothstep(120.,220.,-p.z));
+ gl_FragColor=vec4(ao,ao,ao,1.);}`});
+      POST.aoB=new THREE.ShaderMaterial({uniforms:{t:{value:null},dT:{value:null},pInv:{value:new THREE.Matrix4()},d:{value:new THREE.Vector2()}},vertexShader:vs,depthTest:false,depthWrite:false,
+        fragmentShader:vp+`uniform sampler2D t;uniform vec2 d;varying vec2 vUv;
+void main(){float z0=vpos(vUv).z,s=0.,w=0.;for(int i=-3;i<=3;i++){vec2 u=vUv+d*float(i);float z=vpos(u).z;float wt=exp(-abs(z-z0)/max(.02*-z0,.05))*(1.-abs(float(i))/4.);s+=texture2D(t,u).r*wt;w+=wt;}
+ float a=s/max(w,1e-4);gl_FragColor=vec4(a,a,a,1.);}`})}
     POST.quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),POST.fin);POST.quad.frustumCulled=false;POST.scene.add(POST.quad);
     POST.ok=true;POST.on=true}catch(e){console.warn('post off',e);POST.ok=false}return POST.ok}
 function postSize(){if(!POST.ok)return;const v=renderer.getDrawingBufferSize(new THREE.Vector2()),w=Math.max(1,v.x|0),h=Math.max(1,v.y|0);if(w===POST.w&&h===POST.h)return;POST.w=w;POST.h=h;
-  POST.main.setSize(w,h);const qw=Math.max(1,w>>2),qh=Math.max(1,h>>2);POST.a.setSize(qw,qh);POST.b.setSize(qw,qh);POST.fin.uniforms.asp.value=w/h}
+  POST.main.setSize(w,h);const qw=Math.max(1,w>>2),qh=Math.max(1,h>>2);POST.a.setSize(qw,qh);POST.b.setSize(qw,qh);POST.fin.uniforms.asp.value=w/h;
+  if(POST.aoOn){const hw=Math.max(1,w>>1),hh=Math.max(1,h>>1);POST.main.depthTexture.image.width=w;POST.main.depthTexture.image.height=h;POST.ao.setSize(hw,hh);POST.ao2.setSize(hw,hh);POST.aoM.uniforms.res.value.set(hw,hh)}}
 function pass(m,target){POST.quad.material=m;renderer.setRenderTarget(target);renderer.render(POST.scene,POST.cam)}
 function bootDone(){if(bootDone.d)return;bootDone.d=1;const bt=document.getElementById('boot');if(bt){bt.classList.add('out');setTimeout(()=>bt.remove(),650)}}
 function drawFrame(){if(!renderer)return;
@@ -1899,7 +1922,12 @@ function drawFrame(){if(!renderer)return;
     POST.hi.uniforms.t.value=POST.main.texture;pass(POST.hi,POST.a);
     for(let k=0;k<2;k++){POST.blur.uniforms.t.value=POST.a.texture;POST.blur.uniforms.d.value.set(1/POST.a.width*(k+1),0);pass(POST.blur,POST.b);
       POST.blur.uniforms.t.value=POST.b.texture;POST.blur.uniforms.d.value.set(0,1/POST.a.height*(k+1));pass(POST.blur,POST.a)}
-    const f=POST.fin.uniforms;f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;pass(POST.fin,null)}
+    const f=POST.fin.uniforms;f.aoK.value=0;
+    if(POST.aoOn&&POST.aoM){try{const D=POST.main.depthTexture,A=POST.aoM.uniforms,B=POST.aoB.uniforms;A.dT.value=D;A.pInv.value.copy(camera.projectionMatrixInverse);A.p11.value=camera.projectionMatrix.elements[5];
+      A.k.value=weather&&weather.night?.7:1;pass(POST.aoM,POST.ao);B.dT.value=D;B.pInv.value.copy(camera.projectionMatrixInverse);
+      B.t.value=POST.ao.texture;B.d.value.set(1/POST.ao.width,0);pass(POST.aoB,POST.ao2);B.t.value=POST.ao2.texture;B.d.value.set(0,1/POST.ao.height);pass(POST.aoB,POST.ao);
+      f.ao.value=POST.ao.texture;f.aoK.value=window.AOK!=null?window.AOK:.75}catch(e){console.warn('ao off',e);POST.aoOn=false}}
+    f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;pass(POST.fin,null)}
   catch(e){console.warn('post failed',e);POST.on=false;renderer.setRenderTarget(null);renderer.toneMapping=TONE;renderer.render(scene,camera)}}
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;glLostT=performance.now();},false);
 cv.addEventListener('webglcontextrestored',()=>{glLost=false;$('glMsg')&&($('glMsg').hidden=true);try{slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;resize()}catch(_){}},false);
