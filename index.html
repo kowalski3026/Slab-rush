@@ -23,6 +23,7 @@
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
 <!-- v190: stairs: pour-only skips forms/risers/bar (they're set already); vibrator picks the real stepped surface so it follows the finger; finishing tools lock to the picked tread's plane; camera no longer jumps after each stroke. v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
+<!-- v190: Effects is the default graphics mode for anyone who hasn't picked one (Kris: phone was fine). Players who picked Full, Sharp or Battery saver keep their pick. -->
 <!-- v189: Effects graphics mode (bts-gfx 'fx'): Full resolution + the Sharp filter (HDR, bloom, MSAA) + new screen-space contact shadows (POST.aoM/aoB, half res). Sharp also gets the contact shadows. -->
 <!-- v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v187: rake furrows and screed strike-off lines drawn as real-scale shape in the slab shader (GPS.mr / GPS.ms); floated out by the bull float. -->
@@ -868,7 +869,7 @@ window.addEventListener('error',function(e){window.__showErr((e.message||'unknow
 try{(()=>{
 const GW=48, GH=24, N=GW*GH;let DEPTH=4,CELL_IN=5,LS=1;
 let SLAB_W=20, SLAB_D=10;const EX=3.1;
-const GFX=(()=>{try{return localStorage.getItem('bts-gfx')||'auto'}catch(e){return'auto'}})();
+const GFX=(()=>{try{return localStorage.getItem('bts-gfx')||'fx'}catch(e){return'fx'}})();
 const TEXLOW=GFX==='saver';// battery-saver: smaller slab canvases (about half the memory)
 const TW=TEXLOW?768:1024, TH=TW/2, CPX=TW/GW;
 const XT={n:0,m3:0,fee:0,wait:0,ask:0,amt:0};let NEED_M3=1.89, LOAD_M3=2.25, lateT=null, blow=null, printN=0, practice=null, practiceSave=null,nextArm=0,exY=-.3,REBX=[],rebTieIM=null,rebDotIM=null,rebN=0,REB=null,shakeA=0,hapT=0,sparkT=0;
