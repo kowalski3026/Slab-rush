@@ -22,7 +22,9 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v193: house detail: eavestroughs + downspouts, soffits, rake boards, corner boards, front gables, recessed windows with casing/sill/grilles/interiors and shutters, panel doors with porch roofs and steps, sectional garage doors, brick chimneys with crowns, roof vents and stacks, meter. -->
 <!-- v192: stairs: the vibrator levels each tread flat to the form top and wipes out rake and strike lines; the 1-year-later photo has forms, stakes, bar and tools stripped. v191: real lawn: ~26k instanced grass clumps (8 blades each) on the lawn around the job, coloured from the lawn texture under each clump, swaying in the wind. Replaces the card tufts on Full/Effects; Battery saver keeps the tufts. -->
+<!-- v191: real lawn: ~26k instanced grass clumps (8 blades each) on the lawn around the job, coloured from the lawn texture under each clump, swaying in the wind. Replaces the card tufts on Full/Effects; Battery saver keeps the tufts. -->
 <!-- v190: stairs: pour-only skips forms/risers/bar (they're set already); vibrator picks the real stepped surface so it follows the finger; finishing tools lock to the picked tread's plane; camera no longer jumps after each stroke. v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v190: Effects is the default graphics mode for anyone who hasn't picked one (Kris: phone was fine). Players who picked Full, Sharp or Battery saver keep their pick. -->
 <!-- v189: Effects graphics mode (bts-gfx 'fx'): Full resolution + the Sharp filter (HDR, bloom, MSAA) + new screen-space contact shadows (POST.aoM/aoB, half res). Sharp also gets the contact shadows. -->
@@ -2981,14 +2983,27 @@ let obst=[],lawnOn=false;const addOb=(x0,z0,x1,z1)=>obst.push([Math.min(x0,x1),M
 function flatP(w,d,m,x,y,z,rep){if(w*d>30)addOb(x-w/2,z-d/2,x+w/2,z+d/2);const g=new THREE.PlaneGeometry(w,d);g.rotateX(-Math.PI/2);if(rep){const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*w/rep,uv.getY(i)*d/rep)}const p=new THREE.Mesh(g,m);p.position.set(x,y,z);p.receiveShadow=true;sceneG.add(p);return p}
 const SIDING=['#c9c4b8','#a9bccb','#e3d9c2','#93a88a','#7d93ad','#ece6d8','#b99f78','#5d6166','#9e4b3c','#c7b28e','#6f8a9e','#d8c8a4'],ROOFC=[0xffffff,0xd9c8b4,0xb0b8c0,0x9a8a7a,0x8a7f78],DOORC=[0x6b2a22,0x2e4a3a,0x1f2f4a,0x2b2b2b,0x7a5a2a,0x8a1f1f];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-function sidingMat(len,hh,col){if(Math.random()<(RT().brick!=null?RT().brick:.28)){const b=photoTex(brickTex.clone(),'brick',1);b.needsUpdate=true;b.repeat.set(len/4,hh/1.8);return new THREE.MeshStandardMaterial({map:b,roughness:.92})}const t=sidingTex(col);t.repeat.set(len/5.5,hh/2.6);return new THREE.MeshStandardMaterial({map:t,roughness:.85})}
+function sidingMat(len,hh,col){if(Math.random()<(RT().brick!=null?RT().brick:.28)){const b=photoTex(brickTex.clone(),'brick',1);b.needsUpdate=true;b.repeat.set(len/4,hh/1.8);const bm=new THREE.MeshStandardMaterial({map:b,roughness:.92});bm.userData.brick=true;return bm}const t=sidingTex(col);t.repeat.set(len/5.5,hh/2.6);return new THREE.MeshStandardMaterial({map:t,roughness:.85})}
 // a house seen from outside: closed body with a gable roof. Built facing local +z, then turned to face 'dir' (degrees: 0 = faces +z, -90 = faces -x)
 let houseLog=[],lotBox=null,truckOb=null;const lotOk=(x,z)=>!lotBox||(x>lotBox[0]&&x<lotBox[2]&&z>lotBox[1]&&z<lotBox[3]);
+/* v192: house detail. Shared materials so mergeScenery keeps the draw calls down. */
+const HD=(()=>{const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.6},o||{}));
+  const win=ctex(128,192,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#5d6f7c');gr.addColorStop(.45,'#28343c');gr.addColorStop(1,'#141a1f');g.fillStyle=gr;g.fillRect(0,0,w,h);
+    g.fillStyle='rgba(235,228,212,.55)';g.fillRect(0,0,w,h*.22);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,h*.22,w,3);
+    g.fillStyle='rgba(200,190,170,.35)';g.fillRect(4,h*.24,w*.18,h*.7);g.fillRect(w*.8,h*.24,w*.18,h*.7);
+    const sh=g.createLinearGradient(0,0,w,h);sh.addColorStop(0,'rgba(255,255,255,.18)');sh.addColorStop(.35,'rgba(255,255,255,0)');sh.addColorStop(.6,'rgba(255,255,255,0)');sh.addColorStop(.7,'rgba(255,255,255,.08)');sh.addColorStop(.8,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(0,0,w,h)},1,1);
+  const gutter=(()=>{const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(.42,0);sh.lineTo(.5,.12);sh.lineTo(.46,.16);sh.lineTo(.5,.3);sh.lineTo(.56,.36);sh.lineTo(.52,.4);sh.lineTo(.04,.4);sh.lineTo(0,.36);sh.lineTo(0,0);
+    const g=new THREE.ExtrudeGeometry(sh,{depth:1,bevelEnabled:false});g.rotateY(Math.PI/2);g.translate(-.5,0,0);return g})();
+  return{winM:new THREE.MeshStandardMaterial({map:win,roughness:.06,metalness:.35}),alu:M(0xf3f2ee,{roughness:.35,metalness:.25}),dark:M(0x2a2b2d,{roughness:.55,metalness:.4}),
+    stack:M(0x1c1c1c,{roughness:.7}),crown:M(0x8e8b84,{roughness:.95}),step:M(0xb9b4aa,{roughness:.9}),meter:M(0x9aa0a4,{roughness:.4,metalness:.6}),
+    shut:[0x1f2a33,0x2f4a3a,0x5a2420,0x2b2b2b,0x3e5566,0x6a5a48].map(c=>M(c,{roughness:.55})),gutter}})();
+function hBox(w,h,d,m,x,y,z,g,rx,ry,rz){const b=box(w,h,d,m,x,y,z,0,g);if(rx)b.rotation.x=rx;if(ry)b.rotation.y=ry;if(rz)b.rotation.z=rz;return b}
 function house(cx,cz,len,dir,items,opts){
   opts=opts||{};houseLog.push({cx,cz,len,dir,D:opts.d||22});const g=new THREE.Group(),H=opts.h||9.5,D=opts.d||22,sl=.44,ov=1.6,tn=Math.tan(sl),top=H-.3,rise=D/2*tn,yE=top-ov*tn,yR=top+rise,pl=(D/2+ov)/Math.cos(sl);
   g.position.set(cx,opts.raise||0,cz);g.rotation.y=dir*Math.PI/180;sceneG.add(g);
   if(opts.raise)box(len+.1,opts.raise+.05,D+.1,foundM,0,-.275-opts.raise/2,-D/2,0,g);
-  const sm=sidingMat(len,H,opts.col||pick(RT().siding||SIDING));sm.side=THREE.DoubleSide;const rM=roofM.clone();rM.color.set(pick(RT().roof||ROOFC));const doorC=pick(DOORC);
+  const sm=sidingMat(len,H,opts.col||pick(RT().siding||SIDING));sm.side=THREE.DoubleSide;const rM=roofM.clone();rM.color.set(pick(RT().roof||ROOFC));if(roofM.map){rM.map=roofM.map.clone();rM.map.repeat.set((len+2)/2.5,pl/2.15);rM.map.needsUpdate=true}
+  const rM2=rM.clone();if(rM.map){rM2.map=rM.map.clone();rM2.map.repeat.set(pl/2.15,(len+2)/2.5);rM2.map.rotation=Math.PI/2;rM2.map.needsUpdate=true}const doorC=pick(DOORC);
   box(len,H,D,sm,0,H/2-.3,-D/2,0,g);
   box(len+.1,1.3,D+.1,foundM,0,.35,-D/2,0,g);
   box(len+.2,.3,.16,trimM,0,top-.2,.08,0,g);
@@ -3002,17 +3017,51 @@ function house(cx,cz,len,dir,items,opts){
   {const c=Math.cos(dir*Math.PI/180),sn=Math.sin(dir*Math.PI/180),pts=[[-len/2-2,ov+3.2],[len/2+2,ov+3.2],[-len/2-2,-D-ov-1],[len/2+2,-D-ov-1]].map(([lx,lz])=>[cx+lx*c+lz*sn,cz-lx*sn+lz*c]);
    addOb(Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1])))}
   box(len+2.2,.32,.34,trimM,0,yE-.2,ov+.3,0,g);box(len+2.2,.32,.34,trimM,0,yE-.2,-D-ov-.3,0,g);
-  [-.32,.32].forEach(f=>box(1.6,.9,1.2,roofM,len*f,top+D*.3*tn+.3,-D*.3,0,g));
-  if(opts.chimney)box(2.4,6,2.4,new THREE.MeshStandardMaterial({color:0x8a4a38,roughness:.9}),opts.chimney,yR,-D/2-3,0,g);
+  // v192: low box vents and a plumbing stack instead of shingle blocks
+  [-.32,.32].forEach((f,i)=>{const z=-D*(.18+.1*i),y=top+(-z)*tn+.22;hBox(1.3,.4,1.3,HD.dark,len*f,y,z,g,sl)});
+  {const z=-D*.3,y=top+(-z)*tn;const st=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,1.1,10),HD.stack);st.position.set(-len*.08,y+.4,z);st.castShadow=true;g.add(st)}
+  // soffits, rake boards on the gable ends, eavestroughs and downspouts, corner boards
+  hBox(len+2,.08,ov,trimM,0,top-.12,ov/2,g);hBox(len+2,.08,ov,trimM,0,top-.12,-D-ov/2,g);
+  [-1,1].forEach(sd=>{const X=sd*(len/2+1.04);hBox(.2,.5,pl,trimM,X,yc-.16,(ov-D/2)/2,g,sl);hBox(.2,.5,pl,trimM,X,yc-.16,(-D/2-D-ov)/2,g,-sl);
+    hBox(.16,.5,D+.2,trimM,sd*(len/2+.06),top-.45,-D/2,g)});
+  [[ov+.36,1],[-D-ov-.36,-1]].forEach(([z,f])=>{const gm=new THREE.Mesh(HD.gutter,HD.alu);gm.scale.set(len+2.2,1,-f);gm.position.set(0,yE-.52,z-f*.2);gm.castShadow=true;g.add(gm);
+    [-1,1].forEach(sd=>{const x=sd*(len/2+.55);hBox(.26,yE-.4,.2,HD.alu,x,(yE-.9)/2-.1,z-f*.05,g);hBox(.26,.24,.9,HD.alu,x,-.12,z+f*.35,g)})});
+  if(!sm.userData.brick)[[-1,0],[1,0],[-1,-D],[1,-D]].forEach(([sd,z])=>hBox(.42,H-.2,.42,trimM,sd*(len/2-.12),H/2-.25,z+(z?.12:-.12)*-1,g));
+  // front gable over part of the facade on some houses
+  if(len>=28&&!opts.noGable&&Math.random()<(opts.gable!=null?opts.gable:.5)){const wg=Math.min(18,len*.42),x0=(Math.random()<.5?-1:1)*(len/2-wg/2-2),r2=wg/2*tn,o2=1.2,hs=wg/2+.9,pl2=hs/Math.cos(sl),zf=.9,Lz=zf+wg/2+1.2,zc=(zf-wg/2-1.2)/2;
+    const sh=new THREE.Shape();sh.moveTo(-wg/2,0);sh.lineTo(wg/2,0);sh.lineTo(0,r2);sh.lineTo(-wg/2,0);const tri=new THREE.Mesh(new THREE.ShapeGeometry(sh),sm);tri.position.set(x0,top-.25,zf);tri.castShadow=true;g.add(tri);
+    hBox(wg,.25,zf+.05,sm,x0,top-.38,zf/2,g);
+    [-1,1].forEach(sd=>{hBox(pl2,.26,Lz,rM2,x0+sd*hs/2,top+r2-hs/2*tn+.12,zc,g,0,0,-sd*sl);hBox(pl2,.45,.2,trimM,x0+sd*hs/2,top+r2-hs/2*tn-.06,zf+.12,g,0,0,-sd*sl)});
+    hBox(.6,.22,Lz,rM,x0,top+r2+.18,zc,g);hBox(1.4,1.6,.12,trimM,x0,top+r2*.45,zf+.06,g);for(let k=0;k<4;k++)hBox(1.1,.08,.14,HD.dark,x0,top+r2*.45-.55+k*.36,zf+.13,g)}
+  // electric meter and hose bib on a gable end
+  hBox(.8,1.1,.45,HD.meter,len/2+.22,3.8,-D*.25,g);hBox(.2,.2,.3,HD.meter,len/2+.15,1.4,-D*.6,g);
+  if(opts.chimney){const b=photoTex(brickTex.clone(),'brick',1);b.needsUpdate=true;b.repeat.set(1.3,3.2);const cm=new THREE.MeshStandardMaterial({map:b,roughness:.92});
+    hBox(2.6,7,2.6,cm,opts.chimney,yR-.4,-D/2-3,g);hBox(3.1,.35,3.1,HD.crown,opts.chimney,yR+3.25,-D/2-3,g);
+    const fl=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,.9,10),HD.crown);fl.position.set(opts.chimney,yR+3.8,-D/2-3);g.add(fl)}
+  const shut=!sm.userData.brick&&Math.random()<.45?HD.shut[Math.random()*HD.shut.length|0]:null,porch=Math.random()<(opts.porch!=null?opts.porch:.55);
+  {const gs=(items||[]).filter(it=>it[0]==='garage');if(gs.length)items=items.filter(it=>it[0]!=='win'||!gs.some(q=>Math.abs(it[1]-q[1])<(q[2]||9.8)/2+(it[2]||3.2)/2+1.2));}
   (items||[]).forEach(it=>{const x=it[1];
-    if(it[0]==='win'){const w=it[2]||3.2,hh=it[3]||4,y=it[4]||5;box(w,hh,.08,glassM,x,y,.06,0,g);
-      [[w+.4,.25,0,hh/2+.12],[w+.4,.3,0,-hh/2-.15],[.22,hh,-w/2-.1,0],[.22,hh,w/2+.1,0]].forEach(([bw,bh,ox,oy])=>box(bw,bh,.16,trimM,x+ox,y+oy,.1,0,g));
-      box(.08,hh,.1,trimM,x,y,.1,0,g);}
-    if(it[0]==='door'){box(3.4,7.2,.18,trimM,x,3.3,.07,0,g);box(3,6.9,.12,new THREE.MeshStandardMaterial({color:it[2]||doorC,roughness:.5}),x,3.2,.14,0,g);
-      box(.12,.12,.12,new THREE.MeshStandardMaterial({color:0xc8a86a,metalness:.8,roughness:.3}),x+1.1,3.2,.25,0,g);
-      if(!it[3])box(4.6,.55,2.6,foundM,x,-.05,1.3,0,g);}
+    if(it[0]==='win'){const w=it[2]||3.2,hh=it[3]||4,y=it[4]||5;
+      // v192: glass set back in the wall, casing, drip cap, sill, grilles, sash rail, optional shutters
+      hBox(w,hh,.04,HD.winM,x,y,.02,g);
+      [[w+.9,.38,0,hh/2+.19],[.42,hh,-w/2-.21,0],[.42,hh,w/2+.21,0]].forEach(([bw,bh,ox,oy])=>hBox(bw,bh,.18,trimM,x+ox,y+oy,.06,g));
+      hBox(w+1.2,.12,.3,trimM,x,y+hh/2+.43,.12,g);hBox(w+1.1,.2,.55,trimM,x,y-hh/2-.08,.2,g);hBox(w+.9,.22,.12,trimM,x,y-hh/2-.28,.04,g);
+      hBox(w,.16,.1,trimM,x,y,.07,g);hBox(.07,hh,.06,trimM,x,y,.06,g);[-1,1].forEach(q=>hBox(w,.06,.05,trimM,x,y+q*hh/4,.06,g));[-1,1].forEach(q=>hBox(.05,hh,.04,trimM,x+q*w/4,y,.06,g));
+      if(shut)[-1,1].forEach(q=>{hBox(w*.42,hh+.3,.1,shut,x+q*(w/2+.42+w*.21),y,.08,g);for(let k=0;k<5;k++)hBox(w*.36,.05,.06,shut,x+q*(w/2+.42+w*.21),y-hh/2+(k+.6)*hh/5.4,.15,g)})}
+    if(it[0]==='door'){const dm=new THREE.MeshStandardMaterial({color:it[2]||doorC,roughness:.45});
+      hBox(4.1,.45,.2,trimM,x,7.15,.1,g);[-1,1].forEach(q=>hBox(.45,7.3,.2,trimM,x+q*1.78,3.3,.1,g));hBox(3.1,6.95,.1,dm,x,3.15,.02,g);
+      for(let r=0;r<3;r++)for(let c=0;c<2;c++)hBox(1.05,r?1.7:1.2,.06,dm,x+(c?.68:-.68),r===0?5.6:r===1?3.75:1.45,.09,g);
+      hBox(.1,.5,.14,new THREE.MeshStandardMaterial({color:0xc8a86a,metalness:.85,roughness:.3}),x+1.15,3.2,.16,g);
+      if(!it[3]){hBox(5.6,.62,3.2,HD.step,x,-.02,1.6,g);hBox(4.6,.32,1.1,HD.step,x,-.16,3.75,g);
+        if(porch){const pw=6.4,pd=4.2,ph=8.6,a=.5,hw=pw/2+.4,pr=hw*Math.tan(a);[-1,1].forEach(q=>{hBox(.55,ph-.2,.55,trimM,x+q*(pw/2-.35),ph/2-.35,pd-.4,g);hBox(.8,.4,.8,trimM,x+q*(pw/2-.35),.15,pd-.4,g)});
+          hBox(pw+.2,.6,.5,trimM,x,ph-.2,pd-.4,g);hBox(pw+.2,.5,.4,trimM,x,ph-.2,.2,g);
+          [-1,1].forEach(q=>hBox(hw/Math.cos(a),.24,pd+.8,rM,x+q*hw/2,ph+pr/2+.12,pd/2,g,0,0,-q*a));
+          const ps=new THREE.Shape();ps.moveTo(-hw+.3,0);ps.lineTo(hw-.3,0);ps.lineTo(0,pr-.2);ps.lineTo(-hw+.3,0);const pt=new THREE.Mesh(new THREE.ShapeGeometry(ps),trimM);pt.position.set(x,ph+.1,pd+.35);g.add(pt);}}}
     if(it[0]==='slider'){box(6.6,7.2,.16,trimM,x,3.3,.06,0,g);box(3,6.8,.06,glassM,x-1.55,3.2,.16,0,g);box(3,6.8,.06,glassM,x+1.55,3.2,.12,0,g);box(.2,6.9,.2,trimM,x,3.2,.18,0,g)}
-    if(it[0]==='garage'){const w=it[2]||9.8;box(w,7.8,.2,trimM,x,3.6,.06,0,g);box(w-.6,7.4,.16,garageM,x,3.45,.14,0,g)}
+    if(it[0]==='garage'){const w=it[2]||9.8,gh=7.6;hBox(w+.9,.5,.22,trimM,x,gh+.05,.1,g);[-1,1].forEach(q=>hBox(.5,gh+.2,.22,trimM,x+q*(w/2+.2),gh/2-.3,.1,g));
+      hBox(w-.1,gh-.1,.12,garageM,x,gh/2-.32,-.02,g);for(let k=1;k<4;k++)hBox(w-.1,.07,.1,HD.dark,x,-.32+k*gh/4,.04,g);
+      const nw=Math.max(3,Math.round(w/2.6));for(let k=0;k<nw;k++)hBox(w/nw-.55,.9,.06,HD.winM,x-w/2+(k+.5)*w/nw,-.32+gh*7/8,.05,g);
+      hBox(w+.3,.2,.12,HD.dark,x,-.25,.05,g)}
     if(it[0]==='spout'){box(.25,H,.25,trimM,x,H/2-.3,.25,0,g);box(.25,.25,1.2,trimM,x,-.15,.8,0,g)}
     if(it[0]==='light'){box(.35,.5,.3,new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:.4}),x,6.8,.25,0,g);box(.22,.3,.05,new THREE.MeshStandardMaterial({color:0xffe6a8,emissive:0xffcc66,emissiveIntensity:.6}),x,6.8,.41,0,g)}
     if(it[0]==='ac'){box(2.6,2.4,2.6,new THREE.MeshStandardMaterial({color:0xd8d6d0,roughness:.5}),x,.9,1.6,0,g);box(2,.05,2,new THREE.MeshStandardMaterial({color:0x333333}),x,2.12,1.6,0,g)}
