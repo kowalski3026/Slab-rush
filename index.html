@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v191: real lawn: ~26k instanced grass clumps (8 blades each) on the lawn around the job, coloured from the lawn texture under each clump, swaying in the wind. Replaces the card tufts on Full/Effects; Battery saver keeps the tufts. -->
 <!-- v190: stairs: pour-only skips forms/risers/bar (they're set already); vibrator picks the real stepped surface so it follows the finger; finishing tools lock to the picked tread's plane; camera no longer jumps after each stroke. v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v190: Effects is the default graphics mode for anyone who hasn't picked one (Kris: phone was fine). Players who picked Full, Sharp or Battery saver keep their pick. -->
 <!-- v189: Effects graphics mode (bts-gfx 'fx'): Full resolution + the Sharp filter (HDR, bloom, MSAA) + new screen-space contact shadows (POST.aoM/aoB, half res). Sharp also gets the contact shadows. -->
@@ -1920,7 +1921,7 @@ function bootDone(){if(bootDone.d)return;bootDone.d=1;const bt=document.getEleme
 function drawFrame(){if(!renderer)return;
   if(glLost||lowQ||!postInit()||!POST.on){if(renderer.toneMapping!==TONE)renderer.toneMapping=TONE;renderer.render(scene,camera);return}
   // the filter does the tone curve itself, so the scene renders linear HDR into the buffer
-  try{postSize();if(renderer.toneMapping!==THREE.NoToneMapping)renderer.toneMapping=THREE.NoToneMapping;renderer.setRenderTarget(POST.main);renderer.render(scene,camera);
+  try{postSize();if(renderer.toneMapping!==THREE.NoToneMapping)renderer.toneMapping=THREE.NoToneMapping;renderer.setRenderTarget(POST.main);const gOn=!!(GRASS.mesh&&POST.aoOn);if(gOn)camera.layers.disable(1);renderer.render(scene,camera);if(gOn)camera.layers.enable(1);
     POST.hi.uniforms.t.value=POST.main.texture;pass(POST.hi,POST.a);
     for(let k=0;k<2;k++){POST.blur.uniforms.t.value=POST.a.texture;POST.blur.uniforms.d.value.set(1/POST.a.width*(k+1),0);pass(POST.blur,POST.b);
       POST.blur.uniforms.t.value=POST.b.texture;POST.blur.uniforms.d.value.set(0,1/POST.a.height*(k+1));pass(POST.blur,POST.a)}
@@ -1929,6 +1930,10 @@ function drawFrame(){if(!renderer)return;
       A.k.value=weather&&weather.night?.7:1;pass(POST.aoM,POST.ao);B.dT.value=D;B.pInv.value.copy(camera.projectionMatrixInverse);
       B.t.value=POST.ao.texture;B.d.value.set(1/POST.ao.width,0);pass(POST.aoB,POST.ao2);B.t.value=POST.ao2.texture;B.d.value.set(0,1/POST.ao.height);pass(POST.aoB,POST.ao);
       f.ao.value=POST.ao.texture;f.aoK.value=window.AOK!=null?window.AOK:.75}catch(e){console.warn('ao off',e);POST.aoOn=false}}
+    // v191: the lawn goes in after the contact shadows are worked out, so the grass isn't darkened by its own blades
+    if(GRASS.mesh&&GRASS.mesh.parent){const ac=renderer.autoClear,su=renderer.shadowMap.autoUpdate,bg=scene.background,m=camera.layers.mask;
+      try{renderer.autoClear=false;renderer.shadowMap.autoUpdate=false;scene.background=null;camera.layers.set(1);renderer.setRenderTarget(POST.main);renderer.render(scene,camera)}
+      finally{camera.layers.mask=m;renderer.autoClear=ac;renderer.shadowMap.autoUpdate=su;scene.background=bg}}
     f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;pass(POST.fin,null)}
   catch(e){console.warn('post failed',e);POST.on=false;renderer.setRenderTarget(null);renderer.toneMapping=TONE;renderer.render(scene,camera)}}
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;glLostT=performance.now();},false);
@@ -5826,7 +5831,7 @@ function applyLevel(L){
   TXN=Math.ceil(RW/2-.01);TZN=Math.ceil(RD/2-.01);stampQ=new Float32Array(TXN*TZN);stampHits=new Uint8Array(TXN*TZN);
   {const cnt=new Uint8Array(TXN*TZN);for(let i=0;i<N;i++){if(!inR[i])continue;const ti=Math.floor((wx(i%GW+.5)-wx(RX0))/2),tj=Math.floor((wz(((i/GW)|0)+.5)-wz(RY0))/2);if(ti>=0&&tj>=0&&ti<TXN&&tj<TZN)cnt[tj*TXN+ti]++}
    tileOk=cnt.map(c=>c>=1?1:0)}
-  buildSite();drawEdgeAO();clearScene();houseLog=[];lotBox=null;if(L.scene)L.scene();placeTruck(L.truck);placePump();try{sceneExtras()}catch(e){}try{terrApply()}catch(e){console.warn('terr',e)}sunFlip=L.sunFlip?-1:1;
+  buildSite();drawEdgeAO();clearScene();houseLog=[];lotBox=null;if(L.scene)L.scene();placeTruck(L.truck);placePump();try{sceneExtras()}catch(e){}try{terrApply()}catch(e){console.warn('terr',e)}try{grassBuild()}catch(e){console.warn('grass',e)}sunFlip=L.sunFlip?-1:1;
   const fz=wz(RY1)+.32;tape.position.set(0,.035+ELV(),fz);slab.position.y=siteG.position.y=ELV();plane.constant=-(.04+ELV());tapeCase.position.set(SLAB_W/2+.45,.1,fz);
   board.scale.z=RD+1.6;guide.scale.z=RD;guide.position.z=RCZ;scrSetup();
 }
@@ -7964,7 +7969,7 @@ function neighbourhood(){
 }
 
 /* ---------- v103: merge the still scenery into a few meshes per material (hundreds of draw calls down to dozens) ---------- */
-let staticBlk=[];
+let staticBlk=[],grassBlk=[];
 function mergeGeos(gs){let nv=0,ni=0;gs.forEach(g=>{nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count});
   const P=new Float32Array(nv*3),Nn=new Float32Array(nv*3),U=new Float32Array(nv*2),I=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let vo=0,io=0;
   gs.forEach(g=>{const pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv,n=pa.count;P.set(pa.array.subarray(0,n*3),vo*3);Nn.set(na.array.subarray(0,n*3),vo*3);U.set(ua.array.subarray(0,n*2),vo*2);
@@ -8027,9 +8032,54 @@ void main(){vec3 p=vec3(box.x+vUv.x*box.z,-.27,box.y+vUv.y*box.w);vec4 c=vp*vec4
       if(gen===AO.gen&&AO.i<AO.N)setTimeout(step,16)};
     aoHookAll();step()}
   catch(e){console.warn('ao',e);AO.U.aoK.value=0}}
+/* v191: real lawn. Instanced clumps of grass blades on every bit of lawn near the job. Each blade takes its colour from the
+   lawn texture right under it (same UVs, mowing stripes and patch noise as the ground), so the blades and the ground read as
+   one lawn; tips lighter, bases darker; the blades sway in the breeze (harder on windy jobs). Full and Effects only. */
+const GRASS={U:{gT:{value:0},gW:{value:.05},gLM:{value:new THREE.Matrix3()},gQ:{value:1},gTint:{value:new THREE.Color(1,1,1)},gMap:{value:null}}};
+GRASS.geo=(()=>{const P=[],H=[],S=[],NB=12;
+  for(let b=0;b<NB;b++){const a=b/NB*6.283+Math.random()*.7,ln=.7+Math.random()*.6,w=.016+Math.random()*.009,lean=.06+Math.random()*.16,r=.03+Math.random()*.11,
+    ox=Math.cos(a*1.7)*r,oz=Math.sin(a*1.7)*r,dx=Math.cos(a),dz=Math.sin(a),px=-dz*w,pz=dx*w;
+    P.push(ox-px,0,oz-pz, ox+px,0,oz+pz, ox+dx*lean,ln,oz+dz*lean);const sh=.62+Math.random()*.55;H.push(0,0,1);S.push(sh,sh,sh)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('gh',new THREE.Float32BufferAttribute(H,1));g.setAttribute('gs',new THREE.Float32BufferAttribute(S,1));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(new Array(P.length/3).fill(0).flatMap(()=>[0,1,0]),3));return g})();
+GRASS.mat=(()=>{const m=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.92,side:THREE.DoubleSide});
+  m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,GRASS.U);
+    sh.vertexShader=sh.vertexShader.replace('#include <common>',`#include <common>
+attribute float gh;attribute float gs;uniform float gT,gW,gQ;uniform mat3 gLM;uniform sampler2D gMap;uniform vec3 gTint;varying vec3 vGC;`)
+     .replace('#include <begin_vertex>',`#include <begin_vertex>
+vec3 gIP=vec3(instanceMatrix[3][0],instanceMatrix[3][1],instanceMatrix[3][2]);
+{float h2=gh*gh,ph=gT*1.6+dot(gIP.xz,vec2(.21,.17));float sw=(sin(ph)+.45*sin(gT*3.3+gIP.x*.9+gIP.z*.4))*gW;transformed.x+=sw*h2*1.4;transformed.z+=sw*h2*.6;transformed.y-=abs(sw)*h2*.4;}
+{vec2 uv=vec2((gIP.x/gQ+160.)/320.,(-gIP.z/gQ+160.)/320.);uv=(gLM*vec3(uv,1.)).xy;vec3 c=textureLod(gMap,uv,4.).rgb;
+ vec2 w=gIP.xz;float n1=sin(w.x*.043+sin(w.y*.031)*2.1)*sin(w.y*.052+sin(w.x*.027)*1.8),n2=sin(w.x*.17+w.y*.11)*sin(w.y*.19-w.x*.07);float k=.5+.5*n1;c*=mix(.84,1.08,k)*(1.+.05*n2);c=mix(c,c*vec3(1.12,1.05,.72),smoothstep(.72,.98,k)*.55);
+ float v=fract(sin(dot(gIP.xz,vec2(12.9898,78.233)))*43758.5453);c*=gTint*(.86+.24*v);if(v>.9)c*=vec3(1.12,1.06,.7);
+ vGC=c*mix(.32,1.25,gh*gh*(3.-2.*gh))*gs;}`);
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vGC;').replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=vGC;').replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nnormal=normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz);')};
+  m.customProgramCacheKey=()=>'grass191';return m})();
+function grassBuild(){if(GRASS.mesh){GRASS.mesh.removeFromParent();GRASS.mesh.dispose();GRASS.mesh=null}
+  if(safeGfx||!lawnOn||!LV||(typeof RT==='function'&&RT().snow)||!renderer)return;
+  const q=ground.scale.x,U=GRASS.U;U.gQ.value=q;U.gMap.value=lawnM.map;lawnM.map.updateMatrix();U.gLM.value.copy(lawnM.map.matrix);U.gTint.value.copy(lawnM.color);
+  U.gW.value=(typeof ev!=='undefined'&&ev&&ev.type==='wind')?.11:.05;
+  const L=Math.max(1,LS),R0=(isPrep()?4.6:3.3),R1=24*Math.max(1,L*.6),R2=52*Math.max(1,L*.6),NT=Math.round(24000*Math.min(1.6,Math.max(1,L*.5)));
+  const boxes=grassBlk.concat(obst.map(o=>[o[0]-.2,o[1]-.2,o[2]+.2,o[3]+.2]));try{const t=truckBox();boxes.push([t[0],t[1],t[2],t[3]])}catch(e){}
+  // coarse 2 ft cell lookup so 26k samples don't each scan every box
+  const C=2,gx0=RCX-R2-RW/2-4,gz0=RCZ-R2-RD/2-4,nx=Math.ceil((R2*2+RW+8)/C),nz=Math.ceil((R2*2+RD+8)/C),blk=new Uint8Array(nx*nz);
+  for(const b of boxes){const i0=Math.max(0,Math.floor((b[0]-gx0)/C)),i1=Math.min(nx-1,Math.floor((b[2]-gx0)/C)),j0=Math.max(0,Math.floor((b[1]-gz0)/C)),j1=Math.min(nz-1,Math.floor((b[3]-gz0)/C));
+    if(i1-i0>0&&j1-j0>0||((b[2]-b[0])>=C&&(b[3]-b[1])>=C))for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const cx=gx0+(i+.5)*C,cz=gz0+(j+.5)*C;if(cx>b[0]&&cx<b[2]&&cz>b[1]&&cz<b[3])blk[j*nx+i]=1}}
+  const thin=boxes.filter(b=>(b[2]-b[0])<C||(b[3]-b[1])<C);
+  const im=new THREE.InstancedMesh(GRASS.geo,GRASS.mat,NT),d=new THREE.Object3D();let k=0;
+  for(let t=0;t<NT*6&&k<NT;t++){const x=gx0+Math.random()*nx*C,z=gz0+Math.random()*nz*C,ci=Math.floor((z-gz0)/C)*nx+Math.floor((x-gx0)/C);if(blk[ci])continue;
+    if(pointInPoly(x,z,SHAPE))continue;const dd=nearestOnPoly(x,z)[2];if(dd<R0||dd>R2)continue;
+    if(dd>R1&&Math.random()>Math.pow(1-(dd-R1)/(R2-R1),1.6))continue;
+    if(thin.some(b=>x>b[0]&&x<b[2]&&z>b[1]&&z<b[3]))continue;
+    const edge=Math.min(1,(dd-R0)/1.4),sc=(.3+.16*Math.random())*(.55+.45*edge)*(dd>R1?1.15:1);
+    d.position.set(x,-.3+terrY(x,z),z);d.rotation.set(0,Math.random()*6.283,0);d.scale.set(1,sc,1);d.updateMatrix();im.setMatrixAt(k++,d.matrix)}
+  im.count=k;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;im.receiveShadow=true;im.castShadow=false;im.userData.live=true;im.userData.grass=true;
+  im.onBeforeRender=()=>{U.gT.value=performance.now()/1000};im.layers.set(1);sceneG.add(im);GRASS.mesh=im;GRASS.n=k;
+  scene.traverse(o=>{if(o.isLight)o.layers.enable(1)});camera.layers.enable(1)}
 function mergeScenery(){try{sceneG.updateMatrixWorld(true);
   // the excavator's no-go boxes come from the meshes as built, before they're merged
-  staticBlk=[];sceneG.traverse(o=>{if(!o.isMesh||!o.geometry)return;let v=o;while(v){if(!v.visible)return;v=v.parent}const b=new THREE.Box3().setFromObject(o),z=b.getSize(new THREE.Vector3());
+  staticBlk=[];grassBlk=[];sceneG.traverse(o=>{if(!o.isMesh||!o.geometry)return;let v=o;while(v){if(!v.visible)return;v=v.parent}const b=new THREE.Box3().setFromObject(o),z=b.getSize(new THREE.Vector3());
+    if(!o.isInstancedMesh&&Math.max(z.x,z.z)<420&&Math.max(z.x,z.z)>.3&&!(RCX>b.min.x&&RCX<b.max.x&&RCZ>b.min.z&&RCZ<b.max.z))grassBlk.push([b.min.x-.15,b.min.z-.15,b.max.x+.15,b.max.z+.15]);
     if(z.y<1.5||z.x>120||z.z>120||b.max.y<.8||Math.max(z.x,z.z)<1.2)return;staticBlk.push([b.min.x,b.min.z,b.max.x,b.max.z])});
   let saved=0;sceneG.children.slice().forEach(c=>{if(c.isGroup&&!c.userData.live){const l=[];c.traverse(o=>{if(o.isMesh)l.push(o)});saved+=mergeInto(c,l)}});
   saved+=mergeInto(sceneG,sceneG.children.filter(o=>o.isMesh&&!o.userData.live));return saved}catch(e){console.warn('merge',e);return 0}}
@@ -8057,7 +8107,7 @@ function sceneExtras(){
   let n=0;for(let t=0;t<80&&n<(lawnOn?4:2);t++){const a=Math.random()*Math.PI*2,r=RW/2+10+Math.random()*24,x=RCX+Math.cos(a)*r,z=RCZ+Math.sin(a)*r*.8;
     if(!clear(x,z)||!freeSpot(x,z,4))continue;shadeTree(x,z,.85+Math.random()*.5);addOb(x-3,z-3,x+3,z+3);n++}
   // grass tufts around the dirt ring
-  if(lawnOn&&!RT().snow){const NT=safeGfx?400:1100,tm=new THREE.InstancedMesh(tuftG,tuftM,NT),d=new THREE.Object3D();let k=0;
+  if(lawnOn&&!RT().snow&&safeGfx){const NT=safeGfx?400:1100,tm=new THREE.InstancedMesh(tuftG,tuftM,NT),d=new THREE.Object3D();let k=0;
     for(let t=0;t<NT*5&&k<NT;t++){const x=RCX+(Math.random()-.5)*(RW+26),z=RCZ+(Math.random()-.5)*(RD+26);if(pointInPoly(x,z,SHAPE))continue;const dd=nearestOnPoly(x,z)[2];if(dd<2.2||dd>14||obst.some(o=>x>o[0]&&x<o[2]&&z>o[1]&&z<o[3]))continue;
       d.position.set(x,-.28,z);d.rotation.set((Math.random()-.5)*.25,Math.random()*6.28,(Math.random()-.5)*.25);d.scale.setScalar(.65+Math.random()*.8);d.updateMatrix();tm.setMatrixAt(k,d.matrix);{const v=.72+Math.random()*.4,y=Math.random()<.15?1.15:1;tm.setColorAt(k,new THREE.Color(v*y,v,v*(y>1?.75:1)))}k++}
     tm.count=k;tm.userData.underTarp=true;if(tm.instanceColor)tm.instanceColor.needsUpdate=true;sceneG.add(tm)}
