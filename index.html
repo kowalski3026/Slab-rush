@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v195: storefronts (downtown, Gastown): pilasters, bracketed cornice with dentils, bulkhead + display glass + transom, glass door, framed sign, awning valance and cheeks, stone-trimmed upper windows; lighthouse gallery railing, lantern mullions, door and windows; marina boat with a shaped hull, stripe, console and outboard. -->
 <!-- v194: Quebec plexes (tin cornice on brackets, stone-trimmed windows, balcony doors, picket railings, stair stringers and handrail), prairie steel shop, fish shacks, northern store and laneway garages detailed with a shared bWin/bRail. Parked cars rebuilt: extruded rounded body profiles with wheel arches, glass greenhouse with pillars and roof, spoked rims, lights, grille, plates, mirrors, handles, door seams (sedan, SUV, pickup). -->
 <!-- v193: house detail: eavestroughs + downspouts, soffits, rake boards, corner boards, front gables, recessed windows with casing/sill/grilles/interiors and shutters, panel doors with porch roofs and steps, sectional garage doors, brick chimneys with crowns, roof vents and stacks, meter. -->
 <!-- v192: stairs: the vibrator levels each tread flat to the form top and wipes out rake and strike lines; the 1-year-later photo has forms, stakes, bar and tools stripped. v191: real lawn: ~26k instanced grass clumps (8 blades each) on the lawn around the job, coloured from the lawn texture under each clump, swaying in the wind. Replaces the card tufts on Full/Effects; Battery saver keeps the tufts. -->
@@ -2518,8 +2519,14 @@ function marinaScene(){flatP(30,40,asphaltM,-34,-.29,0);
   {const sm=signMat('HARBOUR MARINA','#1d3b5a','#f4efe2');const sg=new THREE.Mesh(new THREE.PlaneGeometry(12,2.2),sm);sg.position.set(-24,9.4,-19.85);sceneG.add(sg)}
   {const G=new THREE.Group();G.position.set(-32,-.3,-10);sceneG.add(G);addOb(-42,-14,-22,-6);const tm=new THREE.MeshStandardMaterial({color:0x2a2c2f,metalness:.5,roughness:.5});
     box(18,.4,.4,tm,0,1.3,-1.6,0,G);box(18,.4,.4,tm,0,1.3,1.6,0,G);box(5,.4,.4,tm,-11,1.3,0,0,G);[-1.6,1.6].forEach(z=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.7,14),new THREE.MeshStandardMaterial({color:0x151515,roughness:.9}));w.rotation.x=Math.PI/2;w.position.set(1,.7,z*1.25);G.add(w)});
-    const hull=new THREE.Mesh(new THREE.BoxGeometry(17,2.4,5.2),new THREE.MeshStandardMaterial({color:0xf3f1ec,roughness:.4}));hull.position.set(1,3,0);hull.castShadow=true;G.add(hull);
-    const st=new THREE.Mesh(new THREE.BoxGeometry(17.1,.4,5.3),new THREE.MeshStandardMaterial({color:0x1f4e8c,roughness:.4}));st.position.set(1,3.6,0);G.add(st)}
+    // v195: a real hull: pointed bow from above, flared and rounded, a stripe, windshield and console, outboard on the transom
+    const hs=new THREE.Shape();hs.moveTo(-7.5,-2.5);hs.lineTo(3,-2.6);hs.quadraticCurveTo(8.4,-1.8,9.6,0);hs.quadraticCurveTo(8.4,1.8,3,2.6);hs.lineTo(-7.5,2.5);hs.lineTo(-7.5,-2.5);
+    const hg=new THREE.ExtrudeGeometry(hs,{depth:2.2,bevelEnabled:true,bevelThickness:.5,bevelSize:.35,bevelSegments:4});hg.rotateX(-Math.PI/2);
+    const wM=new THREE.MeshStandardMaterial({color:0xf3f1ec,roughness:.35});const hull=new THREE.Mesh(hg,wM);hull.position.set(.5,2.1,0);hull.castShadow=true;G.add(hull);
+    const sg=new THREE.ExtrudeGeometry(hs,{depth:.4,bevelEnabled:true,bevelThickness:.08,bevelSize:.4,bevelSegments:2});sg.rotateX(-Math.PI/2);const st=new THREE.Mesh(sg,new THREE.MeshStandardMaterial({color:0x1f4e8c,roughness:.35}));st.position.set(.5,3.2,0);G.add(st);
+    hBox(15,.15,4.6,new THREE.MeshStandardMaterial({color:0xd9d4c8,roughness:.8}),0,4.85,0,G);
+    hBox(1.4,1.5,3.6,wM,2.6,5.6,0,G);const ws=hBox(.1,1.3,3.8,HD.winM,3.3,6.6,0,G,0,0,-.5);hBox(1.6,.9,1.6,wM,-.6,5.3,1.1,G);
+    const ob=new THREE.Group();ob.position.set(-7.6,4.8,0);G.add(ob);hBox(1.4,1.6,1.2,new THREE.MeshStandardMaterial({color:0x1b1b1c,roughness:.4}),-.6,.6,0,ob);hBox(.5,2.6,.4,HD.dark,-.6,-1.4,0,ob);hBox(.9,.2,.2,HD.meter,-.4,-2.6,0,ob)}
   shrub(-12,-12,1.2);shrub(-6,-13,1);lawn()}
 
 /* ---------- v172 more of Canada: Quebec, Prairies, Rockies, Atlantic, the North. Themes + scene pieces. ---------- */
@@ -2592,6 +2599,12 @@ function lighthouse(x,z){addOb(x-5,z-5,x+5,z+5);const G=new THREE.Group();G.posi
   const gal=new THREE.Mesh(new THREE.CylinderGeometry(4,4,.6,24),new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.5}));gal.position.y=36.3;G.add(gal);
   const lan=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,4,16),new THREE.MeshStandardMaterial({color:0xfff6d8,emissive:0xffe9a8,emissiveIntensity:.6,roughness:.1}));lan.position.y=38.6;G.add(lan);
   const cap=new THREE.Mesh(new THREE.ConeGeometry(2.8,3,16),new THREE.MeshStandardMaterial({color:0xc0392b,roughness:.5}));cap.position.y=42.1;G.add(cap);
+  {const bk=new THREE.MeshStandardMaterial({color:0x1d1f22,roughness:.5,metalness:.5});const tr=new THREE.Mesh(new THREE.TorusGeometry(3.85,.08,6,40),bk);tr.rotation.x=Math.PI/2;tr.position.y=39.3;G.add(tr);
+   for(let k=0;k<28;k++){const a=k/28*6.283;hBox(.08,2.7,.08,bk,Math.cos(a)*3.85,37.95,Math.sin(a)*3.85,G)}
+   for(let k=0;k<8;k++){const a=k/8*6.283;hBox(.16,4,.16,bk,Math.cos(a)*2.25,38.6,Math.sin(a)*2.25,G)}
+   const vent=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),bk);vent.position.y=43.7;G.add(vent);
+   hBox(2.6,6.4,.4,new THREE.MeshStandardMaterial({color:0x7a1f18,roughness:.5}),0,3,3.95,G);hBox(3.2,.5,.6,trimM,0,6.4,3.95,G);
+   [12,21,30].forEach((y,k)=>{const rr=4-(y/36)*1.4,a=k*2.1;hBox(1,2.2,.3,HD.winM,Math.sin(a)*rr,y,Math.cos(a)*rr,G,0,a);hBox(1.4,.3,.5,trimM,Math.sin(a)*rr,y-1.25,Math.cos(a)*rr,G,0,a)})}
   house(x-14,z+2,16,90,[['door',0],['win',-4]],{h:8.5,d:12,col:'#f6f3ec'})}
 function fishShack(x,z,ry,col){const G=new THREE.Group();G.userData.bld=1;G.position.set(x,-.3,z);G.rotation.y=ry||0;sceneG.add(G);addOb(x-6,z-6,x+6,z+6);
   const t=sidingTex(col);t.repeat.set(2,1.4);box(10,8,9,new THREE.MeshStandardMaterial({map:t,roughness:.85}),0,4,0,0,G);
@@ -3143,12 +3156,22 @@ function storefront(x,w,z,H,name,awn,sbg,tint,fg){
   const bt=photoTex(brickTex.clone(),'brick',1);bt.needsUpdate=true;bt.repeat.set(w/4,H/1.8);const bm=new THREE.MeshStandardMaterial({map:bt,roughness:.92,color:tint||0xffffff});
   addOb(x-w/2,z-14,x+w/2,z);box(w,H,14,bm,x,H/2-.3,z-7);
   const trim=new THREE.MeshStandardMaterial({color:0x2b2f33,roughness:.6}),cream=new THREE.MeshStandardMaterial({color:0xe8e1cf,roughness:.8});
-  box(w+.6,.9,1,cream,x,H-.2,z+.2);box(w,8.4,.3,trim,x,3.9,z+.1);
-  box(w-4.4,6,.2,glassM,x-1.4,3.7,z+.3);box(3,7,.2,new THREE.MeshStandardMaterial({color:0x3a2a1e,roughness:.6}),x+w/2-2.4,3.2,z+.3);box(w-4.4,.25,.5,cream,x-1.4,.55,z+.4);
-  for(let k=1;k<3;k++)box(.18,6,.3,trim,x-1.4-(w-4.4)/2+(w-4.4)*k/3,3.7,z+.35);
-  box(w*.78,1.7,.3,signMat(name,sbg||'#1f3a2e',fg),x,9.3,z+.35);
-  const a=new THREE.Mesh(new THREE.BoxGeometry(w-1.4,.12,3.4),awnMat(awn));a.position.set(x,7.9,z+1.7);a.rotation.x=.38;a.castShadow=true;sceneG.add(a);
-  if(H>13)for(let ux=x-w/2+3;ux<=x+w/2-2.9;ux+=5){box(2.6,3.6,.2,glassM,ux,H-6,z+.15);box(3,.3,.5,cream,ux,H-8,z+.3);box(3,.3,.3,cream,ux,H-4.1,z+.25)}}
+  // v195: pilasters, cornice on brackets with dentils, bulkhead + display glass + transom row, glass door with transom,
+  // framed sign band, striped awning with a valance and side cheeks, stone-trimmed upper windows
+  const S=sceneG;[-1,1].forEach(q=>hBox(.9,H,.4,cream,x+q*(w/2-.45),H/2-.3,z+.2,S));
+  hBox(w+1.2,1.1,1.5,cream,x,H+.05,z+.55,S);hBox(w+.6,.35,.9,cream,x,H-.75,z+.35,S);for(let k=0;k<Math.round(w/.9);k++)hBox(.3,.35,.3,cream,x-w/2+.45+k*w/Math.round(w/.9),H-1.1,z+.3,S);
+  for(let k=0;k<=Math.round(w/4);k++)hBox(.4,1,.9,cream,x-w/2+.6+k*(w-1.2)/Math.round(w/4),H-.6,z+.5,S);
+  const sw=w-4.6,sx=x-1.4;hBox(w-1.8,9.2,.3,trim,x,4.3,z+.1,S);
+  hBox(sw,1.7,.2,trim,sx,.6,z+.3,S);for(let k=0;k<3;k++)hBox(sw/3-.5,1.1,.08,cream,sx-sw/2+(k+.5)*sw/3,.6,z+.42,S);
+  hBox(sw,5.2,.08,HD.winM,sx,4.1,z+.28,S);for(let k=0;k<=3;k++)hBox(.2,5.4,.3,trim,sx-sw/2+sw*k/3,4.1,z+.35,S);hBox(sw,.25,.5,cream,sx,1.5,z+.42,S);
+  hBox(sw,1.3,.08,HD.winM,sx,7.5,z+.28,S);hBox(sw,.2,.3,trim,sx,6.8,z+.35,S);for(let k=0;k<=6;k++)hBox(.12,1.3,.3,trim,sx-sw/2+sw*k/6,7.5,z+.35,S);
+  {const dx=x+w/2-2.4;hBox(3.2,7.4,.12,new THREE.MeshStandardMaterial({color:0x3a2a1e,roughness:.6}),dx,3.4,z+.28,S);hBox(2.2,5.4,.06,HD.winM,dx,3.8,z+.36,S);hBox(2.4,.15,.15,HD.meter,dx,3.3,z+.42,S);hBox(3,1.2,.06,HD.winM,dx,7.6,z+.3,S)}
+  {const sg=box(w*.78,1.7,.3,signMat(name,sbg||'#1f3a2e',fg),x,10.4,z+.35);[[w*.78+.5,.25,0,.97],[w*.78+.5,.25,0,-.97]].forEach(([bw,bh,ox,oy])=>hBox(bw,bh,.4,trim,x+ox,10.4+oy,z+.4,S))}
+  {const am=awnMat(awn),a=new THREE.Mesh(new THREE.BoxGeometry(w-1.4,.1,3.4),am);a.position.set(x,8.6,z+1.7);a.rotation.x=.38;a.castShadow=true;S.add(a);
+   const fz=z+1.7+1.7*Math.cos(.38),fy=8.6-1.7*Math.sin(.38);hBox(w-1.4,.9,.06,am,x,fy-.45,fz,S);hBox(w-1.3,.1,.1,HD.dark,x,fy,fz,S);
+   const tri=new THREE.Shape();tri.moveTo(0,0);tri.lineTo(3.3,-1.26);tri.lineTo(3.3,-1.26-.9);tri.lineTo(0,-.4);tri.lineTo(0,0);const tg=new THREE.ShapeGeometry(tri);
+   [-1,1].forEach(q=>{const m=new THREE.Mesh(tg,am);m.rotation.y=-Math.PI/2;m.position.set(x+q*(w-1.4)/2,8.6+.65,z+.05);S.add(m);const m2=m.clone();m2.rotation.y=Math.PI/2;m2.position.z=z+3.35;m2.scale.x=-1;S.add(m2)})}
+  if(H>=18)for(let ux=x-w/2+3;ux<=x+w/2-2.9;ux+=5)bWin(S,ux,(H+11.4)/2,z,2.6,3.6,{stone:true,trim:cream,head:cream})}
 function lampPost(x,z){const m=new THREE.MeshStandardMaterial({color:0x1e2a24,roughness:.5,metalness:.4});const p=new THREE.Mesh(new THREE.CylinderGeometry(.14,.2,13,10),m);p.position.set(x,6.2,z);p.castShadow=true;sceneG.add(p);
   const hd=new THREE.Mesh(new THREE.CylinderGeometry(.5,.8,1.2,10),m);hd.position.set(x,13.2,z);sceneG.add(hd);const gl=new THREE.Mesh(new THREE.SphereGeometry(.45,12,8),new THREE.MeshStandardMaterial({color:0xfff6dc,emissive:0xffe6a8,emissiveIntensity:.5}));gl.position.set(x,12.5,z);sceneG.add(gl)}
 function streetCone(x,z){const c=new THREE.Mesh(new THREE.ConeGeometry(.45,1.6,12),new THREE.MeshStandardMaterial({color:0xff6a10,roughness:.6}));c.position.set(x,.5,z);c.castShadow=true;sceneG.add(c);
