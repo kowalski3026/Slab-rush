@@ -22,7 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
-<!-- v191: real lawn: ~26k instanced grass clumps (8 blades each) on the lawn around the job, coloured from the lawn texture under each clump, swaying in the wind. Replaces the card tufts on Full/Effects; Battery saver keeps the tufts. -->
+<!-- v192: stairs: the vibrator levels each tread flat to the form top and wipes out rake and strike lines; the 1-year-later photo has forms, stakes, bar and tools stripped. v191: real lawn: ~26k instanced grass clumps (8 blades each) on the lawn around the job, coloured from the lawn texture under each clump, swaying in the wind. Replaces the card tufts on Full/Effects; Battery saver keeps the tufts. -->
 <!-- v190: stairs: pour-only skips forms/risers/bar (they're set already); vibrator picks the real stepped surface so it follows the finger; finishing tools lock to the picked tread's plane; camera no longer jumps after each stroke. v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v190: Effects is the default graphics mode for anyone who hasn't picked one (Kris: phone was fine). Players who picked Full, Sharp or Battery saver keep their pick. -->
 <!-- v189: Effects graphics mode (bts-gfx 'fx'): Full resolution + the Sharp filter (HDR, bloom, MSAA) + new screen-space contact shadows (POST.aoM/aoB, half res). Sharp also gets the contact shadows. -->
@@ -2206,22 +2206,22 @@ function strBuild(){REB=null;REBX=[];STR.pieces=[];STR.risers=[];STR.bars=[];
     const cx=(xa+xb)/2,cz=zf+sd*.094;bx(.29,H,.125,studM,cx,(top+yb)/2,cz,G);
     const br=Math.min(2.2,top*.9+.6),by=top*.72,L=Math.hypot(br,by-(-.3)),k=bx(.125,L,.29,studM,cx,(by-.3)/2,cz+sd*br/2,G);k.rotation.x=-sd*Math.atan2(br,by+.3);
     bx(.15,.9,.15,stakeM,cx,-.3,cz+sd*(br+.08),G);
-    g.add(G);const gh=bx(xb-xa+.02,H+.02,.11,gM,(xa+xb)/2,(top+yb)/2,zf);gh.castShadow=gh.receiveShadow=false;gh.renderOrder=5;
+    G.userData.strForm=1;g.add(G);const gh=bx(xb-xa+.02,H+.02,.11,gM,(xa+xb)/2,(top+yb)/2,zf);gh.castShadow=gh.receiveShadow=false;gh.renderOrder=5;
     STR.pieces.push({m:G,gh,placed:false,t,sd,xa,xb,z:sd<0?z0:z1})})});
   // riser boards: 2x8s across the width at the front of each tread, hung off cleats on the side forms; the bottom one sits on grade
   STR.T.forEach((T,t)=>{const X=wx(T.c0)-.0625,lo=t?STR.T[t-1].rise/12:yb+.06,top=T.rise/12+.02,H=top-lo,G=new THREE.Group();
     bx(.125,H,W+.02,studM,X,(top+lo)/2,(z0+z1)/2,G);[-1,1].forEach(sd=>bx(.29,H+.25,.125,studM,X-.2,(top+lo)/2+.05,(sd<0?z0-.16:z1+.16),G));
     if(t)bx(.29,.125,W+.6,studM,X-.21,top+.08,(z0+z1)/2,G);// strongback across the top so it doesn't belly
-    g.add(G);const gh=bx(.2,H+.04,W+.1,gM,X,(top+lo)/2,(z0+z1)/2);gh.castShadow=gh.receiveShadow=false;gh.renderOrder=5;
+    G.userData.strForm=1;g.add(G);const gh=bx(.2,H+.04,W+.1,gM,X,(top+lo)/2,(z0+z1)/2);gh.castShadow=gh.receiveShadow=false;gh.renderOrder=5;
     STR.risers.push({m:G,gh,placed:false,t,X:wx(T.c0)})});
   // rebar: 10M bent to follow the steps every 12 in, then cross bars on each tread and the landing
   const tube=(pts,r,m)=>{const P=new THREE.CurvePath();for(let i=0;i<pts.length-1;i++)P.add(new THREE.LineCurve3(pts[i],pts[i+1]));const o=new THREE.Mesh(new THREE.TubeGeometry(P,pts.length*6,r,6,false),m);o.castShadow=true;g.add(o);return o};
   const nT=STR.T.length,last=STR.T[nT-1],V=(x,y,z)=>new THREE.Vector3(x,y,z),cov=.2;
   for(let z=z0+.67;z<z1-.3;z+=1){const pts=[V(wx(last.c1)-.25,last.rise/12-cov,z)];
     for(let t=nT-1;t>=0;t--){const T=STR.T[t],xf=wx(T.c0)+.17,y=T.rise/12-cov;pts.push(V(xf,y,z));pts.push(V(xf,t?STR.T[t-1].rise/12-cov:yb+.25,z))}
-    const m=tube(pts,.026,rebarM),gh=tube(pts,.06,gB);gh.renderOrder=5;gh.castShadow=false;STR.bars.push({m,gh,placed:false,long:true,z,x0:wx(STR.T[0].c0),x1:wx(last.c1)})}
+    const m=tube(pts,.026,rebarM),gh=tube(pts,.06,gB);m.userData.strForm=1;gh.renderOrder=5;gh.castShadow=false;STR.bars.push({m,gh,placed:false,long:true,z,x0:wx(STR.T[0].c0),x1:wx(last.c1)})}
   STR.T.forEach((T,t)=>{const y=T.rise/12-cov+.05,xs=[];if(t===nT-1)for(let x=wx(T.c0)+.5;x<wx(T.c1)-.2;x+=1)xs.push(x);else xs.push(wx(T.c0)+.3);
-    xs.forEach(x=>{const pts=[V(x,y,z0+.2),V(x,y,z1-.2)],m=tube(pts,.026,rebarM),gh=tube(pts,.06,gB);gh.renderOrder=5;gh.castShadow=false;STR.bars.push({m,gh,placed:false,long:false,x,t})})});
+    xs.forEach(x=>{const pts=[V(x,y,z0+.2),V(x,y,z1-.2)],m=tube(pts,.026,rebarM),gh=tube(pts,.06,gB);m.userData.strForm=1;gh.renderOrder=5;gh.castShadow=false;STR.bars.push({m,gh,placed:false,long:false,x,t})})});
   // pencil vibrator: stinger, hose, and the motor sitting on the lawn
   // pencil vibrator like the handheld units: brass head on a straight black whip up to a drill-style motor in your hand
   if(!STR.vg){const G=new THREE.Group(),br=new THREE.MeshStandardMaterial({color:0xc9a24e,metalness:.85,roughness:.32}),bk=new THREE.MeshStandardMaterial({color:0x151517,roughness:.55}),
@@ -2273,9 +2273,11 @@ function vibAt(cx,cy,dt){const ci=Math.floor(cy)*GW+Math.floor(cx);if(ci<0||ci>=
     work+=Math.min(add,Math.max(0,1-STR.vib[i]));STR.vib[i]+=add;
     // consolidation: air comes out, it settles and levels inside its own tread
     const nb=j=>inR[j]&&STR.tid[j]===t?h[j]:h[i],avg=(nb(y*GW+Math.max(0,x-1))+nb(y*GW+Math.min(GW-1,x+1))+nb(Math.max(0,y-1)*GW+x)+nb(Math.min(GH-1,y+1)*GW+x))/4;
-    h[i]+=(avg-h[i])*Math.min(1,dt*3.5*w*eff);if(STR.vib[i]<1.2)h[i]-=dt*.18*w*eff;
+    const kf=Math.min(1,dt*5*w*eff);h[i]+=(avg-h[i])*kf;if(h[i]>0||h[i]>-1.5)h[i]+=(0-h[i])*kf;
+    rkA[i]*=1-kf;scA[i]*=1-kf;
     if(STR.vib[i]>2.6){weak[i]=Math.min(1,weak[i]+dt*.1*w);STR.over+=dt*w*.02;over=true}}
   if(S.vibe!=null){acc[S.vibe].w+=work;acc[S.vibe].q+=work*winQ(set,STAGES[S.vibe])}
+  {const T=STR.T[t],X=cx*CPX,Y=cy*CPX,r=R*CPX;[scx,fcx].forEach(c=>{c.save();c.beginPath();c.rect(T.c0*CPX,0,(T.c1-T.c0)*CPX,TH);c.clip();c.globalCompositeOperation='destination-out';c.fillStyle=`rgba(0,0,0,${Math.min(1,dt*3*eff)})`;c.beginPath();c.arc(X,Y,r,0,6.283);c.fill();c.restore()})}
   geoDirty=surfDirty=true;
   if(over)say('Over-vibrating. The stone is sinking and the paste is floating up. Keep it moving.','bad','vibOver');
   else if(set>.36)say('It\'s stiffening. The stinger is leaving holes now.','bad','vibLate');
@@ -7281,7 +7283,7 @@ function finish(timedOut){
    if(blow)x+=`<div class="risk">Form blowout<b class="hi">Blew</b>${blow.lost.toFixed(2)} m³ on the ground and a bulge in the wall. Bring tall walls up in lifts.</div>`;
    if(LV.peds)x+=prints?`<div class="risk">Footprints<b class="${prints>6?'hi':'mid'}">${prints}</b>People walked through it. Those prints are in there for good.</div>`:`<div class="risk">Foot traffic<b class="lo">Kept off</b>Nobody got a boot in your concrete.</div>`;
    if(x)$('rRisks').insertAdjacentHTML('beforeend',x)}
-  let photoY=null;if(photoA&&!LV.wall&&!LV.steps.includes('slip')){blankets.forEach(m=>m.visible=false);photoY=snapPhoto(()=>ageSlab(crack[1]));blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
+  let photoY=null;if(photoA&&!LV.wall&&!LV.steps.includes('slip')){blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});photoY=snapPhoto(()=>ageSlab(crack[1]));fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
   $('rPhotos').classList.toggle('three',!!photoY);$('phY').parentElement.hidden=!photoY;if(photoY)$('phY').src=photoY;
   if(cab.used)$('rRisks').insertAdjacentHTML('beforeend','<div class="risk">Operator<b class="lo">+3</b>Dug it from the cab. Bonus points.</div>');
   $('rPhotos').hidden=!photoA;$('phSave').hidden=!photoA;$('phShare').hidden=!photoA;$('rpOpen').hidden=REPLAY.length<4;if(photoA){$('phA').src=photoA;$('phB').src=photoB||photoA;$('phB').parentElement.hidden=!photoB}
@@ -9732,7 +9734,7 @@ function snapPhoto(pre){if(!renderer)return null;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const p=camera.position.clone(),q=camera.quaternion.clone(),portrait=cssW<cssH,th=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const hv=(portrait?RW:RD)/2+2.5,hh=(portrait?RD:RW)/2+2.5,d=Math.max(hv/th,hh/(th*asp));
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM].map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
   camera.up.set(portrait?1:0,0,portrait?0:-1);camera.position.set(RCX,d+ELV(),RCZ);camera.lookAt(RCX,ELV(),RCZ);
   drawFrame();const url=cv.toDataURL('image/jpeg',.86);
   camera.up.set(0,1,0);camera.position.copy(p);camera.quaternion.copy(q);vis.forEach(([o,v])=>o.visible=v);return url}catch(e){return null}}
