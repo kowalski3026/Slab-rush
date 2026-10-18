@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v190: stairs: pour-only skips forms/risers/bar (they're set already); vibrator picks the real stepped surface so it follows the finger; finishing tools lock to the picked tread's plane; camera no longer jumps after each stroke. v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v189: Effects graphics mode (bts-gfx 'fx'): Full resolution + the Sharp filter (HDR, bloom, MSAA) + new screen-space contact shadows (POST.aoM/aoB, half res). Sharp also gets the contact shadows. -->
 <!-- v188: laser screed: receiver mast and spinning tripod transmitter removed (Kris: not realistic). Laser accuracy unchanged. -->
 <!-- v187: rake furrows and screed strike-off lines drawn as real-scale shape in the slab shader (GPS.mr / GPS.ms); floated out by the bull float. -->
@@ -2182,7 +2183,9 @@ function strTarpPin(pin,NX,NZ){const TP=TC.P,bagM=new THREE.MeshStandardMaterial
 function strSurfY(u,v){const t=strColT(u),s=strSample(u,v,t);return s<-DEPTH-.5?-.27:s<-DEPTH+.1?-DEPTH/12:yOf(s)+strOffT(t)}
 // pointer: try each tread's plane from the top down, keep the first hit that lands on that tread
 const strPl=new THREE.Plane(new THREE.Vector3(0,1,0),0),strHit=new THREE.Vector3();
-function strPick(){for(let t=STR.T.length-1;t>=0;t--){const T=STR.T[t];strPl.constant=-(T.rise/12+.04);if(!ray.ray.intersectPlane(strPl,strHit))continue;const u=gu(strHit.x);
+function strPick(){if(TRD.on){const T=STR.T[TRD.sel];strPl.constant=-(T.rise/12+.04);if(ray.ray.intersectPlane(strPl,strHit))return{x:gu(strHit.x),y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z};return null}
+  try{slab.updateMatrixWorld();const hs=ray.intersectObject(slab,false);if(hs.length){const P=hs[0].point;return{x:gu(P.x),y:(P.z+SLAB_D/2)/SLAB_D*GH,wx:P.x,wz:P.z}}}catch(e){}
+  for(let t=STR.T.length-1;t>=0;t--){const T=STR.T[t];strPl.constant=-(T.rise/12+.04);if(!ray.ray.intersectPlane(strPl,strHit))continue;const u=gu(strHit.x);
     if(u>=T.c0-.05&&(u<=T.c1+.05||t===STR.T.length-1))return{x:u,y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z}}return null}
 
 /* forms, riser boards and bent bars, built into siteG */
@@ -2238,7 +2241,7 @@ function strVis(){const k=STAGES[stage]&&STAGES[stage].key,live=running;
   STR.risers.forEach(p=>{p.m.visible=p.placed;p.gh.visible=!p.placed&&live&&k==='riser'});
   STR.bars.forEach(p=>{p.m.visible=p.placed;p.gh.visible=!p.placed&&live&&k==='sbar'&&(p.long||STR.bars.every(b=>!b.long||b.placed))})}
 function strReset(){STR.vib.fill(0);STR.over=0;STR.hc=false;TRD.done=STR.T.map(()=>false);TRD.sel=Math.max(0,STR.T.length-1);TRD.tool='trowel';
-  STR.pieces.forEach(p=>p.placed=false);STR.risers.forEach(p=>p.placed=false);STR.bars.forEach(p=>{p.placed=false;p.drop=0});try{strVis()}catch(e){}}
+  const pre=!STAGES.some(x=>x.key==='sform');STR.pieces.forEach(p=>p.placed=pre);STR.risers.forEach(p=>p.placed=pre);STR.bars.forEach(p=>{p.placed=pre;p.drop=0});try{strVis()}catch(e){}}
 const strPct=a=>a.length?a.filter(p=>p.placed).length/a.length:1;
 function strPlace(o,msg){o.placed=true;o.drop=1;thump();buzz(12);strVis();if(msg)say(msg,'good','strPl'+Math.random(),0)}
 function strTrace(p){if(!running)return;const k=STAGES[stage].key,X=p.wx,Z=p.wz;
@@ -5794,7 +5797,7 @@ function up(){
   if(k==='blanket'&&running)layBlanket();
   if(k==='joint'&&running)jointUp();
   if(k==='rebar')rebUp();
-  closeLook.set(wx(ptr.x),0,wz(ptr.y));if(view===3)computeCam();
+  if(!TRD.on){closeLook.set(wx(ptr.x),0,wz(ptr.y));if(view===3)computeCam()}
 }
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 
@@ -5813,6 +5816,7 @@ function applyLevel(L){
   if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
   if(prepOn&&L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
   try{brgSetup(L)}catch(e){console.warn('brg',e)}
+  if(L.stair&&!prepOn){STAGES=STAGES.filter(x=>!['sform','riser','sbar'].includes(x.key));S={};STAGES.forEach((x,i)=>S[x.key]=i)}
   if(L.stair){S.float=S.edge=S.trowel=S.broom=S.tread;const st=STAGES[S.tread];Object.defineProperty(st,'win',{get:()=>trdWin(TRD.tool)});Object.defineProperty(st,'soft',{get:()=>DEFS[TRD.tool].soft})}
   setShape(typeof L.shape==='function'?L.shape():L.shape);buildMask();strSetup(L);buildVerts();strVerts();
   TG.fill(0);if(L.profile)for(let i=0;i<N;i++)if(inR[i])TG[i]=L.profile(wx(i%GW+.5),wz(((i/GW)|0)+.5));
