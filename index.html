@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v184: bridge: Bid-Well drum and wheels spin on their axles (they were swinging in circles), drum has paddles; rebar lanes and tie rings are bright blue on a dark brown HDO soffit; boom pump swings clear of the deck when it isn't placing. -->
 <!-- v183: battery-saver graphics now build each job's dress (bridge Bid-Well, hoe ram, light towers, traffic; region extras like docks and boats), it was skipped with the terrain. Bridge follows job scope again: off starts at Pour with the deck torn out, soffit hung and steel tied. -->
 <!-- v182: Bid-Well parks at the top-of-screen end of the span (away from the camera, or the end you started pouring) from the steel step on, so it's waiting there before the pour and runs back toward you. -->
 <!-- v181: bridge Bid-Well finishes right behind the pour: starts at the far end (top of screen), Start Bid-Well button once 15 ft is placed in front of it, then it runs on its own down the span, holding only when there's no mud ahead. -->
@@ -2549,7 +2550,7 @@ function brgBuild(){const g=siteG,yb=-DEPTH/12;BRG.ch=[];BRG.pan=[];
    const m=oldConcM.clone();m.color=new THREE.Color(0xd0ccc4);const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1.98,.74,1.98),m,cs.length);im.castShadow=im.receiveShadow=true;im.userData.kind='brgold';g.add(im);BRG.chIM=im;BRG.ch=cs;
    const col=new THREE.Color();cs.forEach((c,i)=>{brgChunk(i);im.setColorAt(i,col.setScalar(c.c))});im.instanceColor.needsUpdate=true}
   // soffit: 3/4 HDO ply between the girder flanges on 4x4 runners, and the overhang on steel brackets with a walkway and the screed rail
-  const ply=wPlyM.clone(),tim=new THREE.MeshStandardMaterial({color:0xb08a5c,map:wood,roughness:.9}),stl=new THREE.MeshStandardMaterial({color:0x5b6168,roughness:.5,metalness:.6}),
+  const ply=wPlyM.clone();ply.color=new THREE.Color(0x3e342c);const _p=0,tim=new THREE.MeshStandardMaterial({color:0xb08a5c,map:wood,roughness:.9}),stl=new THREE.MeshStandardMaterial({color:0x5b6168,roughness:.5,metalness:.6}),
     rail=new THREE.MeshStandardMaterial({color:0xc9ccd0,roughness:.3,metalness:.8}),gM=new THREE.MeshBasicMaterial({color:0xff8a1a,transparent:true,opacity:.36,depthWrite:false});
   const bx=(w,hh,d,m,x,y,z,par)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;par.add(o);return o};
   for(let x=-24;x<24;x+=8){
@@ -2569,6 +2570,7 @@ function brgBuild(){const g=siteG,yb=-DEPTH/12;BRG.ch=[];BRG.pan=[];
   // screed rail runs on past the span onto the finished decks so the Bid-Well can walk off both ends
   {const E=new THREE.Group();E.userData.kind='brgext';[-1,1].forEach(sd=>[-1,1].forEach(ex=>{const r=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,10,10),rail);r.rotation.z=Math.PI/2;r.position.set(ex*29,.55,sd*BRG_RAIL);E.add(r);
     for(let x=25;x<34;x+=4)bx(.3,.9,.3,stl,ex*x,.05,sd*BRG_RAIL,E)}));g.add(E);BRG.ext=E}
+  try{const bl=0x19c8ff;if(rebDotIM){rebDotIM.material.color.setHex(bl);rebDotIM.geometry.dispose();rebDotIM.geometry=new THREE.RingGeometry(.15,.26,18).rotateX(-Math.PI/2)}if(REB&&REB.lane)REB.lane.material.color.setHex(bl);if(REB&&REB.hold)REB.hold.material.color.setHex(0x9ff0ff)}catch(e){}
   // bottom mat: 15M both ways at 12 in, already tied on the soffit
   {const rs=[];for(let z=-11.5;z<=11.6;z+=1)rs.push([0,z,48,1]);for(let x=-23.5;x<=23.6;x+=1)rs.push([x,0,23.4,0]);
    const im=new THREE.InstancedMesh(new THREE.CylinderGeometry(.026,.026,1,6),rebarM,rs.length),d=new THREE.Object3D();
@@ -2612,7 +2614,7 @@ function brgDress(){const E=LV.elev,yl=new THREE.MeshStandardMaterial({color:0xf
   const cyl=(r,l,m,x,y,z,par,ax)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,14),m);if(ax==='x')o.rotation.z=Math.PI/2;else if(ax==='z')o.rotation.x=Math.PI/2;o.position.set(x,y,z);o.castShadow=true;par.add(o);return o};
   // Bid-Well style truss paver: end trucks on the screed rails, two trusses across the deck, a carriage with twin augers and a finishing drum
   {const G=new THREE.Group();G.position.set(wx(BW.x),E,0);REGG.add(G);BRG.bw=G;BRG.spin=[];const H=BRG_RAIL+.4;
-   [-1,1].forEach(sd=>{const z=sd*BRG_RAIL;bx(5.4,.7,.9,yl,0,1.15,z,G);[-1.9,1.9].forEach(x=>{BRG.spin.push(cyl(.33,.28,dk,x,.95,z,G,'z'))});bx(1.4,.6,.7,dk,1.2,1.75,z+sd*.2,G);
+   [-1,1].forEach(sd=>{const z=sd*BRG_RAIL;bx(5.4,.7,.9,yl,0,1.15,z,G);[-1.9,1.9].forEach(x=>{const wP=new THREE.Group();wP.position.set(x,.95,z);G.add(wP);cyl(.33,.28,dk,0,0,0,wP,'z');const sp=new THREE.Mesh(new THREE.BoxGeometry(.5,.08,.3),yl);wP.add(sp);wP.userData.wheel=1;BRG.spin.push(wP)});bx(1.4,.6,.7,dk,1.2,1.75,z+sd*.2,G);
      [-1.3,1.3].forEach(x=>bx(.55,4.6,.55,yl,x,3.75,z,G));bx(3.2,.35,.6,yl,0,5.9,z,G);bx(.18,3.6,.18,yl,0,3.6,z,G,0,0,.62)});
    [-1.3,1.3].forEach(x=>{bx(.34,.34,2*H,yl,x,6.15,0,G);bx(.28,.28,2*H-1.2,yl,x,4.35,0,G);
      for(let k=0;k<=12;k++){const z=-H+.6+k*(2*H-1.2)/12;bx(.16,1.8,.16,yl,x,5.25,z,G);if(k<12)bx(.13,2.55,.13,yl,x,5.25,z+(2*H-1.2)/24,G,(k%2?.79:-.79))}});
@@ -2627,7 +2629,7 @@ function brgDress(){const E=LV.elev,yl=new THREE.MeshStandardMaterial({color:0xf
    for(let k=0;k<10;k++){const z=-H+2+k*2.6;const c=new THREE.Mesh(new THREE.TorusGeometry(.6,.04,5,10,Math.PI),dk);c.position.set(.2,6.4,z);c.rotation.set(0,Math.PI/2,Math.PI);G.add(c)}
    // carriage: hangs off the bottom chords and runs back and forth across the deck
    const C=new THREE.Group();G.add(C);BRG.car=C;bx(3.4,1.1,2.6,yl,0,3.6,0,C);bx(3,.4,2.4,dk,0,2.9,0,C);[-1.3,1.3].forEach(x=>bx(.22,2,.22,yl,x,1.9,-.9,C));[-1.3,1.3].forEach(x=>bx(.22,2,.22,yl,x,1.9,.9,C));
-   const drum=cyl(.45,3.8,st,0,.47,0,C,'x');BRG.drum=drum;
+   const dP=new THREE.Group();dP.position.set(0,.47,0);C.add(dP);cyl(.45,3.8,st,0,0,0,dP,'x');[-1,1].forEach(e=>{for(let k=0;k<6;k++){const b=new THREE.Mesh(new THREE.BoxGeometry(3.7,.05,.06),dk);const a=k*Math.PI/3;b.position.set(0,Math.cos(a)*.46,Math.sin(a)*.46);b.rotation.x=a;dP.add(b)}});BRG.drum=dP;
    const hel=new THREE.Curve();hel.getPoint=function(t,o=new THREE.Vector3()){const a=t*Math.PI*2*8;return o.set(-1.8+t*3.6,Math.cos(a)*.27,Math.sin(a)*.27)};
    [-1,1].forEach(sd=>{const A=new THREE.Group();A.position.set(0,.33,sd*1.05);C.add(A);A.add(new THREE.Mesh(new THREE.TubeGeometry(hel,160,.05,5,false),st));const core=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,3.7,10),st);core.rotation.z=Math.PI/2;A.add(core);BRG.spin.push(A);A.userData.aug=sd});
    [-1,1].forEach(x=>bx(.16,.3,2.7,dk,x*1.95,.55,0,C));
@@ -2702,12 +2704,14 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
     if(live&&k==='screed'&&(ptr.down||BW.auto)&&!stowChute&&placed+wasted<LOAD_M3&&usePump()){let best=-1,bv=-.45;const c0=Math.floor(BW.x),sd=BW.auto?-BW.s:BW.dir;for(let dc=2;dc<=8;dc++){const c=c0+sd*dc;if(c<RX0||c>=RX1)continue;for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(inR[i]&&h[i]<bv){bv=h[i];best=i}}}
       if(best>=0){tipTarget.set(wx(best%GW+.5),0,wz(((best/GW)|0)+.5));if(!BW.feed){pourStep.hold=true}pouring=true;BW.feed=true;placedAtLeave=placed}else if(BW.feed){pouring=false;BW.feed=false}}
     else if(BW.feed&&k==='screed'){pouring=false;BW.feed=false}else if(k!=='screed')BW.feed=false;
-    if(live&&k==='screed'&&!BW.feed)tipTarget.set(wx(BW.x+BW.dir*5),0,RCZ+6);
     const work=!!want||(live&&BW.auto&&!BW.wait);BW.cz+=BW.cd*dt*(work?7.5:0);if(BW.cz>11.2){BW.cz=11.2;BW.cd=-1}if(BW.cz<-11.2){BW.cz=-11.2;BW.cd=1}
     BRG.bw.position.x+=(wx(BW.x)-BRG.bw.position.x)*Math.min(1,dt*10);BRG.car.position.z=BW.cz;
-    BRG.spin.forEach(o=>{if(o.userData.aug)o.rotation.x+=dt*(work?14:0)*o.userData.aug;else o.rotation.y+=sp*dt*1.9});if(BRG.drum)BRG.drum.rotation.y+=dt*(work?6:0)*BW.cd}}
+    BRG.spin.forEach(o=>{if(o.userData.aug)o.rotation.x+=dt*(work?14:0)*o.userData.aug;else if(o.userData.wheel)o.rotation.z-=sp*dt*1.9*BW.dir});if(BRG.drum)BRG.drum.rotation.x-=dt*(work?6:0)*BW.cd;
+    // the boom swings clear of the deck when it isn't placing
+    {const on=running&&(k==='pour'||k==='screed');const now=performance.now();if(on&&!ptr.down&&!pouring&&!BW.feed){if(!BRG.idleT)BRG.idleT=now}else BRG.idleT=0;BRG.stow=on&&!!BRG.idleT&&now-BRG.idleT>900}}}
 // how many feet of full-depth mud sit in front of the parked Bid-Well (from the far end of the span back)
 // the Bid-Well parks at the end of the span that's at the top of the screen (away from the camera), or at the end the pour started from
+const RX0w=()=>wx(RX0);
 const brgPark=s=>s>0?RX1+4.2:RX0-4.2;
 function brgEndFill(s){let n=0,f=0;for(let k=0;k<15;k++){const c=s>0?RX1-1-k:RX0+k;for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(!inR[i])continue;n++;if(h[i]>-DEPTH+1)f++}}return n?f/n:0}
 function brgHome(){const a=brgEndFill(1),b=brgEndFill(-1);let s;if(a<.03&&b<.03){s=camera.position.x>RCX?-1:1}else s=a>=b?1:-1;if(s!==BW.s){BW.s=s;BW.x=BW.tx=brgPark(s);if(BRG.bw)BRG.bw.position.x=wx(BW.x)}}
@@ -6618,12 +6622,13 @@ function updateTruck(dt,t){
   if(!truck.visible&&!pumpG.visible)return;
   // chute swings toward target with real-world lag
   const raking=pourTool==='rake'&&STAGES[stage]&&STAGES[stage].key==='pour';
-  if(stowChute||raking){const O=pumpG.visible?pumpG.position:PIVOT,ax=O.x-RCX,az=O.z-RCZ,al=Math.hypot(ax,az)||1,k=pumpG.visible?6:1.5;tipTarget.set(O.x+ax/al*k+az/al*(pumpG.visible?7:4),0,O.z+az/al*k-ax/al*(pumpG.visible?7:4))}
+  if(BRG.on&&BRG.stow&&pumpG.visible&&!stowChute&&!raking){tipTarget.set(Math.max(RX0w(),Math.min(-RX0w(),tip.x)),0,Math.sign(pumpG.position.z||1)*17.5)}
+  else if(stowChute||raking){const O=pumpG.visible?pumpG.position:PIVOT,ax=O.x-RCX,az=O.z-RCZ,al=Math.hypot(ax,az)||1,k=pumpG.visible?6:1.5;tipTarget.set(O.x+ax/al*k+az/al*(pumpG.visible?7:4),0,O.z+az/al*k-ax/al*(pumpG.visible?7:4))}
   if(RUN.on&&!stowChute&&STAGES[stage]&&(STAGES[stage].key==='pour'||runCarry()))tipTarget.copy(RUN.L0);
   const maxV=(pumpG.visible?20*Math.max(1,LS/2.5):14)*dt,d=tv.copy(tipTarget).sub(tip);d.y=0;const L=d.length();if(L>maxV)d.multiplyScalar(maxV/L);
   tip.x+=d.x;tip.z+=d.z;
   const gy=surfY(tip.x,tip.z);
-  if(pumpG.visible){tip.y=Math.max(gy+1.2,ELV()+.9)+(raking||stowChute?6:0);chute.visible=false;bands.forEach(b=>b.visible=false);pHose.visible=true;pumpPose(tip.x,tip.y,tip.z,t)}
+  if(pumpG.visible){tip.y=Math.max(gy+1.2,ELV()+.9)+(raking||stowChute||(BRG.on&&BRG.stow)?6:0);chute.visible=false;bands.forEach(b=>b.visible=false);pHose.visible=true;pumpPose(tip.x,tip.y,tip.z,t)}
   else{tip.y=Math.max(gy,0)+1.25;
   chute.position.copy(PIVOT);chute.lookAt(tip);const len=PIVOT.distanceTo(tip);chute.scale.set(1,1,len);
   const nb=Math.floor(len/4);
@@ -6805,7 +6810,7 @@ function hud(t){
   else if(k==='blanket'){let cv=0;for(let i=0;i<N;i++)if(inR[i]&&covered[i])cv++;r=`Covered ${Math.round(cv/RN*100)}% · ${set<.72?'still soft, thumb-test':'firm enough to cover'}`}
   else if(k==='stamp'){const st=stampStats();r=`Mats printed ${st.n} of ${st.tot}`+(st.dbl?` · ${st.dbl} double`:'')}
   else if(k==='mark')r=`Painted ${Math.round(markPct()*100)}% of the outline · trace the dotted line`;
-  else if(k==='rebar'){const ph=rebPh();r=ph==='bar'?`Bars ${REB.runs.filter(b=>b.on).length} of ${REB.runs.length} · sweep across the glowing lanes`+(rebLayer()?' · top layer':' · bottom layer'):`Ties ${rebTied()} of ${rebNeed()} · drag along the bars over the orange rings`}
+  else if(k==='rebar'){const ph=rebPh();r=ph==='bar'?`Bars ${REB.runs.filter(b=>b.on).length} of ${REB.runs.length} · sweep across the glowing lanes`+(rebLayer()?' · top layer':' · bottom layer'):`Ties ${rebTied()} of ${rebNeed()} · drag along the bars over the ${LV&&LV.bridge?'blue':'orange'} rings`}
   else if(k==='dig')r=`Dug ${Math.round(digPct()*100)}% to subgrade · `+(cabOn?`bucket ${Math.round(exLoad*100)}%`:`spoil ${(spoilVol/27).toFixed(1)} yd³`);
   else if(k==='gravel')r=`Spread ${Math.round(gravPct()*100)}% · `+(cabOn?`bucket ${Math.round(exLoad*100)}% · `:`${Math.round(GTf()*12)} in lift · `)+`pile ${Math.round(gravLeft*100)}% left`;
   else if(k==='base')r=`Compacted ${Math.round(compPct()*100)}% · `+(compTool==='roller'?'one pass with the roller, then plate the edges':'two passes everywhere');
