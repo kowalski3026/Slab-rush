@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v201: inspector taken out too: no inspector visits on jobs or the job board, model never loads. -->
 <!-- v200: foreman taken off the site (never loaded or shown). Inspector unchanged. -->
 <!-- v199: edge-swipe back no longer closes the game: first back swipe shows 'Swipe back again to exit', a second within 2.5 s leaves. -->
 <!-- v198: front-step flicker fixed (lower step top sat flush with the slab, now a real half step); dug ring hugs the forms (1.3 ft, was 2.8) and gravel 0.6 ft, neither spills past edges poured against something; no forms or edger where a slab butts an old sidewalk, coping or step; Curved Front Walk now runs right to the city sidewalk and the step face; 1-year-later photo has sod right up to the pad on every lawn job; chalk lines cleared when the job ends. -->
@@ -7306,7 +7307,7 @@ function barkTick(dt){const e=$('bark');if(!e)return;if(e.classList.contains('on
 /* job-site problems on top of the weather: a hot load, a plugged pump line, or the inspector walking the job */
 let SITE={};
 function planSite(rng){SITE={};$('siteBtn').hidden=true;if(LV.free||LV.tut||practice)return;const r=rng||Math.random;if(r()>.55)return;
-  const opts=[];if(S.pour!=null)opts.push('hot');if(S.pour!=null&&usePump())opts.push('plug','plug');if(S.screed!=null&&S.screed+1<STAGES.length)opts.push('insp','insp');if(!opts.length)return;
+  const opts=[];if(S.pour!=null)opts.push('hot');if(S.pour!=null&&usePump())opts.push('plug','plug');/* v201: no inspector visits (Kris) */if(!opts.length)return;
   const t=opts[Math.floor(r()*opts.length)];if(t==='hot')SITE.hot={on:false};if(t==='plug')SITE.plugAt=.3+r()*.3;if(t==='insp')SITE.insp={phase:'wait'}}
 function siteK(){return SITE.hot&&SITE.hot.on&&stage<=(S.screed!=null?S.screed:S.pour)?1.3:1}
 function siteStage(k){if(SITE.hot&&k==='screed'&&SITE.hot.on)bark('Hot load\'s firming up already. Keep that board moving!',0,'Foreman');
@@ -9415,7 +9416,7 @@ function fwPose(dt,tool,w){const B=FW.B,r=FMN.root,T=FW.tools,UP=new THREE.Vecto
   fwLean(B,(cfg.lean+.1*s)*1,side,w);
   const along=d=>top.clone().addScaledVector(dir,-d);
   fwIK(B.rarm,B.rforearm,B.rhand,along(cfg.h1),at(-.6,1.8,2.6),w);fwIK(B.larm,B.lforearm,B.lhand,along(cfg.h2),at(-.4,-1.8,2.6),w)}
-function fmTick(dt){if(!INSPM.tried&&running&&!safeGfx)inspLoad();
+function fmTick(dt){
   // v200: foreman off the site (Kris: takes away from the game). Model never loads; his tools stay hidden.
   if(FMN.root)FMN.root.visible=false;if(FW.tools)Object.values(FW.tools).forEach(g=>g.visible=false);return;if(!FMN.ok)return;const r=FMN.root,k=STAGES[stage]&&STAGES[stage].key;
   const vis=running&&!PREPK.has(k)&&!(cabOn&&cabPov==='cab');r.visible=vis;if(!vis)return;
@@ -10163,7 +10164,7 @@ const BTOWNS={on:['Innisfil','Barrie','Orillia','Gravenhurst','Bracebridge','Hun
   qc:['Montréal','Laval','Québec City','Sherbrooke','Trois-Rivières'],pr:['Saskatoon','Regina','Moose Jaw','Brandon','Swift Current'],rk:['Canmore','Banff','Cochrane','Golden','Jasper'],
   at:['Halifax','Lunenburg','Moncton','Charlottetown','St. John\'s'],nt:['Yellowknife','Whitehorse','Hay River','Inuvik']};
 const BNAMES=['Dave','Linda','Raj','Marie-Claude','Tom','Jen','Mike','Priya','Gord','Sandra','Kevin','Anne','Luc','Mo','Carol','Ian','Sophie','Bill','Nadia','Doug'];
-const BTWIST=[['none','No surprises. Just do it right.',1],['rain','Rain in the forecast. Keep the tarp close.',1.25],['wind','Gusty all day. It\'ll skin over fast.',1.2],['hot','Hot load from the plant. Move fast.',1.3],['insp','City inspector is dropping by.',1.2],['hotwx','Heat wave: 31°C.',1.35]];
+const BTWIST=[['none','No surprises. Just do it right.',1],['rain','Rain in the forecast. Keep the tarp close.',1.25],['wind','Gusty all day. It\'ll skin over fast.',1.2],['hot','Hot load from the plant. Move fast.',1.3],['hotwx','Heat wave: 31°C.',1.35]];
 function boardDay(){return todayKey()}
 function boardPlan(){const k=boardDay();let h=19;for(const ch of k)h=(h*31+ch.charCodeAt(0))%2147483647;const R=seeded(h%99991+41);for(let i=0;i<4;i++)R();
   const pool=LEVELS.map((L,i)=>[L,i]).filter(([L,i])=>!L.free&&!L.tut&&regOk(regOf(L))&&unlocked(i));const out=[],used=new Set();
@@ -10188,7 +10189,7 @@ function boardActive(){return !!(jobB&&jobB.d===boardDay()&&LV&&jobB.L===LV)}
 function boardStart(){if(!boardActive())return;const t=jobB.tw;
   if(t==='rain'||t==='wind'){ev={type:t,at:.3+Math.random()*.2,phase:'wait',t:0,hits:0}}
   else if(t==='hot'&&S.pour!=null){SITE={hot:{on:false}}}
-  else if(t==='insp'&&S.screed!=null&&S.screed+1<STAGES.length){SITE={insp:{phase:'wait'}}}}
+}
 function boardFinish(total,out){if(!boardActive()||practice)return;const B=boardState();if(B.done.includes(jobB.c))return;
   if(total<jobB.need){out.push(['Job board',`${jobB.who} wanted a ${jobB.need>=80?'B':'C'} or better. No payout this time.`,0]);return}
   const se=seasonNow(),pay=Math.round(jobB.pay*(se.x(jobB.L)?se.k2:1));B.done.push(jobB.c);store.set('bts-board',B);coinsAdd(pay);out.push(['Job board',`${jobB.who} in ${jobB.town} paid up`+(pay>jobB.pay?` (${se.n} bonus)`:''),pay]);
