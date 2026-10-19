@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v199: edge-swipe back no longer closes the game: first back swipe shows 'Swipe back again to exit', a second within 2.5 s leaves. -->
 <!-- v198: front-step flicker fixed (lower step top sat flush with the slab, now a real half step); dug ring hugs the forms (1.3 ft, was 2.8) and gravel 0.6 ft, neither spills past edges poured against something; no forms or edger where a slab butts an old sidewalk, coping or step; Curved Front Walk now runs right to the city sidewalk and the step face; 1-year-later photo has sod right up to the pad on every lawn job; chalk lines cleared when the job ends. -->
 <!-- v195: storefronts (downtown, Gastown): pilasters, bracketed cornice with dentils, bulkhead + display glass + transom, glass door, framed sign, awning valance and cheeks, stone-trimmed upper windows; lighthouse gallery railing, lantern mullions, door and windows; marina boat with a shaped hull, stripe, console and outboard. -->
 <!-- v194: Quebec plexes (tin cornice on brackets, stone-trimmed windows, balcony doors, picket railings, stair stringers and handrail), prairie steel shop, fish shacks, northern store and laneway garages detailed with a shared bWin/bRail. Parked cars rebuilt: extruded rounded body profiles with wheel arches, glass greenhouse with pillars and roof, spoked rims, lights, grille, plates, mirrors, handles, door seams (sedan, SUV, pickup). -->
@@ -10339,4 +10340,15 @@ applyLevel(LEVELS[0]);reset();setStageUI();renderJobs();resize();requestAnimatio
 </script>
 
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{})</script>
+<div id="backTrap" style="position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:99999;background:rgba(20,18,16,.92);color:#fff;font:600 14px system-ui,sans-serif;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.15);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap">Swipe back again to exit</div>
+<script>
+// v199: Android's edge-swipe "back" was closing the game. Keep a spare history entry; a stray back swipe
+// just shows a note. Swipe back twice within 2.5 s to actually leave.
+(()=>{let armed=false,last=0,tm=0;const el=document.getElementById('backTrap');
+  const arm=()=>{if(armed)return;try{history.pushState({sr:1},'');armed=true}catch(e){}};
+  ['pointerdown','touchstart','keydown'].forEach(t=>addEventListener(t,arm,{capture:true,passive:true}));
+  addEventListener('popstate',()=>{armed=false;const now=Date.now();
+    if(now-last<2500){el.style.opacity=0;setTimeout(()=>history.back(),30);return}
+    last=now;arm();el.style.opacity=1;clearTimeout(tm);tm=setTimeout(()=>el.style.opacity=0,1800)})})();
+</script>
 </body></html>
