@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v206: tools: real edger (stainless blade, rolled radius lip, upturned toe/heel, hardwood handle on a bridge, mud), hand trowel rivets/ferrules/smear, broom with bristle tufts, mud on the tips, steel bracket; gloved hand with fingers and thumb. -->
 <!-- v205: form splatter hidden in the 1-year-later photo. -->
 <!-- v204: ground and forms around the slab: lumpy stones and clods (4 shapes, mostly small) instead of polyhedra, boot prints in the dug ring, cut sod edge with grass right up to it, nail heads on stakes, grade stamps on some form boards, concrete splatter on form tops as the mud reaches them. -->
 <!-- v203: 45 jobs reshaped so they aren't all rectangles or clones: driveways get street flares, tapers, angles, curves, parking widenings, a turnaround, planter notches; patios get L-shapes, bump-outs, bowed or rounded yard edges, clipped corners, an octagon plaza; sidewalks get tree wells with trees, a café bump-out, curb bump-outs, a winding ruelle; floors get foundation jogs, a corner-entrance dépanneur, a hangar door apron, new sizes, with foundation walls built to follow any outline; garden paths get different curves. -->
@@ -4355,9 +4356,18 @@ const floatG=new THREE.Group(),fTilt=new THREE.Group();floatG.add(fTilt);
 shadowAll(floatG);scene.add(floatG);
 
 const edgerG=new THREE.Group();
-const eplate=new THREE.Mesh(new THREE.BoxGeometry(.26,.035,.5),steelM);eplate.position.y=.025;edgerG.add(eplate);
-const elip=new THREE.Mesh(new THREE.BoxGeometry(.03,.08,.5),steelM);elip.position.set(-.13,.0,0);edgerG.add(elip);
-const egrip=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.34,10),corkM);egrip.rotation.x=Math.PI/2;egrip.position.y=.16;edgerG.add(egrip);
+// v206: a real edger: stainless blade, rolled 3/8 in radius lip down one side, toe and heel turned up, hardwood handle on a bridge
+{const ss=new THREE.MeshStandardMaterial({color:0xd9dcde,roughness:.38,metalness:.55}),hw=new THREE.MeshStandardMaterial({color:0x553822,roughness:.72}),
+   mud=new THREE.MeshStandardMaterial({color:0x8d8a83,roughness:.7});
+ const bl=new THREE.Mesh(new THREE.BoxGeometry(.26,.012,.42),ss);bl.position.set(.01,.008,0);edgerG.add(bl);
+ [-1,1].forEach(q=>{const t=new THREE.Mesh(new THREE.BoxGeometry(.26,.012,.07),ss);t.position.set(.01,.022,q*.24);t.rotation.x=-q*.45;edgerG.add(t)});
+ const lip=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,.52,12,1,true,Math.PI,Math.PI/2),ss);lip.rotation.x=Math.PI/2;lip.position.set(-.12,.034,0);lip.material=ss.clone();lip.material.side=THREE.DoubleSide;edgerG.add(lip);
+ const wall=new THREE.Mesh(new THREE.BoxGeometry(.012,.07,.5),ss);wall.position.set(-.152,.035,0);edgerG.add(wall);
+ const md=new THREE.Mesh(new THREE.BoxGeometry(.1,.006,.36),mud);md.position.set(-.07,.017,0);edgerG.add(md);
+ [-.12,.12].forEach(z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.03,.11,.025),ss);p.position.set(.02,.07,z);edgerG.add(p)});
+ const br=new THREE.Mesh(new THREE.BoxGeometry(.035,.014,.3),ss);br.position.set(.02,.125,0);edgerG.add(br);
+ const grip=new THREE.Mesh(new THREE.CapsuleGeometry(.045,.24,4,10),hw);grip.rotation.x=Math.PI/2;grip.position.set(.02,.17,0);edgerG.add(grip);
+ [-1,1].forEach(q=>{const rv=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.006,8),ss);rv.position.set(.02,.016,q*.12);edgerG.add(rv)})}
 shadowAll(edgerG);scene.add(edgerG);
 const grooverG=edgerG.clone();scene.add(grooverG);
 const stripBand=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xf0b03c,transparent:true,opacity:.2,depthTest:false,depthWrite:false}));stripBand.rotation.x=-Math.PI/2;stripBand.renderOrder=5;stripBand.visible=false;scene.add(stripBand);
@@ -4372,18 +4382,28 @@ const blade=(()=>{const sh=new THREE.Shape();roundRect(sh,-.665,-.1875,1.33,.375
   return new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xd5d9dd,roughness:.16,metalness:1}))})();blade.position.y=.004;trowelRoll.add(blade);
 const shank=new THREE.Mesh(new THREE.BoxGeometry(.85,.025,.05),steelM);shank.position.y=.025;trowelRoll.add(shank);
 [-.3,.3].forEach(x=>{const p=new THREE.Mesh(new THREE.BoxGeometry(.05,.17,.04),steelM);p.position.set(x,.1,0);trowelRoll.add(p)});
-const tHandle=new THREE.Mesh(new THREE.CylinderGeometry(.06,.055,.62,12),corkM);tHandle.rotation.z=Math.PI/2;tHandle.position.y=.2;trowelRoll.add(tHandle);
+const tHandle=new THREE.Mesh(new THREE.CapsuleGeometry(.058,.5,4,12),corkM);tHandle.rotation.z=Math.PI/2;tHandle.position.y=.2;trowelRoll.add(tHandle);
+[-.3,.3].forEach(x=>{const rv=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.008,10),steelM);rv.position.set(x,.016,0);trowelRoll.add(rv)});
+{const ff=new THREE.Mesh(new THREE.BoxGeometry(.06,.07,.04),new THREE.MeshStandardMaterial({color:0x2a2a2a,roughness:.5}));ff.position.set(-.33,.2,0);trowelRoll.add(ff);ff.clone();const f2=ff.clone();f2.position.x=.33;trowelRoll.add(f2)}
+{const sm=new THREE.Mesh(new THREE.BoxGeometry(1.2,.004,.05),new THREE.MeshStandardMaterial({color:0x8d8a83,roughness:.6,transparent:true,opacity:.7}));sm.position.set(0,.017,-.17);trowelRoll.add(sm)}
 shadowAll(trowelG);scene.add(trowelG);
 
 const broomG=new THREE.Group(),bTilt=new THREE.Group();broomG.add(bTilt);
 const bhead=new THREE.Mesh(new THREE.BoxGeometry(2.67,.13,.22),new THREE.MeshStandardMaterial({map:wood,roughness:.8}));bhead.position.y=.27;bTilt.add(bhead);
-const bbr=new THREE.Mesh(new THREE.BoxGeometry(2.6,.2,.16),bristleM);bbr.position.y=.1;bTilt.add(bbr);
+const bbr=(()=>{const N=2*34,g=new THREE.CylinderGeometry(.018,.012,.22,5),im=new THREE.InstancedMesh(g,bristleM,N),d=new THREE.Object3D();let n=0;
+  for(let r=0;r<2;r++)for(let i=0;i<34;i++){d.position.set(-1.27+i*2.54/33+(r?.037:0),.1,(r?.045:-.045));d.rotation.set((Math.random()-.5)*.15,0,(Math.random()-.5)*.15);d.scale.set(1.5,.92+Math.random()*.16,1.5);d.updateMatrix();im.setMatrixAt(n++,d.matrix)}
+  im.castShadow=true;return im})();bTilt.add(bbr);
+{const tip=new THREE.Mesh(new THREE.BoxGeometry(2.6,.02,.13),new THREE.MeshStandardMaterial({color:0x8d8a83,roughness:.8,transparent:true,opacity:.55}));tip.position.y=.003;bTilt.add(tip);
+ const br=new THREE.Mesh(new THREE.BoxGeometry(.5,.06,.26),steelM);br.position.y=.37;bTilt.add(br);
+ const col=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.2,10),steelM);col.rotation.x=Math.PI/2-40*Math.PI/180;col.position.set(0,.45,.08);broomG.add(col)}
 const bh=handle(6,40);bh.position.y+=.3;broomG.add(bh);shadowAll(broomG);scene.add(broomG);
 
 // gloved hand + forearm (finisher's right hand)
 const handG=new THREE.Group();
-const glove=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),gloveM);glove.scale.set(.2,.13,.16);handG.add(glove);
-const thumb=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.16,8),gloveM);thumb.position.set(-.12,.02,.1);thumb.rotation.z=1;handG.add(thumb);
+const glove=new THREE.Mesh(new THREE.CapsuleGeometry(.065,.11,4,10),gloveM);glove.rotation.z=Math.PI/2;glove.scale.set(1,1.1,.95);glove.position.y=.05;handG.add(glove);
+{const fg=new THREE.Mesh(new THREE.CapsuleGeometry(.045,.17,4,10),gloveM);fg.rotation.z=Math.PI/2;fg.position.set(-.015,-.01,.065);fg.scale.set(1,1,.8);handG.add(fg)}
+const thumb=new THREE.Mesh(new THREE.CapsuleGeometry(.03,.07,3,8),gloveM);thumb.position.set(-.13,.04,.04);thumb.rotation.set(.6,0,.9);handG.add(thumb);
+
 const forearm=new THREE.Mesh(new THREE.CylinderGeometry(.11,.14,1,12),sleeveM);
 const wrist=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.18,10),gloveM);
 shadowAll(handG);forearm.castShadow=wrist.castShadow=true;scene.add(handG);scene.add(forearm);scene.add(wrist);
