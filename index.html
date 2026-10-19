@@ -22,6 +22,7 @@
 .rinfo em{font-style:normal;font-family:var(--f-mono);font-size:11.5px;color:#8fd87a}.rinfo em.need{color:#ffb22a}.rinfo i{font-size:12px;color:#9fd2e6}
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
+<!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v195: storefronts (downtown, Gastown): pilasters, bracketed cornice with dentils, bulkhead + display glass + transom, glass door, framed sign, awning valance and cheeks, stone-trimmed upper windows; lighthouse gallery railing, lantern mullions, door and windows; marina boat with a shaped hull, stripe, console and outboard. -->
 <!-- v194: Quebec plexes (tin cornice on brackets, stone-trimmed windows, balcony doors, picket railings, stair stringers and handrail), prairie steel shop, fish shacks, northern store and laneway garages detailed with a shared bWin/bRail. Parked cars rebuilt: extruded rounded body profiles with wheel arches, glass greenhouse with pillars and roof, spoked rims, lights, grille, plates, mirrors, handles, door seams (sedan, SUV, pickup). -->
 <!-- v193: house detail: eavestroughs + downspouts, soffits, rake boards, corner boards, front gables, recessed windows with casing/sill/grilles/interiors and shutters, panel doors with porch roofs and steps, sectional garage doors, brick chimneys with crowns, roof vents and stacks, meter. -->
@@ -7269,7 +7270,7 @@ function bark(text,ms,who,obj){if(!running||!text)return;const e=$('bark');$('ba
 function barkStage(k){if(!running||practice)return;const L=BARKS[k];if(!L||BK.said['st'+k])return;BK.said['st'+k]=1;bark(pick(L))}
 function speaker(){if(BK.obj&&BK.obj.visible)return{o:BK.obj,n:BK.who};
   if(typeof crewBoss!=='undefined'&&crewBoss.visible)return{o:crewBoss,n:'Foreman'};
-  if(typeof INSP!=='undefined'&&INSP._g&&INSP._g.visible)return{o:INSP._g,n:'Inspector'};if(typeof crewLab!=='undefined'&&crewLab.visible)return{o:crewLab,n:'Labourer'};
+  if(typeof INSP!=='undefined'&&(INSPM.ok?INSPM.root.visible:INSP._g&&INSP._g.visible))return{o:INSP.g,n:'Inspector'};if(typeof crewLab!=='undefined'&&crewLab.visible)return{o:crewLab,n:'Labourer'};
   if(typeof slipFin!=='undefined'&&slipFin.visible)return{o:slipFin,n:'Finisher'};return{o:null,n:'Crew'}}
 const _bv=new THREE.Vector3();
 function barkPos(){const e=$('bark'),sp=speaker();let x=cssW/2,y=cssH*.32;if(sp.o){sp.o.getWorldPosition(_bv);_bv.y+=6.6;_bv.project(camera);if(_bv.z<1){x=(_bv.x+1)/2*cssW;y=(1-_bv.y)/2*cssH}}
@@ -7296,14 +7297,33 @@ function siteTick(dt){if(!running)return;const k=STAGES[stage]&&STAGES[stage].ke
   if(SITE.insp)inspTick(dt)}
 $('siteBtn').addEventListener('click',e=>{e.preventDefault();if(!SITE.plug)return;SITE.knock--;buzz(25);try{thump()}catch(_){}const b=$('siteBtn');
   if(SITE.knock<=0){SITE.plug=false;SITE.plugDone=true;b.hidden=true;bark('She\'s flowing! Back at it.',2200,'Pump operator',pumpG)}else b.textContent='Knock it loose · '+SITE.knock});
-const INSP={_g:null,get g(){return this._g||(this._g=makeWorker(0x2b6fd6,0xffffff))},ph:0};
-function inspStart(){const I=SITE.insp;I.phase='in';I.t=0;const g=INSP.g;I.a=[RCX+RW/2+16,RCZ+RD/2+10];I.b=[RCX+RW/2+3.5,RCZ+Math.min(4,RD/4)];g.position.set(I.a[0],-.3,I.a[1]);g.visible=true;g.scale.setScalar(.92)}
-function inspTick(dt){const I=SITE.insp,g=INSP.g,u=g.userData;if(!I||I.phase==='wait'||I.phase==='gone')return;I.t+=dt;INSP.ph+=dt;
-  const walk=(p0,p1,T)=>{const k=Math.min(1,I.t/T),x=p0[0]+(p1[0]-p0[0])*k,z=p0[1]+(p1[1]-p0[1])*k;g.position.set(x,-.3+Math.abs(Math.sin(INSP.ph*5.4))*.08,z);g.rotation.y=Math.atan2(p1[0]-p0[0],p1[1]-p0[1]);const w=Math.sin(INSP.ph*5.4);crewPose(u,{lg:w*.55,al:-w*.45,ar:w*.45,zl:.06,zr:-.06,lean:.06});return k>=1};
-  if(I.phase==='in'){if(walk(I.a,I.b,5)){I.phase='look';I.t=0;g.rotation.y=Math.atan2(RCX-I.b[0],RCZ-I.b[1]);crewPose(u,{al:-1.1,ar:-.6,lean:.18});bark('Town inspector. Let\'s see that grade.',2600,'Inspector',g)}}
+/* v196: the town inspector is a generated, rigged model too (Higgsfield/Meshy: white hard hat, hi-vis vest, clipboard; idle + walk clips).
+   The old block figure stays as the fallback until the model loads. */
+const INSPM={tried:false,ok:false,root:null,mix:null,a:{},cur:null,B:null};
+function inspLoad(){if(INSPM.tried||!THREE.GLTFLoader)return;INSPM.tried=true;const L=new THREE.GLTFLoader();
+  const noRoot=clip=>{clip.tracks.forEach(tr=>{if(/position$/.test(tr.name)){const v=tr.values;for(let i=3;i<v.length;i+=3){v[i]=v[0];v[i+2]=v[2]}}});return clip};
+  L.load('models/inspector-idle.glb',g=>{try{const m=g.scene;m.traverse(o=>{if(o.isMesh){o.castShadow=!safeGfx;o.receiveShadow=true;o.frustumCulled=false;o.userData.fmn=1;
+      (Array.isArray(o.material)?o.material:[o.material]).forEach(q=>{if(!q)return;if(q.metalness!==undefined)q.metalness=0;if(q.roughness!==undefined)q.roughness=Math.max(q.roughness,.7);if(q.map)q.map.anisotropy=8;q.envMapIntensity=.7;q.needsUpdate=true})}});
+    const r=new THREE.Group();r.add(m);r.visible=false;scene.add(r);INSPM.root=r;INSPM.mix=new THREE.AnimationMixer(m);
+    if(g.animations&&g.animations[0])INSPM.a.idle=INSPM.mix.clipAction(noRoot(g.animations[0]));inspPlay('idle');INSPM.mix.update(0);fitSkinned(m,5.85);INSPM.B=fwBones(m);INSPM.ok=true;
+    try{if(INSP._g)INSP._g.visible=false}catch(e){}
+    L.load('models/inspector-walk.glb',w=>{try{if(w.animations&&w.animations[0])INSPM.a.walk=INSPM.mix.clipAction(noRoot(w.animations[0]))}catch(e){}},null,()=>{});
+  }catch(e){INSPM.ok=false}},null,()=>{})}
+function inspPlay(k){const a=INSPM.a[k]||INSPM.a.idle;if(!a||a===INSPM.cur)return;if(INSPM.cur)INSPM.cur.fadeOut(.35);a.reset().fadeIn(.35).play();INSPM.cur=a}
+const INSP={_g:null,get g(){if(INSPM.ok&&(!this._g||!this._g.visible))return INSPM.root;return this._g||(this._g=makeWorker(0x2b6fd6,0xffffff))},ph:0};
+function inspStart(){const I=SITE.insp;I.phase='in';I.t=0;const g=INSP.g;I.a=[RCX+RW/2+16,RCZ+RD/2+10];I.b=[RCX+RW/2+3.5,RCZ+Math.min(4,RD/4)];g.position.set(I.a[0],-.3,I.a[1]);g.visible=true;if(g!==INSPM.root)g.scale.setScalar(.92);else inspPlay('walk')}
+function inspTick(dt){const I=SITE.insp,g=INSP.g,u=g.userData,GL=g===INSPM.root;if(!I||I.phase==='wait'||I.phase==='gone')return;I.t+=dt;INSP.ph+=dt;
+  const cp=(u2,o)=>{if(!GL)crewPose(u2,o)};
+  const walk=(p0,p1,T)=>{const k=Math.min(1,I.t/T),x=p0[0]+(p1[0]-p0[0])*k,z=p0[1]+(p1[1]-p0[1])*k;g.position.set(x,-.3+(GL?0:Math.abs(Math.sin(INSP.ph*5.4))*.08),z);g.rotation.y=Math.atan2(p1[0]-p0[0],p1[1]-p0[1]);if(GL)inspPlay('walk');const w=Math.sin(INSP.ph*5.4);cp(u,{lg:w*.55,al:-w*.45,ar:w*.45,zl:.06,zr:-.06,lean:.06});return k>=1};
+  if(I.phase==='in'){if(walk(I.a,I.b,5)){I.phase='look';I.t=0;g.rotation.y=Math.atan2(RCX-I.b[0],RCZ-I.b[1]);cp(u,{al:-1.1,ar:-.6,lean:.18});bark('Town inspector. Let\'s see that grade.',2600,'Inspector',g)}}
   else if(I.phase==='look'){if(I.t>4.5){const r=rms();I.pass=r<.24;I.done=true;I.note=I.pass?`Passed. Grade within ±${r.toFixed(2)} in.`:`Written up. ±${r.toFixed(2)} in off level, he wants ±0.24.`;
       bark(I.pass?'Looks good. You pass.':'That\'s out of tolerance. I\'m writing it up.',3200,'Inspector',g);say(I.pass?'Inspection passed.':'Inspection failed: grade\'s out of tolerance.',I.pass?'good':'bad','insp',0);I.phase='out';I.t=-2.5}}
-  else if(I.phase==='out'){if(I.t<0)return;if(walk(I.b,[I.a[0]+8,I.a[1]+6],6)){I.phase='gone';g.visible=false}}}
+  else if(I.phase==='out'){if(I.t<0){if(GL)inspPlay('idle')}else if(walk(I.b,[I.a[0]+8,I.a[1]+6],6)){I.phase='gone';g.visible=false}}
+  if(GL){if(I.phase==='look')inspPlay('idle');INSPM.mix.update(dt);g.updateMatrixWorld(true);
+    // looking over the slab: leans in, points along the grade, then writes on the clipboard
+    if(I.phase==='look'&&INSPM.B){const B=INSPM.B,k=Math.min(1,I.t/.8),f=new THREE.Vector3(Math.sin(g.rotation.y),0,Math.cos(g.rotation.y)),rt=f.clone().cross(new THREE.Vector3(0,1,0)),P=g.position.clone();P.y+=.3;
+      const at=(a,b,c)=>P.clone().addScaledVector(f,a).addScaledVector(rt,b).add(new THREE.Vector3(0,c,0));fwLean(B,.38,rt.clone().negate(),k);
+      if(I.t<2.6)fwIK(B.rarm,B.rforearm,B.rhand,at(2.4,.6+Math.sin(I.t*1.4)*.8,3.5),at(0,2,2),k);else fwIK(B.rarm,B.rforearm,B.rhand,at(.7,-.25+Math.sin(I.t*9)*.06,3.15),at(-.5,1.5,2),k)}}}
 function buildSC(){
   const q=k=>{const i=S[k];return i!=null&&acc[i].w>0?acc[i].q/acc[i].w:0},w=k=>{const i=S[k];return i!=null?acc[i].w:0};
   const tm=k=>w(k)===0?'Never touched it.':q(k)>.85?'Timing was right.':q(k)>.5?'Timing was a bit off.':'Wrong time for this tool.';
@@ -9282,7 +9302,7 @@ function fmLoad(){if(FMN.tried||!THREE.GLTFLoader)return;FMN.tried=true;const L=
   L.load('models/foreman-idle.glb',g=>{try{const m=g.scene;m.traverse(o=>{if(o.isMesh){o.castShadow=!safeGfx;o.receiveShadow=true;o.frustumCulled=false}});
     const r=new THREE.Group();r.add(m);r.visible=false;scene.add(r);FMN.root=r;FMN.mix=new THREE.AnimationMixer(m);
     if(g.animations&&g.animations[0])FMN.a.idle=FMN.mix.clipAction(noRoot(g.animations[0]));fmPlay('idle');FMN.mix.update(0);
-    fitSkinned(m,5.95);m.traverse(o=>{o.userData.fmn=1});FMN.ok=true;
+    fitSkinned(m,5.95);m.traverse(o=>{o.userData.fmn=1;if(o.isMesh&&o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(q=>{if(q.metalness!==undefined)q.metalness=0;if(q.roughness!==undefined)q.roughness=Math.max(q.roughness,.72);if(q.map){q.map.anisotropy=8;q.map.colorSpace=THREE.SRGBColorSpace}q.envMapIntensity=.7;q.needsUpdate=true})}});FW.B=fwBones(m);FMN.ok=true;
     L.load('models/foreman-walk.glb',w=>{try{if(w.animations&&w.animations[0])FMN.a.walk=FMN.mix.clipAction(noRoot(w.animations[0]))}catch(e){}},null,()=>{});
   }catch(e){FMN.ok=false}},null,()=>{});}
 function fmPlay(k){const a=FMN.a[k]||FMN.a.idle;if(!a||a===FMN.cur)return;if(FMN.cur)FMN.cur.fadeOut(.35);a.reset().fadeIn(.35).play();FMN.cur=a}
@@ -9295,8 +9315,87 @@ function fmSpots(){FMN.bx=fmBoxes();const X0=wx(RX0),X1=wx(RX1),Z0=wz(RY0),Z1=wz
   [[X1,Z0,1,-1],[X0,Z0,-1,-1],[X0,Z1,-1,1],[X1,Z1,1,1]].forEach(([x,z,sx,sz])=>{let p=null;
     for(const d of [3.4,5,6.8,8.6])for(const f of [[1,1],[1,.4],[.4,1],[1.6,1],[1,1.6]]){const q=[x+sx*d*f[0],z+sz*d*f[1]];if(!p&&fmFree(q[0],q[1],1.4))p=q}out.push(p)});return out}
 function fmLineClear(a,b){for(let i=1;i<14;i++){const x=a[0]+(b[0]-a[0])*i/14,z=a[1]+(b[1]-a[1])*i/14;if(!fmFree(x,z,.9))return false}return true}
-function fmTick(dt){if(!FMN.tried&&running)fmLoad();if(!FMN.ok)return;const r=FMN.root,k=STAGES[stage]&&STAGES[stage].key;
+/* v196: the foreman works. Same rigged model, now driven on top of its idle/walk clips: two-bone IK for arms and legs,
+   spine lean, hips dropped to kneel. He walks the outside of the forms (picking spots on the far side from the camera so he
+   stays out of your view), turns to face the pour, then rakes, bull floats, brooms, or kneels to edge and hand trowel. */
+const FW={on:false,B:null,s:0,tgt:null,mode:'idle',wt:0,w:0,ph:0,stage:-1,lv:null,path:null,off:0,spd:0,tools:null,face:0};
+const _fa=new THREE.Vector3(),_fb=new THREE.Vector3(),_fc=new THREE.Vector3(),_fd=new THREE.Vector3(),_fe=new THREE.Vector3(),_fq=new THREE.Quaternion(),_fq2=new THREE.Quaternion(),_fq3=new THREE.Quaternion(),_fI=new THREE.Quaternion();
+function fwBones(m){const B={spine:[]};m.traverse(o=>{if(!o.isBone)return;const n=o.name.toLowerCase().replace(/^mixamorig:?/,'').replace(/[^a-z]/g,'').replace(/^mixamorig/,'');
+  if(n==='hips')B.hips=o;else if(n.startsWith('spine'))B.spine.push(o);else if(n.startsWith('neck'))B.neck=o;else if(n==='head')B.head=o;
+  else{const m2=n.match(/^(left|right)(arm|forearm|hand|upleg|leg|foot)$/);if(m2)B[m2[1][0]+m2[2]]=o}});
+  return B.hips&&B.larm&&B.lforearm&&B.lhand&&B.rarm&&B.rforearm&&B.rhand?B:null}
+function fwRot(b,q,w){if(w<=0)return;const pq=b.parent.getWorldQuaternion(_fq2);const qq=w<1?_fq3.copy(_fI).slerp(q,w):_fq3.copy(q);
+  b.quaternion.premultiply(_fq.copy(pq).invert().multiply(qq).multiply(pq));b.updateMatrixWorld(true)}
+function fwAim(b,c,T,w){const p=b.getWorldPosition(_fa),q=c.getWorldPosition(_fb);_fc.subVectors(q,p).normalize();_fd.subVectors(T,p);if(_fd.lengthSq()<1e-8)return;_fd.normalize();
+  fwRot(b,new THREE.Quaternion().setFromUnitVectors(_fc,_fd),w)}
+function fwIK(a,b,c,T,pole,w){const A=a.getWorldPosition(new THREE.Vector3()),Bp=b.getWorldPosition(new THREE.Vector3()),C=c.getWorldPosition(new THREE.Vector3());
+  const la=A.distanceTo(Bp),lb=Bp.distanceTo(C),dir=T.clone().sub(A);let d=dir.length();if(d<1e-5)return;dir.divideScalar(d);d=Math.min(la+lb-1e-3,Math.max(Math.abs(la-lb)+1e-3,d));
+  const x=(la*la-lb*lb+d*d)/(2*d),h=Math.sqrt(Math.max(0,la*la-x*x)),pv=pole.clone().sub(A);pv.addScaledVector(dir,-pv.dot(dir));if(pv.lengthSq()<1e-8)pv.set(0,-1,0);pv.normalize();
+  const E=A.clone().addScaledVector(dir,x).addScaledVector(pv,h),Tc=A.clone().addScaledVector(dir,d);fwAim(a,b,E,w);fwAim(b,c,Tc,w)}
+function fwLean(B,ang,axis,w){const n=B.spine.length;if(!n)return;const q=new THREE.Quaternion().setFromAxisAngle(axis,ang/n);B.spine.forEach(s=>fwRot(s,q,w))}
+function fwTools(){if(FW.tools)return FW.tools;const w=new THREE.MeshStandardMaterial({color:0xb8925a,roughness:.8}),mt=new THREE.MeshStandardMaterial({color:0x9aa0a6,roughness:.4,metalness:.7}),bl=new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.9}),T={};
+  const pole=(L,head)=>{const g=new THREE.Group(),c=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,L,8),w);c.rotation.x=Math.PI/2;c.position.z=L/2;g.add(c);head.position.z=L;g.add(head);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.userData.fmn=1}});g.visible=false;scene.add(g);g.userData.L=L;return g};
+  {const h=new THREE.Group(),b=new THREE.Mesh(new THREE.BoxGeometry(1.7,.14,.12),mt);h.add(b);for(let i=0;i<12;i++){const tn=new THREE.Mesh(new THREE.BoxGeometry(.04,.04,.3),mt);tn.position.set(-.78+i*.142,-.05,.12);h.add(tn)}T.rake=pole(6.6,h)}
+  {const h=new THREE.Mesh(new THREE.BoxGeometry(3.8,.75,.08),mt);T.float=pole(13.5,h)}
+  {const h=new THREE.Group(),bk=new THREE.Mesh(new THREE.BoxGeometry(2.4,.3,.22),w),br=new THREE.Mesh(new THREE.BoxGeometry(2.3,.28,.3),bl);br.position.z=.24;h.add(bk,br);T.broom=pole(5.8,h)}
+  {const g=new THREE.Group(),b=new THREE.Mesh(new THREE.BoxGeometry(.45,.05,.95),mt),hd=new THREE.Mesh(new THREE.BoxGeometry(.11,.22,.5),w);hd.position.y=.14;g.add(b,hd);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.userData.fmn=1}});g.visible=false;scene.add(g);T.hand=g}
+  return FW.tools=T}
+function fwSurf(x,z){try{const y=surfY(x,z);if(isFinite(y))return y}catch(e){}return 0}
+function fwPathAt(s){const P=FW.path;s=((s%P.tot)+P.tot)%P.tot;let i=0;while(i<P.L.length-1&&P.L[i+1]<=s)i++;const a=P.pts[i],b=P.pts[(i+1)%P.pts.length],l0=P.L[i],l1=i+1<P.L.length?P.L[i+1]:P.tot,f=l1>l0?(s-l0)/(l1-l0):0;
+  return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]&&b[2]]}
+function fwPath(off){const P=offsetPoly(SHAPE,off),pts=[],L=[0];let tot=0;
+  for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/1.2));for(let k=0;k<n;k++){const x=a[0]+(b[0]-a[0])*k/n,z=a[1]+(b[1]-a[1])*k/n;
+    if(pts.length){const q=pts[pts.length-1];tot+=Math.hypot(x-q[0],z-q[1]);L.push(tot)}pts.push([x,z,fmFree(x,z,.9)&&!fwOnTruck(x,z)])}}
+  tot+=Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1]);return{pts,L,tot}}
+function fwOnTruck(x,z){try{const b=truckBox();return x>b[0]-1&&x<b[2]+1&&z>b[1]-1&&z<b[3]+1}catch(e){return false}}
+function fwPick(){const P=FW.path,cx=camera.position.x-RCX,cz=camera.position.z-RCZ;let best=null,bs=-1e9;
+  for(let t=0;t<26;t++){const s2=FW.s+(Math.random()-.5)*Math.min(P.tot*.9,40);const p=fwPathAt(s2);if(!p[2])continue;
+    // stay off the camera's side of the slab and don't wander far
+    const behind=-((p[0]-RCX)*cx+(p[1]-RCZ)*cz)/Math.max(1,Math.hypot(cx,cz)),sc=behind*.6-Math.abs(s2-FW.s)*.15+Math.random()*2;if(sc>bs){bs=sc;best=s2}}
+  return best}
+function fwTick(dt,t){const r=FMN.root,B=FW.B,k=STAGES[stage]&&STAGES[stage].key,tool=(typeof CREWTOOL!=='undefined'&&CREWTOOL[k])||null,T=fwTools();
+  Object.values(T).forEach(g=>g.visible=false);
+  if(!B||!tool||LV.slip||LV.wall||LV.bridge){FW.on=false;FW.w=0;return false}
+  const off=tool==='hand'?1.5:tool==='float'?3:2.3;
+  if(!FW.on||FW.lv!==LV||FW.off!==off||!FW.path){FW.on=true;FW.lv=LV;FW.off=off;FW.path=fwPath(off);let bs=0,bd=1e9;FW.path.pts.forEach((p,i)=>{const d=(p[0]-r.position.x)**2+(p[1]-r.position.z)**2;if(d<bd){bd=d;bs=FW.path.L[i]}});FW.s=bs;FW.tgt=null;FW.mode='walk';FW.w=0}
+  if(FW.stage!==stage){FW.stage=stage;FW.tgt=null;FW.mode='walk'}
+  if(FW.tgt==null){FW.tgt=fwPick();if(FW.tgt==null){FW.tgt=FW.s}FW.mode='walk'}
+  const turnTo=(ry,k2)=>{const d=(((ry-r.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI);r.rotation.y+=d*Math.min(1,dt*k2);return Math.abs(d)};
+  if(FW.mode==='walk'){FW.w=Math.max(0,FW.w-dt*2.5);const d=FW.tgt-FW.s;
+    if(FW.w>0){fmPlay('idle')}else{const [x,z]=fwPathAt(FW.s),[x2,z2]=fwPathAt(FW.s+Math.sign(d||1)*1.2),ry=Math.atan2(x2-x,z2-z),ad=turnTo(ry,5);
+      if(ad>.7&&FW.spd<.3){fmPlay('idle');FW.spd=0}else{fmPlay('walk');const want=Math.min(3.4,Math.abs(d)*1.6+.6);FW.spd+=(want-FW.spd)*Math.min(1,dt*3);
+        const st=Math.sign(d)*Math.min(Math.abs(d),dt*FW.spd);FW.s+=st;if(FMN.a.walk)FMN.a.walk.timeScale=Math.max(.5,FW.spd/3.4)}
+      const [px,pz]=fwPathAt(FW.s);r.position.set(px,-.3,pz)}
+    if(Math.abs(FW.tgt-FW.s)<.05){FW.mode='face';FW.spd=0;fmPlay('idle')}}
+  else if(FW.mode==='face'){const q=nearestOnPoly(r.position.x,r.position.z);if(turnTo(Math.atan2(q[0]-r.position.x,q[1]-r.position.z),7)<.12){FW.mode='work';FW.wt=7+Math.random()*7;FW.ph=Math.random()*6}}
+  else{const q=nearestOnPoly(r.position.x,r.position.z);turnTo(Math.atan2(q[0]-r.position.x,q[1]-r.position.z),3);FW.w=Math.min(1,FW.w+dt*1.6);FW.wt-=dt;if(FW.wt<=0){FW.tgt=null}}
+  FMN.mix.update(dt);r.updateMatrixWorld(true);
+  if(FW.w>0)fwPose(dt,tool,FW.w);return true}
+function fwPose(dt,tool,w){const B=FW.B,r=FMN.root,T=FW.tools,UP=new THREE.Vector3(0,1,0);FW.ph+=dt;
+  const f=new THREE.Vector3(Math.sin(r.rotation.y),0,Math.cos(r.rotation.y)),rt=f.clone().cross(UP),P0=r.position.clone();P0.y+=.3;const gy=P0.y-.3;
+  const at=(fw,rw,uy)=>P0.clone().addScaledVector(f,fw).addScaledVector(rt,rw).add(new THREE.Vector3(0,uy,0));
+  const side=rt.clone().negate();// the axis to lean forward about
+  if(tool==='hand'){
+    // kneel: drop the hips, right foot planted ahead, left knee on the ground, lean in, trowel sweeping arcs
+    const h=B.hips,hp=h.getWorldPosition(new THREE.Vector3()),drop=Math.min(1.75,hp.y-gy-1.25)*w;hp.y-=drop;hp.addScaledVector(f,.25*w);h.position.copy(h.parent.worldToLocal(hp));h.updateMatrixWorld(true);
+    fwLean(B,.8,side,w);
+    if(B.rupleg&&B.rleg&&B.rfoot)fwIK(B.rupleg,B.rleg,B.rfoot,at(.95,.45,.35),at(3,.6,2),w);
+    if(B.lupleg&&B.lleg&&B.lfoot)fwIK(B.lupleg,B.lleg,B.lfoot,at(-1.35,-.45,.22),at(1.6,-.5,-.4),w);
+    const a=FW.ph*2.4,H=at(2.05+.22*Math.cos(a*.5),.15+.55*Math.sin(a),0);H.y=fwSurf(H.x,H.z)+.05;
+    T.hand.visible=true;T.hand.position.copy(H);T.hand.rotation.set(0,r.rotation.y+Math.sin(a)*.5,0);
+    fwIK(B.rarm,B.rforearm,B.rhand,H.clone().add(new THREE.Vector3(0,.3,0)),at(.4,1.8,1.4),w);
+    fwIK(B.larm,B.lforearm,B.lhand,at(.75,-.55,1.25),at(0,-2,2),w);return}
+  const cfg={rake:{L:6.6,rate:2.2,hd:4.4,hs:1.3,gy:3.4,gf:1.0,gs:.35,lean:.28,h1:.45,h2:2.3},float:{L:13.5,rate:.9,hd:0,hs:0,gy:3.55,gf:1.1,gs:.45,lean:.1,h1:.3,h2:1.6},broom:{L:5.8,rate:1.7,hd:3.9,hs:1.3,gy:3.2,gf:1.2,gs:.4,lean:.34,h1:.9,h2:2.3}}[tool];
+  const s=Math.sin(FW.ph*cfg.rate),G0=at(cfg.gf+cfg.gs*s,-.1,cfg.gy-.15*s);
+  let H;if(tool==='float'){const dy=G0.y-gy,hz=Math.sqrt(Math.max(1,cfg.L*cfg.L-dy*dy));H=G0.clone().addScaledVector(f,hz).addScaledVector(rt,1.2*Math.sin(FW.ph*.35))}else H=at(cfg.hd+cfg.hs*s,.5*Math.sin(FW.ph*.41),0);
+  H.y=fwSurf(H.x,H.z)+(tool==='float'?.06:.12);const dir=G0.clone().sub(H).normalize(),top=H.clone().addScaledVector(dir,cfg.L);
+  const g=T[tool];g.visible=true;g.position.copy(top);g.lookAt(H);
+  fwLean(B,(cfg.lean+.1*s)*1,side,w);
+  const along=d=>top.clone().addScaledVector(dir,-d);
+  fwIK(B.rarm,B.rforearm,B.rhand,along(cfg.h1),at(-.6,1.8,2.6),w);fwIK(B.larm,B.lforearm,B.lhand,along(cfg.h2),at(-.4,-1.8,2.6),w)}
+function fmTick(dt){if(!FMN.tried&&running)fmLoad();if(!INSPM.tried&&running&&!safeGfx)inspLoad();if(!FMN.ok)return;const r=FMN.root,k=STAGES[stage]&&STAGES[stage].key;
   const vis=running&&!PREPK.has(k)&&!(cabOn&&cabPov==='cab');r.visible=vis;if(!vis)return;
+  if(FMN.lv===LV&&fwTick(dt,performance.now()))return;if(FW.on===false&&FMN.lv===LV&&FMN.a.walk)FMN.a.walk.timeScale=1;
   if(FMN.lv!==LV){FMN.lv=LV;FMN.c=fmSpots();FMN.at=FMN.c.findIndex(p=>p);FMN.to=-1;FMN.wait=6+Math.random()*6;if(FMN.at<0){r.visible=false;FMN.lv=null;return}const p=FMN.c[FMN.at];r.position.set(p[0],-.3,p[1]);fmPlay('idle')}
   if(FMN.at<0)return;
   if(FMN.to<0){const tx=RCX-r.position.x,tz=RCZ-r.position.z,ry=Math.atan2(tx,tz);r.rotation.y+=(((ry-r.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI)*Math.min(1,dt*3);

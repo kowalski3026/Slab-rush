@@ -31,6 +31,14 @@
   {
    "source": "/models/foreman-walk.glb",
    "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134320_262215c4-3ad9-42d2-8e5d-b1d816ef2abe.glb"
+  },
+  {
+   "source": "/models/inspector-idle.glb",
+   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261019_000457_1d922933-ea9b-42a6-94d5-ecb53a95fa40.glb"
+  },
+  {
+   "source": "/models/inspector-walk.glb",
+   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261019_002921_6478660d-3c6f-4ac3-9f74-cd0d417bb568.glb"
   }
  ]
 }
