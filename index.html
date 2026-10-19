@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v210: edger band no longer cuts across slab ends on curvy jobs (edge pieces simplified per continuous run, not chorded across gaps); joint guide hidden when it falls outside the slab; broom bristles fixed. -->
 <!-- v209: slab vanished on phones after v207 (one texture too many): rain pits now read from gED alpha; if the slab shader still fails, the photo detail maps then the GPU surface layer drop out so concrete always shows; phones with <16 texture units skip the detail maps. -->
 <!-- v208: soft shadows (Effects/Sharp): sharp at contact, blurring with distance from the caster (blocker search with depth-offset compares + 12-tap filter), 2048 shadow map. -->
 <!-- v207: rain you can see: light drops and the yard, forms and gravel go dark and glossy; an untarped slab pools water in its lows and shows real pits (craters with rims, shader, from weak[]); dries back after. -->
@@ -3382,7 +3383,16 @@ var RAIN={w:0,slab:0,base:null,mats:null};
 const RC={rel:{value:1},bl:{value:0},fr:{value:0},cs:{value:CELL_IN/12}};
 GPS.U={gSdir:{value:new THREE.Vector2(1,0)},gMR:{value:GPS.mr},gHM:{value:GPS.hm},gRel:RC.rel,gBl:RC.bl,gFr:RC.fr,gCs:RC.cs,gJL:{value:GPS.jl},gES:{value:GPS.es},gJN:{value:0},gEN:{value:0},gJT:{value:GPS.jt},gED:{value:GPS.ed},gBD:{value:GPS.bd},gSW:GPS.sw,gSD:GPS.sd};
 function gpsShape(){if(!GPS.on)return;const on=LV&&!LV.slip&&!LV.wall;let segs=on?SEGS.filter(g=>!g.nf).concat(STR.on?STR.rsegs:[]):[];
-  if(segs.length>GPS.EN){const k=Math.ceil(segs.length/GPS.EN),out=[];for(let i=0;i<segs.length;i+=k){const A=segs[i].a,B=segs[Math.min(segs.length-1,i+k-1)].b;out.push({a:A,b:B})}segs=out}
+  // v210: too many edge pieces for the shader: simplify each continuous run of edge on its own (never a chord across a gap or
+  // an end of the slab), keeping corners, with the tolerance raised until it fits
+  if(segs.length>GPS.EN){const chains=[];let cur=[];const near=(p,q)=>Math.abs(p[0]-q[0])<1e-3&&Math.abs(p[1]-q[1])<1e-3;
+    segs.forEach(g=>{if(cur.length&&near(cur[cur.length-1].b,g.a))cur.push(g);else{if(cur.length)chains.push(cur);cur=[g]}});if(cur.length)chains.push(cur);
+    if(chains.length>1&&near(chains[chains.length-1][chains[chains.length-1].length-1].b,chains[0][0].a)){chains[0]=chains.pop().concat(chains[0])}
+    const dp=(P,tol)=>{if(P.length<3)return P;let mi=0,md=0;const A=P[0],B=P[P.length-1],dx=B[0]-A[0],dz=B[1]-A[1],L=Math.hypot(dx,dz)||1e-6;
+      for(let i=1;i<P.length-1;i++){const d=Math.abs((P[i][0]-A[0])*dz-(P[i][1]-A[1])*dx)/L;if(d>md){md=d;mi=i}}
+      if(md<=tol)return[A,B];const l=dp(P.slice(0,mi+1),tol),r=dp(P.slice(mi),tol);return l.slice(0,-1).concat(r)};
+    let tol=.02,out=[];for(let it=0;it<14;it++){out=[];chains.forEach(c=>{const P=[c[0].a].concat(c.map(g=>g.b));let Q;if(near(P[0],P[P.length-1])&&P.length>3){let fi=1,fd=0;for(let i=1;i<P.length-1;i++){const d=(P[i][0]-P[0][0])**2+(P[i][1]-P[0][1])**2;if(d>fd){fd=d;fi=i}}Q=dp(P.slice(0,fi+1),tol).slice(0,-1).concat(dp(P.slice(fi),tol))}else Q=dp(P,tol);for(let i=0;i<Q.length-1;i++)out.push({a:Q[i],b:Q[i+1]})});if(out.length<=GPS.EN)break;tol*=1.6}
+    segs=out.slice(0,GPS.EN)}
   GPS.en=Math.min(GPS.EN,segs.length);for(let i=0;i<GPS.en;i++)GPS.es[i].set(segs[i].a[0],segs[i].a[1],segs[i].b[0],segs[i].b[1]);GPS.U.gEN.value=GPS.en;GPS.sw.value=SLAB_W;GPS.sd.value=SLAB_D}
 function gpsSync(){if(!GPS.on)return;
   {const H=GPS.hm.image.data,hf=THREE.DataUtils.toHalfFloat;for(let i=0;i<N;i++){const o=i*4,sl=Math.min(1,set+dryOff[i]);
@@ -6302,9 +6312,29 @@ function powerSeg(x0,y0,x1,y1,wFt,gain){
 }
 // tool models
 const wandG=new THREE.Group();
-{const pm=new THREE.MeshStandardMaterial({color:0x2a2c30,roughness:.5,metalness:.6});const w=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,4,8),pm);w.rotation.x=Math.PI/2-.75;w.position.set(0,1.5,1.4);wandG.add(w);
- const nz=new THREE.Mesh(new THREE.CylinderGeometry(.06,.04,.25,8),new THREE.MeshStandardMaterial({color:0xd9a02a,roughness:.5}));nz.position.set(0,.2,-.1);wandG.add(nz);
- const spray=new THREE.Mesh(new THREE.ConeGeometry(.9,1.1,16,1,true),new THREE.MeshBasicMaterial({color:0xdfefff,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide}));spray.position.set(0,.55,0);wandG.add(spray);wandG.userData.spray=spray}
+// v210: a real wash wand: aluminium wand with a trigger grip, brass fan nozzle, hose trailing back, and a flat fan of water with
+// streaks, flying droplets and a splash on the slab (it used to be a solid cone)
+{const al=new THREE.MeshStandardMaterial({color:0xc4c8cc,roughness:.35,metalness:.8}),blk=new THREE.MeshStandardMaterial({color:0x1d1e20,roughness:.6}),
+   brass=new THREE.MeshStandardMaterial({color:0xc9a24a,roughness:.35,metalness:.85}),hose=new THREE.MeshStandardMaterial({color:0x2f6b3a,roughness:.6});
+ const tube=(a,b,r,m,seg)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),seg||10),m);c.position.copy(A).add(B).multiplyScalar(.5);c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());wandG.add(c);return c};
+ tube([0,.34,.06],[0,2.9,3.1],.032,al);
+ tube([0,.24,0],[0,.36,.07],.05,brass,12);{const tip=new THREE.Mesh(new THREE.BoxGeometry(.16,.05,.06),brass);tip.position.set(0,.22,0);wandG.add(tip)}
+ {const g=tube([0,2.75,2.95],[0,2.45,3.35],.06,blk,10);const tr=new THREE.Mesh(new THREE.BoxGeometry(.05,.22,.06),blk);tr.position.set(0,2.75,3.05);tr.rotation.x=.4;wandG.add(tr)}
+ {const pts=[new THREE.Vector3(0,2.45,3.35),new THREE.Vector3(.2,1.8,4.2),new THREE.Vector3(.6,.4,5.2),new THREE.Vector3(1.4,-.25,7)],cv=new THREE.CatmullRomCurve3(pts);
+  const h=new THREE.Mesh(new THREE.TubeGeometry(cv,24,.055,8,false),hose);h.castShadow=true;wandG.add(h)}
+ // the fan: a thin sheet from the nozzle to the slab, streaky and brighter near the nozzle
+ const fanTex=(()=>{const[c,g]=mk(128,128);g.clearRect(0,0,128,128);for(let k=0;k<70;k++){const x=Math.random()*128,a=.15+Math.random()*.5;const gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,`rgba(255,255,255,${a})`);gr.addColorStop(1,'rgba(255,255,255,0)');g.strokeStyle=gr;g.lineWidth=.6+Math.random()*1.4;g.beginPath();g.moveTo(64+(x-64)*.04,0);g.lineTo(x,128);g.stroke()}
+   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t})();
+ const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute([0,.2,0, -.85,.01,-.28, .85,.01,-.28],3));fg.setAttribute('uv',new THREE.Float32BufferAttribute([.5,0, 0,1, 1,1],2));
+ const fan=new THREE.Mesh(fg,new THREE.MeshBasicMaterial({map:fanTex,color:0xe8f4ff,transparent:true,opacity:.75,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));wandG.add(fan);
+ const splashTex=softTex([[0,'rgba(255,255,255,.6)'],[.6,'rgba(220,235,255,.25)'],[1,'rgba(255,255,255,0)']],1,64,64);
+ const sp=new THREE.Mesh(new THREE.PlaneGeometry(2,.9).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:splashTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.position.set(0,.02,-.28);wandG.add(sp);
+ // flying droplets along the fan
+ const ND=36,dr=new THREE.InstancedMesh(new THREE.SphereGeometry(.02,5,4),new THREE.MeshBasicMaterial({color:0xf2f8ff,transparent:true,opacity:.85}),ND),D=[],dm=new THREE.Object3D();
+ for(let k=0;k<ND;k++)D.push({t:Math.random(),u:Math.random()*2-1,v:.9+Math.random()*.4});dr.frustumCulled=false;wandG.add(dr);
+ dr.onBeforeRender=()=>{const now=performance.now()/1000,dt=Math.min(.05,now-(dr.userData.t||now));dr.userData.t=now;D.forEach((q,k)=>{q.t+=dt*3.2*q.v;if(q.t>1){q.t-=1;q.u=Math.random()*2-1}
+   const t=q.t;dm.position.set(q.u*.85*t,.2-.19*t+Math.sin(t*3.1)*.01,-.28*t);dm.scale.set(1,1+3*t,1);dm.updateMatrix();dr.setMatrixAt(k,dm.matrix)});dr.instanceMatrix.needsUpdate=true};
+ const spray=new THREE.Group();spray.add(fan,sp);wandG.add(spray);wandG.userData.spray=spray}
 wandG.visible=false;shadowAll(wandG);scene.add(wandG);
 const muleG=new THREE.Group();
 {const m=new THREE.MeshStandardMaterial({color:0x9ea2a6,roughness:.3,metalness:.9}),hm=new THREE.MeshStandardMaterial({color:0x2a2b2d,roughness:.5});
@@ -7018,7 +7048,7 @@ function updateTools(dt,t){
   updateRake(dt);updateMats(dt);try{updateXT(dt)}catch(e){}
   blob.visible=false;
   if(!ptr.down){if(k==='joint'&&jArmed&&jArmed.o===jMode){const run=jRun(jMode,jArmed.p,jArmed.at!=null?jArmed.at:(jMode==='x'?(RY0+RY1)/2:(RX0+RX1)/2));if(run){guide.visible=true;guide.material.opacity=.95;
-      if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}}}return}
+      if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false}}return}
   {const bs={float:[4.3,1],edge:[.7,.9],trowel:[1.7,.9],joint:[.7,.9],broom:[3.1,.9],power:[3.4,3.4],expose:[2.2,1.4]}[k];
    if(bs){blob.visible=true;blob.position.set(toolPos.x,Math.max(0,surfY(toolPos.x,toolPos.z))+.012,toolPos.z);blob.scale.set(bs[0],bs[1],1);blob.rotation.z=k==='trowel'?-trYaw:k==='float'?-fYaw:0;if(k==='joint')blob.position.copy(grooverG.position).setY(blob.position.y)}}
   toolTarget.set(wx(ptr.x),0,wz(ptr.y));if(!(RIDE.drive&&rideLive()))toolPos.lerp(toolTarget,1-Math.pow(.0005,dt));
@@ -7040,6 +7070,7 @@ function updateTools(dt,t){
     const cutting=curJ&&jDrag&&jDrag.cutting,GZ=cutting?wz(jHead):Z,GX=cutting?wx(jHead):X;
     if(jMode==='x'){const JX=wx(pos);grooverG.position.set(JX,Math.max(0,surfY(JX,GZ)),GZ);grooverG.rotation.y=0;guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(JX,.06+ELV(),(wz(run[0])+wz(run[1]))/2)}
     else{const JZ=wz(pos);grooverG.position.set(GX,Math.max(0,surfY(GX,JZ)),JZ);grooverG.rotation.y=Math.PI/2;guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),JZ)}
+    if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false;
     guide.material.opacity=jDrag&&jDrag.cutting?.3:.9;cutLine.visible=false;
     placeArm(tv2.set(grooverG.position.x,Y+.2,grooverG.position.z),grooverG.rotation.y);
   }
@@ -8466,7 +8497,11 @@ function prepZone(){const off=LV.zoneOff!=null?LV.zoneOff:(LV.wall?2:LV.slip?1:0
   pIn=[];pOut=[];PM=new Uint8Array(N);
   for(let iy=0;iy<VYp;iy++)for(let ix=0;ix<VXp;ix++){const a=iy*W1+ix,b=a+W1,c=b+1,d=a+1;let inside=md[a]&&md[b]&&md[c]&&md[d];
     if(inside&&md[a]!==1&&md[b]!==1&&md[c]!==1&&md[d]!==1)inside=zoneIn((pos[a*3]+pos[c*3])/2,(pos[a*3+2]+pos[c*3+2])/2);
-    (inside?pIn:pOut).push(a,b,d,b,c,d);if(inside)PM[(iy>>1)*GW+(ix>>1)]=1}
+    if(inside)PM[(iy>>1)*GW+(ix>>1)]=1;
+    // v210: snapping the edge vertices onto a curved outline can stretch a yard triangle over the hole (or a hole triangle out over
+    // the yard); sort each triangle by where its middle actually is, so lawn never covers dug ground
+    [[a,b,d],[b,c,d]].forEach(T=>{const cx=(pos[T[0]*3]+pos[T[1]*3]+pos[T[2]*3])/3,cz=(pos[T[0]*3+2]+pos[T[1]*3+2]+pos[T[2]*3+2])/3,allIn=md[T[0]]&&md[T[1]]&&md[T[2]];
+      (allIn&&zoneIn(cx,cz)?pIn:pOut).push(T[0],T[1],T[2])})}
   const mk=(idx,y)=>{const g=new THREE.BufferGeometry(),P=new Float32Array(pos);for(let k=0;k<n;k++)P[k*3+1]=y;const uv=new Float32Array(n*2);for(let k=0;k<n;k++){uv[k*2]=(P[k*3]+160)/320;uv[k*2+1]=(-P[k*3+2]+160)/320}
     g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setIndex(idx);try{g.computeVertexNormals()}catch(e){}return g};
   try{pitMesh.geometry.dispose();lotGround.geometry.dispose()}catch(e){}
