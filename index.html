@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v211: dig corners: finger picks on the hole floor during the soil steps; at 96% dug the crew squares up the corners. -->
 <!-- v210: edger band no longer cuts across slab ends on curvy jobs (edge pieces simplified per continuous run, not chorded across gaps); joint guide hidden when it falls outside the slab; broom bristles fixed. -->
 <!-- v209: slab vanished on phones after v207 (one texture too many): rain pits now read from gED alpha; if the slab shader still fails, the photo detail maps then the GPU surface layer drop out so concrete always shows; phones with <16 texture units skip the detail maps. -->
 <!-- v208: soft shadows (Effects/Sharp): sharp at contact, blurring with distance from the caster (blocker search with depth-offset compares + 12-tap filter), 2048 shadow map. -->
@@ -5934,7 +5935,9 @@ function toCell(e,raw){
   const st=STAGES[stage],pourAhead=st&&st.key==='pour'&&pourTool!=='rake'&&!(typeof placeMode==='function'&&placeMode());
   const off=raw||e.pointerType==='mouse'||!pourAhead?0:Math.min(85,cssH*.09);
   const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-off-r.top)/r.height)*2+1);
-  ray.setFromCamera(ndc,camera);if(STR.on){const q=strPick();if(q)return q}if(!ray.ray.intersectPlane(plane,hit))return null;
+  ray.setFromCamera(ndc,camera);if(STR.on){const q=strPick();if(q)return q}
+  // v211: in the dig/gravel/compact/form steps the finger lands on the hole's floor, not the old grass height, so far corners map to the cell you see
+  const pc=plane.constant;try{if(typeof soilMode==='function'&&soilMode())plane.constant=-((-.3+SUBY())/2)}catch(e){}const ok=ray.ray.intersectPlane(plane,hit);plane.constant=pc;if(!ok)return null;
   return{x:(hit.x+SLAB_W/2)/SLAB_W*GW,y:(hit.z+SLAB_D/2)/SLAB_D*GH,wx:hit.x,wz:hit.z};
 }
 const ptr={down:false,x:0,y:0,minx:0,maxx:0,miny:0,maxy:0,vx:0,vy:0,t:0};
@@ -8641,7 +8644,8 @@ function prepBrush(x0,y0,x1,y1,rft,fn){const W=rft*12/CELL_IN,dx=x1-x0,dy=y1-y0,
     const i=cy*GW+cx;if(!PM[i])continue;let t=((cx+.5-x0)*ux+(cy+.5-y0)*uy)/len;t=Math.max(0,Math.min(1,t));const d=Math.hypot(cx+.5-(x0+ux*len*t),cy+.5-(y0+uy*len*t));if(d>W)continue;fn(i,1-d/W*.5)}}
 function digVolTot(){return PZN*(CELL_IN*CELL_IN/144)*(PORCH()?TOPf()-SUBY():-SUBY()-.3)}
 function digSeg(x0,y0,x1,y1){let got=0;prepBrush(x0,y0,x1,y1,1.5*EXS*BUCKETS[exBkt].w,(i,f)=>{const a=Math.min(.14*f,1-digD[i]);if(a>0){digD[i]+=a;got+=a}});
-  spoilVol+=got*(CELL_IN*CELL_IN/144)*(PORCH()?TOPf()-SUBY():-SUBY()-.3);exLoad=Math.min(1,exLoad+got*.02);geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(6)}}
+  spoilVol+=got*(CELL_IN*CELL_IN/144)*(PORCH()?TOPf()-SUBY():-SUBY()-.3);
+  if(got>0&&!flags.digSq&&digPct()>.96){flags.digSq=1;let add=0;for(let i=0;i<N;i++)if(PM[i]&&digD[i]<1){add+=1-digD[i];digD[i]=1}spoilVol+=add*(CELL_IN*CELL_IN/144)*(PORCH()?TOPf()-SUBY():-SUBY()-.3);say('Crew squared up the corners with shovels.','good','digsq',0)}exLoad=Math.min(1,exLoad+got*.02);geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(6)}}
 function gravSeg(x0,y0,x1,y1,wk){if(gravLeft<=0){say('That\'s the whole load. Spread what\'s down.','info','gEmpty',0);return}
   let got=0;prepBrush(x0,y0,x1,y1,1.6*EXS*BUCKETS[exBkt].w*(wk||1),(i,f)=>{const a=Math.min(.12*Math.min(1,f*(wk?1.4:1)),1.15-gravF[i]);if(a>0){gravF[i]+=a;got+=a}});
   gravLeft=Math.max(0,gravLeft-got/(PZN*1.28));geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(5)}}
