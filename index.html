@@ -25,6 +25,7 @@
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
+<!-- v214: fixed 'Assignment to constant variable' (parked excavator swing) that stopped the game loop after digging; rain-pit craters now only from real rain (own rpit map), not from any weak/overworked spot. -->
 <!-- v213: full-day sun arc (sunrise prep, midday finish, golden-hour cut/cure; sky, fog, exposure, HDRI follow), passing cloud shade, wind gusts rolling through grass and trees, robins on the lawn. -->
 <!-- v211: dig corners: finger picks on the hole floor during the soil steps; at 96% dug the crew squares up the corners. -->
 <!-- v210: edger band no longer cuts across slab ends on curvy jobs (edge pieces simplified per continuous run, not chorded across gaps); joint guide hidden when it falls outside the slab; broom bristles fixed. -->
@@ -1491,7 +1492,7 @@ const LEVELS=[
 let STAGES=[],S={},LV=LEVELS[0];
 
 const h=new Float32Array(N), closed=new Float32Array(N), edged=new Float32Array(N), trow=new Float32Array(N),
-      bcov=new Float32Array(N), bxv=new Float32Array(N), byv=new Float32Array(N), weak=new Float32Array(N), mott=new Float32Array(N);
+      bcov=new Float32Array(N), bxv=new Float32Array(N), byv=new Float32Array(N), weak=new Float32Array(N),rpit=new Float32Array(N), mott=new Float32Array(N);
 const band=new Uint8Array(N),hard=new Float32Array(N),struck=new Float32Array(N);
 // v187 tool marks: amount + doubled-angle direction per cell (rake furrows, strike-off lines)
 const rkA=new Float32Array(N),rkC=new Float32Array(N),rkS=new Float32Array(N),scA=new Float32Array(N),scC=new Float32Array(N),scS=new Float32Array(N);
@@ -3429,7 +3430,7 @@ function gpsSync(){if(!GPS.on)return;
     let m=Math.hypot(rkC[i],rkS[i]);R[o]=Math.min(255,rkA[i]*op*255);R[o+1]=m>1e-4?(rkC[i]/m*.5+.5)*255:128;R[o+2]=m>1e-4?(rkS[i]/m*.5+.5)*255:128;R[o+3]=255;
     GPS.sa[i]=Math.min(255,scA[i]*op*255);if(scA[i]>.1){GPS.sc+=scC[i];GPS.ss+=scS[i]}}
    GPS.mr.needsUpdate=true;{const m=Math.hypot(GPS.sc,GPS.ss);if(m>1e-3)GPS.U.gSdir.value.set(GPS.sc/m,GPS.ss/m)}}
-  const E=GPS.ed.image.data;for(let i=0;i<N;i++){const o=i*4;E[o]=band[i]?Math.min(255,edged[i]*255):0;E[o+1]=Math.min(255,trow[i]*255);E[o+2]=Math.min(255,closed[i]*255);E[o+3]=inR[i]?Math.min(255,weak[i]*255*Math.max(0,1-trow[i]*.8)):0}GPS.ed.needsUpdate=true;
+  const E=GPS.ed.image.data;for(let i=0;i<N;i++){const o=i*4;E[o]=band[i]?Math.min(255,edged[i]*255):0;E[o+1]=Math.min(255,trow[i]*255);E[o+2]=Math.min(255,closed[i]*255);E[o+3]=inR[i]?Math.min(255,rpit[i]*255*Math.max(0,1-trow[i]*.8)):0}GPS.ed.needsUpdate=true;
   {const B=GPS.bd.image.data;for(let i=0;i<N;i++){const o=i*4,m=Math.hypot(bxv[i],byv[i]);B[o]=inR[i]?Math.min(255,bcov[i]*230):0;B[o+1]=m>1e-4?(bxv[i]/m*.5+.5)*255:128;B[o+2]=m>1e-4?(byv[i]/m*.5+.5)*255:128;B[o+3]=GPS.sa?GPS.sa[i]:0}GPS.bd.needsUpdate=true}
   const J=GPS.jt.image.data;J.fill(0);let n=0;if(LV&&!LV.slip&&!LV.wall)for(const j of joints){if(n>=GPS.JN)break;const row=n*48*4;for(let k=0;k<48;k++)J[row+k*4]=Math.min(255,Math.max(0,j.cells[k]||0)*255);
     const pos=j.o==='x'?j.p/GW*SLAB_W-SLAB_W/2:j.p/GH*SLAB_D-SLAB_D/2,early=j.set<.42;GPS.jl[n].set(j.o==='x'?0:1,pos,LV.saw?.007:early?.03:.022,LV.saw?0:early?.13:.115);n++}
@@ -4782,7 +4783,7 @@ function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.vi
 function rebarTrace(){}// kept for old callers
 /* ---------- state init ---------- */
 function reset(){setStageUI.sawT=null;try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
-  h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);carry.fill(0);
+  h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);
   for(let i=0;i<N;i++)mott[i]=(Math.random()-.5)*10;
   {const nz=new Float32Array(N);for(let i=0;i<N;i++)nz[i]=Math.random();
    for(let k=0;k<4;k++)for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;let a=0,c=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=GW||yy>=GH)continue;a+=nz[yy*GW+xx];c++}dryOff[i]=a/c}
@@ -8972,7 +8973,7 @@ function updateExcavator(dt,t,k){
     else{// slide along the pad instead of stopping dead
       const tx=-hz/hd,tz=hx/hd,s2=Math.sign(tx*(des[0]-exPos[0])+tz*(des[2]-exPos[1])||1)*6.5*dt*.6;if(exOk(exPos[0]+tx*s2,exPos[1]+tz*s2,1)){exPos=[exPos[0]+tx*s2,exPos[1]+tz*s2];trackTex.offset.y+=Math.abs(s2)*.6}}}
   // swing: the upper house turns toward the bucket's line, with the boom offset to the right of centre
-  const dd=Math.hypot(des[0]-exPos[0],des[2]-exPos[1])||1,want=Math.atan2(des[0]-exPos[0],des[2]-exPos[1])-Math.asin(Math.max(-.5,Math.min(.5,XC.BX*EXS/dd)));
+  const dd=Math.hypot(des[0]-exPos[0],des[2]-exPos[1])||1;let want=Math.atan2(des[0]-exPos[0],des[2]-exPos[1])-Math.asin(Math.max(-.5,Math.min(.5,XC.BX*EXS/dd)));
   if(exIdle&&!down&&!(exDumpT>0))want=exIdle[3];// parked: the house holds its heading until you use it
   exHY+=Math.max(-2.4*dt,Math.min(2.4*dt,angDiff(exHY,want)));
   if(!exT)exT=des.slice();const kk=1-Math.pow(.004,dt);for(let q=0;q<3;q++)exT[q]+=(des[q]-exT[q])*kk;exA3+=(a3-exA3)*(1-Math.pow(.01,dt));
@@ -10275,7 +10276,7 @@ function evStep(dt){
   ev.t+=dt;
   if(ev.phase==='warn'){if(ev.t>9){ev.phase='rain';ev.t=0;rainIM.visible=true;for(const p of rainP)p[1]=-1;if(!tarpOn){say('It\'s raining on your slab!','bad','evr',0);buzz([60,40,60])}}return 1}
   if(ev.phase==='rain'){
-    if(!tarpOn&&set<.92){for(let k=0;k<5;k++){const i=Math.floor(Math.random()*N);if(!inR[i]||!has(i))continue;weak[i]=Math.min(1,weak[i]+.07);ev.hits++;
+    if(!tarpOn&&set<.92){for(let k=0;k<5;k++){const i=Math.floor(Math.random()*N);if(!inR[i]||!has(i))continue;weak[i]=Math.min(1,weak[i]+.07);rpit[i]=Math.min(1,rpit[i]+.07);ev.hits++;
       const x=(i%GW+Math.random())*CPX,y=(((i/GW)|0)+Math.random())*CPX;scx.fillStyle='rgba(40,38,34,.32)';scx.beginPath();scx.arc(x,y,1+Math.random()*1.7,0,6.283);scx.fill()}surfDirty=true}
     if(ev.t>14){ev.phase='done';rainIM.visible=false;$('evBtn').hidden=true;
       if(tarpOn){tarpOn=false;tarpMesh.visible=false;say('Rain\'s past. Tarp\'s off. Back to work.','good','evd',0)}else say('Rain\'s past. Trowel out the pitting while it\'s still soft.','info','evd',0)}
