@@ -25,6 +25,7 @@
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
+<!-- v215: late truck shows in 14-22 s instead of 34-58 s; the live edge cools faster (10 s) so you still have to keep raking. -->
 <!-- v214: fixed 'Assignment to constant variable' (parked excavator swing) that stopped the game loop after digging; rain-pit craters now only from real rain (own rpit map), not from any weak/overworked spot. -->
 <!-- v213: full-day sun arc (sunrise prep, midday finish, golden-hour cut/cure; sky, fog, exposure, HDRI follow), passing cloud shade, wind gusts rolling through grass and trees, robins on the lawn. -->
 <!-- v211: dig corners: finger picks on the hole floor during the soil steps; at 96% dug the crew squares up the corners. -->
@@ -7323,7 +7324,7 @@ function updateXT(dt){const b=$('tTruck');if(XT.wait>0){if(running)XT.wait-=dt;
 let teHereT=0;
 function truckEtaUI(){const el=$('truckEta');if(!running){if(!el.hidden){el.hidden=true;el.dataset.on='0'}return}let sec=0,tot=1,lbl='',sub='';
   if(running&&XT.wait>0){sec=XT.wait;tot=XT_WAIT;lbl='Extra truck coming';sub=XT.amt.toFixed(2)+' m³'}
-  else if(running&&lateT&&lateT.phase==='wait'){sec=lateT.t;tot=lateT.delay||40;lbl='Truck 2 stuck in traffic';sub='rake the edge'}
+  else if(running&&lateT&&lateT.phase==='wait'){sec=lateT.t;tot=lateT.delay||18;lbl='Truck 2 stuck in traffic';sub='rake the edge'}
   const here=performance.now()-teHereT<2200;
   if(!sec&&!here){if(!el.hidden){if(el.dataset.on==='1'){teHereT=performance.now();el.dataset.on='0';el.classList.remove('soon');el.classList.add('here');$('teLbl').textContent='Truck\'s here';$('teSec').textContent='0';$('teSub').textContent='pour';$('teFill').style.width='100%';return}el.hidden=true;el.classList.remove('here')}return}
   if(!sec)return;
@@ -9859,7 +9860,7 @@ function updateGear3(dt){const k=STAGES[stage]&&STAGES[stage].key;laserT.visible
 const dotTex=(()=>{const[c,g]=mk(32,32);const gr=g.createRadialGradient(16,16,2,16,16,15);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.5,'rgba(255,255,255,.7)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32);return new THREE.CanvasTexture(c)})();
 const liveGeo=new THREE.BufferGeometry(),livePts=new THREE.Points(liveGeo,new THREE.PointsMaterial({size:.9,map:dotTex,vertexColors:true,transparent:true,depthWrite:false}));livePts.visible=false;livePts.renderOrder=5;livePts.frustumCulled=false;scene.add(livePts);
 function lateSetup(){lateT=null;livePts.visible=false;if(practice||LV.tut||LV.free||LV.wall||LV.steps.includes('slip')||S.pour==null||LOAD_M3<1.6)return;
-  const R=seeded(runSeed+911);if(R()>(mode==='career'?.6:.42))return;lateT={phase:'arm',at:.4+R()*.2,delay:34+R()*24,t:0,cold:0}}
+  const R=seeded(runSeed+911);if(R()>(mode==='career'?.6:.42))return;lateT={phase:'arm',at:.4+R()*.2,delay:14+R()*8,t:0,cold:0}}
 function lateStart(){const B=[];for(let i=0;i<N;i++){if(!inR[i]||h[i]<TG[i]-2.5)continue;const x=i%GW,nb=[x>0?i-1:-1,x<GW-1?i+1:-1,i-GW,i+GW];if(nb.some(j=>j>=0&&j<N&&inR[j]&&h[j]<TG[j]-2.5))B.push(i)}
   if(B.length<4){lateT=null;return}
   const L=lateT;L.phase='wait';L.t=L.delay;L.B=B;L.live=new Float32Array(B.length).fill(1);pouring=false;
@@ -9876,7 +9877,7 @@ function updateLate(dt){const L=lateT;if(!L||!running)return;
   if(L.phase==='arm'){if(stage===S.pour&&placed>=LOAD_M3*L.at)lateStart();return}
   if(L.phase!=='wait')return;
   L.t-=dt;const col=liveGeo.getAttribute('color');
-  for(let k=0;k<L.live.length;k++){L.live[k]=Math.max(0,L.live[k]-dt/24);const v=L.live[k];col.setXYZ(k,v>.5?1-(v-.5)*1.4:1,v>.5?.95:.25+v*1.4,.15)}col.needsUpdate=true;
+  for(let k=0;k<L.live.length;k++){L.live[k]=Math.max(0,L.live[k]-dt/10);const v=L.live[k];col.setXYZ(k,v>.5?1-(v-.5)*1.4:1,v>.5?.95:.25+v*1.4,.15)}col.needsUpdate=true;
   livePts.material.size=.85+Math.sin(performance.now()*.008)*.15;
   if(L.t<=0)lateEnd()}
 
