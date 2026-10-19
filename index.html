@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v200: foreman taken off the site (never loaded or shown). Inspector unchanged. -->
 <!-- v199: edge-swipe back no longer closes the game: first back swipe shows 'Swipe back again to exit', a second within 2.5 s leaves. -->
 <!-- v198: front-step flicker fixed (lower step top sat flush with the slab, now a real half step); dug ring hugs the forms (1.3 ft, was 2.8) and gravel 0.6 ft, neither spills past edges poured against something; no forms or edger where a slab butts an old sidewalk, coping or step; Curved Front Walk now runs right to the city sidewalk and the step face; 1-year-later photo has sod right up to the pad on every lawn job; chalk lines cleared when the job ends. -->
 <!-- v195: storefronts (downtown, Gastown): pilasters, bracketed cornice with dentils, bulkhead + display glass + transom, glass door, framed sign, awning valance and cheeks, stone-trimmed upper windows; lighthouse gallery railing, lantern mullions, door and windows; marina boat with a shaped hull, stripe, console and outboard. -->
@@ -9414,7 +9415,9 @@ function fwPose(dt,tool,w){const B=FW.B,r=FMN.root,T=FW.tools,UP=new THREE.Vecto
   fwLean(B,(cfg.lean+.1*s)*1,side,w);
   const along=d=>top.clone().addScaledVector(dir,-d);
   fwIK(B.rarm,B.rforearm,B.rhand,along(cfg.h1),at(-.6,1.8,2.6),w);fwIK(B.larm,B.lforearm,B.lhand,along(cfg.h2),at(-.4,-1.8,2.6),w)}
-function fmTick(dt){if(!FMN.tried&&running)fmLoad();if(!INSPM.tried&&running&&!safeGfx)inspLoad();if(!FMN.ok)return;const r=FMN.root,k=STAGES[stage]&&STAGES[stage].key;
+function fmTick(dt){if(!INSPM.tried&&running&&!safeGfx)inspLoad();
+  // v200: foreman off the site (Kris: takes away from the game). Model never loads; his tools stay hidden.
+  if(FMN.root)FMN.root.visible=false;if(FW.tools)Object.values(FW.tools).forEach(g=>g.visible=false);return;if(!FMN.ok)return;const r=FMN.root,k=STAGES[stage]&&STAGES[stage].key;
   const vis=running&&!PREPK.has(k)&&!(cabOn&&cabPov==='cab');r.visible=vis;if(!vis)return;
   if(FMN.lv===LV&&fwTick(dt,performance.now()))return;if(FW.on===false&&FMN.lv===LV&&FMN.a.walk)FMN.a.walk.timeScale=1;
   if(FMN.lv!==LV){FMN.lv=LV;FMN.c=fmSpots();FMN.at=FMN.c.findIndex(p=>p);FMN.to=-1;FMN.wait=6+Math.random()*6;if(FMN.at<0){r.visible=false;FMN.lv=null;return}const p=FMN.c[FMN.at];r.position.set(p[0],-.3,p[1]);fmPlay('idle')}
