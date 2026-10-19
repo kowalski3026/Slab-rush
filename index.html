@@ -23,6 +23,7 @@
 .jcats.one{display:none}</style><title>Slab Rush</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#121311"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="icon" href="favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"></head><body>
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
+<!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v195: storefronts (downtown, Gastown): pilasters, bracketed cornice with dentils, bulkhead + display glass + transom, glass door, framed sign, awning valance and cheeks, stone-trimmed upper windows; lighthouse gallery railing, lantern mullions, door and windows; marina boat with a shaped hull, stripe, console and outboard. -->
 <!-- v194: Quebec plexes (tin cornice on brackets, stone-trimmed windows, balcony doors, picket railings, stair stringers and handrail), prairie steel shop, fish shacks, northern store and laneway garages detailed with a shared bWin/bRail. Parked cars rebuilt: extruded rounded body profiles with wheel arches, glass greenhouse with pillars and roof, spoked rims, lights, grille, plates, mirrors, handles, door seams (sedan, SUV, pickup). -->
 <!-- v193: house detail: eavestroughs + downspouts, soffits, rake boards, corner boards, front gables, recessed windows with casing/sill/grilles/interiors and shutters, panel doors with porch roofs and steps, sectional garage doors, brick chimneys with crowns, roof vents and stacks, meter. -->
@@ -1758,8 +1759,12 @@ function updateSurface(){
   if(LV.color){maskDraw(sx,i=>Math.min(1,hard[i])*.8,LV.color);maskDraw(sx,i=>Math.min(1,hard[i])*.35,LV.color,'multiply');sx.globalCompositeOperation='multiply';sx.drawImage(stampC,0,0);sx.globalCompositeOperation='source-over'}
   maskDraw(sx,i=>Math.min(1,weak[i])*.42,'rgb(232,228,218)');if(printN)sx.drawImage(printC,0,0);if(S.cure!=null)maskDraw(sx,i=>Math.min(1,cure[i])*.62,'rgb(246,246,240)');
   sx.drawImage(grain,0,0);sx.drawImage(edgeAOC,0,0);
-  if(STAGES[stage]&&STAGES[stage].key==='joint'){sx.fillStyle='rgba(70,120,210,.55)';for(const c of chalk){if(jCut(c.o,c.p))continue;const M=c.o==='x'?GH:GW,X=c.p*CPX;
-    for(let k=0;k<M;k++){if(!jValid(c.o,c.p,k))continue;for(let q=0;q<CPX;q+=7){if(c.o==='x')sx.fillRect(X-1.2,k*CPX+q,2.4,4.2);else sx.fillRect(k*CPX+q,X-1.2,4.2,2.4)}}}}
+  if(STAGES[stage]&&STAGES[stage].key==='joint'){const cz=CPX/21.3,CL=(w,st)=>{sx.fillStyle=st;const h=w*cz;for(const c of chalk){if(jCut(c.o,c.p))continue;const M=c.o==='x'?GH:GW,X=c.p*CPX;
+    for(let k=0;k<M;k++){if(!jValid(c.o,c.p,k))continue;if(c.o==='x')sx.fillRect(X-h/2,k*CPX,h,CPX+.6);else sx.fillRect(k*CPX,X-h/2,CPX+.6,h)}}};
+    // v197 snap line: soft powder halo, bright blue core, then speckle gaps so it still reads as chalk
+    CL(26,'rgba(140,190,255,.3)');CL(13,'rgba(25,95,245,.6)');CL(7,'rgba(15,100,255,1)');
+    sx.fillStyle='rgba(225,240,255,.55)';for(const c of chalk){if(jCut(c.o,c.p))continue;const M=c.o==='x'?GH:GW,X=c.p*CPX;
+      for(let k=0;k<M;k++){if(!jValid(c.o,c.p,k))continue;for(let q=0;q<CPX;q+=3.1){const r=Math.sin((k*CPX+q)*12.9898+X*78.233)*43758.5453%1;if(Math.abs(r)<.35){const o=(Math.abs(r)*20-3.5)*cz;if(c.o==='x')sx.fillRect(X+o-.7,k*CPX+q,1.4*cz,1.6*cz);else sx.fillRect(k*CPX+q,X+o-.7,1.6*cz,1.4*cz)}}}}}
   const JY0=RY0*CPX,JY1=RY1*CPX;
   if(!GPS.on)for(const j of joints){const c=j.p*CPX,jq=j.w?j.q/j.w:1,[lo,hi]=jRange(j),gw=j.set<.42?4.5:2.6;
     // rect along the groove (a), across it (b): x-joints run down the rows, z-joints along the columns
