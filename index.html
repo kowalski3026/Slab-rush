@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v202: step grade pop moved out of the middle: a small pill just above the bottom panel. -->
 <!-- v201: inspector taken out too: no inspector visits on jobs or the job board, model never loads. -->
 <!-- v200: foreman taken off the site (never loaded or shown). Inspector unchanged. -->
 <!-- v199: edge-swipe back no longer closes the game: first back swipe shows 'Swipe back again to exit', a second within 2.5 s leaves. -->
@@ -393,9 +394,9 @@ a.btn{display:flex;align-items:center;justify-content:center;text-decoration:non
 .cbar .stars{color:var(--amber);letter-spacing:1px}
 #quoteBox{display:grid;gap:6px}
 .quote small{font-family:var(--f-mono);font-size:11px;color:var(--amber);margin-left:4px}
-#sgPop{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(.88);opacity:0;z-index:4;pointer-events:none;background:rgba(18,19,17,.88);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:12px 18px 12px 16px;display:flex;gap:14px;align-items:center;width:max-content;max-width:86%;box-shadow:0 10px 30px rgba(0,0,0,.45);transition:opacity .25s,transform .3s cubic-bezier(.2,1.4,.4,1)}
-#sgPop.on{opacity:1;transform:translate(-50%,-50%) scale(1)}#sgPop b{font-family:var(--f-display);font-size:56px;line-height:.9;color:var(--amber);min-width:44px;text-align:center}#sgPop b.g{color:#7fd36a}#sgPop b.r{color:#ff6a4d}
-#sgPop span{display:block;font-family:var(--f-label);font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#fff}#sgPop small{display:block;font-family:var(--f-label);font-size:15px;color:#d8d6d0;line-height:1.25;margin-top:2px}
+#sgPop{position:absolute;left:50%;top:auto;bottom:200px;transform:translate(-50%,8px);opacity:0;z-index:4;pointer-events:none;background:rgba(18,19,17,.86);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:6px 14px 6px 10px;display:flex;gap:10px;align-items:center;width:max-content;max-width:72%;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:opacity .25s,transform .25s}
+#sgPop.on{opacity:1;transform:translate(-50%,0)}#sgPop b{font-family:var(--f-display);font-size:30px;line-height:.9;color:var(--amber);min-width:44px;text-align:center}#sgPop b.g{color:#7fd36a}#sgPop b.r{color:#ff6a4d}
+#sgPop span{display:block;font-family:var(--f-label);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#fff}#sgPop small{display:block;font-family:var(--f-label);font-size:13px;color:#d8d6d0;line-height:1.25;margin-top:2px}
 #bark{position:absolute;left:0;top:0;z-index:3;pointer-events:none;background:#fffdf6;color:#141412;font-family:var(--f-label);font-weight:600;font-size:16px;line-height:1.2;padding:7px 11px 8px;border-radius:14px;max-width:min(62%,260px);width:max-content;opacity:0;transform:translate(-50%,-100%) translateY(4px);transition:opacity .18s,transform .18s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 #bark.on{opacity:1;transform:translate(-50%,-100%)}#bark::after{content:'';position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fffdf6}
 #bark span:first-child{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b06a00}
@@ -7267,7 +7268,7 @@ $('nextJob').addEventListener('click',()=>{const nx=LEVELS.indexOf(LV)+1;if(nx<L
 /* ---------- v150: step grades, crew calls, job-site problems ---------- */
 function gradeL(v){return v>=.9?'A':v>=.8?'B':v>=.65?'C':v>=.45?'D':'F'}
 function stepGrade(k){if(!running||practice||!k)return;const {SC}=buildSC();if(!SC[k])return;const [n,sc,note]=SC[k](),v=clamp01(sc),L=gradeL(v);
-  $('sgL').textContent=L;$('sgL').className=v>=.8?'g':v<.45?'r':'';$('sgN').textContent=n+' · '+Math.round(v*100);$('sgT').textContent=note;const el=$('sgPop');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  $('sgL').textContent=L;$('sgL').className=v>=.8?'g':v<.45?'r':'';$('sgN').textContent=n+' · '+Math.round(v*100);$('sgT').textContent=note;const el=$('sgPop');try{const f=document.querySelector('footer'),pr=el.offsetParent;if(f&&pr){const g=pr.getBoundingClientRect().bottom-f.getBoundingClientRect().top+10;el.style.bottom=Math.max(12,g)+'px'}}catch(e){}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
   clearTimeout(stepGrade.t);stepGrade.t=setTimeout(()=>el.classList.remove('on'),3200);buzz(v>=.8?[12,40,12]:18);
   if(v>=.9)bark(pick(['Beauty!','Now that\'s Kowalski work.','Textbook.','Chef\'s kiss, boss.']),1600);else if(v<.45)bark(pick(['Boss is gonna see that...','We\'ll fix it in the next step. Maybe.','Uh, that one\'s going in the callback pile.']),1600)}
 const BK={t:0,dur:0,who:'',obj:null,touch:0,last:0,cool:0,said:{},el:null,
