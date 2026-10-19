@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v198: front-step flicker fixed (lower step top sat flush with the slab, now a real half step); dug ring hugs the forms (1.3 ft, was 2.8) and gravel 0.6 ft, neither spills past edges poured against something; no forms or edger where a slab butts an old sidewalk, coping or step; Curved Front Walk now runs right to the city sidewalk and the step face; 1-year-later photo has sod right up to the pad on every lawn job; chalk lines cleared when the job ends. -->
 <!-- v195: storefronts (downtown, Gastown): pilasters, bracketed cornice with dentils, bulkhead + display glass + transom, glass door, framed sign, awning valance and cheeks, stone-trimmed upper windows; lighthouse gallery railing, lantern mullions, door and windows; marina boat with a shaped hull, stripe, console and outboard. -->
 <!-- v194: Quebec plexes (tin cornice on brackets, stone-trimmed windows, balcony doors, picket railings, stair stringers and handrail), prairie steel shop, fish shacks, northern store and laneway garages detailed with a shared bWin/bRail. Parked cars rebuilt: extruded rounded body profiles with wheel arches, glass greenhouse with pillars and roof, spoked rims, lights, grille, plates, mirrors, handles, door seams (sedan, SUV, pickup). -->
 <!-- v193: house detail: eavestroughs + downspouts, soffits, rake boards, corner boards, front gables, recessed windows with casing/sill/grilles/interiors and shutters, panel doors with porch roofs and steps, sectional garage doors, brick chimneys with crowns, roof vents and stacks, meter. -->
@@ -977,10 +978,10 @@ const LEVELS=[
    scene:()=>downtownSite(),
    lede:'Main Street on a Saturday morning. The old walk is torn out in front of the shops, and people don\'t read caution tape. Pour it, finish it, and tap anyone heading for your wet concrete before they leave boot prints in it for good.',
    slab:'5 × 30 ft downtown sidewalk, 4 in thick',finish:'Broom, joints every 5 ft'},
-  {id:'curvewalk',name:'Curved Front Walk',tag:'4 ft · S-curve · broom',shape:curvePoly(x=>2.4*Math.cos(Math.PI*(x+10)/20),4,-10,10,.5),steps:['pour','screed','float','edge','joint','broom'],
+  {id:'curvewalk',name:'Curved Front Walk',tag:'4 ft · S-curve · broom',shape:abutEnds(curvePoly(x=>2.4*Math.cos(Math.PI*(x+10)/20),4,-10,10,.5),1,1),steps:['pour','screed','float','edge','joint','broom'],
    wTxt:'4 ft',pTxt:'5 ft',maxPanel:6.25,minPanel:2.5,truck:'street',view:-Math.PI/2,
-   scene:()=>{house(12.9,0,40,-90,[['door',-2.4,0x2e4a3a],['light',.2],['win',-9],['win',-15.5],['win',4.5],['garage',13],['bed',-10,7],['bed',4.6,3],['spout',-19]],{chimney:-12});
-     flatP(29,10,oldConcM,-1.6,-.293,13);street(-16);shrub(-12,-6,1);lawn()},
+   scene:()=>{house(14.3,0,40,-90,[['door',-2.4,0x2e4a3a],['light',.2],['win',-9],['win',-15.5],['win',4.5],['garage',13],['bed',-10,7],['bed',4.6,3],['spout',-19]],{chimney:-12});
+     flatP(29,10,oldConcM,-1.6,-.293,13);street(-15.4);shrub(-12,-6,1);lawn()},
    lede:'A curving walk from the city sidewalk to the front door. Bender-board forms, the truck parked out on the street, and joints that have to follow the curve.',
    slab:'4 ft wide curved walk, {A} sq ft, 4 in thick',finish:'Broom, joints every 4 to 5 ft'},
   {id:'porch',name:'Front Porch',tag:'6 × 10 ft · raised',elev:1.6,shape:[[-5,-5,1],[5,-5],[5,1],[-5,1]],steps:['pour','screed','float','edge','broom'],
@@ -1517,6 +1518,8 @@ function curvePoly(fz,w,x0,x1,step){const L=[],R=[];for(let x=x0;x<=x1+1e-6;x+=s
   L.push([x+nx*w/2,z+nz*w/2]);R.push([x-nx*w/2,z-nz*w/2])}
   // clamp the ends square to the lot
   L[0][0]=R[0][0]=x0;L[L.length-1][0]=R[R.length-1][0]=x1;return L.concat(R.reverse())}
+// v198: mark a curvePoly's ends as poured against something (a=x0 end, b=x1 end): no forms, no edger
+function abutEnds(P,a,b){const n=P.length,h=n/2;if(b)P[h-1]=[P[h-1][0],P[h-1][1],1];if(a)P[n-1]=[P[n-1][0],P[n-1][1],1];return P}
 function pointInPoly(x,z,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
 function nearestOnPoly(x,z){let best=1e9,bx=x,bz=z;for(const s of SEGS){let t=((x-s.a[0])*s.dx+(z-s.a[1])*s.dz)/(s.L*s.L);t=Math.max(0,Math.min(1,t));
   const px=s.a[0]+s.dx*t,pz=s.a[1]+s.dz*t,d=(px-x)**2+(pz-z)**2;if(d<best){best=d;bx=px;bz=pz}}return[bx,bz,Math.sqrt(best)]}
@@ -1536,6 +1539,8 @@ function buildMask(){
     if(x===0||y===0||x===GW-1||y===GH-1||!inR[i-1]||!inR[i+1]||!inR[i-GW]||!inR[i+GW]){cellDist[i]=1;band[i]=1;q.push(i)}}
   for(let h0=0;h0<q.length;h0++){const i=q[h0],x=i%GW,y=(i/GW)|0,d=cellDist[i]+1;
     [[x>0,i-1],[x<GW-1,i+1],[y>0,i-GW],[y<GH-1,i+GW]].forEach(([ok,j])=>{if(ok&&inR[j]&&!cellDist[j]){cellDist[j]=d;q.push(j)}})}
+  // v198: no edger where the slab is poured against something (old sidewalk, coping, a step)
+  if(SEGS.some(s=>s.nf)&&SEGS.some(s=>!s.nf))for(let i=0;i<N;i++)if(band[i]){const r=nearSeg(wx(i%GW+.5),wz(((i/GW)|0)+.5));if(r[0]&&r[0].nf)band[i]=0}
 }
 // slab mesh vertices: inside ones follow the concrete, the ring just outside snaps onto the outline so curves read clean
 let vMode=new Uint8Array(0),vU=new Float32Array(0),vV=new Float32Array(0);
@@ -1568,6 +1573,15 @@ function offsetPoly(P,d){const n=P.length,out=[];
     let bx=n1[0]+n2[0],bz=n1[1]+n2[1];const bl=Math.hypot(bx,bz)||1;bx/=bl;bz/=bl;const c=Math.max(.35,bx*n1[0]+bz*n1[1]);
     out.push([p[0]+bx*d/c,p[1]+bz*d/c])}
   return out}
+// v198: offset each edge on its own; edges poured against something (NOFORM) get dn instead of d
+function offsetPolyNF(P,d,dn){const n=P.length,out=[],sg=polyArea(P)<0?-1:1,nf=SHAPE===P?NOFORM:P.map(()=>0);
+  const nrm=i=>{const a=P[i],b=P[(i+1)%n],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[sg*dz/l,-sg*dx/l]};
+  for(let i=0;i<n;i++){const j=(i-1+n)%n,n1=nrm(j),n2=nrm(i),d1=nf[j]?dn:d,d2=nf[i]?dn:d,det=n1[0]*n2[1]-n1[1]*n2[0];let ax,az;
+    if(Math.abs(det)<.05){const dd=Math.max(d1,d2);ax=(n1[0]+n2[0])/2;az=(n1[1]+n2[1])/2;const l=Math.hypot(ax,az)||1;ax=ax/l*dd;az=az/l*dd}
+    else{ax=(d1*n2[1]-d2*n1[1])/det;az=(n1[0]*d2-n2[0]*d1)/det;const l=Math.hypot(ax,az),mx=3*Math.max(Math.abs(d1),Math.abs(d2),.1);if(l>mx){ax*=mx/l;az*=mx/l}}
+    out.push([P[i][0]+ax,P[i][1]+az])}
+  return out}
+function nearSeg(x,z){let best=1e9,bs=null;for(const s of SEGS){let t=((x-s.a[0])*s.dx+(z-s.a[1])*s.dz)/(s.L*s.L);t=Math.max(0,Math.min(1,t));const d=(s.a[0]+s.dx*t-x)**2+(s.a[1]+s.dz*t-z)**2;if(d<best){best=d;bs=s}}return[bs,Math.sqrt(best)]}
 function maskCountFor(L){if(L._rn)return L._rn;const P=typeof L.shape==='function'?L.shape():L.shape,k=L.ls||1;let n=0;
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++)if(pointInPoly(((x+.5)/GW-.5)*20*k,((y+.5)/GH-.5)*10*k,P))n++;if(typeof L.shape!=='function')L._rn=n;return n}
 
@@ -1797,7 +1811,7 @@ function updateSurface(){
 }
 function drawEdgeLines(){sx.lineWidth=2.2;sx.lineCap='butt';
   const IP=offsetPoly(SHAPE,-.3),M=IP.length;
-  for(let e=0;e<M;e++){const A=IP[e],B=IP[(e+1)%M],dx=B[0]-A[0],dz=B[1]-A[1],L=Math.hypot(dx,dz);if(L<1e-4)continue;const n=Math.max(1,Math.ceil(L/.25)),px=-dz/L*.18,pz=dx/L*.18;
+  for(let e=0;e<M;e++){if(NOFORM[e]&&NOFORM.some(v=>!v))continue;const A=IP[e],B=IP[(e+1)%M],dx=B[0]-A[0],dz=B[1]-A[1],L=Math.hypot(dx,dz);if(L<1e-4)continue;const n=Math.max(1,Math.ceil(L/.25)),px=-dz/L*.18,pz=dx/L*.18;
     for(let k=0;k<n;k++){const t0=k/n,t1=(k+1)/n,mx=A[0]+dx*(t0+t1)/2,mz=A[1]+dz*(t0+t1)/2,a=Math.max(edged[cellAt(mx,mz)],edged[cellAt(mx+px,mz+pz)],edged[cellAt(mx-px,mz-pz)])*.6;if(a<=.04)continue;
       const p0=W2P(A[0]+dx*t0,A[1]+dz*t0),p1=W2P(A[0]+dx*t1,A[1]+dz*t1);
       sx.strokeStyle=`rgba(38,35,31,${a})`;sx.beginPath();sx.moveTo(p0[0],p0[1]);sx.lineTo(p1[0],p1[1]);sx.stroke()}}
@@ -2883,8 +2897,8 @@ function buildSite(){
     const uv=g.attributes.uv,ps=g.attributes.position;if(ps&&ps.getX)for(let i=0;i<ps.count;i++)uv.setXY(i,(ps.getX(i)+160)/320,(ps.getY(i)+160)/320);ground.geometry=g;lotGround.visible=true}
    else{ground.geometry=new THREE.PlaneGeometry(320,320);lotGround.visible=false}}
   const RB=PP?zoneZ:(LV.ringOuter||SHAPE),RH=PP?zoneZ:null;
-  if(!ELV()||LV.wall||LV.slip||PP){let n0=siteG.children.length;flatShape(offsetPoly(RB,PP?2:2.8),dirtRingM,-.297-EE,RH);tagNew(n0,{kind:'ring'});
-    if(!PP){n0=siteG.children.length;flatShape(offsetPoly(SHAPE,.7),gravelRingM,-.288-EE,null);tagNew(n0,{kind:'gravel'})}}
+  if(!ELV()||LV.wall||LV.slip||PP){let n0=siteG.children.length;flatShape(PP?offsetPoly(RB,2):LV.ringOuter?offsetPoly(RB,1.3):offsetPolyNF(SHAPE,1.3,-.05),dirtRingM,-.297-EE,RH);tagNew(n0,{kind:'ring'});
+    if(!PP){n0=siteG.children.length;flatShape(offsetPolyNF(SHAPE,.6,-.05),gravelRingM,-.288-EE,null);tagNew(n0,{kind:'gravel'})}}
   if(PP){const top=TOPf(),bot=SUBY()-.03;[[zoneZ,true],[zoneI,false]].forEach(([P,inward])=>{if(!P)return;
     for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.05)continue;let nx=-dz/L,nz=dx/L;const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
       const inside=pointInPoly(mx+nx*.05,mz+nz*.05,P);if(inside!==inward){nx=-nx;nz=-nz}
@@ -2936,7 +2950,7 @@ function buildSite(){
   // clods and stones in the dug-out ring
   if(ELV())return;
   const cl=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),new THREE.MeshStandardMaterial({color:0xffffff,roughness:1}),140),col=new THREE.Color();cl.userData.underTarp=true;let n=0;
-  for(let t=0;t<1400&&n<140;t++){const x=x0-3+Math.random()*(W+6),z=z0-3+Math.random()*(D+6);if(pointInPoly(x,z,SHAPE))continue;const d=nearestOnPoly(x,z)[2];if(d<.45||d>2.6)continue;
+  for(let t=0;t<1400&&n<140;t++){const x=x0-3+Math.random()*(W+6),z=z0-3+Math.random()*(D+6);if(pointInPoly(x,z,SHAPE))continue;const ns=nearSeg(x,z),d=ns[1];if(d<.45||d>(PP?2.6:1.2)||(ns[0]&&ns[0].nf))continue;
     const sc=.04+Math.pow(Math.random(),2.5)*.24;dm.position.set(x,-.3+sc*.35,z);dm.rotation.set(Math.random()*3,Math.random()*3,0);dm.scale.set(sc,sc*.7,sc);dm.updateMatrix();cl.setMatrixAt(n,dm.matrix);
     col.setHex(Math.random()<.7?0x5e4330:0x47433e).offsetHSL(0,0,(Math.random()-.5)*.12);cl.setColorAt(n,col);n++}
   cl.count=n;cl.castShadow=cl.receiveShadow=true;cl.userData.kind='ring';siteG.add(cl);
@@ -3099,7 +3113,7 @@ function house(cx,cz,len,dir,items,opts){
       hBox(4.1,.45,.2,trimM,x,7.15,.1,g);[-1,1].forEach(q=>hBox(.45,7.3,.2,trimM,x+q*1.78,3.3,.1,g));hBox(3.1,6.95,.1,dm,x,3.15,.02,g);
       for(let r=0;r<3;r++)for(let c=0;c<2;c++)hBox(1.05,r?1.7:1.2,.06,dm,x+(c?.68:-.68),r===0?5.6:r===1?3.75:1.45,.09,g);
       hBox(.1,.5,.14,new THREE.MeshStandardMaterial({color:0xc8a86a,metalness:.85,roughness:.3}),x+1.15,3.2,.16,g);
-      if(!it[3]){hBox(5.6,.62,3.2,HD.step,x,-.02,1.6,g);hBox(4.6,.32,1.1,HD.step,x,-.16,3.75,g);
+      if(!it[3]){hBox(5.6,.62,3.2,HD.step,x,-.02,1.6,g);hBox(4.6,.46,1.1,HD.step,x,-.09,3.75,g);
         if(porch){const pw=6.4,pd=4.2,ph=8.6,a=.5,hw=pw/2+.4,pr=hw*Math.tan(a);[-1,1].forEach(q=>{hBox(.55,ph-.2,.55,trimM,x+q*(pw/2-.35),ph/2-.35,pd-.4,g);hBox(.8,.4,.8,trimM,x+q*(pw/2-.35),.15,pd-.4,g)});
           hBox(pw+.2,.6,.5,trimM,x,ph-.2,pd-.4,g);hBox(pw+.2,.5,.4,trimM,x,ph-.2,.2,g);
           [-1,1].forEach(q=>hBox(hw/Math.cos(a),.24,pd+.8,rM,x+q*hw/2,ph+pr/2+.12,pd/2,g,0,0,-q*a));
@@ -5934,7 +5948,7 @@ function applyLevel(L){
   if(L.stair){S.float=S.edge=S.trowel=S.broom=S.tread;const st=STAGES[S.tread];Object.defineProperty(st,'win',{get:()=>trdWin(TRD.tool)});Object.defineProperty(st,'soft',{get:()=>DEFS[TRD.tool].soft})}
   setShape(typeof L.shape==='function'?L.shape():L.shape);buildMask();strSetup(L);buildVerts();strVerts();
   TG.fill(0);if(L.profile)for(let i=0;i<N;i++)if(inR[i])TG[i]=L.profile(wx(i%GW+.5),wz(((i/GW)|0)+.5));
-  RW=(RX1-RX0)*CELL_IN/12;RD=(RY1-RY0)*CELL_IN/12;RCX=(wx(RX0)+wx(RX1))/2;RCZ=(wz(RY0)+wz(RY1))/2;PER=Math.round(SEGS.reduce((a,s)=>a+s.L,0));
+  RW=(RX1-RX0)*CELL_IN/12;RD=(RY1-RY0)*CELL_IN/12;RCX=(wx(RX0)+wx(RX1))/2;RCZ=(wz(RY0)+wz(RY1))/2;PER=Math.round(SEGS.reduce((a,s)=>a+(s.nf&&SEGS.some(g=>!g.nf)?0:s.L),0));
   {let sm=0;for(let i=0;i<N;i++)if(inR[i])sm+=DEPTH+TG[i];NEED_M3=sm*CELL_IN*CELL_IN*1.6387e-5}LOAD_M3=Math.ceil((NEED_M3*1.12+.2)*4)/4;XT.n=0;XT.m3=0;XT.fee=0;XT.wait=0;XT.ask=0;
   TXN=Math.ceil(RW/2-.01);TZN=Math.ceil(RD/2-.01);stampQ=new Float32Array(TXN*TZN);stampHits=new Uint8Array(TXN*TZN);
   {const cnt=new Uint8Array(TXN*TZN);for(let i=0;i<N;i++){if(!inR[i])continue;const ti=Math.floor((wx(i%GW+.5)-wx(RX0))/2),tj=Math.floor((wz(((i/GW)|0)+.5)-wz(RY0))/2);if(ti>=0&&tj>=0&&ti<TXN&&tj<TZN)cnt[tj*TXN+ti]++}
@@ -7367,6 +7381,7 @@ function buildSC(){
   Object.assign(SC,strSC(q,tm));Object.assign(SC,brgSC(q,tm));
   return {SC,q,w,tm,ratio,r,RG,maxP}}
 function finish(timedOut){
+  chalk=[];try{updateSurface();slabTex.needsUpdate=true}catch(e){}// v198: chalk lines are gone once the job's done
   leafStains=0;leaves.forEach(l=>{if(l.gone||!l.landed)return;leafStains++;const c=cellAt(l.tx,l.tz);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const j=c+dy*GW+dx;if(j>=0&&j<N&&inR[j])weak[j]=Math.min(1,weak[j]+.5)}});
   photoA=snapPhoto();
   running=false;hold(false);pouring=false;hideHint();$('evBtn').hidden=true;$('siteBtn').hidden=true;try{BK.hide()}catch(e){}tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;
@@ -7408,7 +7423,7 @@ function finish(timedOut){
    if(blow)x+=`<div class="risk">Form blowout<b class="hi">Blew</b>${blow.lost.toFixed(2)} m³ on the ground and a bulge in the wall. Bring tall walls up in lifts.</div>`;
    if(LV.peds)x+=prints?`<div class="risk">Footprints<b class="${prints>6?'hi':'mid'}">${prints}</b>People walked through it. Those prints are in there for good.</div>`:`<div class="risk">Foot traffic<b class="lo">Kept off</b>Nobody got a boot in your concrete.</div>`;
    if(x)$('rRisks').insertAdjacentHTML('beforeend',x)}
-  let photoY=null;if(photoA&&!LV.wall&&!LV.steps.includes('slip')){blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});photoY=snapPhoto(()=>ageSlab(crack[1]));fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
+  let photoY=null;if(photoA&&!LV.wall&&!LV.steps.includes('slip')){blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});const yg=yearGrass();photoY=snapPhoto(()=>ageSlab(crack[1]));yg();fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
   $('rPhotos').classList.toggle('three',!!photoY);$('phY').parentElement.hidden=!photoY;if(photoY)$('phY').src=photoY;
   if(cab.used)$('rRisks').insertAdjacentHTML('beforeend','<div class="risk">Operator<b class="lo">+3</b>Dug it from the cab. Bonus points.</div>');
   $('rPhotos').hidden=!photoA;$('phSave').hidden=!photoA;$('phShare').hidden=!photoA;$('rpOpen').hidden=REPLAY.length<4;if(photoA){$('phA').src=photoA;$('phB').src=photoB||photoA;$('phB').parentElement.hidden=!photoB}
@@ -9960,6 +9975,15 @@ $('evBtn').addEventListener('click',()=>{if(!ev||(ev.phase!=='warn'&&ev.phase!==
 
 /* ---------- before-and-after photo ---------- */
 let photoB=null,photoA=null;
+// v198: a year later the yard's back: sod right up to the concrete, no dug ring, gravel or clods
+function yearGrass(){const hid=[];if(!lawnOn||LV.bridge)return()=>{};
+  siteG.traverse(o=>{if(o!==siteG&&o.visible&&/^(ring|gravel|wall)$/.test(o.userData.kind||'')){hid.push(o);o.visible=false}});
+  [turfL,gravL].forEach(o=>{if(o.visible){hid.push(o);o.visible=false}});
+  let m=null;try{const E=ELV()&&(LV.wall||LV.slip||isPrep())?ELV():0,out=offsetPolyNF(SHAPE,LV.ringOuter?1.4:4.5,-.02),sh=new THREE.Shape();out.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));
+    const hp=new THREE.Path();SHAPE.forEach((p,i)=>i?hp.lineTo(p[0],-p[1]):hp.moveTo(p[0],-p[1]));sh.holes.push(hp);const g=new THREE.ShapeGeometry(sh);g.rotateX(-Math.PI/2);
+    const uv=g.attributes.uv,ps=g.attributes.position;for(let i=0;i<ps.count;i++)uv.setXY(i,(ps.getX(i)+160)/320,(-ps.getZ(i)+160)/320);
+    const mt=ground.material.clone();mt.polygonOffset=true;mt.polygonOffsetFactor=1;mt.polygonOffsetUnits=2;m=new THREE.Mesh(g,mt);m.position.y=-.299-E;m.receiveShadow=true;scene.add(m)}catch(e){console.warn('yearGrass',e)}
+  return()=>{hid.forEach(o=>o.visible=true);if(m){scene.remove(m);m.geometry.dispose();m.material.dispose()}}}
 function snapPhoto(pre){if(!renderer)return null;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const p=camera.position.clone(),q=camera.quaternion.clone(),portrait=cssW<cssH,th=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
