@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v209: slab vanished on phones after v207 (one texture too many): rain pits now read from gED alpha; if the slab shader still fails, the photo detail maps then the GPU surface layer drop out so concrete always shows; phones with <16 texture units skip the detail maps. -->
 <!-- v208: soft shadows (Effects/Sharp): sharp at contact, blurring with distance from the caster (blocker search with depth-offset compares + 12-tap filter), 2048 shadow map. -->
 <!-- v207: rain you can see: light drops and the yard, forms and gravel go dark and glossy; an untarped slab pools water in its lows and shows real pits (craters with rims, shader, from weak[]); dries back after. -->
 <!-- v206: tools: real edger (stainless blade, rolled radius lip, upturned toe/heel, hardwood handle on a bridge, mud), hand trowel rivets/ferrules/smear, broom with bristle tufts, mud on the tips, steel bracket; gloved hand with fingers and thumb. -->
@@ -3374,12 +3375,12 @@ function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Pr
    the coarse grid only says HOW MUCH is cut/edged; the shape (groove, bevels, burnished tool bands, rounded nose, tool lip) is exact in feet */
 const GPS={on:false,JN:24,EN:64,jl:[],es:[],jn:0,en:0,sw:{value:20},sd:{value:10},jt:null,ed:null};
 for(let i=0;i<GPS.JN;i++)GPS.jl.push(new THREE.Vector4());for(let i=0;i<GPS.EN;i++)GPS.es.push(new THREE.Vector4());
-{const mk8=(w,h)=>{const t=new THREE.DataTexture(new Uint8Array(w*h*4),w,h,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t};GPS.jt=mk8(48,GPS.JN);GPS.ed=mk8(GW,GH);GPS.bd=mk8(GW,GH);GPS.mr=mk8(GW,GH);GPS.ms=mk8(GW,GH);GPS.wk=mk8(GW,GH);
+{const mk8=(w,h)=>{const t=new THREE.DataTexture(new Uint8Array(w*h*4),w,h,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t};GPS.jt=mk8(48,GPS.JN);GPS.ed=mk8(GW,GH);GPS.bd=mk8(GW,GH);GPS.mr=mk8(GW,GH);
   {const t=new THREE.DataTexture(new Uint16Array(GW*GH*4),GW,GH,THREE.RGBAFormat,THREE.HalfFloatType);t.magFilter=t.minFilter=THREE.LinearFilter;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;GPS.hm=t}}
 /* v186 real concrete: per-pixel relief, stone in the fresh paste, bleed water pooling in the lows, blotchy drying */
 var RAIN={w:0,slab:0,base:null,mats:null};
 const RC={rel:{value:1},bl:{value:0},fr:{value:0},cs:{value:CELL_IN/12}};
-GPS.U={gWK:{value:GPS.wk},gMR:{value:GPS.mr},gMS:{value:GPS.ms},gHM:{value:GPS.hm},gRel:RC.rel,gBl:RC.bl,gFr:RC.fr,gCs:RC.cs,gJL:{value:GPS.jl},gES:{value:GPS.es},gJN:{value:0},gEN:{value:0},gJT:{value:GPS.jt},gED:{value:GPS.ed},gBD:{value:GPS.bd},gSW:GPS.sw,gSD:GPS.sd};
+GPS.U={gSdir:{value:new THREE.Vector2(1,0)},gMR:{value:GPS.mr},gHM:{value:GPS.hm},gRel:RC.rel,gBl:RC.bl,gFr:RC.fr,gCs:RC.cs,gJL:{value:GPS.jl},gES:{value:GPS.es},gJN:{value:0},gEN:{value:0},gJT:{value:GPS.jt},gED:{value:GPS.ed},gBD:{value:GPS.bd},gSW:GPS.sw,gSD:GPS.sd};
 function gpsShape(){if(!GPS.on)return;const on=LV&&!LV.slip&&!LV.wall;let segs=on?SEGS.filter(g=>!g.nf).concat(STR.on?STR.rsegs:[]):[];
   if(segs.length>GPS.EN){const k=Math.ceil(segs.length/GPS.EN),out=[];for(let i=0;i<segs.length;i+=k){const A=segs[i].a,B=segs[Math.min(segs.length-1,i+k-1)].b;out.push({a:A,b:B})}segs=out}
   GPS.en=Math.min(GPS.EN,segs.length);for(let i=0;i<GPS.en;i++)GPS.es[i].set(segs[i].a[0],segs[i].a[1],segs[i].b[0],segs[i].b[1]);GPS.U.gEN.value=GPS.en;GPS.sw.value=SLAB_W;GPS.sd.value=SLAB_D}
@@ -3387,13 +3388,12 @@ function gpsSync(){if(!GPS.on)return;
   {const H=GPS.hm.image.data,hf=THREE.DataUtils.toHalfFloat;for(let i=0;i<N;i++){const o=i*4,sl=Math.min(1,set+dryOff[i]);
     H[o]=hf(inR[i]?h[i]:0);H[o+1]=hf(sl);H[o+2]=hf(Math.min(1,closed[i]+trow[i]*.5)*.7+struck[i]*.55*(1-closed[i])+(LV&&LV.slip?1:0));H[o+3]=hf(inR[i]?.35+.65*Math.min(1,(cellDist[i]-1)/(5/Math.max(.6,LS))):0)}GPS.hm.needsUpdate=true;
    const kk=STAGES[stage]&&STAGES[stage].key;RC.rel.value=kk==='pour'||kk==='screed'?1:kk==='float'?.7:.4;RC.bl.value=Math.max(bleed(set)*(weather&&weather.night?.8:1),RAIN.slab);RC.fr.value=Math.max(0,1-set/.3);RC.cs.value=SLAB_W/GW}
-  {const R=GPS.mr.image.data,Sm=GPS.ms.image.data,sl=LV&&LV.slip;for(let i=0;i<N;i++){const o=i*4,op=inR[i]&&!sl?Math.max(0,1-closed[i]*1.15-trow[i]):0;
+  {const R=GPS.mr.image.data,sl=LV&&LV.slip;GPS.sa=GPS.sa||new Uint8Array(N);GPS.sc=GPS.ss=0;for(let i=0;i<N;i++){const o=i*4,op=inR[i]&&!sl?Math.max(0,1-closed[i]*1.15-trow[i]):0;
     let m=Math.hypot(rkC[i],rkS[i]);R[o]=Math.min(255,rkA[i]*op*255);R[o+1]=m>1e-4?(rkC[i]/m*.5+.5)*255:128;R[o+2]=m>1e-4?(rkS[i]/m*.5+.5)*255:128;R[o+3]=255;
-    m=Math.hypot(scC[i],scS[i]);Sm[o]=Math.min(255,scA[i]*op*255);Sm[o+1]=m>1e-4?(scC[i]/m*.5+.5)*255:128;Sm[o+2]=m>1e-4?(scS[i]/m*.5+.5)*255:128;Sm[o+3]=255}
-   GPS.mr.needsUpdate=GPS.ms.needsUpdate=true}
-  {const W=GPS.wk.image.data;for(let i=0;i<N;i++){const o=i*4;W[o]=inR[i]?Math.min(255,weak[i]*255*Math.max(0,1-trow[i]*.8)):0;W[o+1]=W[o+2]=0;W[o+3]=255}GPS.wk.needsUpdate=true}
-  const E=GPS.ed.image.data;for(let i=0;i<N;i++){const o=i*4;E[o]=band[i]?Math.min(255,edged[i]*255):0;E[o+1]=Math.min(255,trow[i]*255);E[o+2]=Math.min(255,closed[i]*255);E[o+3]=255}GPS.ed.needsUpdate=true;
-  {const B=GPS.bd.image.data;for(let i=0;i<N;i++){const o=i*4,m=Math.hypot(bxv[i],byv[i]);B[o]=inR[i]?Math.min(255,bcov[i]*230):0;B[o+1]=m>1e-4?(bxv[i]/m*.5+.5)*255:128;B[o+2]=m>1e-4?(byv[i]/m*.5+.5)*255:128;B[o+3]=255}GPS.bd.needsUpdate=true}
+    GPS.sa[i]=Math.min(255,scA[i]*op*255);if(scA[i]>.1){GPS.sc+=scC[i];GPS.ss+=scS[i]}}
+   GPS.mr.needsUpdate=true;{const m=Math.hypot(GPS.sc,GPS.ss);if(m>1e-3)GPS.U.gSdir.value.set(GPS.sc/m,GPS.ss/m)}}
+  const E=GPS.ed.image.data;for(let i=0;i<N;i++){const o=i*4;E[o]=band[i]?Math.min(255,edged[i]*255):0;E[o+1]=Math.min(255,trow[i]*255);E[o+2]=Math.min(255,closed[i]*255);E[o+3]=inR[i]?Math.min(255,weak[i]*255*Math.max(0,1-trow[i]*.8)):0}GPS.ed.needsUpdate=true;
+  {const B=GPS.bd.image.data;for(let i=0;i<N;i++){const o=i*4,m=Math.hypot(bxv[i],byv[i]);B[o]=inR[i]?Math.min(255,bcov[i]*230):0;B[o+1]=m>1e-4?(bxv[i]/m*.5+.5)*255:128;B[o+2]=m>1e-4?(byv[i]/m*.5+.5)*255:128;B[o+3]=GPS.sa?GPS.sa[i]:0}GPS.bd.needsUpdate=true}
   const J=GPS.jt.image.data;J.fill(0);let n=0;if(LV&&!LV.slip&&!LV.wall)for(const j of joints){if(n>=GPS.JN)break;const row=n*48*4;for(let k=0;k<48;k++)J[row+k*4]=Math.min(255,Math.max(0,j.cells[k]||0)*255);
     const pos=j.o==='x'?j.p/GW*SLAB_W-SLAB_W/2:j.p/GH*SLAB_D-SLAB_D/2,early=j.set<.42;GPS.jl[n].set(j.o==='x'?0:1,pos,LV.saw?.007:early?.03:.022,LV.saw?0:early?.13:.115);n++}
   GPS.jn=n;GPS.U.gJN.value=n;GPS.jt.needsUpdate=true}
@@ -3425,7 +3425,7 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
     F=F.replace('varying vec2 vDW;',`varying vec2 vDW;
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
 float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;uniform float gSD;
-uniform sampler2D gWK;uniform sampler2D gMR;uniform sampler2D gMS;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
+uniform sampler2D gMR;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
 float gVN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gH1(i),gH1(i+vec2(1,0)),f.x),mix(gH1(i+vec2(0,1)),gH1(i+vec2(1,1)),f.x),f.y);}
@@ -3466,13 +3466,13 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float rr=sin(ph),sh=cos(ph)*abs(cos(ph*.5+gVN(vec2(c,al))*2.));gTl+=pr*sh*.32*amp;gCol*=1.-.035*amp*(.5-.5*rr);
    // blade-edge crescents where the rake stopped and lifted
    float bl=gVN(vec2(al*1.6,c*.7));float cr=smoothstep(.78,.86,bl)*(1.-smoothstep(.86,.95,bl));gTl+=dv*cr*.3*ra*aa;gCol*=1.-.03*cr*ra;}}}
- {vec4 MS=texture2D(gMS,uvG);float sa=MS.r;if(sa>.02){vec2 d2=MS.gb*2.-1.;if(dot(d2,d2)>.01){float th=.5*atan(d2.y,d2.x);vec2 ld=vec2(cos(th),sin(th)),ac=vec2(-ld.y,ld.x);
+ {float sa=texture2D(gBD,uvG).a;if(sa>.02){vec2 d2=gSdir;if(dot(d2,d2)>.01){float th=.5*atan(d2.y,d2.x);vec2 ld=vec2(cos(th),sin(th)),ac=vec2(-ld.y,ld.x);
    float q=dot(p,ac),al=dot(p,ld);float ph=q*42.+gVN(vec2(al*.9,q*3.))*2.6+sin(al*.31)*.8;float aa=clamp(1.5-fwidth(ph)*.9,0.,1.);
    float amp=sa*(.35+.65*gVN(vec2(al*.5,q*1.5)))*aa;gTl+=ac*cos(ph)*.22*amp;
    // strike-off lines: thin paste lines where the board saws back and forth
    float ln=1.-smoothstep(0.,.12+fwidth(ph)*.3,abs(fract(ph/6.2832*.5+.25)-.5));gCol*=1.-.035*ln*amp;}}}
  // v207 rain pits: little craters where drops hit soft concrete, each with a darker centre and a raised rim
- {float wk=texture2D(gWK,uvG).r;if(wk>.02){vec2 g=p/.085,id=floor(g),f=fract(g);float best=9.;vec2 bv=vec2(0.);float bh=0.;
+ {float wk=texture2D(gED,uvG).a;if(wk>.02){vec2 g=p/.085,id=floor(g),f=fract(g);float best=9.;vec2 bv=vec2(0.);float bh=0.;
    for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y)),r=gH2(id+o);vec2 dv=o+r-f;float d=length(dv);if(d<best){best=d;bv=dv;bh=gH1(id+o+5.1);}}
    float on=step(bh,wk*1.3),rad=.22+.18*fract(bh*7.),aa=clamp(1.5-fwidth(g.x)*2.,0.,1.);
    float pit=(1.-smoothstep(rad*.55,rad,best))*on*aa,rim=(smoothstep(rad*.7,rad,best)-smoothstep(rad,rad*1.35,best))*on*aa;
@@ -3512,7 +3512,12 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);\n#endif')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+'gl207';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+'gl209';
+/* v209: if a phone can't build the detailed slab shader (too many textures or too long), fall back to the plain one
+   instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
+if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
+  if(SLABD.on){SLABD.on=false}else if(GPS.on){GPS.on=false}slabMat.needsUpdate=true}}
+try{if(renderer&&renderer.capabilities.maxTextures<16){SLABD.try=1}}catch(e){}
 function gpsInit(){if(GPS.on||safeGfx||!renderer)return;GPS.on=true;gpsShape();gpsSync();slabMat.needsUpdate=true}
 const slab=new THREE.Mesh(slabGeo,slabMat);slab.receiveShadow=true;slab.castShadow=false;scene.add(slab);
 
