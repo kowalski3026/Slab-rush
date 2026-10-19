@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v208: soft shadows (Effects/Sharp): sharp at contact, blurring with distance from the caster (blocker search with depth-offset compares + 12-tap filter), 2048 shadow map. -->
 <!-- v207: rain you can see: light drops and the yard, forms and gravel go dark and glossy; an untarped slab pools water in its lows and shows real pits (craters with rims, shader, from weak[]); dries back after. -->
 <!-- v206: tools: real edger (stainless blade, rolled radius lip, upturned toe/heel, hardwood handle on a bridge, mud), hand trowel rivets/ferrules/smear, broom with bristle tufts, mud on the tips, steel bracket; gloved hand with fingers and thumb. -->
 <!-- v205: form splatter hidden in the 1-year-later photo. -->
@@ -1992,7 +1993,24 @@ const LK=Math.PI;/* r155+ physical light units = legacy x PI */
 const hemi=new THREE.HemisphereLight(0xdfe6ee,0x5a554a,.6*LK);scene.add(hemi);
 const fill=new THREE.DirectionalLight(0xa9c0dc,.3*LK);fill.position.set(16,8,20);scene.add(fill);
 const sun=new THREE.DirectionalLight(0xfff3e2,LK);sun.position.set(-9,15,-21);sun.castShadow=true;
-sun.shadow.mapSize.set(safeGfx?512:1024,safeGfx?512:1024);Object.assign(sun.shadow.camera,{left:-28,right:28,top:20,bottom:-20,near:1,far:80});sun.shadow.bias=-.0005;sun.shadow.normalBias=.02;
+sun.shadow.mapSize.set(safeGfx?512:(GFX==='fx'||GFX==='sharp')?2048:1024,safeGfx?512:(GFX==='fx'||GFX==='sharp')?2048:1024);
+/* v208: soft shadows in Effects/Sharp. Shadows are sharp where an object touches the ground and blur out the further the shadow
+   falls from what casts it (a blocker search with depth-offset compares, then a filter sized to that distance). */
+if(!safeGfx&&(GFX==='fx'||GFX==='sharp'))try{const C=THREE.ShaderChunk,src=C.shadowmap_pars_fragment,a=src.indexOf('float getShadow( sampler2DShadow shadowMap'),b=a>=0?src.indexOf('#elif defined( SHADOWMAP_TYPE_VSM )',a):-1;
+  if(a>=0&&b>a)C.shadowmap_pars_fragment=src.slice(0,a)+`float getShadow( sampler2DShadow shadowMap, vec2 shadowMapSize, float shadowIntensity, float shadowBias, float shadowRadius, vec4 shadowCoord ) {
+  float shadow = 1.0;shadowCoord.xyz /= shadowCoord.w;shadowCoord.z += shadowBias;
+  bool inFrustum = shadowCoord.x >= 0.0 && shadowCoord.x <= 1.0 && shadowCoord.y >= 0.0 && shadowCoord.y <= 1.0;
+  if ( inFrustum && shadowCoord.z <= 1.0 ) {
+    vec2 ts = vec2( 1.0 ) / shadowMapSize;float k = max( shadowRadius, .05 ), tpf = shadowMapSize.x / ( 56.0 * k ), dpf = 1.0 / ( 80.0 * k );
+    float phi = interleavedGradientNoise( gl_FragCoord.xy ) * PI2, sr = 1.4 * tpf * ts.x, occ = 0.0, dsum = 0.0;
+    for ( int i = 0; i < 8; i ++ ) { vec2 uv = shadowCoord.xy + vogelDiskSample( i, 8, phi ) * sr;
+      if ( texture( shadowMap, vec3( uv, shadowCoord.z ) ) < 0.5 ) { occ += 1.0;
+        dsum += 0.4 + 2.0 * ( 1.0 - texture( shadowMap, vec3( uv, shadowCoord.z - 1.0 * dpf ) ) ) + 5.0 * ( 1.0 - texture( shadowMap, vec3( uv, shadowCoord.z - 4.0 * dpf ) ) ) + 10.0 * ( 1.0 - texture( shadowMap, vec3( uv, shadowCoord.z - 12.0 * dpf ) ) ); } }
+    if ( occ > 0.0 ) { float dft = dsum / occ, r = max( 1.0, ( 0.025 + dft * 0.035 ) * tpf ) * ts.x, sh = 0.0;
+      for ( int i = 0; i < 12; i ++ ) sh += texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( i, 12, phi ) * r, shadowCoord.z ) );
+      shadow = sh / 12.0; } }
+  return mix( 1.0, shadow, shadowIntensity ); }
+	`+src.slice(b)}catch(e){console.warn('soft shadows off',e)}Object.assign(sun.shadow.camera,{left:-28,right:28,top:20,bottom:-20,near:1,far:80});sun.shadow.bias=-.0005;sun.shadow.normalBias=.02;
 scene.add(sun);scene.add(sun.target);
 
 // sky dome
@@ -6032,7 +6050,7 @@ function cellAt(X,Z){const u=Math.max(0,Math.min(GW-1,Math.floor(gu(X)))),v=Math
 function setLot(k){LS=k;SLAB_W=20*k;SLAB_D=10*k;CELL_IN=5*k;
   {const q=Math.max(1,k/2.4);sky.scale.setScalar(q);ground.scale.set(q,q,1);camera.far=420*q;camera.updateProjectionMatrix()} // v147: big floors pull the camera back past the old sky dome
   tape.geometry.dispose();tape.geometry=new THREE.PlaneGeometry(SLAB_W,.36);const tm=tape.material;if(tm.map&&tm.map.dispose)tm.map.dispose();tm.map=tapeTex();tm.needsUpdate=true;
-  Object.assign(sun.shadow.camera,{left:-28*k,right:28*k,top:20*k,bottom:-20*k,far:80*k});sun.shadow.camera.updateProjectionMatrix()}
+  Object.assign(sun.shadow.camera,{left:-28*k,right:28*k,top:20*k,bottom:-20*k,far:80*k});sun.shadow.camera.updateProjectionMatrix();sun.shadow.radius=k}
 function applyLevel(L){
   applyFinish(L);LV=L;REG=regById(regOf(L));
   DEPTH=L.depth||4;
