@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
 <!-- v211: dig corners: finger picks on the hole floor during the soil steps; at 96% dug the crew squares up the corners. -->
 <!-- v210: edger band no longer cuts across slab ends on curvy jobs (edge pieces simplified per continuous run, not chorded across gaps); joint guide hidden when it falls outside the slab; broom bristles fixed. -->
 <!-- v209: slab vanished on phones after v207 (one texture too many): rain pits now read from gED alpha; if the slab shader still fails, the photo detail maps then the GPU surface layer drop out so concrete always shows; phones with <16 texture units skip the detail maps. -->
@@ -8689,57 +8690,140 @@ const exTrackM=new THREE.MeshStandardMaterial({map:trackTex,roughness:.85});
 const exBox=(par,w,h,d,m,x,y,z)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);b.castShadow=b.receiveShadow=true;par.add(b);return b};
 const exCyl=(par,r,len,m,x,y,z,axis,seg)=>{const g=new THREE.CylinderGeometry(r,r,len,seg||14);if(axis==='x')g.rotateZ(Math.PI/2);else if(axis==='z')g.rotateX(Math.PI/2);const c=new THREE.Mesh(g,m);c.position.set(x,y,z);c.castShadow=true;par.add(c);return c};
 function exBeam(par,z0,y0,z1,y1,w,h,m,x){const L=Math.hypot(z1-z0,y1-y0),b=new THREE.Mesh(new THREE.BoxGeometry(w,h,L),m);b.position.set(x||0,(y0+y1)/2,(z0+z1)/2);b.rotation.x=-Math.atan2(y1-y0,z1-z0);b.castShadow=true;par.add(b);return b}
-{ // undercarriage: rubber tracks with rollers, sprocket, idler and a dozer blade
-  [-1,1].forEach(sd=>{const x=sd*2.05;
-    exBox(exUnder,1.05,1.3,4.9,exTrackM,x,.65,0);[-1,1].forEach(e=>exCyl(exUnder,.65,1.05,exTrackM,x,.65,e*2.45,'x',18));
-    exBox(exUnder,1.12,.5,4.4,exDk,x,.72,0);
-    for(let k=0;k<4;k++)exCyl(exUnder,.2,.2,exSteel,x+sd*.5,.32,-1.5+k,'x',10);
-    exCyl(exUnder,.5,.2,exSteel,x+sd*.5,.65,-2.45,'x',12);exCyl(exUnder,.42,.2,exSteel,x+sd*.5,.65,2.45,'x',12)});
-  exBox(exUnder,2.9,.7,3.2,exDk,0,.85,0);
-  exBox(exUnder,5.6,.85,.16,exYel,0,.5,3.55);exBox(exUnder,5.6,.12,.3,exSteel,0,.08,3.6);[-1.2,1.2].forEach(x=>exBeam(exUnder,1.4,.8,3.5,.55,.3,.3,exYel,x));
-  exCyl(exUnder,1.55,.25,exDk,0,1.35,0,null,24)}
-{ // upper house: deck, curved counterweight, engine hood, cab
-  exBox(exHouse,4.7,.7,4.4,exYel,0,.4,0);
-  const cw=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,1.45,26,1,false,Math.PI/2,Math.PI),exYel);cw.position.set(0,.98,-.4);cw.castShadow=true;exHouse.add(cw);
-  exBox(exHouse,2.3,1.35,2.6,exYel,-1.15,1.35,-.75);exBox(exHouse,2.32,.08,2.62,exDk,-1.15,2.06,-.75);
-  for(let k=0;k<5;k++)exBox(exHouse,.04,.7,.08,exDk,-2.31,1.35,-1.6+k*.35);
-  exCyl(exHouse,.09,1.3,exSteel,-1.8,2.6,-1.6);
-  const cx=1.15,cz=.35;exBox(exHouse,2.25,.15,2.95,exDk,cx,4.35,cz);
-  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>exBox(exHouse,.12,3.55,.12,exDk,cx+a*1.04,2.58,cz+b*1.38));
-  exBox(exHouse,2,3.3,.04,exGlass,cx,2.6,cz+1.4);exBox(exHouse,.04,3.3,2.7,exGlass,cx+1.06,2.6,cz);exBox(exHouse,.04,1.8,2.7,exGlass,cx-1.06,3.3,cz);exBox(exHouse,2,3.3,.04,exGlass,cx,2.6,cz-1.4);
-  exBox(exHouse,.9,.9,.9,exDk,cx,1.45,cz-.3);exBox(exHouse,.9,1.1,.18,exDk,cx,2.2,cz-.75);
-  const bc=exCyl(exHouse,.12,.2,new THREE.MeshStandardMaterial({color:0xffa31a,emissive:0xff8a00,emissiveIntensity:.8}),cx-.7,4.53,cz-1);bc.castShadow=false;
-  exBox(exHouse,.9,1.2,1.3,exYel,XC.BX,1.05,1.75);exCyl(exHouse,.2,1.1,exSteel,XC.BX,XC.P0[1],XC.P0[0],'x',12);
+// v212: detailed Kowalski mini-ex. Same rig (exUnder / exHouse / boomG / stickG / bucketG, same pins and IK), new bodywork
+const exRub=new THREE.MeshStandardMaterial({color:0x18191b,roughness:.92}),exSeatM=new THREE.MeshStandardMaterial({color:0x1c1d20,roughness:.85}),
+  exLens=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff1d0,emissiveIntensity:.7,roughness:.15}),exTail=new THREE.MeshStandardMaterial({color:0xaa1010,emissive:0x880000,emissiveIntensity:.6,roughness:.2});
+const exV2=(x,y)=>new THREE.Vector2(x,y);
+const exM=(geo,m,par,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x||0,y||0,z||0);o.castShadow=o.receiveShadow=true;par.add(o);return o};
+const exRR=(w,h,r)=>{const s=new THREE.Shape(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s};
+function exRbox(w,h,d,r){r=Math.min(r||.06,w/4,h/4,d/4);const g=new THREE.ExtrudeGeometry(exRR(w-2*r,h-2*r,r*.6),{depth:d-2*r,bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:2,curveSegments:2});g.translate(0,0,-(d-2*r)/2);return g}
+// side profile: shape u -> +z, v -> +y, extruded across x and centred
+function exProf(shape,th,bv){bv=bv==null?.03:bv;const g=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.002,th-2*bv),bevelEnabled:bv>0,bevelThickness:bv,bevelSize:bv,bevelSegments:2,curveSegments:10});g.translate(0,0,-(th-2*bv)/2);g.rotateY(-Math.PI/2);return g}
+const exNrm=(fn,t)=>{const d=fn(Math.min(1,t+1e-3)).sub(fn(Math.max(0,t-1e-3))).normalize();return exV2(-d.y,d.x)};
+function exRib(fn,wf,n){n=n||28;const top=[],bot=[];for(let i=0;i<=n;i++){const t=i/n,p=fn(t),nr=exNrm(fn,t),[a,b]=wf(t);top.push(p.clone().addScaledVector(nr,a));bot.push(p.clone().addScaledVector(nr,-b))}
+  const s=new THREE.Shape(top);for(let i=bot.length-1;i>=0;i--)s.lineTo(bot[i].x,bot[i].y);s.closePath();return s}
+const exBez=(p0,p1,p2)=>t=>{const a=(1-t)*(1-t),b=2*(1-t)*t,c=t*t;return exV2(a*p0.x+b*p1.x+c*p2.x,a*p0.y+b*p1.y+c*p2.y)};
+const exXc=(r,len,seg,rt)=>{const g=new THREE.CylinderGeometry(rt==null?r:rt,r,len,seg||20);g.rotateZ(Math.PI/2);return g};
+function exPin(par,z,y,len,r){exM(exXc(r,len,14),exSteel,par,0,y,z);[-1,1].forEach(s=>exM(exXc(r*1.55,.04,14),exDk,par,s*len/2,y,z))}
+function exTube(pts,r,m,par){return exM(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),40,r,8,false),m,par)}
+const exD=new THREE.Object3D();
+// boom shape: two straight box sections and a tight knee (a dog-leg, not a C); chord runs foot pin -> elbow pin along +z
+const XB=(()=>{const L=XC.L1,K=exV2(L*.5,1.9),P2=exV2(L,0),KR=.55,dA=K.clone().normalize(),dB=P2.clone().sub(K).normalize(),Ka=K.clone().addScaledVector(dA,-KR),Kb=K.clone().addScaledVector(dB,KR),
+  lA=Ka.length(),lK=2*KR*.9,lB=P2.distanceTo(Kb),lT=lA+lK+lB,kc=exBez(Ka,K,Kb),
+  f=t=>{const s=Math.min(1,Math.max(0,t))*lT;if(s<=lA)return dA.clone().multiplyScalar(s);if(s<=lA+lK)return kc((s-lA)/lK);return Kb.clone().addScaledVector(dB,s-lA-lK)},
+  tK=(lA+lK/2)/lT,w=t=>{const b=t<tK?.34+.12*(t/tK):.46-.2*((t-tK)/(1-tK)),v=b+.1*Math.exp(-Math.pow((t-tK)/.07,2));return[v,v]};
+  const pt=(t,off,top)=>{const n=exNrm(f,t);return f(t).addScaledVector(n,(top?1:-1)*(w(t)[0]+off))};
+  return{f,w,tK,K,P2,R0:pt(tK*.72,.22,false),R1:pt(tK*.86,.32,true)}})();
+XC.R0=[XB.R0.x,XB.R0.y];XC.R1=[XB.R1.x,XB.R1.y];
+{ // undercarriage: rubber tracks with moving lugs, idler, sprocket and drive motor, rollers, dozer blade
+  const TR=.65,TC=2.45,TX=2.05,TW=1.05,TB=.13;
+  const sh=new THREE.Shape();sh.moveTo(-TC,0);sh.lineTo(TC,0);sh.absarc(TC,TR,TR,-Math.PI/2,Math.PI/2,false);sh.lineTo(-TC,2*TR);sh.absarc(-TC,TR,TR,Math.PI/2,Math.PI*1.5,false);
+  const ri=TR-TB,h=new THREE.Path();h.moveTo(-TC,TR-ri);h.absarc(-TC,TR,ri,-Math.PI/2,-Math.PI*1.5,true);h.lineTo(TC,TR+ri);h.absarc(TC,TR,ri,Math.PI/2,-Math.PI/2,true);h.lineTo(-TC,TR-ri);sh.holes.push(h);
+  const band=exProf(sh,TW,.02),per=4*TC+2*Math.PI*TR,STEP=.31,NL=Math.floor(per/STEP),lugG=new THREE.BoxGeometry(TW*.92,.09,.17);
+  const tp=s=>{s=((s%per)+per)%per;const L=2*TC,A=Math.PI*TR;if(s<L)return[-TC+s,0,0,-1];s-=L;if(s<A){const a=-Math.PI/2+s/TR;return[TC+TR*Math.cos(a),TR+TR*Math.sin(a),Math.cos(a),Math.sin(a)]}s-=A;
+    if(s<L)return[TC-s,2*TR,0,1];s-=L;const a=Math.PI/2+s/TR;return[-TC+TR*Math.cos(a),TR+TR*Math.sin(a),Math.cos(a),Math.sin(a)]};
+  [-1,1].forEach(sd=>{const x=sd*TX,t=new THREE.Group();t.position.x=x;exUnder.add(t);exM(band,exRub,t);
+    const lugs=new THREE.InstancedMesh(lugG,exRub,NL);lugs.castShadow=lugs.receiveShadow=true;lugs.frustumCulled=false;t.add(lugs);let last=null;
+    const place=()=>{const o=-trackTex.offset.y/.6;if(o===last)return;last=o;for(let i=0;i<NL;i++){const p=tp(i*STEP+o);exD.position.set(0,p[1]+p[3]*.035,p[0]+p[2]*.035);exD.rotation.set(Math.atan2(p[2],p[3]),0,0);exD.updateMatrix();lugs.setMatrixAt(i,exD.matrix)}lugs.instanceMatrix.needsUpdate=true};
+    place();lugs.onBeforeRender=place;
+    exM(exRbox(.42,.62,4.5,.08),exDk,t,-sd*.06,.66,0);exM(exRbox(.2,.22,3.6,.05),exDk,t,-sd*.36,1.0,-.1);
+    exM(exXc(.53,.62,32),exDk,t,0,TR,TC);exM(exXc(.28,.66,24),exSteel,t,0,TR,TC);
+    exM(exXc(.53,.56,32),exDk,t,0,TR,-TC);
+    const teeth=new THREE.InstancedMesh(new THREE.BoxGeometry(.36,.12,.12),exSteel,14);for(let i=0;i<14;i++){const a=i/14*Math.PI*2;exD.position.set(0,TR+Math.sin(a)*.56,-TC+Math.cos(a)*.56);exD.rotation.set(-a,0,0);exD.updateMatrix();teeth.setMatrixAt(i,exD.matrix)}
+    teeth.castShadow=true;teeth.frustumCulled=false;t.add(teeth);
+    exM(exXc(.38,.42,24),exDk,t,-sd*.55,TR,-TC);exM(exXc(.25,.1,20),exSteel,t,-sd*.79,TR,-TC);
+    for(let k=0;k<8;k++){const a=k/8*Math.PI*2;exM(exXc(.03,.06,6),exSteel,t,-sd*.79,TR+Math.sin(a)*.18,-TC+Math.cos(a)*.18)}
+    [-1.35,-.45,.45,1.35].forEach(z=>exM(exXc(.18,.62,16),exSteel,t,0,.24,z));exM(exXc(.13,.4,14),exSteel,t,0,1.13,.1)});
+  exM(exRbox(2.9,.62,3.2,.1),exDk,exUnder,0,.85,0);exM(exRbox(1.2,.45,4.2,.08),exDk,exUnder,0,.78,.2);
+  exM(new THREE.CylinderGeometry(1.5,1.56,.2,40),exDk,exUnder,0,1.27,0);exM(new THREE.CylinderGeometry(1.38,1.38,.22,40),exSteel,exUnder,0,1.44,0);
+  // dozer blade: curved moldboard, cutting edge, ribs, push arms and lift ram
+  const bl=new THREE.Group();bl.position.set(0,.93,2.35);exUnder.add(bl);
+  exM(exProf(exRib(exBez(exV2(1.24,-.85),exV2(.93,-.25),exV2(1.17,.03)),()=>[.045,.045],24),5.6,.02),exYel,bl);
+  exM(exProf(exRib(exBez(exV2(1.26,-.9),exV2(1.25,-.86),exV2(1.22,-.79)),()=>[.07,.07],4),5.6,.01),exWorn,bl);
+  exM(exRbox(5.6,.12,.2,.03),exYel,bl,0,.02,1.2);
+  [-2.3,-1.15,0,1.15,2.3].forEach(x=>exM(exProf(exRib(exBez(exV2(.1,-.2),exV2(.6,-.3),exV2(1.08,-.75)),()=>[.15,.15],8),.12,.02),exYel,bl,x,.15,0));
+  [-1.2,1.2].forEach(x=>{exM(exProf(exRib(exBez(exV2(-.95,.05),exV2(0,.06),exV2(1.0,-.1)),()=>[.2,.2],8),.24,.03),exYel,bl,x,0,0);exPin(bl,-.95,.05,.42,.09)});
+  {const A=new THREE.Vector3(0,.95,1.2),B=new THREE.Vector3(0,1.15,3.2),d=B.clone().sub(A),L=d.length(),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
+   const bg=new THREE.CylinderGeometry(.13,.13,L*.6,18);bg.translate(0,L*.3,0);const b=exM(bg,exYel,exUnder,A.x,A.y,A.z);b.quaternion.copy(q);
+   const rg=new THREE.CylinderGeometry(.065,.065,L*.5,12);rg.translate(0,L*.75,0);const r=exM(rg,exChrome,exUnder,A.x,A.y,A.z);r.quaternion.copy(q)}}
+{ // upper house: deck, dark counterweight, engine hood with louvres, tank, swing bracket, glass cab with seat and controls
+  exM(exRbox(4.7,.55,4.3,.12),exYel,exHouse,0,.42,0);exM(exRbox(4.5,.18,4.1,.06),exDk,exHouse,0,.1,0);
+  const sector=(rIn,rOut,a,hgt,bv)=>{const s=new THREE.Shape(),a0=Math.PI/2-a/2,a1=Math.PI/2+a/2;s.absarc(0,0,rOut,a0,a1,false);s.absarc(0,0,rIn,a1,a0,true);
+    const g=new THREE.ExtrudeGeometry(s,{depth:hgt-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelSegments:2,curveSegments:28});g.rotateX(-Math.PI/2);g.translate(0,bv,0);return g};
+  exM(sector(1.75,2.34,2.0,1.45,.06),exDk,exHouse,0,.25,-.4);exM(sector(1.8,2.3,1.96,.12,.03),exYel,exHouse,0,1.68,-.4);
+  [-1,1].forEach(s=>{const a=Math.PI+s*.85,l=exM(exRbox(.3,.14,.08,.03),exTail,exHouse,Math.sin(a)*2.4,1.45,-.4+Math.cos(a)*2.4);l.rotation.y=a});
+  // engine hood (left rear, behind the boom)
+  const hd=new THREE.Group();hd.position.set(-1.15,0,-.75);exHouse.add(hd);
+  exM(exRbox(2.3,1.4,2.6,.2),exYel,hd,0,1.35,0);exM(exRbox(2.0,.08,2.2,.04),exDk,hd,0,2.06,-.05);
+  const sl=new THREE.InstancedMesh(new THREE.BoxGeometry(.04,.08,1.6),exDk,9);for(let i=0;i<9;i++){exD.position.set(-1.16,.85+i*.11,-.1);exD.rotation.set(0,0,0);exD.updateMatrix();sl.setMatrixAt(i,exD.matrix)}sl.frustumCulled=false;hd.add(sl);
+  exM(exRbox(.05,1.15,1.85,.03),exDk,hd,-1.14,1.3,-.1);
+  exM(new THREE.CylinderGeometry(.09,.09,1.1,16),exDk,hd,-.65,2.55,-.55);{const c=exM(new THREE.CylinderGeometry(.12,.12,.03,16),exSteel,hd,-.65,3.12,-.53);c.rotation.x=-.4}
+  exTube([new THREE.Vector3(-2.28,1.3,.45),new THREE.Vector3(-2.38,2.2,.35),new THREE.Vector3(-2.38,2.2,-1.75),new THREE.Vector3(-2.28,1.3,-1.95)],.04,exDk,exHouse);
+  // hydraulic tank, left front
+  exM(exRbox(1.3,1.25,1.35,.14),exYel,exHouse,-1.6,1.15,1.35);exM(new THREE.CylinderGeometry(.12,.13,.1,16),exDk,exHouse,-1.6,1.82,1.45);exM(exRbox(.05,.45,.1,.02),exChrome,exHouse,-2.26,1.15,1.6);
+  // swing bracket and boom foot
+  exM(exRbox(.95,1.25,1.2,.14),exYel,exHouse,XC.BX,1.05,1.65);exM(new THREE.CylinderGeometry(.16,.16,1.55,18),exSteel,exHouse,XC.BX,1.05,1.2);
+  [-1,1].forEach(s=>{exM(exRbox(.12,1.0,1.0,.04),exYel,exHouse,XC.BX+s*.44,1.25,2.05);exM(exRbox(.1,.55,.55,.03),exYel,exHouse,XC.BX+s*.24,.55,2.55)});
+  exM(exXc(.3,1.0,22),exYel,exHouse,XC.BX,XC.P0[1],XC.P0[0]);exM(exXc(.17,1.1,14),exSteel,exHouse,XC.BX,XC.P0[1],XC.P0[0]);exM(exXc(.1,.6,12),exSteel,exHouse,XC.BX,.5,2.55);
+  // cab
+  const cx=1.15,cz=.35,cab=new THREE.Group();cab.position.set(cx,0,cz);exHouse.add(cab);
+  exM(exRbox(2.18,.14,2.86,.05),exDk,cab,0,.8,0);
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>exM(exRbox(.14,3.5,.14,.04),exDk,cab,a*1.04,2.55,b*1.38));
+  exM(exRbox(2.42,.17,3.1,.07),exDk,cab,0,4.38,.06);exM(exRbox(2.0,.07,2.6,.03),exYel,cab,0,4.49,.04);
+  exM(exRbox(.12,.12,2.7,.04),exDk,cab,1.04,1.95,0);exM(exRbox(2.0,.1,.1,.03),exDk,cab,0,1.75,1.38);exM(exRbox(.1,3.3,.1,.03),exDk,cab,1.04,2.55,-.2);
+  const pane=(w,hh,x,y,z,ry)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,hh),exGlass);p.position.set(x,y,z);p.rotation.y=ry;p.renderOrder=2;exGlass.side=THREE.DoubleSide;cab.add(p)};
+  pane(1.95,2.5,0,3.05,1.37,0);pane(1.95,.85,0,1.3,1.37,0);pane(1.95,3.3,0,2.6,-1.37,0);pane(2.6,3.3,1.03,2.6,0,Math.PI/2);pane(2.6,2.0,-1.03,3.25,0,Math.PI/2);
+  exM(exRbox(.05,.06,.35,.02),exSteel,cab,1.11,2.35,.8);{const w=exM(exRbox(.03,1.5,.03,.01),exDk,cab,.25,2.9,1.4);w.rotation.z=.35}
+  exTube([new THREE.Vector3(1.12,1.0,1.2),new THREE.Vector3(1.22,1.3,1.27),new THREE.Vector3(1.22,3.0,1.27),new THREE.Vector3(1.12,3.3,1.2)],.035,exYel,cab);
+  exTube([new THREE.Vector3(1.04,3.6,1.38),new THREE.Vector3(1.4,3.78,1.6),new THREE.Vector3(1.55,3.6,1.66)],.025,exDk,cab);{const mr=exM(exRbox(.36,.48,.07,.03),exDk,cab,1.58,3.38,1.66);mr.rotation.y=-.5}
+  exM(new THREE.CylinderGeometry(.15,.17,.1,20),exDk,cab,-.7,4.52,-1);{const b=exM(new THREE.SphereGeometry(.15,20,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0xffa31a,emissive:0xff8a00,emissiveIntensity:.9,transparent:true,opacity:.9,roughness:.2}),cab,-.7,4.56,-1);b.scale.y=1.35;b.castShadow=false}
+  [-.6,.6].forEach(dx=>{exM(exRbox(.34,.22,.16,.04),exDk,cab,dx,4.28,1.55);const l=new THREE.Mesh(new THREE.PlaneGeometry(.28,.16),exLens);l.position.set(dx,4.28,1.635);cab.add(l)});
+  exM(exRbox(.7,.7,.7,.06),exDk,cab,0,1.22,-.3);exM(exRbox(.95,.26,.9,.1),exSeatM,cab,0,1.72,-.3);{const bk=exM(exRbox(.9,1.15,.2,.08),exSeatM,cab,0,2.38,-.8);bk.rotation.x=-.12}
+  [-1,1].forEach(s=>{exM(exRbox(.26,.25,.95,.05),exDk,cab,s*.62,1.85,-.2);exM(new THREE.CylinderGeometry(.03,.04,.38,10),exDk,cab,s*.62,2.15,.12);exM(new THREE.SphereGeometry(.07,12,10),exDk,cab,s*.62,2.36,.12)});
+  [-.18,.18].forEach(x=>{const lv=exM(new THREE.CylinderGeometry(.025,.025,1.0,8),exDk,cab,x,1.3,1.05);lv.rotation.x=-.35});
+  exM(exRbox(.5,.08,.35,.03),exSteel,exHouse,2.45,.25,1.4);
+  if(kDecalM){const d=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.1),kDecalM);d.position.set(0,1.0,-2.82);d.rotation.y=Math.PI;exHouse.add(d)}
   exHouse.position.y=XC.HY}
-{ // boom: a bent box section, chord along +z from the foot pin to the elbow pin
-  const L=XC.L1,ky=1.05,kz=L*.46;exBeam(boomG,0,0,kz,ky,.62,.78,exYel);exBeam(boomG,kz,ky,L,0,.56,.7,exYel);exCyl(boomG,.5,.66,exYel,0,ky*.92,kz,'x',14);
-  exCyl(boomG,.17,.9,exSteel,0,0,L,'x',12);exBox(boomG,.7,.35,.5,exYel,0,-.35,L*.38);exBox(boomG,.7,.45,.5,exYel,0,ky+.3,kz-.3);
-  boomG.position.x=XC.BX;exHouse.add(boomG);
-  // stick: runs past the elbow pin at the back so the cylinder has something to push
-  exBeam(stickG,-.85,.35,XC.L2,0,.48,.58,exYel);exBox(stickG,.5,.42,.4,exYel,0,.62,-.75);exCyl(stickG,.15,.75,exSteel,0,0,XC.L2,'x',12);
+{ // boom, stick and bucket
+  const L=XC.L1,f=XB.f,w=XB.w,BT=.62;
+  exM(exProf(exRib(f,w,48),BT,.05),exYel,boomG);exM(exXc(.42,BT+.06,26),exYel,boomG);exPin(boomG,0,0,1.15,.17);
+  [-1,1].forEach(s=>{exM(exProf(exRib(exBez(exV2(L-.8,.2),exV2(L-.35,.08),exV2(L,0)),()=>[.3,.3],6),.1,.025),exYel,boomG,s*.3,0,0);exM(exXc(.3,.1,24),exYel,boomG,s*.3,0,L)});
+  exPin(boomG,L,0,.9,.15);
+  [XB.R0,XB.R1].forEach(p=>{[-1,1].forEach(s=>exM(exRbox(.08,.5,.5,.03),exYel,boomG,s*.22,p.y,p.x));exPin(boomG,p.x,p.y,.62,.1)});
+  [-.17,.17].forEach(x=>{const pts=[new THREE.Vector3(x*1.3,-.4,-.6)];for(let i=0;i<=12;i++){const t=.03+i*.075,n=exNrm(f,t),p=f(t).addScaledVector(n,w(t)[0]+.07);pts.push(new THREE.Vector3(x,p.y,p.x))}exTube(pts,.055,exRub,boomG)});
+  [.22,.6,.82].forEach(t=>{const n=exNrm(f,t),p=f(t).addScaledVector(n,w(t)[0]+.06),c=exM(exRbox(.52,.08,.12,.02),exDk,boomG,0,p.y,p.x);c.rotation.x=-Math.atan2(n.x,n.y)});
+  {const t=XB.tK*.7,p=f(t),g=new THREE.Group();g.position.set(-.36,p.y+.15,p.x);g.rotation.x=.3;boomG.add(g);exM(exRbox(.18,.28,.34,.04),exDk,g);const l=new THREE.Mesh(new THREE.PlaneGeometry(.24,.22),exLens);l.position.z=.175;g.add(l)}
+  {const t0=(1+XB.tK)/2,p=f(t0),tg=f(t0+.01).sub(f(t0-.01));[1,-1].forEach(sd=>{const d=new THREE.Mesh(new THREE.PlaneGeometry(2.55,.85),boomDecalM);d.position.set(sd*(BT/2+.012),p.y,p.x);d.rotation.set(-Math.atan2(tg.y,tg.x),sd*Math.PI/2,0,'XYZ');boomG.add(d)})}
+  boomG.userData.decal=true;boomG.position.x=XC.BX;exHouse.add(boomG);
+  // stick: runs past the elbow pin at the back so the ram has something to push
+  const L2=XC.L2,sf=exBez(exV2(-.95,.3),exV2(2,.12),exV2(L2,0)),ST=.48;
+  exM(exProf(exRib(sf,t=>{const v=.42-.17*t;return[v,v]},28),ST,.04),exYel,stickG);
+  exM(exXc(.32,ST+.06,24),exYel,stickG);exM(exXc(.27,ST+.02,24),exYel,stickG,0,0,L2);exPin(stickG,L2,0,1.0,.13);
+  exM(exRbox(.4,.42,.45,.07),exYel,stickG,0,.55,-.75);exPin(stickG,-.75,.62,.62,.09);
+  exM(exRbox(.36,.4,.5,.07),exYel,stickG,0,.42,.35);exPin(stickG,.35,.5,.6,.085);
+  exM(exRbox(ST+.03,.1,1.8,.03),exDk,stickG,0,-.25,L2-1.5);
+  [-.12,.12].forEach(x=>exTube([new THREE.Vector3(x,.55,-.4),new THREE.Vector3(x,.46,1.0),new THREE.Vector3(x,.4,2.4),new THREE.Vector3(x,.32,3.6)],.045,exRub,stickG));
   stickG.position.x=XC.BX;exHouse.add(stickG);
-  // bucket: a curved shell, side plates, cutting edge and five teeth; opening faces the machine
-  const R=XC.BR,W=XC.BW;const sh=new THREE.CylinderGeometry(R,R,W,18,1,true,0,Math.PI);sh.rotateZ(Math.PI/2);sh.translate(0,0,R);const shell=new THREE.Mesh(sh,exBucketM);shell.castShadow=true;bucketG.add(shell);
-  [-1,1].forEach(s=>{const pg=new THREE.CircleGeometry(R,18,0,Math.PI);pg.rotateY(Math.PI/2);const p=new THREE.Mesh(pg,exBucketM);p.position.set(s*W/2,0,R);p.castShadow=true;bucketG.add(p);
-    exBox(bucketG,.08,.5,.55,exSteel,s*.28,.42,.12)});
-  exBox(bucketG,W+.04,.06,.32,exWorn,0,-.12,2*R+.02).rotation.x=1.35;
-  for(let t=0;t<5;t++){const tg=new THREE.ConeGeometry(.08,.34,4);tg.rotateX(Math.PI/2);const tooth=new THREE.Mesh(tg,exWorn);tooth.position.set(-W/2+.18+t*(W-.36)/4,-.3,2*R+.05);tooth.rotation.x=1.35;tooth.castShadow=true;bucketG.add(tooth)}
-  exBox(bucketG,W,.12,.3,exSteel,0,.62,R*.35);
-  const ld=new THREE.Mesh(new THREE.SphereGeometry(1,14,8,0,Math.PI*2,0,Math.PI/2),pileDirtM);ld.scale.set(.88,.42,.6);ld.rotation.x=Math.PI;ld.position.set(0,0,R);bucketG.add(ld);bucketG.userData.load=ld;
+  // bucket: curved shell, side plates with wear cheeks, cutting edge, five teeth; opening faces the machine, teeth at (z 1.53, y -.45)
+  const bk=new THREE.Group();bk.scale.setScalar(2.8);bk.rotation.x=-.599;bucketG.add(bk);
+  const BWm=XC.BW/2.8,oc=new THREE.CatmullRomCurve3([new THREE.Vector3(-.04,.1,0),new THREE.Vector3(.22,.14,0),new THREE.Vector3(.44,.04,0),new THREE.Vector3(.54,-.16,0),new THREE.Vector3(.49,-.34,0),new THREE.Vector3(.36,-.44,0)]),
+    of=t=>{const p=oc.getPoint(Math.min(1,Math.max(0,t)));return exV2(p.x,p.y)};
+  const sp=new THREE.Shape();for(let i=0;i<=30;i++){const p=of(i/30);i?sp.lineTo(p.x,p.y):sp.moveTo(p.x,p.y)}sp.lineTo(.3,-.36);sp.lineTo(.02,-.06);sp.lineTo(-.04,.1);
+  [-1,1].forEach(s=>{exM(exProf(sp,.022,.005),exBucketM,bk,s*BWm/2,0,0);exM(exProf(exRib(exBez(exV2(.42,-.3),exV2(.39,-.37),exV2(.33,-.42)),()=>[.03,.03],6),.03,.006),exWorn,bk,s*(BWm/2+.006),0,0)});
+  exM(exProf(exRib(of,()=>[0,.016],40),BWm-.01,.005),exBucketM,bk);
+  exM(exProf(exRib(t=>of(.88+t*.12),()=>[.004,.024],8),BWm+.02,.006),exWorn,bk);
+  [-.18,.18].forEach(x=>exM(exProf(exRib(t=>of(.35+t*.45),()=>[.012,0],16),.06,.004),exWorn,bk,x*BWm/.56,0,0));
+  const tip=of(1),dir=tip.clone().sub(of(.95)).normalize(),tgeo=new THREE.CylinderGeometry(.004,.032,.11,4);tgeo.rotateY(Math.PI/4);tgeo.scale(1,1,.45);
+  for(let i=0;i<5;i++){const x=(-.4+i*.2)*BWm,g=new THREE.Group();g.position.set(x,tip.y,tip.x);g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(0,dir.y,dir.x));bk.add(g);exM(exRbox(.06,.06,.04,.01),exWorn,g);exM(tgeo,exWorn,g,0,.07,0)}
+  [-1,1].forEach(s=>{exM(exProf(exRib(exBez(exV2(0,0),exV2(-.02,.3),exV2(-.1,.55)),()=>[.16,.16],8),.08,.02),exYel,bucketG,s*.3,0,0);exM(exXc(.2,.08,20),exYel,bucketG,s*.3,0,0);exM(exXc(.15,.08,20),exYel,bucketG,s*.3,.55,-.1)});
+  exPin(bucketG,0,0,.75,.11);exPin(bucketG,-.1,.55,.7,.08);exM(exRbox(XC.BW-.1,.12,.5,.04),exYel,bucketG,0,.38,.25).rotation.x=.5;
+  const ld=new THREE.Mesh(new THREE.SphereGeometry(1,14,8,0,Math.PI*2,0,Math.PI/2),pileDirtM);ld.scale.set(.88,.42,.6);ld.rotation.x=Math.PI;ld.position.set(0,0,XC.BR);bucketG.add(ld);bucketG.userData.load=ld;
   bucketG.position.x=XC.BX;exHouse.add(bucketG)}
-{ // detail: hydraulic hoses, handrails, work lights, mirror, logo on the counterweight
-  const hoseM=new THREE.MeshStandardMaterial({color:0x111111,roughness:.6});const L=XC.L1,ky=1.05,kz=L*.46;
-  [-.17,.17].forEach(x=>{exBeam(boomG,.3,.5,kz,ky+.42,.07,.07,hoseM,x);exBeam(boomG,kz,ky+.42,L-.3,.42,.07,.07,hoseM,x);exBeam(stickG,-.7,.62,XC.L2-.6,.32,.06,.06,hoseM,x)});
-  const rl=(a,b)=>{const A=new THREE.Vector3(...a),B2=new THREE.Vector3(...b),d=B2.clone().sub(A),c=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,d.length(),6),exYel);c.position.copy(A).add(B2).multiplyScalar(.5);c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());exHouse.add(c)};
-  rl([2.25,2.1,-2.0],[2.25,2.6,-2.0]);rl([2.25,2.1,.5],[2.25,2.6,.5]);rl([2.25,2.6,-2.0],[2.25,2.6,.5]);
-  const lm=new THREE.MeshStandardMaterial({color:0xfffbe8,emissive:0x8a8470,roughness:.2});[-.6,.6].forEach(dx=>{const w=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.12),lm);w.position.set(-1.15+dx,4.5,1.75);exHouse.add(w)});
-  const bl=new THREE.Mesh(new THREE.BoxGeometry(.25,.18,.1),lm);bl.position.set(0,1.0+L*.2,L*.3);boomG.add(bl);
-  rl([-2.2,3.4,1.6],[-2.55,3.7,1.9]);const mr=new THREE.Mesh(new THREE.BoxGeometry(.08,.5,.35),exChrome);mr.position.set(-2.6,3.75,1.95);exHouse.add(mr);
-  if(kDecalM){const d=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.1),kDecalM);d.position.set(0,1.05,-2.81);d.rotation.y=Math.PI;exHouse.add(d)}}
 // hydraulic rams: barrel on one end, chrome rod on the other, laid in the boom's plane each frame
-function mkRam(r,bl,x){const bg=new THREE.CylinderGeometry(r,r,1,12);bg.rotateX(Math.PI/2);const rg=new THREE.CylinderGeometry(r*.48,r*.48,1,10);rg.rotateX(Math.PI/2);
+function mkRam(r,bl,x){const bg=new THREE.CylinderGeometry(r,r,1,20);bg.rotateX(Math.PI/2);const rg=new THREE.CylinderGeometry(r*.5,r*.5,1,14);rg.rotateX(Math.PI/2);
   const b=new THREE.Mesh(bg,exYel),rd=new THREE.Mesh(rg,exChrome);b.castShadow=rd.castShadow=true;exHouse.add(b,rd);return{b,rd,bl,x}}
-const rams=[mkRam(.19,2.6,XC.BX),mkRam(.16,2.4,XC.BX),mkRam(.14,2,XC.BX)];
+const rams=[mkRam(.2,2.6,XC.BX),mkRam(.17,2.4,XC.BX),mkRam(.14,2,XC.BX)];
 function ramSet(R,A,B){const dz=B[0]-A[0],dy=B[1]-A[1],L=Math.max(.3,Math.hypot(dz,dy)),a=Math.atan2(dy,dz),c=Math.cos(a),s=Math.sin(a),bl=Math.min(L*.7,R.bl),rl=Math.max(.2,L-bl*.8);
   R.b.position.set(R.x,A[1]+s*bl/2,A[0]+c*bl/2);R.b.rotation.x=-a;R.b.scale.z=bl;R.rd.position.set(R.x,B[1]-s*rl/2,B[0]-c*rl/2);R.rd.rotation.x=-a;R.rd.scale.z=rl}
 exG.add(exUnder,exHouse);exG.visible=false;scene.add(exG);
@@ -8755,7 +8839,7 @@ const bitDm=new THREE.Object3D();
 function updateBits(dt){let n=0;for(const b of bits){if(!b.on)continue;b.vy-=28*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;b.r+=dt*6;if(b.y<-.75){b.on=false;continue}
   bitDm.position.set(b.x,b.y,b.z);bitDm.rotation.set(b.r,b.r*.7,0);bitDm.scale.set(b.s,b.s*.75,b.s);bitDm.updateMatrix();bitsIM.setMatrixAt(n++,bitDm.matrix)}
   bitsIM.count=n;bitsIM.instanceMatrix.needsUpdate=true}
-let exBusy=false,exBuckets=0,exPark=null,exPos=[0,0],exTY=0,exHY=0,exT=null,exA3=-2.2,exRest=true,exLoad=0,exDumpT=0,exPrevDown=false;
+let exIdle=null,exBusy=false,exBuckets=0,exPark=null,exPos=[0,0],exTY=0,exHY=0,exT=null,exA3=-2.2,exRest=true,exLoad=0,exDumpT=0,exPrevDown=false;
 function exOk(x,z,drive){if(!blkFree(x,z,3.2*EXS))return false;if(drive){if(Math.abs(x-RCX)>RW/2+40||Math.abs(z-RCZ)>RD/2+40)return false;return !obst.some(o=>x>o[0]-3&&x<o[2]+3&&z>o[1]-3&&z<o[3]+3)}const q=nearestOnPoly(x,z),cl=(LV&&LV.wall?(LV.zoneOff!=null?LV.zoneOff:2)+3.8:3.7)*(.55+.45*EXS);if(pointInPoly(x,z,SHAPE)||q[2]<cl||(zoneI&&pointInPoly(x,z,zoneI)))return false;return !obst.some(o=>x>o[0]-3&&x<o[2]+3&&z>o[1]-3&&z<o[3]+3)}
 // anything solid on the lot (house, garage, trees, shed, parked trucks) as 2D boxes, so machines and piles never land inside it
 let siteBlk=[];
@@ -8777,7 +8861,7 @@ function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}c
     for(let x=RCX-hw-28;x<=RCX+hw+28;x+=1.5)for(let z=RCZ-hd-28;z<=RCZ+hd+28;z+=1.5){if(!blkFree(x,z,r)||obst.some(o=>x>o[0]-3&&x<o[2]+3&&z>o[1]-3&&z<o[3]+3))continue;
       const q=nearestOnPoly(x,z),inP=pointInPoly(x,z,SHAPE),camSide=(cssW<cssH*1.05)?x<RCX-hw-1:z>RCZ+hd+1,sc=Math.abs(q[2]-cl)+(inP?25:0)+(q[2]<cl&&!inP?(cl-q[2])*3:0)+(camSide?18:0);if(sc<bs){bs=sc;best=[x,z]}}
     exPark=best}
-  exPark=exPark||c[0];exPos=[exPark[0],exPark[1]];exTY=exHY=Math.atan2(RCX-exPos[0],RCZ-exPos[1]);exT=null;exA3=-2.2;exRest=true;
+  exPark=exPark||c[0];exPos=[exPark[0],exPark[1]];exTY=exHY=Math.atan2(RCX-exPos[0],RCZ-exPos[1]);exT=null;exIdle=null;exA3=-2.2;exRest=true;
   const out=[exPark[0]-RCX,exPark[1]-RCZ],ol=Math.hypot(out[0],out[1])||1,sx=-out[1]/ol,sz=out[0]/ol;
   const sp=[exPark[0]+sx*7*EXS+out[0]/ol*1.5,exPark[1]+sz*7*EXS+out[1]/ol*1.5],gp=[exPark[0]-sx*7*EXS+out[0]/ol*1.5,exPark[1]-sz*7*EXS+out[1]/ol*1.5];
   {const r=3.2*(.75+.25*EXS),s2=pileSpot(sp,r,null),g2=pileSpot(gp,r*1.25,s2);spoilPile.position.set(s2[0],-.3,s2[1]);gravPile.position.set(g2[0],-.3,g2[1])}
@@ -8791,7 +8875,7 @@ function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=t
   const E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)],a2=Math.atan2(P0[1]+py-E[1],P0[0]+pr-E[0]),P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)];
   boomG.position.set(XC.BX,P0[1],P0[0]);boomG.rotation.x=-a1;stickG.position.set(XC.BX,E[1],E[0]);stickG.rotation.x=-a2;bucketG.position.set(XC.BX,P[1],P[0]);bucketG.rotation.x=-a3;
   const at=(O,a,s2,n2)=>[O[0]+s2*Math.cos(a)-n2*Math.sin(a),O[1]+s2*Math.sin(a)+n2*Math.cos(a)];
-  ramSet(rams[0],[2.55,.5],at(P0,a1,L1*.42,-.42));ramSet(rams[1],at(P0,a1,L1*.42,1.25),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
+  ramSet(rams[0],[2.55,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
   const tip=at(P,a3,s,nn);return[exPos[0]+(fx*tip[0]+Math.cos(hy)*XC.BX)*EXS,exY+(XC.HY+tip[1])*EXS,exPos[1]+(fz*tip[0]-Math.sin(hy)*XC.BX)*EXS]}
 function exPose(dt,t,snap){exG.position.set(exPos[0],exY=exGround(),exPos[1]);exUnder.rotation.y=exTY;exHouse.rotation.y=exHY;
   if(!exT){const f=[Math.sin(exHY),Math.cos(exHY)];exT=[exPos[0]+f[0]*7.5*EXS,.6,exPos[1]+f[1]*7.5*EXS]}
@@ -8801,13 +8885,13 @@ function updateExcavator(dt,t,k){
   if(down){const X=wx(ptr.x),Z=wz(ptr.y),i=cellAt(X,Z);
     if(grav){const y=gravY(gravF[i]||0,0)+.55+.12*Math.sin(t*.006);des=[X,y,Z];a3=-1.05+.3*Math.sin(t*.005);exLoad=gravLeft>0?Math.max(.25,exLoad):0}
     else{const y=pitY(Math.min(1,digD[i]+.06))+.04+.12*Math.sin(t*.007+1);des=[X,y,Z];a3=-1.8+.55*Math.sin(t*.007)}
-    exRest=false;exDumpT=0}
+    exRest=false;exDumpT=0;exIdle=null}
   else{if(exPrevDown)exDumpT=grav?1.6:(exLoad>.05?1.8:0);exDumpT=Math.max(0,exDumpT-dt);
     const pile=grav?gravPile:spoilPile,pr=Math.hypot(pile.position.x-exPos[0],pile.position.z-exPos[1]);
     if(exDumpT>0&&pr<15){const ph=grav?1-exDumpT/1.6:1-exDumpT/1.8;
       if(grav){des=[pile.position.x,-.1+ph*.9,pile.position.z];a3=ph<.5?-1.2:-2.5;if(ph>.45)exLoad=1}
       else{const dt2=dumpT.visible&&dumpT.userData.phase==='park'?dumpT.localToWorld(new THREE.Vector3(0,0,dumpT.userData.bz)):null;des=dt2?[dt2.x,(dumpT.userData.by+dumpT.userData.bh)*dumpT.userData.k+1.6+Math.min(1,ph*3)*.6,dt2.z]:[pile.position.x,1.6+Math.min(1,ph*3)*1.2,pile.position.z];a3=ph<.4?-2.6:-.45;if(ph>.55&&exLoad>0){if(dt2)dumpAdd(dt*2.5*Math.max(8,digVolTot()/14));spawnBits(...exSolve(des[0],des[1],des[2],a3),4,.8);exLoad=Math.max(0,exLoad-dt*2.5)}}}
-    else{const f=[Math.sin(exHY),Math.cos(exHY)];des=[exPos[0]+f[0]*7*EXS,.5,exPos[1]+f[1]*7*EXS];a3=-2.3;if(!grav)exLoad=0}}
+    else{if(!exIdle){const f=[Math.sin(exHY),Math.cos(exHY)];exIdle=[exPos[0]+f[0]*7*EXS,.5,exPos[1]+f[1]*7*EXS,exHY]}des=exIdle.slice(0,3);a3=-2.3;if(!grav)exLoad=0}}
   exPrevDown=down;
   // track: drive so the target stays within reach, never onto the pad or into the house
   const hx=des[0]-exPos[0],hz=des[2]-exPos[1],hd=Math.hypot(hx,hz)||1e-6;
@@ -8817,6 +8901,7 @@ function updateExcavator(dt,t,k){
       const tx=-hz/hd,tz=hx/hd,s2=Math.sign(tx*(des[0]-exPos[0])+tz*(des[2]-exPos[1])||1)*6.5*dt*.6;if(exOk(exPos[0]+tx*s2,exPos[1]+tz*s2,1)){exPos=[exPos[0]+tx*s2,exPos[1]+tz*s2];trackTex.offset.y+=Math.abs(s2)*.6}}}
   // swing: the upper house turns toward the bucket's line, with the boom offset to the right of centre
   const dd=Math.hypot(des[0]-exPos[0],des[2]-exPos[1])||1,want=Math.atan2(des[0]-exPos[0],des[2]-exPos[1])-Math.asin(Math.max(-.5,Math.min(.5,XC.BX*EXS/dd)));
+  if(exIdle&&!down&&!(exDumpT>0))want=exIdle[3];// parked: the house holds its heading until you use it
   exHY+=Math.max(-2.4*dt,Math.min(2.4*dt,angDiff(exHY,want)));
   if(!exT)exT=des.slice();const kk=1-Math.pow(.004,dt);for(let q=0;q<3;q++)exT[q]+=(des[q]-exT[q])*kk;exA3+=(a3-exA3)*(1-Math.pow(.01,dt));
   let tip=exPose(dt,t);
@@ -9831,7 +9916,7 @@ function surfAt(X,Z,grav){const i=cellAt(X,Z);if(i<0||i>=N||!PM[i])return -.3;re
 function exFK(a1,a2,a3){const P0=XC.P0,L1=XC.L1,L2=XC.L2,E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)],P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)];
   boomG.position.set(XC.BX,P0[1],P0[0]);boomG.rotation.x=-a1;stickG.position.set(XC.BX,E[1],E[0]);stickG.rotation.x=-a2;bucketG.position.set(XC.BX,P[1],P[0]);bucketG.rotation.x=-a3;
   const at=(O,a,s2,n2)=>[O[0]+s2*Math.cos(a)-n2*Math.sin(a),O[1]+s2*Math.sin(a)+n2*Math.cos(a)];
-  ramSet(rams[0],[2.55,.5],at(P0,a1,L1*.42,-.42));ramSet(rams[1],at(P0,a1,L1*.42,1.25),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
+  ramSet(rams[0],[2.55,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
   const s=XC.BR*2+.05,tip=at(P,a3,s,-.45),hy=exHY;return[exPos[0]+(Math.sin(hy)*tip[0]+Math.cos(hy)*XC.BX)*EXS,exY+(XC.HY+tip[1])*EXS,exPos[1]+(Math.cos(hy)*tip[0]-Math.sin(hy)*XC.BX)*EXS]}
 function bucketPts(a1,a2,a3){const P0=XC.P0,L1=XC.L1,L2=XC.L2,R=XC.BR,E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)],P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)],hy=exHY,sh=Math.sin(hy),ch=Math.cos(hy);
   const hw=XC.BW*.5*(BUCKETS[exBkt]?BUCKETS[exBkt].w:1)*.88,out=[];// across the full cutting width, not just the centre line
