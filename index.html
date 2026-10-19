@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v204: ground and forms around the slab: lumpy stones and clods (4 shapes, mostly small) instead of polyhedra, boot prints in the dug ring, cut sod edge with grass right up to it, nail heads on stakes, grade stamps on some form boards, concrete splatter on form tops as the mud reaches them. -->
 <!-- v203: 45 jobs reshaped so they aren't all rectangles or clones: driveways get street flares, tapers, angles, curves, parking widenings, a turnaround, planter notches; patios get L-shapes, bump-outs, bowed or rounded yard edges, clipped corners, an octagon plaza; sidewalks get tree wells with trees, a café bump-out, curb bump-outs, a winding ruelle; floors get foundation jogs, a corner-entrance dépanneur, a hangar door apron, new sizes, with foundation walls built to follow any outline; garden paths get different curves. -->
 <!-- v202: step grade pop moved out of the middle: a small pill just above the bottom panel. -->
 <!-- v201: inspector taken out too: no inspector visits on jobs or the job board, model never loads. -->
@@ -2163,12 +2164,14 @@ const blob=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMateri
 const wood=photoTex(woodTex(),'board',1);const woodM=new THREE.MeshStandardMaterial({map:wood,roughness:.85});
 const FT=.125,FH=.46,FY=.02-FH/2;
 function form(w,d,x,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,FH,d),woodM);m.position.set(x,FY,z);m.castShadow=m.receiveShadow=true;siteG.add(m)}
-const stakeM=new THREE.MeshStandardMaterial({color:0xb08a5c,map:wood,roughness:.9});
+const stakeM=new THREE.MeshStandardMaterial({color:0x9c8b74,map:wood,roughness:.92});
 const rebarM=new THREE.MeshStandardMaterial({color:0x4a3a30,roughness:.7,metalness:.4}),chairM=new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.6});
 // forms, stakes, kickers, dirt, base and rebar follow each job's outline
 const kick=(x,z,dx,dz)=>{const L=.72,an=.5,hz=Math.cos(an)*L/2,vy=Math.sin(an)*L/2,k=new THREE.Mesh(new THREE.BoxGeometry(.11,.07,L),stakeM);k.position.set(x+dx*(.07+hz),.01-vy,z+dz*(.07+hz));k.rotation.y=Math.atan2(dx,dz);k.rotateX(an);k.castShadow=true;siteG.add(k);
   const g=new THREE.Mesh(new THREE.BoxGeometry(.1,.42,.1),stakeM);g.position.set(x+dx*(.12+2*hz),-.27,z+dz*(.12+2*hz));g.castShadow=true;siteG.add(g)};
-const stake=(x,z,rotY)=>{const k=new THREE.Mesh(new THREE.BoxGeometry(.15,.72,.12),stakeM);k.position.set(x,-.34,z);k.rotation.y=rotY||0;k.castShadow=true;siteG.add(k)};
+const NAILG=new THREE.CylinderGeometry(.022,.022,.02,8).rotateX(Math.PI/2);
+const stake=(x,z,rotY)=>{const k=new THREE.Mesh(new THREE.BoxGeometry(.15,.72,.12),stakeM);k.position.set(x,-.34,z);k.rotation.y=rotY||0;k.castShadow=true;siteG.add(k);
+  [.24,.06].forEach((y,i)=>{const nl=new THREE.Mesh(NAILG,EDGE.nailM);nl.position.set((i?.03:-.03),y,.065);k.add(nl)})};
 function flatShape(P,mat,y,H){const sh=new THREE.Shape();P.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));if(H){const hp=new THREE.Path();H.forEach((p,i)=>i?hp.lineTo(p[0],-p[1]):hp.moveTo(p[0],-p[1]));sh.holes.push(hp)}const g=new THREE.ShapeGeometry(sh);g.rotateX(-Math.PI/2);
   const uv=g.attributes.uv,ps=g.attributes.position;for(let i=0;i<ps.count;i++)uv.setXY(i,ps.getX(i)/6,ps.getZ(i)/6);const m=new THREE.Mesh(g,mat);m.position.y=y;m.receiveShadow=true;siteG.add(m);return m}
 const dirtRingM=layerM(new THREE.MeshStandardMaterial({map:(()=>{const t=dirtTex(1);t.repeat.set(1,1);return t})(),roughness:1}),4);
@@ -2906,6 +2909,55 @@ function fireHall(){const G=new THREE.Group();G.position.set(0,-.3,-9);sceneG.ad
   {const sg=new THREE.Mesh(new THREE.PlaneGeometry(26,3),signMat('INNISFIL FIRE STATION 1','#c0392b','#f4efe2'));sg.position.set(0,18.5,.35);G.add(sg)}
   lampPost(-34,4);lampPost(34,4);lawn()}
 
+/* v204: the ground and forms right around the slab. Real stones and clods (lumpy, not polyhedra), boot prints in the dug ring,
+   a cut sod edge, nail heads and grade stamps on the forms, and concrete splatter on the form tops once the mud reaches them. */
+const EDGE=(()=>{const geo=[];for(let k=0;k<4;k++){const g=new THREE.IcosahedronGeometry(1,2),p=g.attributes.position,v=new THREE.Vector3(),s=k*13.7;
+    const n=(x,y,z)=>Math.sin(x*3.1+s)*Math.sin(y*2.7+s*.7)*Math.sin(z*3.3+s*1.3);
+    for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);const r=1+.22*n(v.x,v.y,v.z)+.12*n(v.x*2.3,v.y*2.1,v.z*2.6);v.multiplyScalar(r);v.y*=.55;if(v.y<-.25)v.y=-.25+(v.y+.25)*.3;p.setXYZ(i,v.x,v.y,v.z)}
+    g.computeVertexNormals();geo.push(g)}
+  const print=(()=>{const[c,g]=mk(64,128);g.clearRect(0,0,64,128);g.fillStyle='rgba(30,18,10,.9)';
+    g.beginPath();g.ellipse(32,40,20,34,0,0,6.283);g.fill();g.beginPath();g.ellipse(32,100,15,20,0,0,6.283);g.fill();
+    g.globalCompositeOperation='destination-out';for(let y=12;y<74;y+=8){g.fillRect(14,y,36,3)}for(let y=86;y<118;y+=8)g.fillRect(19,y,26,3);
+    const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t})();
+  const stamp=(()=>{const[c,g]=mk(256,64);g.clearRect(0,0,256,64);g.strokeStyle='rgba(36,52,96,.75)';g.fillStyle='rgba(36,52,96,.75)';g.lineWidth=3;
+    g.beginPath();g.moveTo(10,32);g.lineTo(32,8);g.lineTo(54,32);g.lineTo(32,56);g.closePath();g.stroke();g.font='bold 18px Arial';g.fillText('42',21,39);
+    g.font='bold 20px Arial';g.fillText('S-P-F',66,28);g.fillText('S-DRY',66,52);g.fillText('No. 2',150,28);g.font='bold 14px Arial';g.fillText('NLGA',150,52);
+    const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t})();
+  return{geo,printM:new THREE.MeshStandardMaterial({map:print,transparent:true,opacity:.75,depthWrite:false,roughness:1,polygonOffset:true,polygonOffsetFactor:-2}),
+    stampM:new THREE.MeshStandardMaterial({map:stamp,transparent:true,depthWrite:false,roughness:.9,polygonOffset:true,polygonOffsetFactor:-2}),
+    nailM:new THREE.MeshStandardMaterial({color:0x3a3c40,roughness:.4,metalness:.7}),
+    soilM:new THREE.MeshStandardMaterial({map:(()=>{const t=dirtTex(1);t.repeat.set(4,.3);return t})(),color:0x5e4c3c,roughness:1}),
+    splatM:new THREE.MeshStandardMaterial({color:0x8f8e89,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),splat:null,splatAt:[],splatT:0}})();
+function edgeDress(x0,z0,W,D,PP){const dm=new THREE.Object3D(),col=new THREE.Color();
+  // stones and clods: mostly small, a few fist-sized, in soil and grey tones
+  const per=[170,70,50,40];EDGE.geo.forEach((g,gi)=>{const N=PP?per[gi]*2:per[gi],im=new THREE.InstancedMesh(g,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95}),N);let n=0;
+    for(let t=0;t<N*12&&n<N;t++){const x=x0-3+Math.random()*(W+6),z=z0-3+Math.random()*(D+6);if(pointInPoly(x,z,SHAPE))continue;const ns=nearSeg(x,z),d=ns[1];if(d<.42||d>(PP?2.6:1.25)||(ns[0]&&ns[0].nf))continue;
+      const big=gi===0?Math.random()<.04:Math.random()<.15,sc=big?.13+Math.random()*.1:.035+Math.pow(Math.random(),1.6)*.08;
+      dm.position.set(x,-.3+sc*.12,z);dm.rotation.set((Math.random()-.5)*.6,Math.random()*6.28,(Math.random()-.5)*.6);dm.scale.set(sc*(.8+Math.random()*.5),sc,sc*(.8+Math.random()*.5));dm.updateMatrix();im.setMatrixAt(n,dm.matrix);
+      const r=Math.random();col.setHex(r<.45?0x5a412d:r<.7?0x6d6a63:r<.85?0x8a8478:0x4a4038).offsetHSL(0,(Math.random()-.5)*.05,(Math.random()-.5)*.1);im.setColorAt(n,col);n++}
+    im.count=n;im.castShadow=im.receiveShadow=true;im.userData.kind='ring';im.userData.underTarp=true;siteG.add(im)});
+  // boot prints walking the ring
+  if(!PP){const bp=new THREE.InstancedMesh(new THREE.PlaneGeometry(.36,.72).rotateX(-Math.PI/2),EDGE.printM,90);let n=0;
+    SEGS.forEach(s=>{if(s.nf||n>=90)return;const step=1.15,th=Math.atan2(s.dx,s.dz);let side=1;for(let t=Math.random()*1.5;t<s.L&&n<90;t+=step*(.9+Math.random()*.25)){if(Math.random()<.3)continue;side=-side;
+      const off=.8+side*.17+(Math.random()-.5)*.08,x=s.a[0]+s.dx*t/s.L+s.nx*off,z=s.a[1]+s.dz*t/s.L+s.nz*off;dm.position.set(x,-.294,z);dm.rotation.set(0,th+(Math.random()-.5)*.25+(Math.random()<.5?Math.PI:0),0);
+      const sc=.9+Math.random()*.2;dm.scale.set(sc,1,sc);dm.updateMatrix();bp.setMatrixAt(n++,dm.matrix)}});
+    bp.count=n;bp.receiveShadow=true;bp.renderOrder=2;bp.userData.kind='ring';bp.userData.underTarp=true;siteG.add(bp)}
+  // the cut sod edge at the outside of the dug ring: a short soil face with the turf lip on top
+  if(!PP&&!LV.ringOuter){const P=offsetPolyNF(SHAPE,1.3,-.05),lawnTop=new THREE.MeshStandardMaterial({color:lawnM.color.clone().multiply(new THREE.Color(0x6d8a3c)),roughness:1});
+    for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.2)continue;let nx=dz/L,nz=-dx/L;const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
+      if(pointInPoly(mx+nx*.2,mz+nz*.2,SHAPE)||nearSeg(mx+nx*.3,mz+nz*.3)[1]<1.3){nx=-nx;nz=-nz}
+      const ns=nearSeg(mx,mz);if(ns[0]&&ns[0].nf)continue;
+      const f=new THREE.Mesh(new THREE.BoxGeometry(L+.14,.13,.1),EDGE.soilM);f.position.set(mx+nx*.05,-.3+.02,mz+nz*.05);f.rotation.y=Math.atan2(-dz,dx);f.receiveShadow=true;f.userData.kind='ring';siteG.add(f);
+}}
+  // concrete splatter on the form tops; each one shows once the mud next to it is in
+  {const SP=EDGE.splatAt=[],N=160,im=new THREE.InstancedMesh(new THREE.CircleGeometry(1,9).rotateX(-Math.PI/2),EDGE.splatM,N);let n=0;
+    SEGS.forEach(s=>{if(s.nf)return;const k=Math.round(s.L*1.6);for(let j=0;j<k&&n<N;j++){const t=Math.random()*s.L,off=FT*(.15+Math.random()*.7),x=s.a[0]+s.dx*t/s.L+s.nx*off,z=s.a[1]+s.dz*t/s.L+s.nz*off;
+      const sc=.05+Math.pow(Math.random(),1.5)*.13;dm.position.set(x,FY+FH/2+.006,z);dm.rotation.set(0,Math.random()*6.28,0);dm.scale.set(sc*(1+Math.random()*1.4),1,sc);dm.updateMatrix();
+      SP.push({m:dm.matrix.clone(),x:s.a[0]+s.dx*t/s.L-s.nx*.4,z:s.a[1]+s.dz*t/s.L-s.nz*.4,on:false});im.setMatrixAt(n,new THREE.Matrix4().makeScale(0,0,0));n++}});
+    im.count=n;im.receiveShadow=true;im.userData.kind='splat';siteG.add(im);EDGE.splat=im}}
+function edgeSplatTick(dt){const im=EDGE.splat;if(!im||!im.parent)return;EDGE.splatT-=dt;if(EDGE.splatT>0)return;EDGE.splatT=.4;let ch=false;const Z=new THREE.Matrix4().makeScale(0,0,0);
+  EDGE.splatAt.forEach((p,i)=>{let on=false;try{const c=Math.floor(gu(p.x)),r=Math.floor(gv(p.z));if(c>=0&&r>=0&&c<GW&&r<GH){const k=r*GW+c;on=inR[k]&&h[k]>-DEPTH+.6}}catch(e){}
+    if(on!==p.on){p.on=on;im.setMatrixAt(i,on?p.m:Z);ch=true}});if(ch)im.instanceMatrix.needsUpdate=true}
 function buildSite(){
   siteG.children.slice().forEach(o=>{siteG.remove(o);o.traverse(c=>{if(c.geometry)c.geometry.dispose()})});formPieces=[];formStakes=[];
   const x0=wx(RX0),x1=wx(RX1),z0=wz(RY0),z1=wz(RY1),cx=(x0+x1)/2,cz=(z0+z1)/2,W=x1-x0,D=z1-z0,o=FT+.07;
@@ -2938,6 +2990,7 @@ function buildSite(){
     const np=Math.max(1,Math.ceil(s.L/2));for(let k=0;k<np;k++){const t0=k/np,t1=(k+1)/np,tm=(t0+t1)/2,len=s.L/np;
       const f=new THREE.Mesh(new THREE.BoxGeometry(len+FT*1.05,FH,FT),woodM);f.rotation.y=Math.atan2(-s.dz,s.dx);
       f.position.set(s.a[0]+s.dx*tm+s.nx*FT/2,FY,s.a[1]+s.dz*tm+s.nz*FT/2);f.castShadow=f.receiveShadow=true;f.userData={kind:'form',seg:si};siteG.add(f);
+      if(len>1.2&&Math.random()<.35){const st=new THREE.Mesh(new THREE.PlaneGeometry(.9,.22),EDGE.stampM),sg=Math.sign(s.nx*(-s.dz)+s.nz*s.dx)||1;st.position.set((Math.random()-.5)*(len-1),-.03,sg*(FT/2+.004));st.rotation.y=sg>0?0:Math.PI;f.add(st)}
       formPieces.push({m:f,seg:si,t:tm,hl:.5/np,placed:true})}
     if(ELV()){const E=ELV();const wTop=-DEPTH/12+.05,wBot=-.95-E,w=new THREE.Mesh(new THREE.BoxGeometry(s.L+.6,wTop-wBot,.7),foundM);w.rotation.y=Math.atan2(-s.dz,s.dx);w.position.set(mx+s.nx*.3,(wTop+wBot)/2,mz+s.nz*.3);w.castShadow=w.receiveShadow=true;siteG.add(w);return}
     // a stake and kicker every 3.5 ft along the run
@@ -2968,11 +3021,7 @@ function buildSite(){
   if(LV&&LV.bridge){try{brgBuild()}catch(e){console.warn('brg',e)}return}
   // clods and stones in the dug-out ring
   if(ELV())return;
-  const cl=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),new THREE.MeshStandardMaterial({color:0xffffff,roughness:1}),140),col=new THREE.Color();cl.userData.underTarp=true;let n=0;
-  for(let t=0;t<1400&&n<140;t++){const x=x0-3+Math.random()*(W+6),z=z0-3+Math.random()*(D+6);if(pointInPoly(x,z,SHAPE))continue;const ns=nearSeg(x,z),d=ns[1];if(d<.45||d>(PP?2.6:1.2)||(ns[0]&&ns[0].nf))continue;
-    const sc=.04+Math.pow(Math.random(),2.5)*.24;dm.position.set(x,-.3+sc*.35,z);dm.rotation.set(Math.random()*3,Math.random()*3,0);dm.scale.set(sc,sc*.7,sc);dm.updateMatrix();cl.setMatrixAt(n,dm.matrix);
-    col.setHex(Math.random()<.7?0x5e4330:0x47433e).offsetHSL(0,0,(Math.random()-.5)*.12);cl.setColorAt(n,col);n++}
-  cl.count=n;cl.castShadow=cl.receiveShadow=true;cl.userData.kind='ring';siteG.add(cl);
+  try{edgeDress(x0,z0,W,D,PP)}catch(e){console.warn('edge',e)}
 }
 
 /* ---------- the yard around each job ---------- */
@@ -8246,7 +8295,7 @@ function grassBuild(){if(GRASS.mesh){GRASS.mesh.removeFromParent();GRASS.mesh.di
   if(safeGfx||!lawnOn||!LV||(typeof RT==='function'&&RT().snow)||!renderer)return;
   const q=ground.scale.x,U=GRASS.U;U.gQ.value=q;U.gMap.value=lawnM.map;lawnM.map.updateMatrix();U.gLM.value.copy(lawnM.map.matrix);U.gTint.value.copy(lawnM.color);
   U.gW.value=(typeof ev!=='undefined'&&ev&&ev.type==='wind')?.11:.05;
-  const L=Math.max(1,LS),R0=(isPrep()?4.6:3.3),R1=24*Math.max(1,L*.6),R2=52*Math.max(1,L*.6),NT=Math.round(24000*Math.min(1.6,Math.max(1,L*.5)));
+  const L=Math.max(1,LS),R0=(isPrep()?4.6:LV.ringOuter?2.4:1.55),R1=24*Math.max(1,L*.6),R2=52*Math.max(1,L*.6),NT=Math.round(24000*Math.min(1.6,Math.max(1,L*.5)));
   const boxes=grassBlk.concat(obst.map(o=>[o[0]-.2,o[1]-.2,o[2]+.2,o[3]+.2]));try{const t=truckBox();boxes.push([t[0],t[1],t[2],t[3]])}catch(e){}
   // coarse 2 ft cell lookup so 26k samples don't each scan every box
   const C=2,gx0=RCX-R2-RW/2-4,gz0=RCZ-R2-RD/2-4,nx=Math.ceil((R2*2+RW+8)/C),nz=Math.ceil((R2*2+RD+8)/C),blk=new Uint8Array(nx*nz);
@@ -9432,7 +9481,7 @@ function fwPose(dt,tool,w){const B=FW.B,r=FMN.root,T=FW.tools,UP=new THREE.Vecto
   fwLean(B,(cfg.lean+.1*s)*1,side,w);
   const along=d=>top.clone().addScaledVector(dir,-d);
   fwIK(B.rarm,B.rforearm,B.rhand,along(cfg.h1),at(-.6,1.8,2.6),w);fwIK(B.larm,B.lforearm,B.lhand,along(cfg.h2),at(-.4,-1.8,2.6),w)}
-function fmTick(dt){
+function fmTick(dt){try{edgeSplatTick(dt)}catch(e){}
   // v200: foreman off the site (Kris: takes away from the game). Model never loads; his tools stay hidden.
   if(FMN.root)FMN.root.visible=false;if(FW.tools)Object.values(FW.tools).forEach(g=>g.visible=false);return;if(!FMN.ok)return;const r=FMN.root,k=STAGES[stage]&&STAGES[stage].key;
   const vis=running&&!PREPK.has(k)&&!(cabOn&&cabPov==='cab');r.visible=vis;if(!vis)return;
