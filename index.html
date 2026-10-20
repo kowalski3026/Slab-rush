@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v226: less flicker while working with a turned or tilted camera: buildings in the see-through check hide/show with hysteresis (no blinking at the edge), and the near clip plane eases instead of jumping each frame. -->
 <!-- v225: houses no longer vanish when you zoom or turn the camera: the see-through check tests real walls and roof instead of the building's bounding box, and only hides a building that really covers the slab. -->
 <!-- v224: broom fully textures in one pass at the right time, takes more passes as it nears set -->
 <!-- v221: default camera swings off a building that blocks the slab; your turn/tilt carries across steps; two-finger camera hint on the first jobs -->
@@ -6043,8 +6044,9 @@ function panHideTick(t){const act=(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>
   for(const [o,b] of PH.bx){if(b.containsPoint(c)){nh.add(o);continue}let w=0;
     for(let k=0;k<pts.length;k++){const p=pts[k];tg.set(p[0],y,p[1]);const L=c.distanceTo(tg);ray.origin.copy(c);ray.direction.copy(tg).sub(c).normalize();if(!(ray.intersectBox(b,hp)&&hp.distanceTo(c)<L-1))continue;
       rc.set(c,ray.direction);rc.far=L-1.5;const hs=rc.intersectObject(o,true);if(hs.some(h=>h.point.y>ELV()+1.2&&!(h.object.material&&h.object.material.transparent&&h.object.material.opacity<.6)))w+=k===0||k===5?2:1}
-    if(w>=3)nh.add(o)}
-  PH.hid.forEach(o=>{if(!nh.has(o))o.visible=true});nh.forEach(o=>{if(!PH.hid.has(o)&&!o.visible)return;o.visible=false});PH.hid=new Set([...nh].filter(o=>!o.visible))}
+    // v226: hysteresis so a building on the edge doesn't blink: hide at 3, stay hidden until it's clearly out of the way (<=1) for a second
+    const was=PH.hid.has(o),since=t-(o.userData.phT||0);if(was?(w>1||since<1000):w>=3)nh.add(o)}
+  PH.hid.forEach(o=>{if(!nh.has(o)){o.visible=true;o.userData.phT=t}});nh.forEach(o=>{if(!PH.hid.has(o)&&!o.visible)return;if(!PH.hid.has(o))o.userData.phT=t;o.visible=false});PH.hid=new Set([...nh].filter(o=>!o.visible))}
 function panSave(){try{localStorage.setItem('bts-zoom',JSON.stringify(ZOOM))}catch(_){}}
 function panMid(){const v=[...PAN.ps.values()],n=v.length;let x=0,y=0;v.forEach(p=>{x+=p[0];y+=p[1]});return[x/n,y/n,n>1?Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1]):0,n,n>1?Math.atan2(v[1][1]-v[0][1],v[1][0]-v[0][0]):0]}
 function panTip(){if(PAN.tip)return;PAN.tip=true;try{if(localStorage.getItem('bts-pantip2'))return;localStorage.setItem('bts-pantip2','1')}catch(_){}say('Two fingers: drag or twist to orbit, pinch to zoom, three fingers to slide. Tap the zoom % to recentre.','info','panTip',4500)}
@@ -7742,7 +7744,7 @@ function step(t,dt){
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
   camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;camera.lookAt(lookC);
   try{panHideTick(t)}catch(e){}
-  try{if(cab.fov==null&&BUG.fov==null&&RIDE.fov==null){let nn=.5;if(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05){const d=camPos.distanceTo(lookC),h=Math.max(.5,camera.position.y-ELV()),f=camera.fov*Math.PI/360,el=Math.asin(Math.min(1,h/Math.max(d,.1)));nn=Math.max(.5,Math.min(d*.45,.85*h/Math.sin(Math.min(1.5,el+f*1.3))*Math.cos(f)))}if(Math.abs(camera.near-nn)>.05){camera.near=nn;camera.updateProjectionMatrix()}}}catch(e){} // cut branches/fences right at the lens without opening a hole in the ground // v166: orbited/slid views hide houses and sheds standing between the lens and the slab
+  try{if(cab.fov==null&&BUG.fov==null&&RIDE.fov==null){let nn=.5;if(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05){const d=camPos.distanceTo(lookC),h=Math.max(.5,camera.position.y-ELV()),f=camera.fov*Math.PI/360,el=Math.asin(Math.min(1,h/Math.max(d,.1)));nn=Math.max(.5,Math.min(d*.45,.85*h/Math.sin(Math.min(1.5,el+f*1.3))*Math.cos(f)))}{const nw=camera.near+(nn-camera.near)*Math.min(1,dt*2.5);if(Math.abs(nw-camera.near)>Math.max(.05,camera.near*.04)||(nn===.5&&camera.near!==.5&&Math.abs(nw-.5)<.06)){camera.near=Math.abs(nw-.5)<.06&&nn===.5?.5:nw;camera.updateProjectionMatrix()}}/* v226: ease the near plane instead of jumping every frame */}}catch(e){} // cut branches/fences right at the lens without opening a hole in the ground // v166: orbited/slid views hide houses and sheds standing between the lens and the slab
   if(arrive&&running){try{arriveStep(dt,t)}catch(e){console.warn('arrive',e);arrive=null}}
   try{barkTick(dt);siteTick(dt)}catch(e){console.warn('bark',e)}
   if(!cabCamera()&&cab.fov!=null){camera.fov=cab.fov;camera.near=.5;camera.updateProjectionMatrix();cab.fov=null}
