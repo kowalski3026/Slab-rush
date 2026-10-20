@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v234: resolution climbs above base after 4 s of on-time frames (v233 needed 6 s at under 1.03x budget and never triggered on Kris's phone); meter shows ratio/max, frame-time average and seconds of headroom. -->
 <!-- v233: adaptive resolution can climb above the mode's ratio in 60 fps mode (up to 2x or the screen's own ratio, +10% steps after 6 s of on-time frames; a level that stutters isn't retried until the next job). Perf meter is 4 short lines and hides while a tip card is open. -->
 <!-- v232: performance pass. Perf meter (Graphics → Perf meter: fps, frame/JS ms, hitches, draws, tris, texture MB, shaders built mid-job, resolution). Adaptive resolution: drops in 13% steps (floor 66%) only while frames run over budget, creeps back up after 4.5 s of headroom. 30/60 fps choice on Android. Shader warm-up: every material in the scene is compiled (compileAsync, into the HDR target in Effects/Sharp) at job start and each step; painted sky light now the same PMREM size as the HDRI skies, and the slab clearcoat never hits 0, so neither rebuilds shaders mid-job. Textures: photo colour maps and normal maps are KTX2 (Basis ETC1S, lib/ KTX2Loader + transcoder, three-shim.js), about 1/6 the GPU memory; the base64 photos moved out to tex/*.jpg (fallback, -1 MB of HTML); every texture using the same photo shares one GPU copy. -->
 <!-- v231: Retaining Wall gets a 1-year-later photo (forms and bracing stripped, sod up to the wall); Foundation Walls yard is grass with a dirt construction pad round the dig instead of dirt everywhere. -->
@@ -7757,7 +7758,7 @@ function adrTick(t,iv){
   if(t>ADR.ceilT)ADR.ceil=9;
   const mx=Math.min(adrMax(),ADR.top);
   if(ADR.k<1&&ADR.under>4500){const nk=Math.min(1,ADR.k+.06);ADR.under=0;if(nk<ADR.ceil-.004)adrApply(nk,t)}
-  else if(ADR.k>=.999&&ADR.k<mx-.004&&ADR.under>6000&&PERF.ema<bud*1.03){ADR.under=0;adrApply(Math.min(mx,ADR.k+.1),t)}}
+  else if(ADR.k>=.999&&ADR.k<mx-.004&&ADR.under>4000){ADR.under=0;adrApply(Math.min(mx,ADR.k+.1),t)}}
 function adrJob(){ADR.top=9;ADR.ceil=9;if(ADR.k>adrMax())adrApply(adrMax(),performance.now())}
 function perfTexMB(){let b=0;const seen=new Set();
   const add=x=>{if(!x||!x.isTexture||x.isRenderTargetTexture)return;const src=x.source||x;if(seen.has(src))return;seen.add(src);
@@ -7793,7 +7794,7 @@ function perfFrame(t,js,menu){if(!renderer)return;const inf=renderer.info,drew=i
   const k=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?Math.round(n/1e3)+'k':String(n);
   const txt=`${fps.toFixed(0)}/${FPSCAP?30:60} fps ${ms.toFixed(1)}ms w${PERF.ivMax.toFixed(0)} h${PERF.hitch} js${(PERF.js/PERF.n).toFixed(1)}
 ${inf.render.calls} draws ${k(inf.render.triangles)} tris ${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)}MB
-${(PRBASE*ADR.k).toFixed(2)}x ${v.x}x${v.y} ${Math.round(ADR.k*100)}% sh+${PERF.progMid}
+${(PRBASE*ADR.k).toFixed(2)}x/${(PRBASE*Math.min(adrMax(),ADR.top)).toFixed(2)} ${v.x}x${v.y} e${PERF.ema.toFixed(1)} u${(ADR.under/1000).toFixed(0)} sh+${PERF.progMid}
 ${GFX} ktx${typeof KTX!=='undefined'?KTX.n:0} ${hp} ${PERF.gpu}`;
   const el=perfEl();el.style.display=coachOpen?'none':'';if(txt!==PERF.txt){PERF.txt=txt;el.textContent=txt}
   PERF.n=0;PERF.w0=t;PERF.ivMax=0;PERF.js=0;PERF.jsMax=0}
