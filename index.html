@@ -25,6 +25,7 @@
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
+<!-- v218: the rake and its concrete ball (the grey ball) no longer flash at job start; all tools hidden between jobs. -->
 <!-- v217: no more flash of the last job's screed, concrete roll and joint tape when a job starts; layout dots only show on the paint step. -->
 <!-- v216: late truck shows in 10-15 s. -->
 <!-- v215: late truck shows in 14-22 s instead of 34-58 s; the live edge cools faster (10 s) so you still have to keep raking. -->
@@ -6269,7 +6270,7 @@ function rakeEnd(){
 }
 
 function updateRake(dt){
-  const on=STAGES[stage]&&STAGES[stage].key==='pour'&&pourTool==='rake'&&rk.used;
+  const on=running&&STAGES[stage]&&STAGES[stage].key==='pour'&&pourTool==='rake'&&rk.used;
   rakeG.visible=on;workerG.visible=false;rakeMound.visible=on&&rk.load>.25;if(!on)return;
   const hx=wx(rk.x),hz=wz(rk.y),hy=surfY(hx,hz);
   if(ptr.down)rkYaw=steerYaw(rkYaw,'rake',dt);const yaw=rkYaw;
@@ -7335,8 +7336,10 @@ function truckEtaUI(){const el=$('truckEta');if(!running){if(!el.hidden){el.hidd
   const s=String(Math.max(0,Math.ceil(sec)));if($('teSec').textContent!==s)$('teSec').textContent=s;
   if($('teLbl').textContent!==lbl)$('teLbl').textContent=lbl;if($('teSub').textContent!==sub)$('teSub').textContent=sub;
   $('teFill').style.width=(100*(1-sec/tot)).toFixed(1)+'%';el.classList.toggle('soon',sec<=5)}
+// v218: between jobs (job list, plan, results) no hand tools, screed, rake or concrete roll are left standing on the lawn
+function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
 function startJob(){
-  stage=0;screedG.visible=mound.visible=tape.visible=tapeCase.visible=false;if(dotIM)dotIM.visible=false;
+  stage=0;toolsOff();rk.used=false;rk.load=0;
   applyLevel(LEVELS[jobIdx]);
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
   if(mode==='career'&&!LV.free&&quote==='premium'&&!skipQuote&&Math.random()>premiumOdds()){quote='market';renderCareer();
@@ -7661,7 +7664,7 @@ function step(t,dt){
   if(geoDirty){updateGeo();geoDirty=false}
   const b=bleed(set),wq=wetness(set-.04);const rw=typeof rainIM!=='undefined'&&rainIM.visible&&!tarpOn?1:0;WETV+=((Math.max(wq,b*.9,rw*.8))-WETV)*Math.min(1,dt*1.5);const nt=weather.night;slabMat.clearcoat=Math.min(1,Math.max(wq*.8,b*1.15,rw*.7))*(LV&&LV.wall?.3:1)*(nt?1:WETD.cc);slabMat.color.setScalar(1-.16*WETV);slabMat.envMapIntensity=1+(nt?.55:WETD.env)*WETV;slabMat.clearcoatRoughness=Math.max(nt?.06:WETD.rmin,.16-.1*clamp01(b*1.3)-.04*wq-(nt?0:WETD.r));
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
-  updateTruck(dt,t);updateTools(dt,t);updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
+  updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);
    sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18)}if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
