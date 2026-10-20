@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
 <!-- v221: default camera swings off a building that blocks the slab; your turn/tilt carries across steps; two-finger camera hint on the first jobs -->
 <!-- v220: prep stopwatch with par times on layout, dig, base, forms; "Prep time" score row and Career crew-hours bonus -->
@@ -9013,9 +9014,14 @@ function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}c
 // solve and lay out the arm for a bucket-tip target in world space
 function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=tx-exPos[0],dz=tz-exPos[1],r=(dx*fx+dz*fz)/EXS,y=(ty-exY)/EXS-XC.HY;
   const s=XC.BR*2+.05,nn=-.45,tr=s*Math.cos(a3)-nn*Math.sin(a3),tyo=s*Math.sin(a3)+nn*Math.cos(a3);
-  const P0=XC.P0,pr=r-tr-P0[0],py=y-tyo-P0[1],L1=XC.L1,L2=XC.L2;let d=Math.hypot(pr,py);d=Math.max(Math.abs(L1-L2)+.3,Math.min(L1+L2-.05,d));
-  const ph=Math.atan2(py,pr),cb=Math.max(-1,Math.min(1,(L1*L1+d*d-L2*L2)/(2*L1*d))),a1=Math.min(1.25,ph+Math.acos(cb));
-  const E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)],a2=Math.atan2(P0[1]+py-E[1],P0[0]+pr-E[0]),P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)];
+  const P0=XC.P0,L1=XC.L1,L2=XC.L2;let pr=r-tr-P0[0],py=y-tyo-P0[1];
+  // v221: real joint limits. The wrist never reaches past ~86% of full stretch, the stick always keeps a bend, the boom never dips far below level
+  {const dm=Math.hypot(pr,py)||1e-6,dmax=(L1+L2)*.86,dmin=Math.abs(L1-L2)+1.2;if(dm>dmax||dm<dmin){const k=(dm>dmax?dmax:dmin)/dm;pr*=k;py*=k}}
+  const d=Math.hypot(pr,py),ph=Math.atan2(py,pr),cb=Math.max(-1,Math.min(1,(L1*L1+d*d-L2*L2)/(2*L1*d)));
+  const a1=Math.max(-.4,Math.min(1.2,ph+Math.acos(cb))),E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)];
+  let a2=Math.atan2(P0[1]+py-E[1],P0[0]+pr-E[0]);{let rel=a2-a1;while(rel>Math.PI)rel-=2*Math.PI;while(rel<-Math.PI)rel+=2*Math.PI;a2=a1+Math.max(-2.55,Math.min(-.5,rel))}
+  {let r3=a3-a2;while(r3>Math.PI)r3-=2*Math.PI;while(r3<-Math.PI)r3+=2*Math.PI;a3=a2+Math.max(-2.35,Math.min(.95,r3))}
+  const P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)];
   boomG.position.set(XC.BX,P0[1],P0[0]);boomG.rotation.x=-a1;stickG.position.set(XC.BX,E[1],E[0]);stickG.rotation.x=-a2;bucketG.position.set(XC.BX,P[1],P[0]);bucketG.rotation.x=-a3;
   const at=(O,a,s2,n2)=>[O[0]+s2*Math.cos(a)-n2*Math.sin(a),O[1]+s2*Math.sin(a)+n2*Math.cos(a)];
   ramSet(rams[0],[2.55,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
@@ -9038,7 +9044,7 @@ function updateExcavator(dt,t,k){
   exPrevDown=down;
   // track: drive so the target stays within reach, never onto the pad or into the house
   const hx=des[0]-exPos[0],hz=des[2]-exPos[1],hd=Math.hypot(hx,hz)||1e-6;
-  if(down&&(hd>11.2*EXS||hd<4.6*EXS)){const want=hd>11.2*EXS?hd-9.5*EXS:hd-6*EXS,step=Math.sign(want)*Math.min(Math.abs(want),6.5*dt),nx=exPos[0]+hx/hd*step,nz=exPos[1]+hz/hd*step;
+  if(down&&(hd>10.4*EXS||hd<5.2*EXS)){const want=hd>10.4*EXS?hd-9*EXS:hd-6.5*EXS,step=Math.sign(want)*Math.min(Math.abs(want),6.5*dt),nx=exPos[0]+hx/hd*step,nz=exPos[1]+hz/hd*step;
     if(exOk(nx,nz,1)){const mv=Math.atan2(nx-exPos[0],nz-exPos[1]),fwd=Math.abs(angDiff(exTY,mv))<Math.PI/2;exTY+=Math.max(-2*dt,Math.min(2*dt,angDiff(exTY,fwd?mv:mv+Math.PI)));exPos=[nx,nz];trackTex.offset.y+=(fwd?1:-1)*Math.abs(step)*.6}
     else{// slide along the pad instead of stopping dead
       const tx=-hz/hd,tz=hx/hd,s2=Math.sign(tx*(des[0]-exPos[0])+tz*(des[2]-exPos[1])||1)*6.5*dt*.6;if(exOk(exPos[0]+tx*s2,exPos[1]+tz*s2,1)){exPos=[exPos[0]+tx*s2,exPos[1]+tz*s2];trackTex.offset.y+=Math.abs(s2)*.6}}}
@@ -9047,11 +9053,15 @@ function updateExcavator(dt,t,k){
   if(exIdle&&!down&&!(exDumpT>0))want=exIdle[3];// parked: the house holds its heading until you use it
   exHY+=Math.max(-2.4*dt,Math.min(2.4*dt,angDiff(exHY,want)));
   if(!exT)exT=des.slice();const kk=1-Math.pow(.004,dt);for(let q=0;q<3;q++)exT[q]+=(des[q]-exT[q])*kk;exA3+=(a3-exA3)*(1-Math.pow(.01,dt));
+  // v221: a bad target (NaN) used to stick in the smoothing forever and blank the whole arm; start over from the rest pose instead
+  if(!(isFinite(exT[0])&&isFinite(exT[1])&&isFinite(exT[2])&&isFinite(exA3))){exT=null;exA3=-2.2;exIdle=null}
   let tip=exPose(dt,t);
-  {// keep the whole bucket at or above the dirt it's working, never buried under the grass
-   const fl=(x,z)=>{const i=cellAt(x,z);return surfAt(x,z,grav)-(i>=0&&i<N&&PM[i]?.06:.04)};let v=0;
-   for(const q of bucketPts(-boomG.rotation.x,-stickG.rotation.x,-bucketG.rotation.x))v=Math.max(v,fl(q[0],q[2])-q[1]);
-   if(v>0){exT[1]+=v;tip=exPose(0,t)}}
+  {// keep the bucket, stick and boom at or above the ground they're over, never cutting through the grass
+   const fl=(x,z)=>{const i=cellAt(x,z);return surfAt(x,z,grav)-(i>=0&&i<N&&PM[i]?.06:.04)};
+   for(let it=0;it<4;it++){let v=0;const a1=-boomG.rotation.x,a2=-stickG.rotation.x;
+     for(const q of bucketPts(a1,a2,-bucketG.rotation.x))v=Math.max(v,fl(q[0],q[2])-q[1]);
+     for(const q of armPts(a1,a2))v=Math.max(v,fl(q[0],q[2])+.25*EXS-q[1]);
+     if(!(v>.002))break;exT[1]+=v+.02;tip=exPose(0,t)}}
   const ld=bucketG.userData.load;ld.visible=exLoad>.05;ld.material=grav?gravPileM:pileDirtM;ld.scale.set(.88,.42*Math.max(.3,Math.min(1,exLoad)),.6);
   bitsIM.material=grav?gravPileM:pileDirtM;
   if(down&&grav&&gravLeft>0&&Math.random()<dt*40)spawnBits(tip[0],tip[1]+.3,tip[2],2,1.6);
@@ -10061,6 +10071,10 @@ function exFK(a1,a2,a3){const P0=XC.P0,L1=XC.L1,L2=XC.L2,E=[P0[0]+L1*Math.cos(a1
   const at=(O,a,s2,n2)=>[O[0]+s2*Math.cos(a)-n2*Math.sin(a),O[1]+s2*Math.sin(a)+n2*Math.cos(a)];
   ramSet(rams[0],[2.55,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
   const s=XC.BR*2+.05,tip=at(P,a3,s,-.45),hy=exHY;return[exPos[0]+(Math.sin(hy)*tip[0]+Math.cos(hy)*XC.BX)*EXS,exY+(XC.HY+tip[1])*EXS,exPos[1]+(Math.cos(hy)*tip[0]-Math.sin(hy)*XC.BX)*EXS]}
+// points along the boom and stick in world space (for the ground check)
+function armPts(a1,a2){const P0=XC.P0,E=[P0[0]+XC.L1*Math.cos(a1),P0[1]+XC.L1*Math.sin(a1)],sh=Math.sin(exHY),ch=Math.cos(exHY),out=[];
+  for(const f of [.5,.75,1])out.push([P0[0]+(E[0]-P0[0])*f,P0[1]+(E[1]-P0[1])*f]);for(const f of [.33,.66,1])out.push([E[0]+XC.L2*Math.cos(a2)*f,E[1]+XC.L2*Math.sin(a2)*f]);
+  return out.map(([z,y])=>[exPos[0]+(sh*z+ch*XC.BX)*EXS,exY+(XC.HY+y)*EXS,exPos[1]+(ch*z-sh*XC.BX)*EXS])}
 function bucketPts(a1,a2,a3){const P0=XC.P0,L1=XC.L1,L2=XC.L2,R=XC.BR,E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)],P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)],hy=exHY,sh=Math.sin(hy),ch=Math.cos(hy);
   const hw=XC.BW*.5*(BUCKETS[exBkt]?BUCKETS[exBkt].w:1)*.88,out=[];// across the full cutting width, not just the centre line
   for(const [s2,n2] of [[R*.35,-R*.95],[R,-R*1.02],[R*1.7,-R*.85],[R*2+.05,-.45]]){const z=P[0]+s2*Math.cos(a3)-n2*Math.sin(a3),y=P[1]+s2*Math.sin(a3)+n2*Math.cos(a3);
