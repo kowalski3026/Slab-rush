@@ -25,6 +25,7 @@
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
+<!-- v219: rebar grid and chairs centred in the forms. -->
 <!-- v218: the rake and its concrete ball (the grey ball) no longer flash at job start; all tools hidden between jobs. -->
 <!-- v217: no more flash of the last job's screed, concrete roll and joint tape when a job starts; layout dots only show on the paint step. -->
 <!-- v216: late truck shows in 10-15 s. -->
@@ -3055,11 +3056,13 @@ function buildSite(){
     run=t-s.L});
   // 10M rebar at 18 in on chairs, clipped to the outline
   const inside=(x,z)=>pointInPoly(x,z,SHAPE)&&nearestOnPoly(x,z)[2]>.3,runs=[];
-  for(let z=z0+.75;z<z1-.2;z+=1.5){let st=null;for(let x=x0;x<=x1+.01;x+=.25){const ok=x<x1&&inside(x,z);if(ok&&st===null)st=x;if(!ok&&st!==null){if(x-st>1)runs.push([st,z,x-.25,z]);st=null}}}
-  for(let x=x0+.75;x<x1-.2;x+=1.5){let st=null;for(let z=z0;z<=z1+.01;z+=.25){const ok=z<z1&&inside(x,z);if(ok&&st===null)st=z;if(!ok&&st!==null){if(z-st>1)runs.push([x,st,x,z-.25]);st=null}}}
+  // v219: the 18 in grid is centred in the forms (equal cover on both sides) and bars stop the same distance short of each form
+  const cgrid=(a,b,sp,cv)=>{const L=b-a,n=Math.max(1,Math.floor((L-2*cv)/sp+1e-6)+1),o=a+(L-(n-1)*sp)/2;return Array.from({length:n},(_,i)=>o+i*sp)},RS=.05;
+  cgrid(z0,z1,1.5,.5).forEach(z=>{let st=null;for(let x=x0;x<=x1+.01;x+=RS){const ok=x<x1&&inside(x,z);if(ok&&st===null)st=x;if(!ok&&st!==null){if(x-st>1)runs.push([st,z,x-RS,z]);st=null}}});
+  cgrid(x0,x1,1.5,.5).forEach(x=>{let st=null;for(let z=z0;z<=z1+.01;z+=RS){const ok=z<z1&&inside(x,z);if(ok&&st===null)st=z;if(!ok&&st!==null){if(z-st>1)runs.push([x,st,x,z-RS]);st=null}}});
   const dm=new THREE.Object3D();runs.sort((a,b)=>(a[0]===a[2])-(b[0]===b[2]));// bottom layer (bars running across x) first, then the top layer
   const rb=new THREE.InstancedMesh(new THREE.CylinderGeometry(.022,.022,1,6),rebarM,Math.max(1,runs.length));rb.count=runs.length;rb.castShadow=true;rb.userData.kind='rebar';siteG.add(rb);
-  const chs=[];for(let z=z0+.75;z<z1;z+=3)for(let x=x0+.75;x<x1;x+=3)if(inside(x,z))chs.push([x,z]);
+  const chs=[];cgrid(z0,z1,3,.75).forEach(z=>cgrid(x0,x1,3,.75).forEach(x=>{if(inside(x,z))chs.push([x,z])}));
   const ch=new THREE.InstancedMesh(new THREE.ConeGeometry(.07,.16,4),chairM,Math.max(1,chs.length));ch.count=chs.length;ch.userData.kind='rebar';siteG.add(ch);
   {// crossings, ties, and stage markers (chair spots, bar lanes, crossings to tie)
    const xs=[...new Set(runs.filter(r=>r[0]===r[2]).map(r=>r[0]))].sort((a,b)=>a-b),zs=[...new Set(runs.filter(r=>r[1]===r[3]).map(r=>r[1]))].sort((a,b)=>a-b);
