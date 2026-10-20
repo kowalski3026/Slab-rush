@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v221: default camera swings off a building that blocks the slab; your turn/tilt carries across steps; two-finger camera hint on the first jobs -->
 <!-- v220: prep stopwatch with par times on layout, dig, base, forms; "Prep time" score row and Career crew-hours bonus -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
 <!-- v219: rebar grid and chairs centred in the forms. -->
@@ -413,6 +414,7 @@ a.btn{display:flex;align-items:center;justify-content:center;text-decoration:non
 .cbar .stars{color:var(--amber);letter-spacing:1px}
 #quoteBox{display:grid;gap:6px}
 .quote small{font-family:var(--f-mono);font-size:11px;color:var(--amber);margin-left:4px}
+#gestHint{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) scale(.92);opacity:0;z-index:6;pointer-events:none;display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:14px;background:rgba(18,19,17,.88);border:1px solid rgba(255,177,58,.55);color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.5);transition:opacity .35s,transform .35s;width:max-content;max-width:calc(100vw - 40px)}#gestHint.on{opacity:1;transform:translate(-50%,-50%) scale(1)}#gestHint svg{flex:none;color:#ffb13a}#gestHint b{display:block;font:800 15px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:#ffcf8a}#gestHint span{display:block;font-size:12.5px;line-height:1.35;opacity:.85;margin-top:2px}#gestHint .gf{animation:gfTw 1.6s ease-in-out infinite;transform-origin:32px 34px}#gestHint .ga{opacity:.8}@keyframes gfTw{0%,100%{transform:rotate(-14deg) translateX(-3px)}50%{transform:rotate(14deg) translateX(3px)}}
 #sgPop{position:absolute;left:50%;top:auto;bottom:200px;transform:translate(-50%,8px);opacity:0;z-index:4;pointer-events:none;background:rgba(18,19,17,.86);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:6px 14px 6px 10px;display:flex;gap:10px;align-items:center;width:max-content;max-width:72%;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:opacity .25s,transform .25s}
 #sgPop.on{opacity:1;transform:translate(-50%,0)}#sgPop b{font-family:var(--f-display);font-size:30px;line-height:.9;color:var(--amber);min-width:44px;text-align:center}#sgPop b.g{color:#7fd36a}#sgPop b.r{color:#ff6a4d}
 #sgPop span{display:block;font-family:var(--f-label);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#fff}#sgPop small{display:block;font-family:var(--f-label);font-size:13px;color:#d8d6d0;line-height:1.25;margin-top:2px}
@@ -656,6 +658,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
     <div class="coach" id="coach" hidden><div class="ct" id="coachT"></div><div class="cb" id="coachB"></div><button class="btn primary" id="coachOk">Got it</button></div>
     <canvas id="confetti" class="confetti"></canvas>
     <button class="evbtn" id="evBtn" hidden>Tarp it</button><button class="evbtn sitebtn" id="siteBtn" hidden>Knock it loose</button>
+    <div id="gestHint" hidden><svg viewBox="0 0 64 48" width="58" height="44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><g class="gf"><path d="M22 40V20a3.5 3.5 0 0 1 7 0v12"/><path d="M29 18a3.5 3.5 0 0 1 7 0v14"/><path d="M36 26c0-2 1.5-3.5 3.5-3.5S43 24 43 26v8c0 6-4 10-10 10h-3c-4 0-6-2-8-5l-5-7c-1.2-1.8.2-4 2.2-3.6L22 30"/></g><path class="ga" d="M12 12c8-7 32-7 40 0"/><path class="ga" d="M48 7l4 5-6 1"/></svg><div><b>Two fingers to turn &amp; tilt</b><span>Drag or twist with two fingers · pinch to zoom<br>Your angle stays put between steps</span></div></div>
     <div id="sgPop" aria-live="polite"><b id="sgL">A</b><div><span id="sgN">Screed</span><small id="sgT"></small></div></div>
     <div id="bark" aria-live="polite"><span id="barkWho"></span><span id="barkT"></span></div>
     <div class="hint" id="hint" aria-hidden="true"><span class="dot"></span></div>
@@ -4557,14 +4560,14 @@ function computeCam(){panReset();
     lookT.set(lk[0]-tx*9,ELV()+1,lk[1]-tz*9);{const ox=-tx*32*k-nx*30*k,oz=-tz*32*k-nz*30*k,oy=view===2?9:32,hd=Math.hypot(ox,oz),d=Math.hypot(hd,oy),yaw=Math.atan2(oz,ox)+SLC.yaw+PAN.yaw,el=Math.max(.06,Math.min(1.45,Math.atan2(oy,hd)+SLC.pitch+PAN.pitch));
       camTarget.set(lookT.x+Math.cos(yaw)*Math.cos(el)*d,lookT.y+Math.sin(el)*d,lookT.z+Math.sin(yaw)*Math.cos(el)*d)}camTarget.sub(lookT).multiplyScalar(ZOOM[view]).add(lookT);panAdd();return}
   const dW=(across/2)/th,dH=(along*Math.sin(e)/2+.5)/tv,d=Math.max(dW,dH)*v.fit*ZOOM[view];
-  camTarget.set(lx+ax*d*Math.cos(e),d*Math.sin(e)+ELV(),lz+az2*d*Math.cos(e));lookT.set(lx,ELV(),lz);panOrbit();panAdd();
+  camTarget.set(lx+ax*d*Math.cos(e),d*Math.sin(e)+ELV(),lz+az2*d*Math.cos(e));lookT.set(lx,ELV(),lz);try{autoDodge(portrait)}catch(e){}panOrbit();panAdd();
 }
 // v128: each new step opens with a slow low sweep from sunset level up into the working view
 let swoopT=0;
 function camSwoop(){const dx=camTarget.x-lookT.x,dz=camTarget.z-lookT.z,dy=camTarget.y-lookT.y,hd=Math.hypot(dx,dz),d=Math.hypot(hd,dy);if(d<1)return;
   const az=Math.atan2(dz,dx)+(Math.random()<.5?-1:1)*.42,el=11*Math.PI/180,r=d*1.12;
   camPos.set(lookT.x+Math.cos(az)*Math.cos(el)*r,lookT.y+Math.sin(el)*r,lookT.z+Math.sin(az)*Math.cos(el)*r);lookC.copy(lookT);swoopT=1.7}
-function setView(i){view=i;SLC.yaw=SLC.pitch=0;PAN.x=PAN.z=PAN.yaw=PAN.pitch=0;$('viewLabel').textContent=VIEWS[view].name;computeCam();try{zoomLbl()}catch(e){}}
+function setView(i,keep){view=i;SLC.yaw=SLC.pitch=0;PAN.x=PAN.z=0;if(!keep)PAN.yaw=PAN.pitch=0;$('viewLabel').textContent=VIEWS[view].name;computeCam();try{zoomLbl()}catch(e){}}
 function zoomLbl(){const b=$('zPct');if(b)b.textContent=Math.round(100/ZOOM[view])+'%'}
 function zoomStep(dir){ZOOM[view]=Math.max(.55,Math.min(1.7,ZOOM[view]*(dir>0?.95:1/.95)));if(Math.abs(ZOOM[view]-1)<.02)ZOOM[view]=1;try{localStorage.setItem('bts-zoom',JSON.stringify(ZOOM))}catch(e){}swoopT=0;computeCam();zoomLbl();buzz(6);
   const c=$('zoomCtl');c.classList.add('show');clearTimeout(zoomStep.t);zoomStep.t=setTimeout(()=>c.classList.remove('show'),1400)}
@@ -5985,7 +5988,7 @@ const ptr={down:false,x:0,y:0,minx:0,maxx:0,miny:0,maxy:0,vx:0,vy:0,t:0};
 
 // v165: two-finger pan + pinch zoom on every step (mouse: right-drag pans, wheel zooms). Tap the zoom % to recentre.
 const PAN={yaw:0,pitch:0,x:0,z:0,st:-1,lv:null,ps:new Map(),on:false,c:null,pd:0,n:0,tip:false,mid:null};
-function panReset(){if(PAN.st!==stage||PAN.lv!==LV){PAN.st=stage;PAN.lv=LV;PAN.x=PAN.z=PAN.yaw=PAN.pitch=0}}
+function panReset(){if(PAN.lv!==LV){PAN.lv=LV;PAN.st=stage;PAN.x=PAN.z=PAN.yaw=PAN.pitch=0}else if(PAN.st!==stage){PAN.st=stage;PAN.x=PAN.z=0}}
 function panOrbit(){if(!PAN.yaw&&!PAN.pitch)return;const dx=camTarget.x-lookT.x,dy=camTarget.y-lookT.y,dz=camTarget.z-lookT.z,hd=Math.hypot(dx,dz),d=Math.hypot(hd,dy);if(d<.1)return;
   const el0=Math.atan2(dy,hd),el=Math.max(.26,Math.min(1.53,el0+PAN.pitch)),az=Math.atan2(dz,dx)+PAN.yaw;PAN.pitch=el-el0;camTarget.set(lookT.x+Math.cos(az)*Math.cos(el)*d,lookT.y+Math.sin(el)*d,lookT.z+Math.sin(az)*Math.cos(el)*d)}
 function panAdd(){camTarget.x+=PAN.x;camTarget.z+=PAN.z;lookT.x+=PAN.x;lookT.z+=PAN.z}
@@ -5998,6 +6001,29 @@ function panZoom(f){const sl=LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='sl
   const c=$('zoomCtl');if(c){c.classList.add('show');clearTimeout(zoomStep.t);zoomStep.t=setTimeout(()=>c.classList.remove('show'),1600)}}
 function panOrb(dyaw,dpitch){PAN.yaw+=dyaw;PAN.pitch+=dpitch;swoopT=0;computeCam();camPos.copy(camTarget);lookC.copy(lookT)}
 const PH={hid:new Set(),bx:null,key:null,t:0};
+/* ---------- v221: the default camera swings round a house, garage or wall that blocks the slab ---------- */
+const AD={key:'',y:0,p:0};
+function occBoxes(){const out=[],y0=ELV()+.9;sceneG.updateMatrixWorld(true);sceneG.traverse(o=>{if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh)return;let v=o;while(v){if(v.visible===false)return;v=v.parent}const b=new THREE.Box3().setFromObject(o);if(b.isEmpty()||b.max.y<y0)return;out.push([o,b])});return out}
+function occScore(c,ms){const x0=wx(RX0),x1=wx(RX1),z0=wz(RY0),z1=wz(RY1),y=ELV()+.15,mx=(x0+x1)/2,mz=(z0+z1)/2,
+  pts=[[mx,mz,3],[x0,z0,1],[x0,z1,1],[x1,z0,1],[x1,z1,1],[mx,z0,1.5],[mx,z1,1.5],[x0,mz,1.5],[x1,mz,1.5]];
+  const rc=AD.rc||(AD.rc=new THREE.Raycaster()),tg=new THREE.Vector3(),dir=new THREE.Vector3(),hp=new THREE.Vector3();let sc=0;
+  for(const p of pts){tg.set(p[0],y,p[1]);const L=c.distanceTo(tg);dir.copy(tg).sub(c).normalize();rc.set(c,dir);rc.far=L-1.2;
+    const cand=[];for(const [o,b] of ms)if(b.containsPoint(c)||(rc.ray.intersectBox(b,hp)&&hp.distanceTo(c)<rc.far))cand.push(o);if(!cand.length)continue;
+    const hs=rc.intersectObjects(cand,false);if(hs.some(h=>h.point.y>ELV()+.9&&!(h.object.material&&h.object.material.transparent&&h.object.material.opacity<.6)))sc+=p[2]}return sc}
+function autoDodge(portrait){if(!running&&!(LV&&LV.id))return;
+  const key=[LV&&LV.id,view,stage===S.pour,portrait,sceneG.children.length,ZOOM[view].toFixed(2),cssW,cssH].join('|');
+  if(key!==AD.key){AD.key=key;AD.y=0;AD.p=0;const bx=occBoxes();
+    if(bx.length){const dx=camTarget.x-lookT.x,dy=camTarget.y-lookT.y,dz=camTarget.z-lookT.z,hd=Math.hypot(dx,dz),d=Math.hypot(hd,dy),az0=Math.atan2(dz,dx),el0=Math.atan2(dy,hd);
+      const c=new THREE.Vector3(),at=(y,p)=>{const el=Math.min(1.45,el0+p),az=az0+y;c.set(lookT.x+Math.cos(az)*Math.cos(el)*d,lookT.y+Math.sin(el)*d,lookT.z+Math.sin(az)*Math.cos(el)*d);return occScore(c,bx)};
+      if(at(0,0)>0){const C=[];for(const p of [0,.2,.4])for(const a of [0,.2,.35,.5,.7,.9,1.15])for(const sg of (a?[1,-1]:[1]))C.push([a*.6+p*.8,a*sg,p]);C.sort((u,v)=>u[0]-v[0]);let best=[1e9,0,0];for(const c of C){if(c[0]>=best[0])break;const v=at(c[1],c[2])+c[0];if(v<best[0])best=[v,c[1],c[2]]}AD.y=best[1];AD.p=best[2]}}}
+  if(!AD.y&&!AD.p)return;const dx=camTarget.x-lookT.x,dy=camTarget.y-lookT.y,dz=camTarget.z-lookT.z,hd=Math.hypot(dx,dz),d=Math.hypot(hd,dy),el=Math.min(1.45,Math.atan2(dy,hd)+AD.p),az=Math.atan2(dz,dx)+AD.y;
+  camTarget.set(lookT.x+Math.cos(az)*Math.cos(el)*d,lookT.y+Math.sin(el)*d,lookT.z+Math.sin(az)*Math.cos(el)*d)}
+/* v221: first few jobs show how to tilt and turn the camera, until you've done it once */
+function gestHint(){const el=$('gestHint');if(!el)return;let used=0,n=0;try{used=+(localStorage.getItem('bts-gest')||0);n=+(localStorage.getItem('bts-gestn')||0)}catch(e){}
+  if(!running||stage!==0||used||n>=6||practice||(typeof cabOn!=='undefined'&&cabOn&&cabAvail()))return;if(gestHint.lv===LV)return;gestHint.lv=LV;
+  try{localStorage.setItem('bts-gestn',n+1)}catch(e){}clearTimeout(gestHint.t);setTimeout(()=>{el.hidden=false;el.classList.add('on');gestHint.t=setTimeout(gestHide,8000)},2600)}
+function gestHide(used){const el=$('gestHint');if(!el)return;el.classList.remove('on');setTimeout(()=>el.hidden=true,400);if(used){try{localStorage.setItem('bts-gest','1')}catch(e){}}}
+
 function panHideTick(t){const act=(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05)&&cab.fov==null&&BUG.fov==null&&RIDE.fov==null&&running;
   if(!act){if(PH.hid.size){PH.hid.forEach(o=>o.visible=true);PH.hid.clear()}return}
   if(t-PH.t<180)return;PH.t=t;
@@ -6016,7 +6042,7 @@ addEventListener('pointerdown',e=>{if(e.target!==cv)return;
   PAN.ps.set(e.pointerId,[e.clientX,e.clientY]);
   if(PAN.on){e.preventDefault();e.stopImmediatePropagation();try{cv.setPointerCapture(e.pointerId)}catch(_){}PAN.c=panMid();return}
   if(PAN.ps.size>=2&&panOK()){PAN.on=true;e.preventDefault();e.stopImmediatePropagation();try{cv.setPointerCapture(e.pointerId)}catch(_){}
-    try{if(ptr.down)up()}catch(_){ptr.down=false}SLC.ps.clear();SLC.pd=0;PAN.c=panMid();panTip()}},true);
+    try{if(ptr.down)up()}catch(_){ptr.down=false}SLC.ps.clear();SLC.pd=0;PAN.c=panMid();panTip();try{gestHide(1)}catch(_){}}},true);
 addEventListener('pointermove',e=>{if(e.pointerId===PAN.mid){e.stopImmediatePropagation();const dx=e.clientX-PAN.c[0],dy=e.clientY-PAN.c[1];if(e.shiftKey||PAN.mb===1)panBy(dx,dy);else panOrb(-dx*.007,dy*.005);PAN.c=[e.clientX,e.clientY];return}
   if(!PAN.ps.has(e.pointerId))return;PAN.ps.set(e.pointerId,[e.clientX,e.clientY]);if(!PAN.on)return;e.stopImmediatePropagation();e.preventDefault();
   const m=panMid();if(PAN.c&&PAN.c[3]===m[3]){const dx=m[0]-PAN.c[0],dy=m[1]-PAN.c[1];
@@ -7167,7 +7193,7 @@ function setStageUI(){
   {const pk=PREPK.has(s.key),np=s.key==='pour';$('wait').hidden=$('thumb').hidden=pk;if(np&&!pk)$('wait').hidden=true;if(np)hold(false);$('next').parentElement.classList.toggle('prep',pk);$('next').parentElement.classList.toggle('nowait',np&&!pk)}
   buildChips();$('stepNo').textContent=`STEP ${stage+1} / ${STAGES.length}`;
   {const d=$('sdesc');d.classList.remove('open');d.classList.add('show');clearTimeout(setStageUI.dt);setStageUI.dt=setTimeout(()=>{d.classList.remove('show');resize()},7000);setTimeout(resize,30)}
-  if(!userView)setView(stage===S.trowel?3:0);else computeCam();
+  if(!userView)setView(stage===S.trowel?3:0,true);else computeCam();try{gestHint()}catch(e){}
   if(running&&!arrive&&setStageUI.ls!==stage&&setStageUI.ls!=null){try{camSwoop()}catch(e){}}setStageUI.ls=running?stage:null;
   if(running&&LV.saw&&STAGES[stage].key==='joint'&&setStageUI.sawT!==stage){setStageUI.sawT=stage;set=Math.max(set,.97);say('Next morning. Saw the joints before it cracks on its own.','info','sawNext',0)}
   if(running){showBanner();hideHint();clearTimeout(hintTimer);hintTimer=setTimeout(showHint,1700);buzz(10)}
