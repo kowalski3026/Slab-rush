@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v224: broom fully textures in one pass at the right time, takes more passes as it nears set -->
 <!-- v221: default camera swings off a building that blocks the slab; your turn/tilt carries across steps; two-finger camera hint on the first jobs -->
 <!-- v220: prep stopwatch with par times on layout, dig, base, forms; "Prep time" score row and Career crew-hours bonus -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
@@ -5818,7 +5819,8 @@ function trowelSeg0(x0,y0,x1,y1){
   else if(late)say('Too hard. You\'re burning it. Dark trowel marks.','bad','trBurn');
   else if(healed>.05)say('Trowel\'s closing up the rough spots.','good','trHeal',6000);
 }
-function broomEff(){return set<=.93?1:Math.max(.05,1-(set-.93)/.05)}
+// v224: in the sweet spot one pass fully textures the strip; as it stiffens toward set it takes more and more passes
+function broomEff(){if(set<.5)return 1;if(set<=.75)return 2.8;if(set<=.93)return 2.8-(set-.75)/.18*1.9;return Math.max(.05,.9-(set-.93)/.05*.85)}
 const BRISTLES=Array.from({length:30},(_,j)=>({o:-1+2*(j+.5+(Math.random()-.5)*.6)/30,a:.45+Math.random()*.55,w:.8+Math.random()*.7}));
 // one drag is one straight pull: the line locks to the first direction you move (snapped square to the slab when close)
 let bLock=null;
@@ -5854,7 +5856,7 @@ function broomSeg0(x0,y0,x1,y1){
   bctx.lineCap=brx.lineCap='round';
   bctx.lineCap=brx.lineCap='butt';
   for(const B of BRISTLES){
-    const o=B.o*hw,a=(early?.38:.2)*eff*B.a;
+    const o=B.o*hw,a=(early?.38:.2)*Math.min(1.5,eff)*B.a;
     bctx.lineWidth=brx.lineWidth=(early?2.6:1.1)*B.w;
     bctx.strokeStyle=`rgba(40,37,32,${a})`;bctx.beginPath();bctx.moveTo(P0x+nx*o,P0y+ny*o);bctx.lineTo(P1x+nx*o,P1y+ny*o);bctx.stroke();
     bctx.strokeStyle=`rgba(232,226,214,${a*.6})`;bctx.beginPath();bctx.moveTo(P0x+nx*(o+1.6),P0y+ny*(o+1.6));bctx.lineTo(P1x+nx*(o+1.6),P1y+ny*(o+1.6));bctx.stroke();
