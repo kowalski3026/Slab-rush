@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v233: adaptive resolution can climb above the mode's ratio in 60 fps mode (up to 2x or the screen's own ratio, +10% steps after 6 s of on-time frames; a level that stutters isn't retried until the next job). Perf meter is 4 short lines and hides while a tip card is open. -->
 <!-- v232: performance pass. Perf meter (Graphics → Perf meter: fps, frame/JS ms, hitches, draws, tris, texture MB, shaders built mid-job, resolution). Adaptive resolution: drops in 13% steps (floor 66%) only while frames run over budget, creeps back up after 4.5 s of headroom. 30/60 fps choice on Android. Shader warm-up: every material in the scene is compiled (compileAsync, into the HDR target in Effects/Sharp) at job start and each step; painted sky light now the same PMREM size as the HDRI skies, and the slab clearcoat never hits 0, so neither rebuilds shaders mid-job. Textures: photo colour maps and normal maps are KTX2 (Basis ETC1S, lib/ KTX2Loader + transcoder, three-shim.js), about 1/6 the GPU memory; the base64 photos moved out to tex/*.jpg (fallback, -1 MB of HTML); every texture using the same photo shares one GPU copy. -->
 <!-- v231: Retaining Wall gets a 1-year-later photo (forms and bracing stripped, sod up to the wall); Foundation Walls yard is grass with a dirt construction pad round the dig instead of dirt everywhere. -->
 <!-- v230: excavator gets off the base when it's in the way: a target right under the cab makes it back straight up along its tracks, and when you let go while it's parked on dirt still to dig or base still to spread it tracks back to its parking spot so you can see underneath. It can still drive on the base. -->
@@ -7460,7 +7461,7 @@ function startJob(){
   weather=WEATHER[wxKeyNow()];pickTOD();$('wxLabel').textContent=weather.label+(TOD.n?' · '+TOD.n:'');
   if(LV.steps.includes('stamp')){LV.color=STAMP_COLORS.find(c=>c.id===stampSel.color).c;STILE=makeStampTile()}try{pbrApply(scene)}catch(e){}try{buildEnv(todEnv(weather))}catch(e){window.__showErr('env: '+e.message)}try{gpsShape();gpsSync()}catch(e){console.warn('gps',e)}reset();setStageUI();
   runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));try{boardStart()}catch(e){console.warn('board',e)}BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
-  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;PERF.progBase=0;PERF.progMid=0;warmSoon(true);
+  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
 }
 $('start').addEventListener('click',()=>{try{const L=LEVELS[jobIdx];if(L&&!practice){planOpen();return}plan.on=false;startJob()}catch(e){window.__showErr('start: '+e.message)}});
 let rsArm=0;
@@ -7740,17 +7741,24 @@ const PRBASE=renderer?renderer.getPixelRatio():1;// the pixel ratio the graphics
 if(renderer)renderer.info.autoReset=false;// one count per frame, not per pass (the filter renders several passes)
 const PERF={on:false,el:null,lastD:0,ema:16.7,n:0,w0:0,ivMax:0,js:0,jsMax:0,hitch:0,progBase:0,progMid:0,progName:'',warm:0,mem:0,memT:0,gpu:'',txt:''};
 try{PERF.on=localStorage.getItem('bts-perf')==='1'}catch(e){}
-const ADR={k:1,min:.66,over:0,under:0,hold:0,ceil:9,ceilT:0,on:!safeGfx};
-function adrApply(k,t){if(!renderer)return;k=Math.max(ADR.min,Math.min(1,k));if(Math.abs(k-ADR.k)<.005)return;ADR.k=k;
+const ADR={k:1,min:.66,max:1,top:9,over:0,under:0,hold:0,ceil:9,ceilT:0,on:!safeGfx};
+// v233: on strong phones the image can get sharper than the mode's ratio. Only in 60 fps mode, where frame times show real headroom (at the 30 cap every frame looks on time)
+function adrMax(){return FPSCAP||GFX==='saver'?1:Math.max(1,Math.min(2,window.devicePixelRatio||1)/PRBASE)}
+function adrApply(k,t){if(!renderer)return;k=Math.max(ADR.min,Math.min(adrMax(),k));if(Math.abs(k-ADR.k)<.005)return;ADR.k=k;
   try{renderer.setPixelRatio(PRBASE*k);resize()}catch(e){}ADR.hold=t+1500;ADR.over=ADR.under=0}
 function adrHold(ms){ADR.hold=Math.max(ADR.hold,performance.now()+(ms||2500));ADR.over=ADR.under=0}
 function adrTick(t,iv){
   if(!ADR.on||!running||document.hidden||glLost||t<ADR.hold||iv>400)return;
   const bud=FPSCAP?33.4:16.7;PERF.ema=PERF.ema*.9+Math.min(iv,120)*.1;
   if(PERF.ema>bud*1.22){ADR.over+=iv;ADR.under=0}else{ADR.over=Math.max(0,ADR.over-iv*.5);ADR.under=PERF.ema<bud*1.07?ADR.under+iv:0}
-  if(ADR.over>1600&&ADR.k>ADR.min){ADR.ceil=ADR.k;ADR.ceilT=t+25000;adrApply(ADR.k*.87,t);return}
+  const hi=ADR.k>1.001;
+  // above the base ratio: back off fast, and never retry a level that failed until the next job (no see-sawing)
+  if(ADR.over>(hi?900:1600)&&ADR.k>ADR.min){if(hi)ADR.top=Math.min(ADR.top,ADR.k-.01);else{ADR.ceil=ADR.k;ADR.ceilT=t+25000}adrApply(hi?Math.max(1,ADR.k*.85):ADR.k*.87,t);return}
   if(t>ADR.ceilT)ADR.ceil=9;
-  if(ADR.under>4500&&ADR.k<1){const nk=Math.min(1,ADR.k+.06);ADR.under=0;if(nk<ADR.ceil-.004)adrApply(nk,t)}}
+  const mx=Math.min(adrMax(),ADR.top);
+  if(ADR.k<1&&ADR.under>4500){const nk=Math.min(1,ADR.k+.06);ADR.under=0;if(nk<ADR.ceil-.004)adrApply(nk,t)}
+  else if(ADR.k>=.999&&ADR.k<mx-.004&&ADR.under>6000&&PERF.ema<bud*1.03){ADR.under=0;adrApply(Math.min(mx,ADR.k+.1),t)}}
+function adrJob(){ADR.top=9;ADR.ceil=9;if(ADR.k>adrMax())adrApply(adrMax(),performance.now())}
 function perfTexMB(){let b=0;const seen=new Set();
   const add=x=>{if(!x||!x.isTexture||x.isRenderTargetTexture)return;const src=x.source||x;if(seen.has(src))return;seen.add(src);
     if(x.isCompressedTexture){(x.mipmaps||[]).forEach(m=>{if(m&&m.data)b+=m.data.byteLength});return}
@@ -7766,7 +7774,7 @@ function perfTexMB(){let b=0;const seen=new Set();
   try{const sm=sun.shadow.mapSize;rt+=sm.x*sm.y*4}catch(e){}
   return [b/1048576,rt/1048576]}
 function perfEl(){if(PERF.el)return PERF.el;const d=document.createElement('pre');d.id='perfHud';
-  d.style.cssText='position:fixed;left:6px;top:calc(var(--hudb,96px) + 4px);z-index:60;margin:0;padding:5px 7px;border-radius:8px;background:rgba(10,11,10,.78);border:1px solid rgba(255,255,255,.14);color:#e8f2e6;font:600 10.5px/1.35 ui-monospace,Menlo,Consolas,monospace;pointer-events:none;white-space:pre;min-width:150px';
+  d.style.cssText='position:fixed;left:6px;top:calc(var(--hudb,96px) + 4px);z-index:60;margin:0;padding:5px 7px;border-radius:8px;background:rgba(10,11,10,.78);border:1px solid rgba(255,255,255,.14);color:#e8f2e6;font:600 9px/1.3 ui-monospace,Menlo,Consolas,monospace;pointer-events:none;white-space:pre;opacity:.82';
   document.body.appendChild(d);PERF.el=d;
   try{const gl=renderer.getContext(),x=gl.getExtension('WEBGL_debug_renderer_info');PERF.gpu=String(gl.getParameter(x?x.UNMASKED_RENDERER_WEBGL:gl.RENDERER)).replace(/\(.*?\)|ANGLE|OpenGL ES.*|Direct3D.*|vs_.*|,/g,' ').replace(/\s+/g,' ').trim().slice(0,28)}catch(e){}
   return d}
@@ -7783,15 +7791,11 @@ function perfFrame(t,js,menu){if(!renderer)return;const inf=renderer.info,drew=i
   if(t-PERF.memT>2500){PERF.memT=t;try{PERF.mem=perfTexMB()}catch(e){PERF.mem=[0,0]}}
   const v=renderer.getDrawingBufferSize(new THREE.Vector2()),m=inf.memory,hp=performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576)+' MB':'n/a';
   const k=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?Math.round(n/1e3)+'k':String(n);
-  const txt=`${fps.toFixed(0)} fps  ${ms.toFixed(1)} ms  worst ${PERF.ivMax.toFixed(0)}
-JS ${(PERF.js/PERF.n).toFixed(1)} ms  max ${PERF.jsMax.toFixed(0)}  hitches ${PERF.hitch}
-Draws ${inf.render.calls}  Tris ${k(inf.render.triangles)}
-Tex ${m.textures}  ~${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)} MB  Geo ${m.geometries}
-Shaders ${np}  mid-job ${PERF.progMid}${PERF.progName?' ('+PERF.progName.replace(/Material$/,'')+')':''}
-Res ${(PRBASE*ADR.k).toFixed(2)}x ${v.x}x${v.y}${ADR.k<.999?'  auto '+Math.round(ADR.k*100)+'%':''}
-${FPSCAP?'30':'60'} fps mode  ${GFX}  KTX2 ${typeof KTX!=='undefined'&&KTX.n?KTX.n:0}
-Heap ${hp}  ${PERF.gpu}`;
-  if(txt!==PERF.txt){PERF.txt=txt;perfEl().textContent=txt}
+  const txt=`${fps.toFixed(0)}/${FPSCAP?30:60} fps ${ms.toFixed(1)}ms w${PERF.ivMax.toFixed(0)} h${PERF.hitch} js${(PERF.js/PERF.n).toFixed(1)}
+${inf.render.calls} draws ${k(inf.render.triangles)} tris ${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)}MB
+${(PRBASE*ADR.k).toFixed(2)}x ${v.x}x${v.y} ${Math.round(ADR.k*100)}% sh+${PERF.progMid}
+${GFX} ktx${typeof KTX!=='undefined'?KTX.n:0} ${hp} ${PERF.gpu}`;
+  const el=perfEl();el.style.display=coachOpen?'none':'';if(txt!==PERF.txt){PERF.txt=txt;el.textContent=txt}
   PERF.n=0;PERF.w0=t;PERF.ivMax=0;PERF.js=0;PERF.jsMax=0}
 /* compile every material in the scene (hidden tools, trucks, tarps included) and pre-upload their textures,
    so a step change or a tool coming out doesn't stall the frame while the phone builds a shader */
@@ -10879,7 +10883,7 @@ applyLevel(LEVELS[0]);reset();setStageUI();renderJobs();resize();requestAnimatio
 {const seg=$('perfSeg'),bs=seg.querySelectorAll('[data-f]'),pt=$('perfTgl');
  const paint=()=>{bs.forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.f==='30')===FPSCAP)));pt.setAttribute('aria-pressed',String(PERF.on))};
  if(!IS_AND||GFX==='saver'){bs.forEach(b=>b.hidden=true);seg.style.gridTemplateColumns='1fr'}
- bs.forEach(b=>b.addEventListener('click',()=>{FPSCAP=b.dataset.f==='30';try{localStorage.setItem('bts-fps60',FPSCAP?'0':'1')}catch(e){}ADR.ceil=9;adrHold(1500);paint();buzz(8)}));
+ bs.forEach(b=>b.addEventListener('click',()=>{FPSCAP=b.dataset.f==='30';try{localStorage.setItem('bts-fps60',FPSCAP?'0':'1')}catch(e){}ADR.ceil=9;ADR.top=9;if(ADR.k>adrMax())adrApply(adrMax(),performance.now());adrHold(1500);paint();buzz(8)}));
  pt.addEventListener('click',()=>{perfShow(!PERF.on);paint();buzz(8)});paint()}
 
 {const ht=$('hudTop'),tb=$('topTab');let mn=false;try{mn=localStorage.getItem('bts-topmin')==='1'}catch(e){}
