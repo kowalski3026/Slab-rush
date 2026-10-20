@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v220: prep stopwatch with par times on layout, dig, base, forms; "Prep time" score row and Career crew-hours bonus -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
 <!-- v219: rebar grid and chairs centred in the forms. -->
 <!-- v218: the rake and its concrete ball (the grey ball) no longer flash at job start; all tools hidden between jobs. -->
@@ -345,6 +346,7 @@ body.menu .hud,body.menu .toast,body.menu .hint,body.menu .banner{opacity:0!impo
 .seg button{min-height:40px;border-radius:9px;border:0;background:transparent;color:var(--muted);font-family:var(--f-label);font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:7px}
 .seg button svg{width:18px;height:18px}
 #truckEta{position:fixed;left:50%;top:150px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:12px;padding:10px 18px 14px 14px;border-radius:16px;background:#f2b23a;color:#17150f;box-shadow:0 6px 22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.4);pointer-events:none;min-width:200px}
+#prepClk{position:fixed;left:50%;top:150px;transform:translateX(-50%);z-index:29;display:flex;align-items:baseline;gap:7px;padding:4px 12px;border-radius:10px;background:rgba(18,19,17,.86);border:1px solid #2f9e52;color:#e9f6ec;pointer-events:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4)}#prepClk[hidden]{display:none}#prepClk small{font:800 11px var(--f-label);letter-spacing:.08em;text-transform:uppercase;color:#6fdc8c}#prepClk b{font:400 22px var(--f-display);font-variant-numeric:tabular-nums}#prepClk span{font:700 12px var(--f-label);opacity:.75}#prepClk em{font:700 12px var(--f-mono,monospace);font-style:normal;color:#6fdc8c;margin-left:2px}#prepClk.over em{color:#ffb13a}#prepClk.late{border-color:#e0602a}#prepClk.late small,#prepClk.late b{color:#ff8a5a}
 #truckEta[hidden]{display:none}
 #truckEta>svg{width:42px;height:32px;flex:none}
 #truckEta .te-t{display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:8px;line-height:1}
@@ -677,6 +679,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
       <span class="mini" id="miniClk"></span><span class="mexp" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
     </div>
   </header>
+  <div id="prepClk" hidden aria-live="off"><small>Prep</small><b id="pcT">0:00</b><span id="pcP">par 0:00</span><em id="pcS">0:00 / 0:00</em></div>
   <div id="truckEta" hidden aria-live="polite"><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17V7h15v10"/><path d="M17 10h6l4 4v3h-2"/><circle cx="8" cy="18.5" r="2.5"/><circle cx="22" cy="18.5" r="2.5"/><path d="M10.5 18.5h9"/><path d="M5 7l4-3h6l1 3"/></svg>
     <div class="te-t"><small id="teLbl">Truck on the way</small><b id="teSec">24</b><span id="teSub">0.75 m³</span></div><i class="te-bar"><i id="teFill"></i></i></div>
   <div id="bugPad" hidden><div class="js" id="bjsL"><i></i><b>Steer ⟷</b></div><div class="bmid"><span id="bMsg">&nbsp;</span><button id="bDump" class="rpm"><span>Hopper</span><b>Dump</b><i></i></button><button id="bPov" class="rpm sm"><span>Camera</span><b>Seat</b></button></div><div class="js" id="bjsR"><i></i><b>Drive ↕</b></div></div>
@@ -4789,7 +4792,7 @@ function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.vi
   REB.chs.forEach((c,k)=>{c.on=1;rebM(REB.ch,k,c.x,-.255,c.z,0,Math.random()*3,0,1,1,1)});REB.runs.forEach((b,k)=>{b.on=0;b.a=0;rebBar(k,0)});rebMarks()}
 function rebarTrace(){}// kept for old callers
 /* ---------- state init ---------- */
-function reset(){setStageUI.sawT=null;try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
+function reset(){setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
   h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);
   for(let i=0;i<N;i++)mott[i]=(Math.random()-.5)*10;
   {const nz=new Float32Array(N);for(let i=0;i<N;i++)nz[i]=Math.random();
@@ -7276,7 +7279,7 @@ $('next').addEventListener('click',e=>{
     if(empty>RN*.02)say('There are bare spots along the forms. The screed can\'t fill those.','bad','bare',0);
     else if(placed<NEED_M3*.95)say('You\'re short. The screed will be fighting lows.','bad','short',0);else say(LV.stair?'Truck\'s pulling out. Grab the stinger and vibrate every step.':'Truck\'s pulling out. Get that straightedge moving.','info','go2',0);if(BUG&&BUG.carry)say('Buggy\'s on auto and still hauling. Screed in behind it.','info','bugCarry',0)}
   if(STAGES[stage].key==='vibe')try{strHoneycomb()}catch(e){}
-  try{stepGrade(STAGES[stage].key)}catch(e){console.warn('grade',e)}
+  try{stepGrade(STAGES[stage].key)}catch(e){console.warn('grade',e)}try{prepSplit(STAGES[stage].key)}catch(e){}
   if(stage<STAGES.length-1){stage++;setStageUI();
     const k=STAGES[stage].key;try{barkStage(k)}catch(e){}try{strNextSay(k)}catch(e){}try{brgNextSay(k)}catch(e){}try{siteStage(k)}catch(e){}if(k==='pour')try{startArrive()}catch(e){}
     if(k==='edge'&&set<.44)say('Bleed water cycle first. Hold Wait and thumb-test.','info','nEdge',0);
@@ -7339,6 +7342,35 @@ function truckEtaUI(){const el=$('truckEta');if(!running){if(!el.hidden){el.hidd
   const s=String(Math.max(0,Math.ceil(sec)));if($('teSec').textContent!==s)$('teSec').textContent=s;
   if($('teLbl').textContent!==lbl)$('teLbl').textContent=lbl;if($('teSub').textContent!==sub)$('teSub').textContent=sub;
   $('teFill').style.width=(100*(1-sec/tot)).toFixed(1)+'%';el.classList.toggle('soon',sec<=5)}
+
+/* ---------- v220: prep stopwatch. Layout, dig, base and forms are timed against a par; beating par with clean work pays ---------- */
+const PREPT={t:0,st:{},par:{},on:false,best:0,
+  reset(){this.t=0;this.st={};this.par={};this.on=false;const el=$('prepClk');if(el)el.hidden=true}};
+const PREPPAR={mark:[14,.32,0],dig:[28,0,.13],gravel:[18,0,.07],base:[14,0,.055],form:[16,.42,0],rebar:[24,0,.1],tube:[28,0,.11],sform:[30,0,0],riser:[30,0,0],sbar:[34,0,0],demo:[45,0,.05],soffit:[50,0,.05]};
+function prepSq(){return RN*CELL_IN*CELL_IN/144}
+function prepPar(k){const p=PREPPAR[k];if(!p)return 0;let v=p[0]+p[1]*PER+p[2]*prepSq();if(k==='dig'&&cabOn)v*=1.7;return Math.round(Math.max(18,Math.min(260,v)))}
+const fmtPT=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function prepKeys(){return STAGES.map(s=>s.key).filter(k=>PREPK.has(k)&&PREPPAR[k])}
+function prepParTot(){return prepKeys().reduce((a,k)=>a+prepPar(k),0)}
+function prepTick(dt){const el=$('prepClk'),k=STAGES[stage]&&STAGES[stage].key,live=running&&!practice&&PREPK.has(k)&&PREPPAR[k]&&!(LV&&LV.tut);
+  if(!live){if(el&&!el.hidden)el.hidden=true;return}
+  if(!coachOpen){const d=Math.min(dt,.25);PREPT.t+=d;PREPT.st[k]=(PREPT.st[k]||0)+d}PREPT.on=true;
+  if(!el)return;el.hidden=false;const top=$('hudTop').getBoundingClientRect().bottom;el.style.top=Math.max(12,top+6)+'px';
+  const tot=prepParTot(),sp=prepPar(k),st=PREPT.st[k]||0,txt=fmtPT(PREPT.t),stxt=fmtPT(st)+' / '+fmtPT(sp);
+  if($('pcT').textContent!==txt)$('pcT').textContent=txt;if($('pcS').textContent!==stxt)$('pcS').textContent=stxt;$('pcP').textContent='par '+fmtPT(tot);
+  el.classList.toggle('over',st>sp);el.classList.toggle('late',PREPT.t>tot)}
+function prepSplit(k){if(!running||practice||!PREPK.has(k)||!PREPPAR[k]||(LV&&LV.tut))return;const st=PREPT.st[k]||0,p=prepPar(k),d=Math.round(p-st),e=$('sgT');
+  if(e)e.textContent+=` ⏱ ${fmtPT(st)} · par ${fmtPT(p)} · `+(d>=0?`${d}s under`:`${-d}s over`);
+  if(d>=p*.25)setTimeout(()=>{try{bark(pick(['Fast hands, boss!','Ahead of schedule.','That\'s how you make money.','Crew\'s flying today!']),1500)}catch(e){}},900)}
+function prepQual(SC){const ks=prepKeys();if(!ks.length)return 1;let a=0;ks.forEach(k=>{try{a+=clamp01(SC[k]()[1])}catch(e){}});return a/ks.length}
+function prepSpeed(){const par=prepParTot();if(!par||!PREPT.on)return null;const r=PREPT.t/par;return {par,r,v:r<=.7?1:r<=1?1-(r-.7)/.3*.15:Math.max(.2,.85-(r-1)*.65)}}
+function prepRow(SC){const sp=prepSpeed();if(!sp)return null;const q=prepQual(SC),gate=q>=.92?1:Math.max(0,(q-.6)/.32),v=sp.v*gate;
+  let best=0;try{best=+(localStorage.getItem('bts-prep-'+LV.id)||0)}catch(e){}let pb=false;
+  if(q>=.92&&(!best||PREPT.t<best)){pb=!!best;try{localStorage.setItem('bts-prep-'+LV.id,Math.round(PREPT.t))}catch(e){}}
+  const note=`${fmtPT(PREPT.t)} for par ${fmtPT(sp.par)}`+(best?` · best ${fmtPT(Math.min(best,pb?PREPT.t:best))}`:'')+'. '+
+    (gate<1?'Rushed it. Sloppy prep doesn\'t count as fast.':sp.r<=.7?'Crew was flying. Truck didn\'t wait a minute.':sp.r<=1?'Ready before the truck.':'Truck sat waiting on you.')+(pb&&q>=.92?' New prep record!':'');
+  PREPT.res={q,gate,r:sp.r,par:sp.par,v};return['Prep time',v,note,.12]}
+function prepCash(crew){const r=PREPT.res;if(!r||!PREPT.on)return 0;const k=Math.max(-.5,Math.min(1,(1-r.r)*2.5));return Math.round(crew*.15*(k>0?k*r.gate:k))}
 // v218: between jobs (job list, plan, results) no hand tools, screed, rake or concrete roll are left standing on the lawn
 function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
 function startJob(){
@@ -7581,7 +7613,7 @@ function finish(timedOut){
   if(stage===S.pour)placedAtLeave=placed;
   const {SC,q,w,tm,ratio,r,RG,maxP}=buildSC();
   const WT={demo:.08,soffit:.08,sform:.05,riser:.05,sbar:.06,vibe:.14,tread:.45,rebar:.08,mark:.05,cure:.15,slip:.4,shape:.25,dig:.1,gravel:.1,base:.1,form:.1,tube:.15,expose:.3,power:.25,blanket:.2,pour:.1,screed:.15,float:.1,edge:.1,trowel:.15,joint:.2,broom:.2,color:.15,stamp:.3};
-  const rows=STAGES.map(s=>{const [n,sc,note]=SC[s.key]();return[n,clamp01(sc),note,LV.bridge&&s.key==='screed'?.4:WT[s.key]]});if(SITE.insp&&SITE.insp.done)rows.push(['Inspection',SITE.insp.pass?1:.3,SITE.insp.note,.06]);
+  const rows=STAGES.map(s=>{const [n,sc,note]=SC[s.key]();return[n,clamp01(sc),note,LV.bridge&&s.key==='screed'?.4:WT[s.key]]});if(SITE.insp&&SITE.insp.done)rows.push(['Inspection',SITE.insp.pass?1:.3,SITE.insp.note,.06]);try{const pr=prepRow(SC);if(pr)rows.push(pr)}catch(e){console.warn('prep',e)}{const el=$('prepClk');if(el)el.hidden=true}
   let wk=0;for(let i=0;i<N;i++)if(inR[i])wk+=Math.min(1,weak[i]);wk/=RN;
   const wsum=rows.reduce((a,x)=>a+x[3],0),raw=100*rows.reduce((a,x)=>a+x[1]*x[3],0)/wsum-wk*60;
   const total=Math.round(Math.max(0,Math.min(100,raw+(cab.used?3:0))));
@@ -7657,7 +7689,7 @@ function step(t,dt){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
     if(autoFF&&!flags.aff){flags.aff=1;say('Bleed water\'s still coming up. Skipping ahead, get ready to thumb-test.','info','aff',0)}if(!autoFF&&flags.aff===1&&set>=.43){flags.aff=2;buzz(25);say('Close now. Thumb-test it.','good','aff2',0)}
     wb.classList.toggle('held',waitHeld||autoFF);const ff=waitHeld?Math.min(60,12+holdT*30):autoFF?40:1,s0=set;
-    const evm=evStep(dt);if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
+    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
     if(set>=1&&!(LV.saw&&STAGES[stage].key==='joint')){if(!flags.endT){flags.endT=t;say('It\'s set up. That\'s the job, let\'s walk it.','bad','setup',0);buzz(80)}else if(t-flags.endT>2400){flags.endT=0;finish(STAGES[stage].key!=='blanket')}}
     if(waitHeld&&[.46,.72].some(m=>s0<m&&set>=m)){holdT=0;buzz(25)}
     if(pouring)pourStep(dt);try{runTick(dt,t)}catch(e){console.warn('run',e)}
@@ -10464,7 +10496,7 @@ function careerSettle(total,rows){
   let equip=350+(usePump()?1100:0)+(L.slip?1200:0)+(BUG&&BUG.used?180:0),crewLbl=`Crew of ${crewN}`;if(planLive()){const e=plan.est||planEst();equip=e.equip;const ot=1+Math.max(0,set*weather.sim/60-e.hours+1.5)*.06;crew=Math.round(e.crew*ot);crewLbl=CREWS[plan.crew].p===1?'Just you (no labour)':`${CREWS[plan.crew].n}`+(ot>1.01?' + overtime':'')}
   let pay=price,note='Paid in full.';
   if(total>=90){pay=Math.round(price*1.05);note='Paid in full, plus a tip.'}else if(total<45){pay=0;note='Callback. They want it torn out and redone on your dime.'}else if(total<65){pay=Math.round(price*.75);note='They held back 25% until you fix it.'}
-  const tear=total<45?Math.round(price*.3):0,blowC=blow?650:0,xtC=XT.fee,net=pay-conc-mat-crew-tear-blowC-disp-equip-sub-xtC;
+  const pcash=prepCash(crew),tear=total<45?Math.round(price*.3):0,blowC=blow?650:0,xtC=XT.fee,net=pay-conc-mat-crew-tear-blowC-disp-equip-sub-xtC+pcash;
   career.cash+=net;career.rep=Math.max(1,Math.min(5,career.rep+(total-70)/60));career.jobs++;const rkI=rankI();
   const ks=rows.map((r,i)=>[STAGES[i]?STAGES[i].key:'',r[1]]).filter(x=>GOOD[x[0]]),best=ks.reduce((a,b)=>b[1]>a[1]?b:a,ks[0]),worst=ks.reduce((a,b)=>b[1]<a[1]?b:a,ks[0]);
   const stars=total>=90?5:total>=80?4:total>=65?3:total>=45?2:1,g=GOOD[best[0]],bd=BAD[worst[0]];
@@ -10474,7 +10506,7 @@ function careerSettle(total,rows){
   $('rCareer').innerHTML=`<div class="label">Job ticket · ${QUOTES[quote].n} quote</div>
     <div class="ln"><span>Contract</span><b>${money(price)}</b></div><div class="ln"><span>Collected</span><b>${money(pay)}</b></div>
     <div class="ln"><span>Concrete ${LOAD_M3.toFixed(2)} m³${XT.n?` (incl. ${XT.m3.toFixed(2)} called back)`:''}</span><b>${money(-conc)}</b></div>${XT.n?`<div class="ln"><span>Short-load fee${XT.n>1?' ×'+XT.n:''}</span><b>${money(-xtC)}</b></div>`:''}<div class="ln"><span>Forms, rebar, materials</span><b>${money(-mat)}</b></div>
-    ${disp?`<div class="ln"><span>Old asphalt haul &amp; dump</span><b>${money(-disp)}</b></div>`:''}<div class="ln"><span>Equipment${planLive()?' &amp; rentals':''}${usePump()?' + pump truck':''}${BUG&&BUG.used&&!planLive()?' + buggy':''}${L.slip?' + slipform':''}</span><b>${money(-equip)}</b></div>${sub?`<div class="ln"><span>Prep by a sub (dig, base, forms)</span><b>${money(-sub)}</b></div>`:''}<div class="ln"><span>${crewLbl}</span><b>${money(-crew)}</b></div>${tear?`<div class="ln"><span>Tear-out</span><b>${money(-tear)}</b></div>`:''}${blowC?`<div class="ln"><span>Blowout cleanup</span><b>${money(-blowC)}</b></div>`:''}
+    ${disp?`<div class="ln"><span>Old asphalt haul &amp; dump</span><b>${money(-disp)}</b></div>`:''}<div class="ln"><span>Equipment${planLive()?' &amp; rentals':''}${usePump()?' + pump truck':''}${BUG&&BUG.used&&!planLive()?' + buggy':''}${L.slip?' + slipform':''}</span><b>${money(-equip)}</b></div>${sub?`<div class="ln"><span>Prep by a sub (dig, base, forms)</span><b>${money(-sub)}</b></div>`:''}<div class="ln"><span>${crewLbl}</span><b>${money(-crew)}</b></div>${pcash?`<div class="ln"><span>${pcash>0?'Prep under par (crew hours saved)':'Prep over par (crew standing around)'}</span><b>${money(pcash)}</b></div>`:''}${tear?`<div class="ln"><span>Tear-out</span><b>${money(-tear)}</b></div>`:''}${blowC?`<div class="ln"><span>Blowout cleanup</span><b>${money(-blowC)}</b></div>`:''}
     <div class="ln net"><span>${note}</span><b>${money(net)}</b></div>
     <div class="ln"><span>Bank</span><b>${money(career.cash)}</b></div><div class="ln"><span>Reputation</span><b>${starStr(career.rep)} ${career.rep.toFixed(1)}</b></div>${rkI?`<div class="ln"><span>${RANKS[rkI][1]} rank bonus (in contract)</span><b>+${rkI*3}%</b></div>`:''}
     <blockquote class="review"><span class="stars">${starStr(stars)}</span>${text}<cite>${who} · ${L.name}</cite></blockquote>`;
