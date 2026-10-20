@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v229: excavator arm no longer stands straight up mid-swing (dumping gravel or spoil): the bucket target swings round the machine in an arc instead of sliding straight past the cab, reach is measured by distance, and the arm never reaches back over the cab. -->
 <!-- v228: excavator bucket no longer shoots into the sky while swinging: the keep-above-ground lift is recomputed each frame (not accumulated into the target), capped, skips the boom foot over the machine, and stops when lifting doesn't help. -->
 <!-- v227: game recovers properly when the phone drops and restores the GPU (screen recording, low memory): baked ground shading, textures, shadows and screen effects are rebuilt instead of leaving the yard black and brown. -->
 <!-- v226: less flicker while working with a turned or tilted camera: buildings in the see-through check hide/show with hysteresis (no blinking at the edge), and the near clip plane eases instead of jumping each frame. -->
@@ -9032,9 +9033,9 @@ function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}c
   if(!boomG.userData.decal){const kz=XC.L1*.46,ky=1.05,an=Math.atan2(ky,kz);[1,-1].forEach(sd=>{const d=new THREE.Mesh(new THREE.PlaneGeometry(2.55,.85),boomDecalM);d.position.set(sd*.32,ky/2,kz/2);d.rotation.set(-an*1,sd*Math.PI/2,0,'XYZ');boomG.add(d)});boomG.userData.decal=true}
   exPose(0,0,true);if(typeof dumpT!=='undefined')dumpT.userData.home=null}
 // solve and lay out the arm for a bucket-tip target in world space
-function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=tx-exPos[0],dz=tz-exPos[1],r=(dx*fx+dz*fz)/EXS,y=(ty-exY)/EXS-XC.HY;
+function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=tx-exPos[0],dz=tz-exPos[1],r=Math.max((dx*fx+dz*fz)/EXS,Math.hypot(dx,dz)/EXS*.92),/* v229: reach by distance, not along the current heading: mid-swing the target sat behind the cab and the arm reached back over it, straight up */y=(ty-exY)/EXS-XC.HY;
   const s=XC.BR*2+.05,nn=-.45,tr=s*Math.cos(a3)-nn*Math.sin(a3),tyo=s*Math.sin(a3)+nn*Math.cos(a3);
-  const P0=XC.P0,L1=XC.L1,L2=XC.L2;let pr=r-tr-P0[0],py=y-tyo-P0[1];
+  const P0=XC.P0,L1=XC.L1,L2=XC.L2;let pr=Math.max(1.5,r-tr-P0[0]),py=y-tyo-P0[1];
   // v221: real joint limits. The wrist never reaches past ~86% of full stretch, the stick always keeps a bend, the boom never dips far below level
   {const dm=Math.hypot(pr,py)||1e-6,dmax=(L1+L2)*.86,dmin=Math.abs(L1-L2)+1.2;if(dm>dmax||dm<dmin){const k=(dm>dmax?dmax:dmin)/dm;pr*=k;py*=k}}
   const d=Math.hypot(pr,py),ph=Math.atan2(py,pr),cb=Math.max(-1,Math.min(1,(L1*L1+d*d-L2*L2)/(2*L1*d)));
@@ -9072,7 +9073,10 @@ function updateExcavator(dt,t,k){
   const dd=Math.hypot(des[0]-exPos[0],des[2]-exPos[1])||1;let want=Math.atan2(des[0]-exPos[0],des[2]-exPos[1])-Math.asin(Math.max(-.5,Math.min(.5,XC.BX*EXS/dd)));
   if(exIdle&&!down&&!(exDumpT>0))want=exIdle[3];// parked: the house holds its heading until you use it
   exHY+=Math.max(-2.4*dt,Math.min(2.4*dt,angDiff(exHY,want)));
-  if(!exT)exT=des.slice();const kk=1-Math.pow(.004,dt);for(let q=0;q<3;q++)exT[q]+=(des[q]-exT[q])*kk;exA3+=(a3-exA3)*(1-Math.pow(.01,dt));
+  if(!exT)exT=des.slice();const kk=1-Math.pow(.004,dt);
+  {// v229: swing the target round the machine (radius, angle, height) instead of sliding it straight across the cab
+   const ox=exPos[0],oz=exPos[1],r0=Math.hypot(exT[0]-ox,exT[2]-oz),r1=Math.hypot(des[0]-ox,des[2]-oz),a0=Math.atan2(exT[0]-ox,exT[2]-oz),a1=Math.atan2(des[0]-ox,des[2]-oz);
+   const rr=r0+(r1-r0)*kk,aa=a0+angDiff(a0,a1)*kk;exT[0]=ox+Math.sin(aa)*rr;exT[2]=oz+Math.cos(aa)*rr;exT[1]+=(des[1]-exT[1])*kk}exA3+=(a3-exA3)*(1-Math.pow(.01,dt));
   // v221: a bad target (NaN) used to stick in the smoothing forever and blank the whole arm; start over from the rest pose instead
   if(!(isFinite(exT[0])&&isFinite(exT[1])&&isFinite(exT[2])&&isFinite(exA3))){exT=null;exA3=-2.2;exIdle=null}
   let tip=exPose(dt,t);
