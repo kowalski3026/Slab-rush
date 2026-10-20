@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v227: game recovers properly when the phone drops and restores the GPU (screen recording, low memory): baked ground shading, textures, shadows and screen effects are rebuilt instead of leaving the yard black and brown. -->
 <!-- v226: less flicker while working with a turned or tilted camera: buildings in the see-through check hide/show with hysteresis (no blinking at the edge), and the near clip plane eases instead of jumping each frame. -->
 <!-- v225: houses no longer vanish when you zoom or turn the camera: the see-through check tests real walls and roof instead of the building's bounding box, and only hides a building that really covers the slab. -->
 <!-- v224: broom fully textures in one pass at the right time, takes more passes as it nears set -->
@@ -2007,7 +2008,14 @@ function drawFrame(){if(!renderer)return;
     f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;pass(POST.fin,null)}
   catch(e){console.warn('post failed',e);POST.on=false;renderer.setRenderTarget(null);renderer.toneMapping=TONE;renderer.render(scene,camera)}}
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;glLostT=performance.now();},false);
-cv.addEventListener('webglcontextrestored',()=>{glLost=false;$('glMsg')&&($('glMsg').hidden=true);try{slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;resize()}catch(_){}},false);
+cv.addEventListener('webglcontextrestored',()=>{glLost=false;$('glMsg')&&($('glMsg').hidden=true);try{slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;resize()}catch(_){}
+  // v227: a phone that drops the GPU (screen recording, low memory) comes back with empty baked maps: the ground shading read as fully dark and the whole yard went black/brown. Re-bake everything the game draws itself.
+  setTimeout(()=>{try{if(typeof AO!=='undefined'&&AO.U){AO.U.aoK.value=0;AO.done=false}}catch(_){}
+    try{scene.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];ms.forEach(m=>{['map','roughnessMap','bumpMap','normalMap','aoMap','alphaMap','clearcoatMap','emissiveMap'].forEach(k=>{const t=m[k];if(t&&!t.isRenderTargetTexture&&(t.image||t.isDataTexture))t.needsUpdate=true});m.needsUpdate=true})})}catch(_){}
+    try{renderer.shadowMap.needsUpdate=true;if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}catch(_){}
+    try{if(typeof POST!=='undefined'&&POST.main){['main','a','b','ao','ao2'].forEach(k=>{try{POST[k]&&POST[k].dispose()}catch(_){}});}}catch(_){}
+    try{surfDirty=true;geoDirty=true;layerDirty=true;drawEdgeAO()}catch(_){}
+    try{aoBake()}catch(e){console.warn('rebake',e)}},300)},false);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,1.4,.5,420);
 
