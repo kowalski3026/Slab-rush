@@ -25,6 +25,7 @@
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
+<!-- v217: no more flash of the last job's screed, concrete roll and joint tape when a job starts; layout dots only show on the paint step. -->
 <!-- v216: late truck shows in 10-15 s. -->
 <!-- v215: late truck shows in 14-22 s instead of 34-58 s; the live edge cools faster (10 s) so you still have to keep raking. -->
 <!-- v214: fixed 'Assignment to constant variable' (parked excavator swing) that stopped the game loop after digging; rain-pit craters now only from real rain (own rpit map), not from any weak/overworked spot. -->
@@ -7052,13 +7053,13 @@ const tarpHid={v:true};
 function updateTools(dt,t){
   const k=curK();try{regTick(t)}catch(e){}{const tv=!tarpMesh.visible;if(tarpHid.v!==tv){tarpHid.v=tv;[sceneG,siteG].forEach(g=>g.children.forEach(o=>{if(o.userData.underTarp)o.visible=tv}));leaves.forEach(l=>{if(l.m&&!l.gone)l.m.visible=tv})}else if(!tv)leaves.forEach(l=>{if(l.m)l.m.visible=false})}try{if(LV.bridge)bridgeTick(dt)}catch(e){}
   rideTick(dt,t);
-  screedG.visible=mound.visible=k==='screed';if(LV&&LV.bridge)screedG.visible=false;{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
+  screedG.visible=mound.visible=running&&k==='screed';if(LV&&LV.bridge)screedG.visible=false;{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
   if(SCR.on&&SCR.multi){stripBand.visible=false;const pr=running&&k==='pour'&&(placed>0||SCR.pourTold),sc=running&&k==='screed',pulse=.16+.06*Math.sin(performance.now()*.004);
     msBands.children.forEach((m,i)=>{let ab=null,op=.14;if(pr&&i<SCR.S.length&&msStripFill(i)<.85){const t=SCR.S[i];ab=[t.a,t.b];op=pulse}else if(sc&&i===0){ab=SCR.lanes[SCR.lane];op=SCR.ph===0?.16:.07}
       m.visible=!!ab;if(ab){m.position.set(RCX,ELV()+.06,(wz(ab[0])+wz(ab[1]))/2);m.scale.set(RW,Math.abs(wz(ab[1])-wz(ab[0])),1);m.material.opacity=op}})}else msBands.children.forEach(m=>m.visible=false);
   if(!SCR.multi){const sb=SCR.on&&running&&((k==='pour'&&(placed>0||SCR.pourTold)&&stripFill()<.85)||(k==='screed'&&SCR.ph===0));stripBand.visible=sb;
    if(sb){const [LA,LB]=SCR.lanes[0];stripBand.position.set(RCX,ELV()+.06,(wz(LA)+wz(LB))/2);stripBand.scale.set(RW,Math.abs(wz(LB)-wz(LA)),1);stripBand.material.opacity=k==='pour'?.16+.06*Math.sin(performance.now()*.004):.14}}
-  tape.visible=tapeCase.visible=k==='joint';
+  tape.visible=tapeCase.visible=running&&k==='joint';
   floatG.visible=k==='float'&&ptr.down;edgerG.visible=k==='edge'&&ptr.down;broomG.visible=k==='broom'&&ptr.down;
   trowelG.visible=k==='trowel'&&ptr.down;wandG.visible=k==='expose'&&ptr.down;tubeGhost.visible=k==='tube';powerG.visible=k==='power'&&ptr.down&&!rideLive();
   grooverG.visible=guide.visible=cutLine.visible=k==='joint'&&ptr.down;
@@ -7335,6 +7336,7 @@ function truckEtaUI(){const el=$('truckEta');if(!running){if(!el.hidden){el.hidd
   if($('teLbl').textContent!==lbl)$('teLbl').textContent=lbl;if($('teSub').textContent!==sub)$('teSub').textContent=sub;
   $('teFill').style.width=(100*(1-sec/tot)).toFixed(1)+'%';el.classList.toggle('soon',sec<=5)}
 function startJob(){
+  stage=0;screedG.visible=mound.visible=tape.visible=tapeCase.visible=false;if(dotIM)dotIM.visible=false;
   applyLevel(LEVELS[jobIdx]);
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
   if(mode==='career'&&!LV.free&&quote==='premium'&&!skipQuote&&Math.random()>premiumOdds()){quote='market';renderCareer();
@@ -8679,7 +8681,8 @@ function markTrace(p,fresh){if(!markIM)return;const cur=[p.wx,p.wz],from=fresh||
     if(markPct()>=.995&&!flags.markDone){flags.markDone=1;say('Outline\'s painted. Hit Next and dig it out to the paint.','good','markd',0);try{chime()}catch(e){}}}
   else if(fresh){let bd=1e9;markPts.forEach(q=>{const d=(q.x-cur[0])**2+(q.z-cur[1])**2;if(d<bd)bd=d});if(bd>9)say('Trace right on the dotted line.','info','markoff')}}
 function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key;
-  markIM.visible=P&&S.mark!=null&&stage<=(S.dig!=null?S.dig:S.gravel!=null?S.gravel:S.pour!=null?S.pour-1:99);// paint is gone once the hole's dugdotIM.visible=P&&k==='mark';
+  markIM.visible=P&&S.mark!=null&&stage<=(S.dig!=null?S.dig:S.gravel!=null?S.gravel:S.pour!=null?S.pour-1:99);// paint is gone once the hole's dug
+  dotIM.visible=running&&P&&k==='mark';
   {// once digging starts the paint gets wider and sits proud of the grass so it reads from the cab
    const bold=markIM.visible&&k!=='mark';if(bold!==!!markIM.userData.bold){markIM.userData.bold=bold;const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),f=bold?2.4:1/2.4,dy=bold?.2:-.2;
      for(let i=0;i<markPts.length;i++){if(!markDone[i])continue;markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
