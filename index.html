@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v231: Retaining Wall gets a 1-year-later photo (forms and bracing stripped, sod up to the wall); Foundation Walls yard is grass with a dirt construction pad round the dig instead of dirt everywhere. -->
 <!-- v230: excavator gets off the base when it's in the way: a target right under the cab makes it back straight up along its tracks, and when you let go while it's parked on dirt still to dig or base still to spread it tracks back to its parking spot so you can see underneath. It can still drive on the base. -->
 <!-- v229: excavator arm no longer stands straight up mid-swing (dumping gravel or spoil): the bucket target swings round the machine in an arc instead of sliding straight past the cab, reach is measured by distance, and the arm never reaches back over the cab. -->
 <!-- v228: excavator bucket no longer shoots into the sky while swinging: the keep-above-ground lift is recomputed each frame (not accumulated into the target), capped, skips the boom foot over the machine, and stops when lifting doesn't help. -->
@@ -3183,7 +3184,9 @@ function curbScene(){lawn();const C=CURB,ed=C.zf+C.W/2+.04,bk=C.zf-C.W/2;
   house(-3,-15,44,0,[['door',3],['win',-8],['win',12],['bed',-14,6],['light',5.4],['garage',-17,10]]);shrub(-8,-7,1.1);shrub(3,-7.5,.9);
   house(52,-15,40,0,[['door',-2],['win',-11],['win',9],['light',.4]]);house(-58,-15,40,0,[['door',4],['win',-9],['win',12],['light',6.4]]);house(104,-15,42,0,[['door',2],['win',-10],['win',11],['light',3.4]]);house(-112,-15,44,0,[['door',-3],['win',-12],['win',8],['garage',14,10]]);shrub(80,-7,1.1);shrub(-86,-7.5,.9);shrub(30,-7,1)}
 function foundationScene(){lumber(27,-13);const m=new THREE.Mesh(new THREE.SphereGeometry(1,24,10,0,Math.PI*2,0,Math.PI/2),dirtM);m.scale.set(9,3.2,5);m.position.set(-29,-.3,-14);m.castShadow=m.receiveShadow=true;sceneG.add(m);addOb(-38,-19,-20,-9);
-  shrub(-15,8,1.2);shrub(16,7,1)}
+  shrub(-15,8,1.2);shrub(16,7,1);
+  // v231: a grass yard with a bare construction pad round the dig, not dirt to the horizon
+  flatP(70,38,dirtM,-2,-.296,-3);lawn()}
 function retainScene(){lawn();const bankT=(()=>{const t=lawnTex.clone();t.needsUpdate=true;t.repeat.set(1,1);return t})();
   box(80,3.5,10,dirtM,0,1.45,-13);const top=flatP(80,10,new THREE.MeshStandardMaterial({map:bankT,roughness:1}),0,3.21,-13,2.9);addOb(-40,-18,40,-8);
   house(0,-24,50,0,[['slider',0],['win',-9],['win',9],['bed',13,6]],{raise:3.5});shrub(-8,6,1.1);shrub(9,6.5,.9)}
@@ -7697,7 +7700,8 @@ function finish(timedOut){
    if(blow)x+=`<div class="risk">Form blowout<b class="hi">Blew</b>${blow.lost.toFixed(2)} m³ on the ground and a bulge in the wall. Bring tall walls up in lifts.</div>`;
    if(LV.peds)x+=prints?`<div class="risk">Footprints<b class="${prints>6?'hi':'mid'}">${prints}</b>People walked through it. Those prints are in there for good.</div>`:`<div class="risk">Foot traffic<b class="lo">Kept off</b>Nobody got a boot in your concrete.</div>`;
    if(x)$('rRisks').insertAdjacentHTML('beforeend',x)}
-  let photoY=null;if(photoA&&!LV.wall&&!LV.steps.includes('slip')){blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold|splat)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});const yg=yearGrass();photoY=snapPhoto(()=>ageSlab(crack[1]));yg();fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
+  let photoY=null;if(photoA&&(!LV.wall||LV.id==='retain')&&!LV.steps.includes('slip')){// v231: the retaining wall gets a year-later shot too
+  blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold|splat)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});const yg=yearGrass();photoY=snapPhoto(()=>ageSlab(crack[1]));yg();fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
   $('rPhotos').classList.toggle('three',!!photoY);$('phY').parentElement.hidden=!photoY;if(photoY)$('phY').src=photoY;
   if(cab.used)$('rRisks').insertAdjacentHTML('beforeend','<div class="risk">Operator<b class="lo">+3</b>Dug it from the cab. Bonus points.</div>');
   $('rPhotos').hidden=!photoA;$('phSave').hidden=!photoA;$('phShare').hidden=!photoA;$('rpOpen').hidden=REPLAY.length<4;if(photoA){$('phA').src=photoA;$('phB').src=photoB||photoA;$('phB').parentElement.hidden=!photoB}
@@ -8613,7 +8617,7 @@ const digD=new Float32Array(N),compF=new Float32Array(N),gravF=new Float32Array(
 let PM=new Uint8Array(N),PZc=new Uint8Array(N),PZN=1,zoneZ=null,zoneI=null,pVU=new Float32Array(1),pVV=new Float32Array(1),pIn=[],pOut=[];
 const ASPH_JOBS=/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/;
 const PORCH=()=>!!LV&&LV.id==='porch';
-const SURF=()=>{const id=LV&&LV.id||'';if(id==='porch')return'porch';return ASPH_JOBS.test(id)?'asphalt':(id==='sidewalk'||id==='curb')?'conc':lawnOn?'lawn':'dirt'};
+const SURF=()=>{const id=LV&&LV.id||'';if(id==='porch')return'porch';if(id==='foundation')return'dirt';return ASPH_JOBS.test(id)?'asphalt':(id==='sidewalk'||id==='curb')?'conc':lawnOn?'lawn':'dirt'};
 const GTf=()=>PORCH()?LV.elev-DEPTH/12+.42:LV&&LV.wall?1:LV&&LV.elev&&!LV.slip?LV.elev-DEPTH/12+.8:LV&&ASPH_JOBS.test(LV.id)?.67:.5;                                  // gravel lift: 8 in under driveways, 6 in elsewhere
 const TOPf=()=>PORCH()?LV.elev-DEPTH/12+.045:LV&&(ASPH_JOBS.test(LV.id)||LV.id==='sidewalk'||LV.id==='curb')?-.282:-.297;       // top of what's there now
 const BASEY=()=>ELV()-DEPTH/12,SUBY=()=>ELV()-DEPTH/12-GTf();                              // top of compacted base, subgrade
@@ -8798,7 +8802,7 @@ function siteVis(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,dug=!P||s
     else if(u.kind==='rebar')o.visible=formed||(P&&k==='rebar');else if(u.kind==='rebdot')o.visible=P&&k==='rebar';else if(u.kind==='rebhold')o.visible=o.visible&&P&&k==='rebar';
     else if(u.kind==='wall')o.visible=P});
   formPieces.forEach(f=>f.m.visible=f.placed);formStakes.forEach(st=>st.m.visible=!P||segDone[st.seg]!==false&&(formed||k==='form'));
-  slab.material=slabMat;slab.visible=!soil;slab.position.y=ELV();pitMesh.visible=P;if(P)lotGround.material=ground.material;geoDirty=true;layerDirty=true;updateLayers()}
+  slab.material=slabMat;slab.visible=!soil;slab.position.y=ELV();pitMesh.visible=P;if(P)lotGround.material=SURF()==='dirt'&&lawnOn?dirtM:ground.material;geoDirty=true;layerDirty=true;updateLayers()}
 // the pit itself: the slab mesh, dropped to the dug depth and coloured from dark topsoil down to clay
 function soilGeo(){const pg=pitMesh.geometry;if(!pg.attributes||!pg.attributes.position||!pg.attributes.color)return;
   const p=pg.attributes.position,c=pg.attributes.color,n=p.count;
