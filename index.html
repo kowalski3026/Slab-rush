@@ -24,6 +24,7 @@
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v222: tape measure left out of the 1-year-later photo -->
 <!-- v221: default camera swings off a building that blocks the slab; your turn/tilt carries across steps; two-finger camera hint on the first jobs -->
 <!-- v220: prep stopwatch with par times on layout, dig, base, forms; "Prep time" score row and Career crew-hours bonus -->
 <!-- v212: new detailed excavator (rubber tracks with moving lugs, dog-leg boom, glass cab with seat and controls, dark counterweight, real bucket with teeth); parked excavator holds still instead of slowly spinning. -->
@@ -10373,9 +10374,9 @@ $('evBtn').addEventListener('click',()=>{if(!ev||(ev.phase!=='warn'&&ev.phase!==
 /* ---------- before-and-after photo ---------- */
 let photoB=null,photoA=null;
 // v198: a year later the yard's back: sod right up to the concrete, no dug ring, gravel or clods
-function yearGrass(){const hid=[];if(!lawnOn||LV.bridge)return()=>{};
+function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){hid.push(o);o.visible=false}});if(!lawnOn||LV.bridge)return()=>{hid.forEach(o=>o.visible=true)};
   siteG.traverse(o=>{if(o!==siteG&&o.visible&&/^(ring|gravel|wall)$/.test(o.userData.kind||'')){hid.push(o);o.visible=false}});
-  [turfL,gravL].forEach(o=>{if(o.visible){hid.push(o);o.visible=false}});
+  [turfL,gravL].forEach(o=>{if(o&&o.visible){hid.push(o);o.visible=false}});
   let m=null;try{const E=ELV()&&(LV.wall||LV.slip||isPrep())?ELV():0,out=offsetPolyNF(SHAPE,LV.ringOuter?1.4:4.5,-.02),sh=new THREE.Shape();out.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));
     const hp=new THREE.Path();SHAPE.forEach((p,i)=>i?hp.lineTo(p[0],-p[1]):hp.moveTo(p[0],-p[1]));sh.holes.push(hp);const g=new THREE.ShapeGeometry(sh);g.rotateX(-Math.PI/2);
     const uv=g.attributes.uv,ps=g.attributes.position;for(let i=0;i<ps.count;i++)uv.setXY(i,(ps.getX(i)+160)/320,(-ps.getZ(i)+160)/320);
