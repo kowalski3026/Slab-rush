@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v237: zoom out to 40% (was 59%): zoom limit 2.5 on buttons, pinch and saved zoom; fog and far clip pushed back by the extra camera distance. -->
 <!-- v236: machines merged live: at job start the static parts of the excavator, dump truck, mixer, pump etc. that share a material under one pivot become one mesh (originals hidden on layer 31, checked every frame; any part the game moves/hides/swaps unmerges its batch instantly and is never merged again). Meter shows merged parts. -->
 <!-- v235: real loading bar (page → engine → building the site → counted textures/sky/trees → first frame; splash waits for textures, 7 s cap after the first frame; game code starts 20 ms after the page so the bar paints). Grass in 16 ft instanced chunks with frustum culling, far chunks use a 6-blade clump. Shadow map every other frame in 60 fps mode. -->
 <!-- v234: resolution climbs above base after 4 s of on-time frames (v233 needed 6 s at under 1.03x budget and never triggered on Kris's phone); meter shows ratio/max, frame-time average and seconds of headroom. -->
@@ -2036,8 +2037,11 @@ function postSize(){if(!POST.ok)return;const v=renderer.getDrawingBufferSize(new
   if(POST.aoOn){const hw=Math.max(1,w>>1),hh=Math.max(1,h>>1);POST.main.depthTexture.image.width=w;POST.main.depthTexture.image.height=h;POST.ao.setSize(hw,hh);POST.ao2.setSize(hw,hh);POST.aoM.uniforms.res.value.set(hw,hh)}}
 function pass(m,target){POST.quad.material=m;renderer.setRenderTarget(target);renderer.render(POST.scene,POST.cam)}
 function bootDone(){if(bootDone.d)return;bootDone.d=1;try{BOOT.frame()}catch(e){const bt=document.getElementById('boot');if(bt){bt.classList.add('out');setTimeout(()=>bt.remove(),650)}}}
-const SHD={n:0};
-function drawFrame(){if(!renderer)return;try{lmTick()}catch(e){}
+const SHD={n:0},FOG0={n:0,f:0,cf:0};
+// v237: zoomed out past 100%, push the fog and the far clip back by the extra camera distance so the slab doesn't go hazy
+function zoomFog(){const F=scene.fog;if(!F||!FOG0.f)return;const z=ZOOM[view]||1,ex=z>1?camera.position.distanceTo(lookC)*(1-1/z):0;
+  F.near=FOG0.n+ex;F.far=FOG0.f+ex;const cf=Math.max(FOG0.cf||420,F.far+80);if(Math.abs(camera.far-cf)>1){camera.far=cf;camera.updateProjectionMatrix()}}
+function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
   // v235: at 60 fps the shadow map (a second render of everything that casts) updates at 30 Hz; the sun hardly moves and moving tools lag one frame at most
   if(!FPSCAP&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++&1)===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0}}else renderer.shadowMap.autoUpdate=true;
   if(glLost||lowQ||!postInit()||!POST.on){if(renderer.toneMapping!==TONE)renderer.toneMapping=TONE;renderer.render(scene,camera);return}
@@ -2176,7 +2180,7 @@ function skyLoad(k){if(SKY.cache[k])return;SKY.cache[k]={};
 function buildEnv(w){starPts.visible=moonM.visible=!!w.night;
   const top=new THREE.Color(w.sky),hor=new THREE.Color(w.hor),gnd=new THREE.Color(w.gnd);
   gradientColors(skyGeo,180,top,hor,gnd);let ct=null;try{ct=cloudSet(w)}catch(e){}
-  {const fk=Math.max(1,LS/1.25);scene.fog=new THREE.Fog(w.hor,(w.night?60:95)*fk,(w.night?170:260)*fk)}
+  {const fk=Math.max(1,LS/1.25);scene.fog=new THREE.Fog(w.hor,(w.night?60:95)*fk,(w.night?170:260)*fk);FOG0.n=scene.fog.near;FOG0.f=scene.fog.far;FOG0.cf=camera.far}
   hemi.color.set(w.sky).lerp(new THREE.Color(0xf4f1ea),w.night?.15:.5);hemi.intensity=w.hemi*.88*LK*(LV&&LV.bridge&&w.night?1.6:1);HEMI0.copy(hemi.color);try{fill.color.set(w.sky).lerp(new THREE.Color(0xdfe6f2),.45);fill.intensity=(w.night?.1:.3)*LK}catch(e){}sun.color.set(LV&&LV.bridge&&w.night?0xffeccc:w.sun);sun.intensity=w.sunI*LK*(LV&&LV.bridge&&w.night?4.5:1);
   if(!renderer)return;renderer.toneMappingExposure=w.exp;
   const es=new THREE.Scene();const g=new THREE.SphereGeometry(50,32,16);gradientColors(g,50,top,hor,gnd);
@@ -4608,7 +4612,7 @@ const mats=Array.from({length:8},()=>{const m=new THREE.Mesh(new THREE.BoxGeomet
 const VIEWS=[{name:'Crew',elev:31,fit:.98},{name:'Overhead',elev:85,fit:1.02},{name:'Low',elev:15,fit:.74},{name:'Close',elev:40,fit:1}];
 let view=0,userView=false;const SLC={yaw:0,pitch:0,ps:new Map(),pd:0,tip:false};
 // v129: per-view zoom, saved on the phone. Small steps so the slab can be framed clear of the panels
-let ZOOM=[1,1,1,1];try{const z=JSON.parse(localStorage.getItem('bts-zoom')||'null');if(Array.isArray(z)&&z.length===4)ZOOM=z.map(v=>Math.max(.55,Math.min(1.7,+v||1)))}catch(e){}
+let ZOOM=[1,1,1,1];try{const z=JSON.parse(localStorage.getItem('bts-zoom')||'null');if(Array.isArray(z)&&z.length===4)ZOOM=z.map(v=>Math.max(.55,Math.min(2.5,+v||1)))}catch(e){}
 const camTarget=new THREE.Vector3(),camPos=new THREE.Vector3(),lookT=new THREE.Vector3(0,0,.4),lookC=new THREE.Vector3(0,0,.4),closeLook=new THREE.Vector3(0,0,1);
 let cssW=0,cssH=0,topH=0,botH=0,viewPad=0;
 function computeCam(){panReset();
@@ -4634,7 +4638,7 @@ function camSwoop(){const dx=camTarget.x-lookT.x,dz=camTarget.z-lookT.z,dy=camTa
   camPos.set(lookT.x+Math.cos(az)*Math.cos(el)*r,lookT.y+Math.sin(el)*r,lookT.z+Math.sin(az)*Math.cos(el)*r);lookC.copy(lookT);swoopT=1.7}
 function setView(i,keep){view=i;SLC.yaw=SLC.pitch=0;PAN.x=PAN.z=0;if(!keep)PAN.yaw=PAN.pitch=0;$('viewLabel').textContent=VIEWS[view].name;computeCam();try{zoomLbl()}catch(e){}}
 function zoomLbl(){const b=$('zPct');if(b)b.textContent=Math.round(100/ZOOM[view])+'%'}
-function zoomStep(dir){ZOOM[view]=Math.max(.55,Math.min(1.7,ZOOM[view]*(dir>0?.95:1/.95)));if(Math.abs(ZOOM[view]-1)<.02)ZOOM[view]=1;try{localStorage.setItem('bts-zoom',JSON.stringify(ZOOM))}catch(e){}swoopT=0;computeCam();zoomLbl();buzz(6);
+function zoomStep(dir){ZOOM[view]=Math.max(.55,Math.min(2.5,ZOOM[view]*(dir>0?.95:1/.95)));if(Math.abs(ZOOM[view]-1)<.02)ZOOM[view]=1;try{localStorage.setItem('bts-zoom',JSON.stringify(ZOOM))}catch(e){}swoopT=0;computeCam();zoomLbl();buzz(6);
   const c=$('zoomCtl');c.classList.add('show');clearTimeout(zoomStep.t);zoomStep.t=setTimeout(()=>c.classList.remove('show'),1400)}
 [['zIn',1],['zOut',-1]].forEach(([id,d])=>{const b=$(id);let rt=0,iv=0;const stop=()=>{clearTimeout(rt);clearInterval(iv)};
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();zoomStep(d);rt=setTimeout(()=>{iv=setInterval(()=>zoomStep(d),110)},420)});
@@ -6063,7 +6067,7 @@ function panBy(dx,dy){const fx=lookC.x-camPos.x,fz=lookC.z-camPos.z,hd=Math.hypo
   const s=2*d*Math.tan(camera.fov*Math.PI/360)/Math.max(200,cssH+Math.abs(viewPad)),ux=fx/hd,uz=fz/hd,rx=-uz,rz=ux,sv=s/Math.max(.35,Math.sin(el));
   let mx=-dx*s*rx+dy*sv*ux,mz=-dx*s*rz+dy*sv*uz;const lim=Math.max(30,Math.max(RW,RD)*1.3),nx=PAN.x+mx,nz=PAN.z+mz,r=Math.hypot(nx,nz);
   if(r>lim){mx=nx*lim/r-PAN.x;mz=nz*lim/r-PAN.z}PAN.x+=mx;PAN.z+=mz;camPos.x+=mx;camPos.z+=mz;lookC.x+=mx;lookC.z+=mz;camTarget.x+=mx;camTarget.z+=mz;lookT.x+=mx;lookT.z+=mz;swoopT=0}
-function panZoom(f){const sl=LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip',lo=sl?.35:.55,hi=sl?2.5:1.7;ZOOM[view]=Math.max(lo,Math.min(hi,ZOOM[view]*f));swoopT=0;computeCam();try{zoomLbl()}catch(_){}
+function panZoom(f){const sl=LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip',lo=sl?.35:.55,hi=2.5;ZOOM[view]=Math.max(lo,Math.min(hi,ZOOM[view]*f));swoopT=0;computeCam();try{zoomLbl()}catch(_){}
   const c=$('zoomCtl');if(c){c.classList.add('show');clearTimeout(zoomStep.t);zoomStep.t=setTimeout(()=>c.classList.remove('show'),1600)}}
 function panOrb(dyaw,dpitch){PAN.yaw+=dyaw;PAN.pitch+=dpitch;swoopT=0;computeCam();camPos.copy(camTarget);lookC.copy(lookT)}
 const PH={hid:new Set(),bx:null,key:null,t:0};
