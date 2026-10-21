@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v242: v241's ground dressing cost ~600k triangles (2800 grit stones and the extra rocks were each a 320-triangle shape): stones now 80 triangles, grit 20. Same look, under 100k. Background pines no longer cast shadows (~190k fewer shadow triangles). -->
 <!-- v241: loading sting: the white K logo (stem drops in, chevron slides in, light sweep, KOWALSKI CONCRETE / PRESENTS) for ~2.2 s, then the Slab Rush card and loading bar; splash never closes before 2.9 s. Also richer close-up ground around the forms: 60% more stones and clods, ~2800 grit stones (4000 in prep pits), small bent twigs, form-board offcuts, chips and sawdust near the forms, dry grass clippings along the cut sod edge. -->
 <!-- v240: ground detail about twice as strong: coarse grain x1.05 (was .55) out to 75 ft, plus a fine 13x grain layer up close (fades 6-26 ft), wider clamp .4-1.75, per-ground strengths raised ~25%. -->
 <!-- v239: world-space live merge of loose props (forms, stakes, cones, pickup) with a 1.5 s probe and ancestor guard, raycasters still hit merged parts (layer 31); contact shadows (SSAO) every other frame when the camera is still at 60 fps; sun shadow box fitted to the view each shadow frame (16 view rays, 19% size steps, texel-snapped, blur kept constant in feet); asphalt colour+normal now the 1K ambientCG source; ground detail texturing (dirt, gravel, mulch, lawn, asphalt, old concrete, boards: the photo sampled again at 4.37x as grain, fades by 48 ft); 8x anisotropic filtering on the slab and ground photos; broom striations hold further out; shared sky GLSL (SKYFN) so wet concrete reflects the real sky and clouds; golden hour: warm low band toward the sun, tight sun glow, warm-lit clouds, fog warms (sWarm from the sun's golden factor); old additive sun-glow sprite hidden. -->
@@ -2365,7 +2366,7 @@ function treeLoad(){if(TREE.try||!renderer||safeGfx)return;TREE.try=1;
 // background pines: two instanced variants on the old spruce spots
 function bgPines(){const M=TREE.m,dm=new THREE.Object3D();
   ['pine_a','pine_b'].forEach((n,v)=>{const G=TREE.g[n],idx=treeSpots.map((_,i)=>i).filter(i=>i%2===v);
-    [[G.bark,M.bark],[G.leaf,M.pine]].forEach(([g,m])=>{const im=new THREE.InstancedMesh(g,m,idx.length);im.castShadow=true;im.receiveShadow=true;im.userData={real:true,idx,h:G.h};im.frustumCulled=false;scene.add(im);bgPine.ims.push(im)})});
+    [[G.bark,M.bark],[G.leaf,M.pine]].forEach(([g,m])=>{const im=new THREE.InstancedMesh(g,m,idx.length);im.castShadow=false;/* v242: the far ring of pines was ~190k triangles drawn into the sun's shadow map every shadow frame for shadows that fall outside the play area */im.receiveShadow=true;im.userData={real:true,idx,h:G.h};im.frustumCulled=false;scene.add(im);bgPine.ims.push(im)})});
   treeIMs.forEach(im=>{if(!im.userData.real)im.visible=false});bgPine.ims.forEach(im=>treeIMs.push(im));setTrees(bgPine.last,bgPine.lastW,bgPine.lastC)}
 treeLoad();
 
@@ -3147,7 +3148,7 @@ function fireHall(){const G=new THREE.Group();G.position.set(0,-.3,-9);sceneG.ad
 
 /* v204: the ground and forms right around the slab. Real stones and clods (lumpy, not polyhedra), boot prints in the dug ring,
    a cut sod edge, nail heads and grade stamps on the forms, and concrete splatter on the form tops once the mud reaches them. */
-const EDGE=(()=>{const geo=[];for(let k=0;k<4;k++){const g=new THREE.IcosahedronGeometry(1,2),p=g.attributes.position,v=new THREE.Vector3(),s=k*13.7;
+const EDGE=(()=>{const geo=[];for(let k=0;k<4;k++){const g=new THREE.IcosahedronGeometry(1,1),p=g.attributes.position,v=new THREE.Vector3(),s=k*13.7;
     const n=(x,y,z)=>Math.sin(x*3.1+s)*Math.sin(y*2.7+s*.7)*Math.sin(z*3.3+s*1.3);
     for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);const r=1+.22*n(v.x,v.y,v.z)+.12*n(v.x*2.3,v.y*2.1,v.z*2.6);v.multiplyScalar(r);v.y*=.55;if(v.y<-.25)v.y=-.25+(v.y+.25)*.3;p.setXYZ(i,v.x,v.y,v.z)}
     g.computeVertexNormals();geo.push(g)}
@@ -3178,7 +3179,7 @@ function edgeDress(x0,z0,W,D,PP){const dm=new THREE.Object3D(),col=new THREE.Col
     const fill=(geo,mat,N,place)=>{const im=new THREE.InstancedMesh(geo,mat,N);let n=0;for(let t=0;t<N*14&&n<N;t++){const x=rx(),z=rz(),d=band(x,z);if(d<0)continue;const c=place(x,z,d);if(!c)continue;im.setMatrixAt(n,dm.matrix);if(c.isColor)im.setColorAt(n,c);n++}
       im.count=n;im.receiveShadow=true;im.userData.kind='ring';im.userData.underTarp=true;siteG.add(im);return im};
     // grit: hundreds of tiny stones, pea gravel to coarse sand
-    const gg=EDGE.geo[1].clone();fill(gg,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9}),PP?4000:2800,(x,z,d)=>{if(d<.36||d>far)return null;
+    const gg=(()=>{const g=new THREE.IcosahedronGeometry(1,0),p=g.attributes.position,v=new THREE.Vector3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);v.multiplyScalar(.8+.35*Math.abs(Math.sin(v.x*5.1+v.z*3.7)));v.y*=.6;p.setXYZ(i,v.x,v.y,v.z)}g.computeVertexNormals();return g})();fill(gg,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9}),PP?4000:2800,(x,z,d)=>{if(d<.36||d>far)return null;
       const sc=.01+Math.pow(Math.random(),2.2)*.03;dm.position.set(x,-.3+sc*.1,z);dm.rotation.set(Math.random()*.8,Math.random()*6.28,Math.random()*.8);dm.scale.set(sc*(.7+Math.random()*.6),sc,sc*(.7+Math.random()*.6));dm.updateMatrix();
       const r=Math.random();return col.setHex(r<.4?0x6b6660:r<.65?0x8c857a:r<.8?0x4f4237:r<.92?0xa39b8c:0x3b3631).offsetHSL(0,(Math.random()-.5)*.04,(Math.random()-.5)*.12).clone()}).castShadow=false;
     // twigs: thin bent sticks
