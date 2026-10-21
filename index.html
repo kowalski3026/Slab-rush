@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v240: ground detail about twice as strong: coarse grain x1.05 (was .55) out to 75 ft, plus a fine 13x grain layer up close (fades 6-26 ft), wider clamp .4-1.75, per-ground strengths raised ~25%. -->
 <!-- v239: world-space live merge of loose props (forms, stakes, cones, pickup) with a 1.5 s probe and ancestor guard, raycasters still hit merged parts (layer 31); contact shadows (SSAO) every other frame when the camera is still at 60 fps; sun shadow box fitted to the view each shadow frame (16 view rays, 19% size steps, texel-snapped, blur kept constant in feet); asphalt colour+normal now the 1K ambientCG source; ground detail texturing (dirt, gravel, mulch, lawn, asphalt, old concrete, boards: the photo sampled again at 4.37x as grain, fades by 48 ft); 8x anisotropic filtering on the slab and ground photos; broom striations hold further out; shared sky GLSL (SKYFN) so wet concrete reflects the real sky and clouds; golden hour: warm low band toward the sun, tight sun glow, warm-lit clouds, fog warms (sWarm from the sun's golden factor); old additive sun-glow sprite hidden. -->
 <!-- v238: shader sky (clean horizon, sun glow, procedural drifting cumulus) replaces the painted gradient + cloud sphere; fog colour pulled toward pale blue-grey and pushed 30% further out; step-start swoop starts at 24°+ instead of 11° so it doesn't stare into the horizon. -->
 <!-- v237: zoom out to 40% (was 59%): zoom limit 2.5 on buttons, pinch and saved zoom; fog and far clip pushed back by the extra camera distance. -->
@@ -2065,17 +2066,19 @@ function shFit(){if(!SHF.on||!renderer||!sun.castShadow)return;const C=sun.shado
 /* v239: detail texturing for the ground. Dirt, gravel, mulch, lawn, asphalt and old concrete sample their own photo a second time at
    4.4x the scale and use its fine light/dark as grain, so close up the ground has real crumbs and stones instead of a soft 512 px blur.
    It fades out with distance (and the mips average it out anyway). */
-const DT={keys:new Set(['dirt','gravel','mulch','lawn','asphalt','oldconc','board','ply']),hk:new WeakSet(),k:{dirt:.9,gravel:1,mulch:.9,lawn:.6,asphalt:.7,oldconc:.7,board:.45,ply:.45}};
+const DT={keys:new Set(['dirt','gravel','mulch','lawn','asphalt','oldconc','board','ply']),hk:new WeakSet(),k:{dirt:1.15,gravel:1.25,mulch:1.15,lawn:.8,asphalt:.85,oldconc:.85,board:.5,ply:.5}};
 function detailHook(m,amt){if(!m||DT.hk.has(m)||!m.map||!(m.isMeshStandardMaterial||m.isMeshPhysicalMaterial))return;DT.hk.add(m);const ob=m.onBeforeCompile,ck=m.customProgramCacheKey;
   m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);sh.uniforms.dtK=this.userData.dtU||(this.userData.dtU={value:amt});
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float dtK;').replace('#include <map_fragment>',`#include <map_fragment>
 #ifdef USE_MAP
-{vec2 du=vMapUv*4.37+vec2(.31,.17);float dl=dot(texture2D(map,du).rgb,vec3(.299,.587,.114)),db=dot(texture2D(map,du,4.).rgb,vec3(.299,.587,.114));
- float fd=1.-smoothstep(14.,48.,length(vViewPosition));diffuseColor.rgb*=clamp(1.+(dl-db)/max(db,.06)*.55*dtK*fd,.62,1.45);}
+{vec2 du=vMapUv*4.37+vec2(.31,.17),du2=vMapUv*13.1+vec2(.73,.41);float dl=dot(texture2D(map,du).rgb,vec3(.299,.587,.114)),db=dot(texture2D(map,du,4.).rgb,vec3(.299,.587,.114));
+ float d2=dot(texture2D(map,du2).rgb,vec3(.299,.587,.114)),b2=dot(texture2D(map,du2,4.).rgb,vec3(.299,.587,.114));float vz=length(vViewPosition);
+ float fd=1.-smoothstep(20.,75.,vz),fd2=1.-smoothstep(6.,26.,vz);
+ float g=(dl-db)/max(db,.06)*1.05*fd+(d2-b2)/max(b2,.06)*.6*fd2;diffuseColor.rgb*=clamp(1.+g*dtK,.4,1.75);}
 #endif`)};
   m.customProgramCacheKey=function(){return (ck?ck.call(this):'')+'|dt'};m.needsUpdate=true}
 function detailAll(){if(safeGfx||!renderer)return;scene.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(!m||!m.map)return;const k=m.map.userData&&m.map.userData.pk;
-  if(k&&DT.keys.has(k))detailHook(m,DT.k[k]||.7)})});try{detailHook(lawnM,.6)}catch(e){}}
+  if(k&&DT.keys.has(k))detailHook(m,DT.k[k]||.7)})});try{detailHook(lawnM,.8)}catch(e){}}
 const SHD={n:0},FOG0={n:0,f:0,cf:0};
 // v237: zoomed out past 100%, push the fog and the far clip back by the extra camera distance so the slab doesn't go hazy
 function zoomFog(){const F=scene.fog;if(!F||!FOG0.f)return;const z=ZOOM[view]||1,ex=z>1?camera.position.distanceTo(lookC)*(1-1/z):0;
