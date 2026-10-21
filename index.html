@@ -26,7 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
-<!-- v248: fix the brown hole across the bottom of the screen when zoomed in: the near clip plane now comes in immediately when you zoom in (v226 easing could get stuck far out). -->
+<!-- v249: stairs vibrator: holding it in a step settles that whole step flat and wipes the lines in about 3 s; bigger stinger reach; over-vibrate only after a long park. v248: fix the brown hole across the bottom of the screen when zoomed in: the near clip plane now comes in immediately when you zoom in (v226 easing could get stuck far out). -->
 <!-- v247: Laneway Garage Pad: the camera-side neighbour's garage is gone (it filled the bottom of the view); the other neighbour's garage had a flat dark 21 ft roof slab that read as a stray grey square from above; now a shingled gable roof with ridge cap, eave trim and sided gable ends. -->
 <!-- v246: mud you can feel (110 wet splash drops thrown in a crown and stretched along their flight; drops that miss the slab leave grey spatter on form tops and the dirt ring, up to 260 per job; heavy lumps landing give a small camera kick and a buzz). Real reflections in wet concrete (planar mirror render at 1/3 size every other frame while wet, Effects/Sharp; clipped at the slab plane). Step-change stalls: world merges built one batch per frame (3 ms budget) and only re-probed when something unmerged. Background pines: only standing pines are drawn (hidden ones were drawn squashed), far ones (>70 ft) use half the leaf cards at 1.42x, frustum culled. -->
 <!-- v245: tilt/turn after a zoom registers without lifting (two-finger mode is judged on recent motion that builds up, so slow tilts win), tilt a bit more responsive; the sun shadow fades out at the edge of its area instead of drawing a hard line that moves with the zoom, and reaches further when zoomed out. -->
@@ -1001,7 +1001,7 @@ const DEFS={
   sform:{name:'Form sides',win:[0,1],soft:1,desc:'Set the side forms: 3/4 ply cut to the stair profile, with a 2x4 cleat and a kicker to a stake on every panel. Trace along each side of the steps and the panels go up one step at a time. Miss one and the mud runs out the side.'},
   riser:{name:'Form treads',win:[0,1],soft:1,desc:'Hang the riser boards that shape each step: 2x8s across the front of every tread, bevelled on the bottom so you can finish the tread right under them. Drag across each orange line. The bottom one sits on grade, the rest hang off cleats on the side forms.'},
   sbar:{name:'Rebar',win:[0,1],soft:1,desc:'Bend the bar to follow the steps. Sweep across the long orange lanes first: those bars run from the landing down every step, 12 in apart. Then sweep the short lanes across each tread and the landing. Everything sits 2 in down from the top.'},
-  vibe:{name:'Vibrate',win:[0,.32],soft:.2,desc:'Press and hold the pencil vibrator in the mud and move it slowly over every step: in, wait for the bubbles, then the next spot. Get it tight to the riser boards and the side forms or the faces honeycomb. Don\'t park it in one spot: the stone sinks and the paste floats.'},
+  vibe:{name:'Vibrate',win:[0,.32],soft:.2,desc:'Press and hold the vibrator in each step for a few seconds. The whole step settles flat and the rake lines disappear. Drag it along the riser board and the sides for the best faces, then move to the next step.'},
   tread:{name:'Hand finish',win:[.3,.92],soft:.15,desc:'One tread at a time, landing first, top down. Pick the tread, then the tool. Hand trowel it level to the forms while it\'s fresh, wait out the bleed water, then edge the nose and the sides, trowel it smooth, and pull a light broom across so nobody slips. A ✓ means that tread is done.'},
   rebar:{name:'Rebar',win:[0,1],soft:1,desc:'The chairs are set. Sweep your finger across the glowing lanes to drop the bars, 18 in on center: bottom layer first, then the top layer the other way. Then drag along the bars: every orange ring you pass gets a wire tie. Edges get every crossing, inside gets every other one.'},
   pour:{name:'Pour',win:[0,.2],soft:.2,
@@ -2593,17 +2593,19 @@ function strHoneycomb(){if(STR.hc)return;STR.hc=true;let n=0;for(let i=0;i<N;i++
   if(n>RN*.08)say('Some of it never got vibrated. Those faces will honeycomb when the forms come off.','bad','hcomb',0)}
 function vibAt(cx,cy,dt){const ci=Math.floor(cy)*GW+Math.floor(cx);if(ci<0||ci>=N||!inR[ci])return;const t=STR.tid[ci];
   if(!has(ci)){say('Nothing to vibrate there yet. Put mud in it first.','info','vibEmpty');return}
-  const R=Math.max(1.6,8/CELL_IN),eff=set<.3?1:Math.max(.1,1-(set-.3)/.15);let work=0,over=false;
+  const R=Math.max(2.2,18/CELL_IN),eff=set<.3?1:Math.max(.1,1-(set-.3)/.15);let work=0,over=false;
+  // v249: the whole tread you're in settles and flows level, so a few seconds per step does it
+  for(let i=0;i<N;i++){if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const a=dt*.4*eff;work+=Math.min(a,Math.max(0,1-STR.vib[i]));STR.vib[i]=Math.min(1.5,STR.vib[i]+a);const kk=Math.min(1,dt*1.6*eff);if(h[i]>-1.5)h[i]+=(0-h[i])*kk;rkA[i]*=1-kk;scA[i]*=1-kk}
   for(let y=Math.max(RY0,Math.floor(cy-R));y<=Math.min(RY1-1,Math.ceil(cy+R));y++)for(let x=Math.max(RX0,Math.floor(cx-R));x<=Math.min(RX1-1,Math.ceil(cx+R));x++){
-    const i=y*GW+x;if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const d=Math.hypot(x+.5-cx,y+.5-cy);if(d>R)continue;const w=1-d/R*.7,add=dt*1.5*w*eff;
+    const i=y*GW+x;if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const d=Math.hypot(x+.5-cx,y+.5-cy);if(d>R)continue;const w=1-d/R*.5,add=dt*4*w*eff;
     work+=Math.min(add,Math.max(0,1-STR.vib[i]));STR.vib[i]+=add;
     // consolidation: air comes out, it settles and levels inside its own tread
     const nb=j=>inR[j]&&STR.tid[j]===t?h[j]:h[i],avg=(nb(y*GW+Math.max(0,x-1))+nb(y*GW+Math.min(GW-1,x+1))+nb(Math.max(0,y-1)*GW+x)+nb(Math.min(GH-1,y+1)*GW+x))/4;
-    const kf=Math.min(1,dt*5*w*eff);h[i]+=(avg-h[i])*kf;if(h[i]>0||h[i]>-1.5)h[i]+=(0-h[i])*kf;
+    const kf=Math.min(1,dt*12*w*eff);h[i]+=(avg-h[i])*kf;if(h[i]>0||h[i]>-1.5)h[i]+=(0-h[i])*kf;
     rkA[i]*=1-kf;scA[i]*=1-kf;
-    if(STR.vib[i]>2.6){weak[i]=Math.min(1,weak[i]+dt*.1*w);STR.over+=dt*w*.02;over=true}}
+    if(STR.vib[i]>7){weak[i]=Math.min(1,weak[i]+dt*.05*w);STR.over+=dt*w*.01;over=true}}
   if(S.vibe!=null){acc[S.vibe].w+=work;acc[S.vibe].q+=work*winQ(set,STAGES[S.vibe])}
-  {const T=STR.T[t],X=cx*CPX,Y=cy*CPX,r=R*CPX;[scx,fcx].forEach(c=>{c.save();c.beginPath();c.rect(T.c0*CPX,0,(T.c1-T.c0)*CPX,TH);c.clip();c.globalCompositeOperation='destination-out';c.fillStyle=`rgba(0,0,0,${Math.min(1,dt*3*eff)})`;c.beginPath();c.arc(X,Y,r,0,6.283);c.fill();c.restore()})}
+  {const T=STR.T[t],X=cx*CPX,Y=cy*CPX,r=R*CPX;[scx,fcx].forEach(c=>{c.save();c.beginPath();c.rect(T.c0*CPX,0,(T.c1-T.c0)*CPX,TH);c.clip();c.globalCompositeOperation='destination-out';c.fillStyle=`rgba(0,0,0,${Math.min(1,dt*1.2*eff)})`;c.fillRect(T.c0*CPX,0,(T.c1-T.c0)*CPX,TH);c.fillStyle=`rgba(0,0,0,${Math.min(1,dt*6*eff)})`;c.beginPath();c.arc(X,Y,r,0,6.283);c.fill();c.restore()})}
   geoDirty=surfDirty=true;
   if(over)say('Over-vibrating. The stone is sinking and the paste is floating up. Keep it moving.','bad','vibOver');
   else if(set>.36)say('It\'s stiffening. The stinger is leaving holes now.','bad','vibLate');
