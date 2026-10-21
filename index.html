@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v236: machines merged live: at job start the static parts of the excavator, dump truck, mixer, pump etc. that share a material under one pivot become one mesh (originals hidden on layer 31, checked every frame; any part the game moves/hides/swaps unmerges its batch instantly and is never merged again). Meter shows merged parts. -->
 <!-- v235: real loading bar (page → engine → building the site → counted textures/sky/trees → first frame; splash waits for textures, 7 s cap after the first frame; game code starts 20 ms after the page so the bar paints). Grass in 16 ft instanced chunks with frustum culling, far chunks use a 6-blade clump. Shadow map every other frame in 60 fps mode. -->
 <!-- v234: resolution climbs above base after 4 s of on-time frames (v233 needed 6 s at under 1.03x budget and never triggered on Kris's phone); meter shows ratio/max, frame-time average and seconds of headroom. -->
 <!-- v233: adaptive resolution can climb above the mode's ratio in 60 fps mode (up to 2x or the screen's own ratio, +10% steps after 6 s of on-time frames; a level that stutters isn't retried until the next job). Perf meter is 4 short lines and hides while a tip card is open. -->
@@ -2036,7 +2037,7 @@ function postSize(){if(!POST.ok)return;const v=renderer.getDrawingBufferSize(new
 function pass(m,target){POST.quad.material=m;renderer.setRenderTarget(target);renderer.render(POST.scene,POST.cam)}
 function bootDone(){if(bootDone.d)return;bootDone.d=1;try{BOOT.frame()}catch(e){const bt=document.getElementById('boot');if(bt){bt.classList.add('out');setTimeout(()=>bt.remove(),650)}}}
 const SHD={n:0};
-function drawFrame(){if(!renderer)return;
+function drawFrame(){if(!renderer)return;try{lmTick()}catch(e){}
   // v235: at 60 fps the shadow map (a second render of everything that casts) updates at 30 Hz; the sun hardly moves and moving tools lag one frame at most
   if(!FPSCAP&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++&1)===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0}}else renderer.shadowMap.autoUpdate=true;
   if(glLost||lowQ||!postInit()||!POST.on){if(renderer.toneMapping!==TONE)renderer.toneMapping=TONE;renderer.render(scene,camera);return}
@@ -7483,7 +7484,7 @@ function startJob(){
   weather=WEATHER[wxKeyNow()];pickTOD();$('wxLabel').textContent=weather.label+(TOD.n?' · '+TOD.n:'');
   if(LV.steps.includes('stamp')){LV.color=STAMP_COLORS.find(c=>c.id===stampSel.color).c;STILE=makeStampTile()}try{pbrApply(scene)}catch(e){}try{buildEnv(todEnv(weather))}catch(e){window.__showErr('env: '+e.message)}try{gpsShape();gpsSync()}catch(e){console.warn('gps',e)}reset();setStageUI();
   runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));try{boardStart()}catch(e){console.warn('board',e)}BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
-  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
+  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
 }
 $('start').addEventListener('click',()=>{try{const L=LEVELS[jobIdx];if(L&&!practice){planOpen();return}plan.on=false;startJob()}catch(e){window.__showErr('start: '+e.message)}});
 let rsArm=0;
@@ -7816,7 +7817,7 @@ function perfFrame(t,js,menu){if(!renderer)return;const inf=renderer.info,drew=i
   const txt=`${fps.toFixed(0)}/${FPSCAP?30:60} fps ${ms.toFixed(1)}ms w${PERF.ivMax.toFixed(0)} h${PERF.hitch} js${(PERF.js/PERF.n).toFixed(1)}
 ${inf.render.calls} draws ${k(inf.render.triangles)} tris ${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)}MB
 ${(PRBASE*ADR.k).toFixed(2)}x/${(PRBASE*Math.min(adrMax(),ADR.top)).toFixed(2)} ${v.x}x${v.y} e${PERF.ema.toFixed(1)} u${(ADR.under/1000).toFixed(0)} sh+${PERF.progMid}
-${GFX} ktx${typeof KTX!=='undefined'?KTX.n:0} ${hp} ${PERF.gpu}`;
+${GFX} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}`;
   const el=perfEl();el.style.display=coachOpen?'none':'';if(txt!==PERF.txt){PERF.txt=txt;el.textContent=txt}
   PERF.n=0;PERF.w0=t;PERF.ivMax=0;PERF.js=0;PERF.jsMax=0}
 /* compile every material in the scene (hidden tools, trucks, tarps included) and pre-upload their textures,
@@ -8664,6 +8665,31 @@ function mergeScenery(){try{sceneG.updateMatrixWorld(true);
     if(z.y<1.5||z.x>120||z.z>120||b.max.y<.8||Math.max(z.x,z.z)<1.2)return;staticBlk.push([b.min.x,b.min.z,b.max.x,b.max.z])});
   let saved=0;sceneG.children.slice().forEach(c=>{if(c.isGroup&&!c.userData.live){const l=[];c.traverse(o=>{if(o.isMesh)l.push(o)});saved+=mergeInto(c,l)}});
   saved+=mergeInto(sceneG,sceneG.children.filter(o=>o.isMesh&&!o.userData.live));return saved}catch(e){console.warn('merge',e);return 0}}
+
+/* v236: live merge for the machines (excavator, dump truck, mixer, pump, slipform...). They're built from hundreds of small parts,
+   each its own draw call twice a frame (screen + shadow): the excavator alone was ~250 + ~230 draws. At job start, static parts that
+   share a material under the same pivot are merged into one mesh; the originals stay in place (so their world positions still work)
+   but move to layer 31, which nothing renders. Every frame the originals are checked: if game code moves, hides, shows or swaps any of
+   them, that merge is undone on the spot and the part is never merged again. */
+const LM={recs:[],dyn:new WeakSet(),saved:0};
+function lmSnap(o){const p=o.position,q=o.quaternion,c=o.scale,pa=o.geometry.attributes.position;return [p.x,p.y,p.z,q.x,q.y,q.z,q.w,c.x,c.y,c.z,o.visible,o.geometry,o.material,o.parent,pa.version,o.castShadow]}
+function lmSame(o,a){const p=o.position,q=o.quaternion,c=o.scale;return p.x===a[0]&&p.y===a[1]&&p.z===a[2]&&q.x===a[3]&&q.y===a[4]&&q.z===a[5]&&q.w===a[6]&&c.x===a[7]&&c.y===a[8]&&c.z===a[9]&&o.visible===a[10]&&o.geometry===a[11]&&o.material===a[12]&&o.parent===a[13]&&o.geometry.attributes.position.version===a[14]&&o.castShadow===a[15]}
+function lmUndo(r,blame){if(r.done)return;r.done=true;if(r.mesh.parent)r.mesh.parent.remove(r.mesh);r.mesh.geometry.dispose();r.items.forEach(it=>{it.o.layers.mask=it.mask;if(it.o===blame)LM.dyn.add(it.o)});LM.saved-=r.items.length-1}
+function lmClear(){LM.recs.forEach(r=>lmUndo(r));LM.recs=[];LM.saved=0}
+function lmOk(o){if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||!o.visible||LM.dyn.has(o)||o.userData.merged||o.userData.live)return false;
+  if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender||o.layers.mask!==1)return false;const m=o.material,g=o.geometry;if(!m||Array.isArray(m)||m.transparent||!g||g.morphAttributes&&Object.keys(g.morphAttributes).length)return false;
+  const at=g.attributes;if(Object.keys(at).length!==3||!at.position||!at.normal||!at.uv)return false;
+  for(const k of ['position','normal','uv'])if(at[k].isInterleavedBufferAttribute||!(at[k].array instanceof Float32Array)||at[k].normalized)return false;
+  return o.matrix.determinant()>0}
+function lmMerge(root){if(!root)return;root.updateMatrixWorld(true);const pars=new Set();root.traverse(o=>{if(o.isMesh&&o.parent)pars.add(o.parent)});
+  pars.forEach(par=>{const B=new Map();par.children.forEach(o=>{if(!lmOk(o))return;o.updateMatrix();const k=o.material.uuid+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'|'+(o.renderOrder||0)+'|'+(o.frustumCulled?1:0);let b=B.get(k);if(!b)B.set(k,b=[]);b.push(o)});
+    B.forEach(list=>{if(list.length<3)return;const gs=list.map(o=>{const g=o.geometry.clone();g.applyMatrix4(o.matrix);return g});let mg;try{mg=mergeGeos(gs)}catch(e){gs.forEach(g=>g.dispose());return}gs.forEach(g=>g.dispose());
+      const o0=list[0],mesh=new THREE.Mesh(mg,o0.material);mesh.castShadow=o0.castShadow;mesh.receiveShadow=o0.receiveShadow;mesh.renderOrder=o0.renderOrder;mesh.frustumCulled=o0.frustumCulled;mesh.userData.merged=true;mesh.userData.lm=true;par.add(mesh);
+      const items=list.map(o=>({o,mask:o.layers.mask,s:lmSnap(o)}));items.forEach(it=>it.o.layers.set(31));LM.recs.push({mesh,items,done:false});LM.saved+=list.length-1})})}
+function lmRun(){lmClear();if(safeGfx&&false)return;
+  const skip=new Set([sceneG]);try{if(GRASS.mesh)skip.add(GRASS.mesh)}catch(e){}
+  scene.children.forEach(c=>{if(skip.has(c)||!(c.isGroup||c.type==='Object3D')||c.userData.live)return;let n=0;c.traverse(o=>{if(o.isMesh)n++});if(n>=8)lmMerge(c)})}
+function lmTick(){const R=LM.recs;for(let i=0;i<R.length;i++){const r=R[i];if(r.done)continue;const it=r.items;for(let j=0;j<it.length;j++){if(!lmSame(it[j].o,it[j].s)){lmUndo(r,it[j].o);break}}}}
 function sceneExtras(){
   // the truck's footprint
   {TRK.D=0;TRK.far=false;TRK.p0=truck.position.clone();TRK.piv0=PIVOT.clone();
