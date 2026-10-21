@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v239: world-space live merge of loose props (forms, stakes, cones, pickup) with a 1.5 s probe and ancestor guard, raycasters still hit merged parts (layer 31); contact shadows (SSAO) every other frame when the camera is still at 60 fps; sun shadow box fitted to the view each shadow frame (16 view rays, 19% size steps, texel-snapped, blur kept constant in feet); asphalt colour+normal now the 1K ambientCG source; ground detail texturing (dirt, gravel, mulch, lawn, asphalt, old concrete, boards: the photo sampled again at 4.37x as grain, fades by 48 ft); 8x anisotropic filtering on the slab and ground photos; broom striations hold further out; shared sky GLSL (SKYFN) so wet concrete reflects the real sky and clouds; golden hour: warm low band toward the sun, tight sun glow, warm-lit clouds, fog warms (sWarm from the sun's golden factor); old additive sun-glow sprite hidden. -->
 <!-- v238: shader sky (clean horizon, sun glow, procedural drifting cumulus) replaces the painted gradient + cloud sphere; fog colour pulled toward pale blue-grey and pushed 30% further out; step-start swoop starts at 24°+ instead of 11° so it doesn't stare into the horizon. -->
 <!-- v237: zoom out to 40% (was 59%): zoom limit 2.5 on buttons, pinch and saved zoom; fog and far clip pushed back by the extra camera distance. -->
 <!-- v236: machines merged live: at job start the static parts of the excavator, dump truck, mixer, pump etc. that share a material under one pivot become one mesh (originals hidden on layer 31, checked every frame; any part the game moves/hides/swaps unmerges its batch instantly and is never merged again). Meter shows merged parts. -->
@@ -1799,7 +1800,7 @@ function ktxInto(t,c){t.isCompressedTexture=true;t.mipmaps=c.mipmaps;t.image={wi
 const PSRC={},PDAT={};
 function ptData(k){if(PDAT[k])return PDAT[k];const d=PDAT[k]={v:null};
   d.p=ktxGet(PBRC[k]||k).then(c=>c?{c}:(PBRC[k]&&!(typeof safeGfx!=='undefined'&&safeGfx)?pbrImg(PBRC[k]).then(im=>im||texImg(k)):texImg(k)).then(im=>im?{im}:null)).then(v=>(d.v=v)).catch(()=>null);return d}
-function ptPut(t,v){if(!v)return;if(v.c)ktxInto(t,v.c);else t.image=v.im;t.needsUpdate=true}
+function ptPut(t,v){if(!v)return;if(v.c)ktxInto(t,v.c);else t.image=v.im;if(!(typeof safeGfx!=='undefined'&&safeGfx))t.anisotropy=Math.max(t.anisotropy||1,8);t.needsUpdate=true}
 // clones (houses, roofs) share the photo too, and get converted when it arrives
 function ptClone(){const n=THREE.Texture.prototype.clone.call(this);if(this.isCompressedTexture)n.isCompressedTexture=true;n.clone=ptClone;const k=this.userData&&this.userData.pk;if(k&&PDAT[k])PDAT[k].p.then(v=>ptPut(n,v));return n}
 function photoTex(t,k,mult,abs){if(!t||!TEXD[k])return t;(t.userData||(t.userData={})).pk=k;
@@ -2038,13 +2039,50 @@ function postSize(){if(!POST.ok)return;const v=renderer.getDrawingBufferSize(new
   if(POST.aoOn){const hw=Math.max(1,w>>1),hh=Math.max(1,h>>1);POST.main.depthTexture.image.width=w;POST.main.depthTexture.image.height=h;POST.ao.setSize(hw,hh);POST.ao2.setSize(hw,hh);POST.aoM.uniforms.res.value.set(hw,hh)}}
 function pass(m,target){POST.quad.material=m;renderer.setRenderTarget(target);renderer.render(POST.scene,POST.cam)}
 function bootDone(){if(bootDone.d)return;bootDone.d=1;try{BOOT.frame()}catch(e){const bt=document.getElementById('boot');if(bt){bt.classList.add('out');setTimeout(()=>bt.remove(),650)}}}
+
+/* v239: the sun's shadow box follows what's on screen. It used to be a fixed 56 x 40 ft box round the middle of the lot: far bits
+   of the view got no shadow and the box spent its pixels on yard behind the camera. Now the camera's view of the ground (out to a cap)
+   is found each shadow frame, the box is fitted round it in the sun's view, sized in 19% steps and snapped to whole shadow pixels so
+   edges don't crawl as the camera moves. Fewer things outside the view get drawn into it, and close shadows come out sharper. */
+const SHF={on:true,v:new THREE.Vector3(),o:new THREE.Vector3(),pts:[],inv:new THREE.Matrix4(),lw:0,lh:0};
+for(let i=0;i<16;i++)SHF.pts.push(new THREE.Vector3());
+function shFit(){if(!SHF.on||!renderer||!sun.castShadow)return;const C=sun.shadow.camera,gy=ELV(),cp=camera.position,cap=75*Math.max(1,LS/1.5),mz=sun.shadow.mapSize.x;
+  camera.updateMatrixWorld();sun.updateMatrixWorld();sun.target.updateMatrixWorld();C.position.copy(sun.position);C.lookAt(sun.target.position);C.updateMatrixWorld();SHF.inv.copy(C.matrixWorld).invert();
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9,k=0;
+  for(const ny of [-1,-.5,0,.5,1])for(const nx of [-1,0,1]){const v=SHF.v.set(nx,ny,.5).unproject(camera).sub(cp).normalize();let d;
+    if(v.y<-1e-3){d=(gy-cp.y)/v.y;const hd=d*Math.hypot(v.x,v.z);if(hd>cap)d=cap/Math.max(1e-3,Math.hypot(v.x,v.z))}else d=cap/Math.max(1e-3,Math.hypot(v.x,v.z));
+    const p=SHF.pts[k++].copy(cp).addScaledVector(v,d);p.y=gy;}
+  // the ground right under and in front of the camera too
+  SHF.pts[k++].set(cp.x,gy,cp.z);
+  for(let i=0;i<k;i++){const p=SHF.o.copy(SHF.pts[i]).applyMatrix4(SHF.inv);x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z)}
+  const mg=6;x0-=mg;x1+=mg;y0-=mg;y1+=mg+8;// casters stand up toward the sun: extra room on top
+  const q=w=>Math.pow(2,Math.ceil(Math.log2(Math.max(24,w))*4)/4);let w=q(x1-x0),h=q(y1-y0);const mx=180*Math.max(1,LS/1.5);w=Math.min(w,mx);h=Math.min(h,mx);
+  const cx=(x0+x1)/2,cy=(y0+y1)/2,tx=w/mz,ty=h/mz,sx=Math.round(cx/tx)*tx,sy=Math.round(cy/ty)*ty;
+  C.left=sx-w/2;C.right=sx+w/2;C.bottom=sy-h/2;C.top=sy+h/2;C.near=Math.min(1,-z1-60);C.far=-z0+12;C.updateProjectionMatrix();
+  // keep the soft-shadow blur the same size in feet whatever the box size
+  if(SHF.lw!==w){SHF.lw=w;sun.shadow.radius=Math.max(1,w/56)*(SHF.r0||1)}}
+
+/* v239: detail texturing for the ground. Dirt, gravel, mulch, lawn, asphalt and old concrete sample their own photo a second time at
+   4.4x the scale and use its fine light/dark as grain, so close up the ground has real crumbs and stones instead of a soft 512 px blur.
+   It fades out with distance (and the mips average it out anyway). */
+const DT={keys:new Set(['dirt','gravel','mulch','lawn','asphalt','oldconc','board','ply']),hk:new WeakSet(),k:{dirt:.9,gravel:1,mulch:.9,lawn:.6,asphalt:.7,oldconc:.7,board:.45,ply:.45}};
+function detailHook(m,amt){if(!m||DT.hk.has(m)||!m.map||!(m.isMeshStandardMaterial||m.isMeshPhysicalMaterial))return;DT.hk.add(m);const ob=m.onBeforeCompile,ck=m.customProgramCacheKey;
+  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);sh.uniforms.dtK=this.userData.dtU||(this.userData.dtU={value:amt});
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float dtK;').replace('#include <map_fragment>',`#include <map_fragment>
+#ifdef USE_MAP
+{vec2 du=vMapUv*4.37+vec2(.31,.17);float dl=dot(texture2D(map,du).rgb,vec3(.299,.587,.114)),db=dot(texture2D(map,du,4.).rgb,vec3(.299,.587,.114));
+ float fd=1.-smoothstep(14.,48.,length(vViewPosition));diffuseColor.rgb*=clamp(1.+(dl-db)/max(db,.06)*.55*dtK*fd,.62,1.45);}
+#endif`)};
+  m.customProgramCacheKey=function(){return (ck?ck.call(this):'')+'|dt'};m.needsUpdate=true}
+function detailAll(){if(safeGfx||!renderer)return;scene.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(!m||!m.map)return;const k=m.map.userData&&m.map.userData.pk;
+  if(k&&DT.keys.has(k))detailHook(m,DT.k[k]||.7)})});try{detailHook(lawnM,.6)}catch(e){}}
 const SHD={n:0},FOG0={n:0,f:0,cf:0};
 // v237: zoomed out past 100%, push the fog and the far clip back by the extra camera distance so the slab doesn't go hazy
 function zoomFog(){const F=scene.fog;if(!F||!FOG0.f)return;const z=ZOOM[view]||1,ex=z>1?camera.position.distanceTo(lookC)*(1-1/z):0;
   F.near=FOG0.n+ex;F.far=FOG0.f+ex;const cf=Math.max(FOG0.cf||420,F.far+80);if(Math.abs(camera.far-cf)>1){camera.far=cf;camera.updateProjectionMatrix()}}
 function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
   // v235: at 60 fps the shadow map (a second render of everything that casts) updates at 30 Hz; the sun hardly moves and moving tools lag one frame at most
-  if(!FPSCAP&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++&1)===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0}}else renderer.shadowMap.autoUpdate=true;
+  if(!FPSCAP&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++&1)===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0;try{shFit()}catch(e){}}}else{renderer.shadowMap.autoUpdate=true;try{shFit()}catch(e){}}
   if(glLost||lowQ||!postInit()||!POST.on){if(renderer.toneMapping!==TONE)renderer.toneMapping=TONE;renderer.render(scene,camera);return}
   // the filter does the tone curve itself, so the scene renders linear HDR into the buffer
   try{postSize();if(renderer.toneMapping!==THREE.NoToneMapping)renderer.toneMapping=THREE.NoToneMapping;renderer.setRenderTarget(POST.main);const gOn=!!(GRASS.mesh&&POST.aoOn);if(gOn)camera.layers.disable(1);renderer.render(scene,camera);if(gOn)camera.layers.enable(1);
@@ -2052,7 +2090,9 @@ function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
     for(let k=0;k<2;k++){POST.blur.uniforms.t.value=POST.a.texture;POST.blur.uniforms.d.value.set(1/POST.a.width*(k+1),0);pass(POST.blur,POST.b);
       POST.blur.uniforms.t.value=POST.b.texture;POST.blur.uniforms.d.value.set(0,1/POST.a.height*(k+1));pass(POST.blur,POST.a)}
     const f=POST.fin.uniforms;f.aoK.value=0;
-    if(POST.aoOn&&POST.aoM){try{const D=POST.main.depthTexture,A=POST.aoM.uniforms,B=POST.aoB.uniforms;A.dT.value=D;A.pInv.value.copy(camera.projectionMatrixInverse);A.p11.value=camera.projectionMatrix.elements[5];
+    POST.aoN=(POST.aoN||0)+1;const aoRe=FPSCAP||(POST.aoN&1)||!POST.aoHave||camera.position.distanceToSquared(POST.aoCam||camera.position)>.04||Math.abs(camera.quaternion.dot(POST.aoQ||camera.quaternion))<.99999;
+    if(POST.aoOn&&POST.aoM&&!aoRe){f.ao.value=POST.ao.texture;f.aoK.value=window.AOK!=null?window.AOK:.75}
+    else if(POST.aoOn&&POST.aoM){try{(POST.aoCam||(POST.aoCam=new THREE.Vector3())).copy(camera.position);(POST.aoQ||(POST.aoQ=new THREE.Quaternion())).copy(camera.quaternion);POST.aoHave=1;const D=POST.main.depthTexture,A=POST.aoM.uniforms,B=POST.aoB.uniforms;A.dT.value=D;A.pInv.value.copy(camera.projectionMatrixInverse);A.p11.value=camera.projectionMatrix.elements[5];
       A.k.value=weather&&weather.night?.7:1;pass(POST.aoM,POST.ao);B.dT.value=D;B.pInv.value.copy(camera.projectionMatrixInverse);
       B.t.value=POST.ao.texture;B.d.value.set(1/POST.ao.width,0);pass(POST.aoB,POST.ao2);B.t.value=POST.ao2.texture;B.d.value.set(0,1/POST.ao.height);pass(POST.aoB,POST.ao);
       f.ao.value=POST.ao.texture;f.aoK.value=window.AOK!=null?window.AOK:.75}catch(e){console.warn('ao off',e);POST.aoOn=false}}
@@ -2106,25 +2146,29 @@ const sky=new THREE.Mesh(skyGeo,skyMat);scene.add(sky);
 /* v238: real sky. The visible dome is a shader now: zenith blue to a clean pale horizon (warm only toward the sun), a soft sun glow,
    and drifting procedural cumulus with lit tops and shaded bellies that shrink into perspective toward the horizon. Replaces the
    painted gradient + smudgy cloud sphere and its peach haze (that painted layer still feeds the wet-concrete reflection bake). */
-const SKYS={U:{sTop:{value:new THREE.Color()},sHor:{value:new THREE.Color()},sGnd:{value:new THREE.Color()},sSun:{value:new THREE.Vector3(0,1,0)},sSunC:{value:new THREE.Color(1,.9,.75)},
-  sCov:{value:.35},sCT:{value:new THREE.Color(1,1,1)},sDim:{value:1},sT:{value:0},sNight:{value:0},sPale:{value:new THREE.Color(0xa9c6e6)}}};
-const skyShader=new THREE.ShaderMaterial({uniforms:SKYS.U,side:THREE.BackSide,depthWrite:false,fog:false,
-  vertexShader:'varying vec3 vW;void main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
-  fragmentShader:`uniform vec3 sTop,sHor,sGnd,sSunC,sCT,sPale;uniform vec3 sSun;uniform float sCov,sDim,sT,sNight;varying vec3 vW;
+
+// v239: the sky as one GLSL function, shared by the sky dome and the wet-concrete reflection (so a wet slab mirrors the same clouds)
+const SKYFN=`uniform vec3 sTop,sHor,sGnd,sSunC,sCT,sPale;uniform vec3 sSun;uniform float sCov,sDim,sT,sNight,sWarm;
 float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}
-float fbm(vec2 p){float a=.5,s=0.;mat2 R=mat2(.8,.6,-.6,.8);for(int i=0;i<5;i++){s+=a*vn(p);p=R*p*2.03+11.7;a*=.5;}return s;}
-void main(){vec3 d=normalize(vW-cameraPosition);float y=d.y;
- vec2 hz=normalize(d.xz+1e-5),sz=normalize(sSun.xz+1e-5);float toward=pow(max(dot(hz,sz),0.),3.);
- vec3 hor=mix(mix(sHor,sPale,.8*(1.-sNight)),sHor,toward*.55);
+float fbm(vec2 p,int oc){float a=.5,s=0.;mat2 R=mat2(.8,.6,-.6,.8);for(int i=0;i<5;i++){if(i>=oc)break;s+=a*vn(p);p=R*p*2.03+11.7;a*=.5;}return s;}
+vec3 skyCol(vec3 d,float q){float y=d.y;vec2 hz=normalize(d.xz+1e-5),sz=normalize(sSun.xz+1e-5);float toward=pow(max(dot(hz,sz),0.),3.);
+ vec3 hor=mix(mix(sHor,sPale,.8*(1.-sNight)),sHor,toward*.55*(1.-sWarm));
  vec3 c=y>=0.?mix(hor,sTop,pow(clamp(y,0.,1.),.38)):mix(hor,sGnd,min(1.,-y*5.));
- float sd=max(dot(d,normalize(sSun)),0.);c+=sSunC*(pow(sd,6.)*.18+pow(sd,48.)*.35)*(1.-sNight);
- if(y>.005&&sCov>.01){vec2 p=d.xz/(y+.12)*1.15+vec2(sT*.006,sT*.0025);
-  float n=fbm(p),th=1.-sCov;float m=smoothstep(th,th+.09,n);
-  float lit=fbm(p+normalize(sSun.xz+1e-5)*.09);float sh=clamp((n-lit)*6.+.45,0.,1.)*smoothstep(th,th+.3,n);
-  vec3 cl=mix(sCT,sHor*.55+sTop*.25,sh*.75)*sDim;cl+=sSunC*pow(sd,4.)*.25*(1.-sh)*(1.-sNight);
-  float fade=smoothstep(.005,.22,y);c=mix(c,cl,m*fade*.95);}
- gl_FragColor=vec4(c,1.);
+ if(sWarm>0.&&y>-.05){float wb=exp(-max(y,0.)*5.5);c=mix(c,vec3(1.,.4,.12)*(.62+.38*toward),sWarm*wb*(.45+.5*toward));c=mix(c,c*vec3(.82,.86,1.05),sWarm*(1.-wb)*.6);}
+ float sd=max(dot(d,normalize(sSun)),0.);c+=sSunC*(pow(sd,6.)*.12*(1.-sWarm*.75)+pow(sd,80.)*(.14+sWarm*.3)+pow(sd,900.)*(.5+sWarm*.9))*(1.-sNight);
+ if(y>.005&&sCov>.01){vec2 p=d.xz/(y+.12)*1.15+vec2(sT*.006,sT*.0025);int oc=q>.5?5:4;
+  float n=fbm(p,oc),th=1.-sCov;float m=smoothstep(th,th+.09,n);float sh=.4;
+  if(q>.5){float lit=fbm(p+sz*.09,oc);sh=clamp((n-lit)*6.+.45,0.,1.)*smoothstep(th,th+.3,n);}
+  vec3 cl=mix(mix(sCT,vec3(1.,.66,.42),sWarm*(.4+.45*toward)),sHor*.55+sTop*.25,sh*(.75-sWarm*.25))*sDim;cl+=sSunC*pow(sd,4.)*(.25+sWarm*.9)*(1.-sh)*(1.-sNight);
+  c=mix(c,cl,m*smoothstep(.005,.22,y)*.95);}
+ return c;}`;
+const SKYS={U:{sTop:{value:new THREE.Color()},sHor:{value:new THREE.Color()},sGnd:{value:new THREE.Color()},sSun:{value:new THREE.Vector3(0,1,0)},sSunC:{value:new THREE.Color(1,.9,.75)},
+  sCov:{value:.35},sCT:{value:new THREE.Color(1,1,1)},sDim:{value:1},sT:{value:0},sNight:{value:0},sPale:{value:new THREE.Color(0xa9c6e6)},sWarm:{value:0}}};
+const skyShader=new THREE.ShaderMaterial({uniforms:SKYS.U,side:THREE.BackSide,depthWrite:false,fog:false,
+  vertexShader:'varying vec3 vW;void main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
+  fragmentShader:SKYFN+`varying vec3 vW;
+void main(){vec3 d=normalize(vW-cameraPosition);gl_FragColor=vec4(skyCol(d,1.),1.);
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
 }`});
@@ -2311,7 +2355,7 @@ for(let i=0;i<0;i++){/* v238: the 12 billboard cloud puffs are gone; the shader 
   const a=Math.random()*Math.PI*2,r=120+Math.random()*40;sp.position.set(Math.cos(a)*r,30+Math.random()*34,Math.sin(a)*r);sp.scale.set(60+Math.random()*50,18+Math.random()*12,1);scene.add(sp)}
 const glowTex=softTex([[0,'rgba(255,248,230,1)'],[.22,'rgba(255,232,186,.45)'],[1,'rgba(255,220,160,0)']],1,256,256);
 const sunGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,fog:false,depthWrite:false,transparent:true,blending:THREE.AdditiveBlending}));
-sunGlow.position.copy(new THREE.Vector3(-9,15,-21).normalize().multiplyScalar(160));sunGlow.scale.set(70,70,1);scene.add(sunGlow);
+sunGlow.position.copy(new THREE.Vector3(-9,15,-21).normalize().multiplyScalar(160));sunGlow.scale.set(70,70,1);scene.add(sunGlow);sunGlow.visible=false;/* v239: the sky shader draws the sun glow now; this big additive sprite washed the whole sky pink at low sun */
 // ambient-occlusion skirts along the outside of the forms
 const aoM=(()=>{const[c,g]=mk(8,64);const gr=g.createLinearGradient(0,0,0,64);gr.addColorStop(0,'rgba(20,12,6,.6)');gr.addColorStop(1,'rgba(20,12,6,0)');g.fillStyle=gr;g.fillRect(0,0,8,64);
  return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false})})();
@@ -3511,9 +3555,11 @@ const roughTex=new THREE.CanvasTexture(roughC);
 const SEG=2,VX=GW*SEG,VY=GH*SEG;
 const slabGeo=new THREE.PlaneGeometry(SLAB_W,SLAB_D,VX,VY);slabGeo.rotateX(-Math.PI/2);
 const bumpTex=new THREE.CanvasTexture(bumpC),ccTex=new THREE.CanvasTexture(ccC);
+// v239: the slab is seen at a low angle almost all game: 8x anisotropic filtering keeps the far half of the finish sharp instead of smearing
+{const af=safeGfx?2:8;[slabTex,roughTex,bumpTex,ccTex].forEach(t=>t.anisotropy=af)}
 const slabMat=new THREE.MeshPhysicalMaterial({map:slabTex,bumpMap:bumpTex,bumpScale:.045,roughness:1,roughnessMap:roughTex,metalness:0,clearcoat:0,clearcoatRoughness:.07,clearcoatMap:ccTex,envMapIntensity:1});
 const SLABD={on:false,n:null,m:null};
-function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Promise.all([pbrImg('slab_n'),pbrImg('slab_m')]).then(([a,b])=>{if(!a||!b)return;const T=im=>{const t=new THREE.Texture(im);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;t.needsUpdate=true;return t};
+function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Promise.all([pbrImg('slab_n'),pbrImg('slab_m')]).then(([a,b])=>{if(!a||!b)return;const T=im=>{const t=new THREE.Texture(im);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.needsUpdate=true;return t};
   SLABD.n=T(a);SLABD.m=T(b);SLABD.on=true;slabMat.needsUpdate=true}).catch(()=>{})}
 /* v155: GPU surface, part 1. Joints and tooled edges are drawn analytically in the slab shader at any resolution:
    the coarse grid only says HOW MUCH is cut/edged; the shape (groove, bevels, burnished tool bands, rounded nose, tool lip) is exact in feet */
@@ -3558,11 +3604,12 @@ const GLARE={dir:{value:new THREE.Vector3(0,1,0)},col:{value:new THREE.Color(1,1
 function glareTick(){if(!camera)return;const night=weather.night,k=night?0:WETD.glare;GLARE.k.value=k;if(!k)return;
   GLARE.dir.value.copy(sun.position).normalize();GLARE.col.value.copy(sun.color).lerp(new THREE.Color(1,1,1),.6)}
 slabMat.onBeforeCompile=sh=>{
-  Object.assign(sh.uniforms,{gGlDir:GLARE.dir,gGlCol:GLARE.col,gGlK:GLARE.k});
-  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`#ifdef USE_CLEARCOAT
+  Object.assign(sh.uniforms,{gGlDir:GLARE.dir,gGlCol:GLARE.col,gGlK:GLARE.k},SKYS.U);
+  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`#ifdef USE_CLEARCOAT
 if(gGlK>0.){vec3 vd=normalize(vViewPosition),nn=normalize(normal),rv=reflect(-vd,nn),rw=normalize((vec4(rv,0.)*viewMatrix).xyz);
  float fr=.04+.96*pow(1.-clamp(dot(nn,vd),0.,1.),5.),hz=pow(1.-clamp(rw.y,0.,1.),3.),sp=max(dot(rw,gGlDir),0.);
- outgoingLight+=gGlCol*gGlK*material.clearcoat*(hz*fr*3.2+pow(sp,90.)*1.2+pow(sp,900.)*5.);}
+ vec3 rs=skyCol(normalize(vec3(rw.x,max(rw.y,.02),rw.z)),0.);
+ outgoingLight+=gGlK*material.clearcoat*(rs*fr*(.45+hz*.75)+gGlCol*(pow(sp,90.)*1.2+pow(sp,900.)*5.));}
 #endif
 #include <opaque_fragment>`);
   if(!SLABD.on&&!GPS.on)return;
@@ -3648,7 +3695,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  vec4 ED2=texture2D(gED,uvG);
  // broom: real-scale bristle striations along the pull, faded out where they'd shimmer
  {vec4 BD=texture2D(gBD,uvG);float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);if(bc>.03){vec2 d2=BD.gb*2.-1.;if(dot(d2,d2)>.01){float th=.5*atan(d2.y,d2.x);vec2 dv=vec2(cos(th),sin(th)),pr=vec2(-dv.y,dv.x);
-   float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.5-fw,0.,1.);
+   float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.7-fw*.85,0.,1.);
    float st=sin(c*300.+sin(al*2.7+c*35.)*1.6)*.6+sin(c*610.+sin(al*4.9)*2.3)*.4;float pull=.6+.4*sin(al*.9+gH1(floor(vec2(c*3.,0.)))*6.);
    gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}
  // steel trowel: overlapping fan-shaped swipes, each a set of fine burnished arcs
@@ -6241,7 +6288,7 @@ function cellAt(X,Z){const u=Math.max(0,Math.min(GW-1,Math.floor(gu(X)))),v=Math
 function setLot(k){LS=k;SLAB_W=20*k;SLAB_D=10*k;CELL_IN=5*k;
   {const q=Math.max(1,k/2.4);sky.scale.setScalar(q);ground.scale.set(q,q,1);camera.far=420*q;camera.updateProjectionMatrix()} // v147: big floors pull the camera back past the old sky dome
   tape.geometry.dispose();tape.geometry=new THREE.PlaneGeometry(SLAB_W,.36);const tm=tape.material;if(tm.map&&tm.map.dispose)tm.map.dispose();tm.map=tapeTex();tm.needsUpdate=true;
-  Object.assign(sun.shadow.camera,{left:-28*k,right:28*k,top:20*k,bottom:-20*k,far:80*k});sun.shadow.camera.updateProjectionMatrix();sun.shadow.radius=k}
+  Object.assign(sun.shadow.camera,{left:-28*k,right:28*k,top:20*k,bottom:-20*k,far:80*k});sun.shadow.camera.updateProjectionMatrix();sun.shadow.radius=k;SHF.r0=1;SHF.lw=0}
 function applyLevel(L){
   applyFinish(L);LV=L;REG=regById(regOf(L));
   DEPTH=L.depth||4;
@@ -7308,7 +7355,7 @@ function setStageUI(){
   if(running&&LV.saw&&STAGES[stage].key==='joint'&&setStageUI.sawT!==stage){setStageUI.sawT=stage;set=Math.max(set,.97);say('Next morning. Saw the joints before it cracks on its own.','info','sawNext',0)}
   if(running){showBanner();hideHint();clearTimeout(hintTimer);hintTimer=setTimeout(showHint,1700);buzz(10)}
   try{strStageUI()}catch(e){console.warn('strUI',e)}try{brgVis()}catch(e){console.warn('brgUI',e)}
-  try{warmSoon(false)}catch(e){}
+  try{warmSoon(false)}catch(e){}try{if(running)lmProbe()}catch(e){}
 }
 function rms(){let s=0;for(let i=0;i<N;i++)if(inR[i])s+=h[i]*h[i];return Math.sqrt(s/RN)}
 function avg(a,mask,inv){let s=0,n=0;for(let i=0;i<N;i++){if(!inR[i]||mask&&(inv?mask[i]:!mask[i]))continue;s+=Math.min(1,a[i]);n++}return n?s/n:0}
@@ -7521,7 +7568,7 @@ function startJob(){
   weather=WEATHER[wxKeyNow()];pickTOD();$('wxLabel').textContent=weather.label+(TOD.n?' · '+TOD.n:'');
   if(LV.steps.includes('stamp')){LV.color=STAMP_COLORS.find(c=>c.id===stampSel.color).c;STILE=makeStampTile()}try{pbrApply(scene)}catch(e){}try{buildEnv(todEnv(weather))}catch(e){window.__showErr('env: '+e.message)}try{gpsShape();gpsSync()}catch(e){console.warn('gps',e)}reset();setStageUI();
   runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));try{boardStart()}catch(e){console.warn('board',e)}BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
-  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
+  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}try{detailAll()}catch(e){console.warn('detail',e)}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
 }
 $('start').addEventListener('click',()=>{try{const L=LEVELS[jobIdx];if(L&&!practice){planOpen();return}plan.on=false;startJob()}catch(e){window.__showErr('start: '+e.message)}});
 let rsArm=0;
@@ -7917,7 +7964,7 @@ function step(t,dt){
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
   updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);
-   sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18)}if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
+   sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
   camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;camera.lookAt(lookC);
   try{panHideTick(t)}catch(e){}
@@ -8712,9 +8759,9 @@ const LM={recs:[],dyn:new WeakSet(),saved:0};
 function lmSnap(o){const p=o.position,q=o.quaternion,c=o.scale,pa=o.geometry.attributes.position;return [p.x,p.y,p.z,q.x,q.y,q.z,q.w,c.x,c.y,c.z,o.visible,o.geometry,o.material,o.parent,pa.version,o.castShadow]}
 function lmSame(o,a){const p=o.position,q=o.quaternion,c=o.scale;return p.x===a[0]&&p.y===a[1]&&p.z===a[2]&&q.x===a[3]&&q.y===a[4]&&q.z===a[5]&&q.w===a[6]&&c.x===a[7]&&c.y===a[8]&&c.z===a[9]&&o.visible===a[10]&&o.geometry===a[11]&&o.material===a[12]&&o.parent===a[13]&&o.geometry.attributes.position.version===a[14]&&o.castShadow===a[15]}
 function lmUndo(r,blame){if(r.done)return;r.done=true;if(r.mesh.parent)r.mesh.parent.remove(r.mesh);r.mesh.geometry.dispose();r.items.forEach(it=>{it.o.layers.mask=it.mask;if(it.o===blame)LM.dyn.add(it.o)});LM.saved-=r.items.length-1}
-function lmClear(){LM.recs.forEach(r=>lmUndo(r));LM.recs=[];LM.saved=0}
+function lmClear(){LM.recs.forEach(r=>lmUndo(r));LM.recs=[];try{lmWClear()}catch(e){}LM.saved=0}
 function lmOk(o){if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.children.length||!o.visible||LM.dyn.has(o)||o.userData.merged||o.userData.live)return false;
-  if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender||o.layers.mask!==1)return false;const m=o.material,g=o.geometry;if(!m||Array.isArray(m)||m.transparent||!g||g.morphAttributes&&Object.keys(g.morphAttributes).length)return false;
+  if(o.onBeforeRender!==THREE.Object3D.prototype.onBeforeRender||(o.layers.mask&~32)!==1)return false;const m=o.material,g=o.geometry;if(!m||Array.isArray(m)||m.transparent||!g||g.morphAttributes&&Object.keys(g.morphAttributes).length)return false;
   const at=g.attributes;if(Object.keys(at).length!==3||!at.position||!at.normal||!at.uv)return false;
   for(const k of ['position','normal','uv'])if(at[k].isInterleavedBufferAttribute||!(at[k].array instanceof Float32Array)||at[k].normalized)return false;
   return o.matrix.determinant()>0}
@@ -8723,10 +8770,39 @@ function lmMerge(root){if(!root)return;root.updateMatrixWorld(true);const pars=n
     B.forEach(list=>{if(list.length<3)return;const gs=list.map(o=>{const g=o.geometry.clone();g.applyMatrix4(o.matrix);return g});let mg;try{mg=mergeGeos(gs)}catch(e){gs.forEach(g=>g.dispose());return}gs.forEach(g=>g.dispose());
       const o0=list[0],mesh=new THREE.Mesh(mg,o0.material);mesh.castShadow=o0.castShadow;mesh.receiveShadow=o0.receiveShadow;mesh.renderOrder=o0.renderOrder;mesh.frustumCulled=o0.frustumCulled;mesh.userData.merged=true;mesh.userData.lm=true;par.add(mesh);
       const items=list.map(o=>({o,mask:o.layers.mask,s:lmSnap(o)}));items.forEach(it=>it.o.layers.set(31));LM.recs.push({mesh,items,done:false});LM.saved+=list.length-1})})}
-function lmRun(){lmClear();if(safeGfx&&false)return;
+function lmRun(){lmClear();LM.probe=null;
   const skip=new Set([sceneG]);try{if(GRASS.mesh)skip.add(GRASS.mesh)}catch(e){}
-  scene.children.forEach(c=>{if(skip.has(c)||!(c.isGroup||c.type==='Object3D')||c.userData.live)return;let n=0;c.traverse(o=>{if(o.isMesh)n++});if(n>=8)lmMerge(c)})}
-function lmTick(){const R=LM.recs;for(let i=0;i<R.length;i++){const r=R[i];if(r.done)continue;const it=r.items;for(let j=0;j<it.length;j++){if(!lmSame(it[j].o,it[j].s)){lmUndo(r,it[j].o);break}}}}
+  scene.children.forEach(c=>{if(skip.has(c)||!(c.isGroup||c.type==='Object3D')||c.userData.live)return;let n=0;c.traverse(o=>{if(o.isMesh)n++});if(n>=8)lmMerge(c)});
+  // v239: the live machines that sit inside the site group (the pickup, trailers) too
+  sceneG.children.forEach(c=>{if(skip.has(c)||!c.userData.live||c.userData.grass)return;let n=0;c.traverse(o=>{if(o.isMesh)n++});if(n>=8)lmMerge(c)});
+  lmProbe()}
+/* v239: world merge for everything else that's small and loose (cones, buckets, sawhorses, signs, tool racks): meshes in different
+   groups that share a material are merged in world space into one mesh. Candidates are watched for 1.5 s first and anything that moved
+   is left out; after that, a change to the part or to any group above it unmerges that batch. Re-run at every step. */
+const LMW={recs:[],dynA:new WeakSet()};
+function lmChain(o){const a=[];let p=o.parent;while(p&&p!==scene){a.push(p);p=p.parent}return a}
+function lmAS(p){const q=p.position,r=p.quaternion,c=p.scale;return [q.x,q.y,q.z,r.x,r.y,r.z,r.w,c.x,c.y,c.z,p.visible,p.parent]}
+function lmASame(p,a){const q=p.position,r=p.quaternion,c=p.scale;return q.x===a[0]&&q.y===a[1]&&q.z===a[2]&&r.x===a[3]&&r.y===a[4]&&r.z===a[5]&&r.w===a[6]&&c.x===a[7]&&c.y===a[8]&&c.z===a[9]&&p.visible===a[10]&&p.parent===a[11]}
+function lmWClear(){LMW.recs.forEach(r=>{if(r.done)return;r.done=true;if(r.mesh.parent)r.mesh.parent.remove(r.mesh);r.mesh.geometry.dispose();r.items.forEach(it=>it.o.layers.mask=it.mask);LM.saved-=r.items.length-1});LMW.recs=[]}
+function lmProbe(){lmWClear();const cand=[],anc=new Map();const stat=new Set();sceneG.children.forEach(c=>{if(!c.userData.live)stat.add(c)});try{if(GRASS.mesh)stat.add(GRASS.mesh)}catch(e){}
+  const walk=o=>{if(!o.visible||stat.has(o)||LMW.dynA.has(o))return;if(o.isMesh&&lmOk(o)&&o.parent!==scene)cand.push(o);o.children.forEach(walk)};scene.children.forEach(walk);
+  cand.forEach(o=>lmChain(o).forEach(p=>{if(!anc.has(p))anc.set(p,lmAS(p))}));LM.probe={t:performance.now(),cand:cand.map(o=>({o,s:lmSnap(o)})),anc}}
+function lmWorld(){const P=LM.probe;LM.probe=null;if(!P)return;const bad=new Set();P.anc.forEach((a,p)=>{if(!lmASame(p,a)){bad.add(p);LMW.dynA.add(p)}});
+  const B=new Map();scene.updateMatrixWorld();
+  P.cand.forEach(c=>{const o=c.o;if(!lmSame(o,c.s)){LM.dyn.add(o);return}if(!lmOk(o))return;const ch=lmChain(o);if(ch.some(p=>bad.has(p)||!p.visible))return;
+    if(o.matrixWorld.determinant()<=0)return;const k=o.material.uuid+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'|'+(o.renderOrder||0);let b=B.get(k);if(!b)B.set(k,b=[]);b.push({o,ch})});
+  B.forEach(list=>{if(list.length<2)return;const gs=list.map(({o})=>{const g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);return g});let mg;try{mg=mergeGeos(gs)}catch(e){gs.forEach(g=>g.dispose());return}gs.forEach(g=>g.dispose());
+    const o0=list[0].o,mesh=new THREE.Mesh(mg,o0.material);mesh.castShadow=o0.castShadow;mesh.receiveShadow=o0.receiveShadow;mesh.renderOrder=o0.renderOrder;mesh.userData.merged=true;mesh.userData.lm=true;mesh.raycast=()=>{};mg.computeBoundingSphere();scene.add(mesh);
+    const ancs=new Map();list.forEach(({ch})=>ch.forEach(p=>{if(!ancs.has(p))ancs.set(p,lmAS(p))}));
+    const items=list.map(({o})=>({o,mask:o.layers.mask,s:lmSnap(o)}));items.forEach(it=>it.o.layers.set(31));LMW.recs.push({mesh,items,ancs:[...ancs],done:false});LM.saved+=list.length-1})}
+function lmTick(){const R=LM.recs;for(let i=0;i<R.length;i++){const r=R[i];if(r.done)continue;const it=r.items;for(let j=0;j<it.length;j++){if(!lmSame(it[j].o,it[j].s)){lmUndo(r,it[j].o);break}}}
+  if(LM.probe&&performance.now()-LM.probe.t>1500)try{lmWorld()}catch(e){console.warn('lmw',e)}
+  const W=LMW.recs;for(let i=0;i<W.length;i++){const r=W[i];if(r.done)continue;let hit=null;
+    for(let j=0;j<r.ancs.length&&!hit;j++){const [p,a]=r.ancs[j];if(!lmASame(p,a)){hit=p;LMW.dynA.add(p)}}
+    if(!hit)for(let j=0;j<r.items.length;j++){if(!lmSame(r.items[j].o,r.items[j].s)){hit=r.items[j].o;LM.dyn.add(hit);break}}
+    if(hit){r.done=true;if(r.mesh.parent)r.mesh.parent.remove(r.mesh);r.mesh.geometry.dispose();r.items.forEach(it=>it.o.layers.mask=it.mask);LM.saved-=r.items.length-1}}}
+// merged originals sit on layer 31: let every raycaster still hit them (the merged copies don't take hits)
+{const RP=THREE.Raycaster.prototype,a=RP.intersectObject,b=RP.intersectObjects;RP.intersectObject=function(){this.layers.enable(31);return a.apply(this,arguments)};RP.intersectObjects=function(){this.layers.enable(31);return b.apply(this,arguments)}}
 function sceneExtras(){
   // the truck's footprint
   {TRK.D=0;TRK.far=false;TRK.p0=truck.position.clone();TRK.piv0=PIVOT.clone();
