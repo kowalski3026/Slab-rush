@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v245: tilt/turn after a zoom registers without lifting (two-finger mode is judged on recent motion that builds up, so slow tilts win), tilt a bit more responsive; the sun shadow fades out at the edge of its area instead of drawing a hard line that moves with the zoom, and reaches further when zoomed out. -->
 <!-- v244: two-finger soft lock: after zooming you can slide straight into tilting/turning (or twisting) without lifting your fingers; it switches when a different motion clearly takes over. -->
 <!-- v243: easier pinch/zoom: a two-finger gesture locks to one action once it's clear (pinch zooms, dragging together tilts/turns, twisting turns) instead of doing all three at once; gentler turn/tilt; pinch jitter ignored. -->
 <!-- v242: v241's ground dressing cost ~600k triangles (2800 grit stones and the extra rocks were each a 320-triangle shape): stones now 80 triangles, grit 20. Same look, under 100k. Background pines no longer cast shadows (~190k fewer shadow triangles). -->
@@ -2077,7 +2078,8 @@ function bootDone(){if(bootDone.d)return;bootDone.d=1;try{BOOT.frame()}catch(e){
    edges don't crawl as the camera moves. Fewer things outside the view get drawn into it, and close shadows come out sharper. */
 const SHF={on:true,v:new THREE.Vector3(),o:new THREE.Vector3(),pts:[],inv:new THREE.Matrix4(),lw:0,lh:0};
 for(let i=0;i<16;i++)SHF.pts.push(new THREE.Vector3());
-function shFit(){if(!SHF.on||!renderer||!sun.castShadow)return;const C=sun.shadow.camera,gy=ELV(),cp=camera.position,cap=75*Math.max(1,LS/1.5),mz=sun.shadow.mapSize.x;
+function shZk(){try{return Math.max(1,Math.sqrt(ZOOM[view]||1))}catch(e){return 1}}
+function shFit(){if(!SHF.on||!renderer||!sun.castShadow)return;const C=sun.shadow.camera,gy=ELV(),cp=camera.position,cap=75*Math.max(1,LS/1.5)*shZk(),mz=sun.shadow.mapSize.x;
   camera.updateMatrixWorld();sun.updateMatrixWorld();sun.target.updateMatrixWorld();C.position.copy(sun.position);C.lookAt(sun.target.position);C.updateMatrixWorld();SHF.inv.copy(C.matrixWorld).invert();
   let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9,k=0;
   for(const ny of [-1,-.5,0,.5,1])for(const nx of [-1,0,1]){const v=SHF.v.set(nx,ny,.5).unproject(camera).sub(cp).normalize();let d;
@@ -2087,7 +2089,7 @@ function shFit(){if(!SHF.on||!renderer||!sun.castShadow)return;const C=sun.shado
   SHF.pts[k++].set(cp.x,gy,cp.z);
   for(let i=0;i<k;i++){const p=SHF.o.copy(SHF.pts[i]).applyMatrix4(SHF.inv);x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z)}
   const mg=6;x0-=mg;x1+=mg;y0-=mg;y1+=mg+8;// casters stand up toward the sun: extra room on top
-  const q=w=>Math.pow(2,Math.ceil(Math.log2(Math.max(24,w))*4)/4);let w=q(x1-x0),h=q(y1-y0);const mx=180*Math.max(1,LS/1.5);w=Math.min(w,mx);h=Math.min(h,mx);
+  const q=w=>Math.pow(2,Math.ceil(Math.log2(Math.max(24,w))*4)/4);let w=q(x1-x0),h=q(y1-y0);const mx=180*Math.max(1,LS/1.5)*shZk();w=Math.min(w,mx);h=Math.min(h,mx);
   const cx=(x0+x1)/2,cy=(y0+y1)/2,tx=w/mz,ty=h/mz,sx=Math.round(cx/tx)*tx,sy=Math.round(cy/ty)*ty;
   C.left=sx-w/2;C.right=sx+w/2;C.bottom=sy-h/2;C.top=sy+h/2;C.near=Math.min(1,-z1-60);C.far=-z0+12;C.updateProjectionMatrix();
   // keep the soft-shadow blur the same size in feet whatever the box size
@@ -2166,7 +2168,8 @@ if(!safeGfx&&(GFX==='fx'||GFX==='sharp'))try{const C=THREE.ShaderChunk,src=C.sha
         dsum += 0.4 + 2.0 * ( 1.0 - texture( shadowMap, vec3( uv, shadowCoord.z - 1.0 * dpf ) ) ) + 5.0 * ( 1.0 - texture( shadowMap, vec3( uv, shadowCoord.z - 4.0 * dpf ) ) ) + 10.0 * ( 1.0 - texture( shadowMap, vec3( uv, shadowCoord.z - 12.0 * dpf ) ) ); } }
     if ( occ > 0.0 ) { float dft = dsum / occ, r = max( 1.0, ( 0.025 + dft * 0.035 ) * tpf ) * ts.x, sh = 0.0;
       for ( int i = 0; i < 12; i ++ ) sh += texture( shadowMap, vec3( shadowCoord.xy + vogelDiskSample( i, 12, phi ) * r, shadowCoord.z ) );
-      shadow = sh / 12.0; } }
+      shadow = sh / 12.0; }
+    vec2 eb = min( shadowCoord.xy, 1.0 - shadowCoord.xy ); shadow = mix( 1.0, shadow, smoothstep( 0.0, 0.09, min( eb.x, eb.y ) ) ); }
   return mix( 1.0, shadow, shadowIntensity ); }
 	`+src.slice(b)}catch(e){console.warn('soft shadows off',e)}Object.assign(sun.shadow.camera,{left:-28,right:28,top:20,bottom:-20,near:1,far:80});sun.shadow.bias=-.0005;sun.shadow.normalBias=.02;
 scene.add(sun);scene.add(sun.target);
@@ -6264,18 +6267,15 @@ addEventListener('pointermove',e=>{if(e.pointerId===PAN.mid){e.stopImmediateProp
       // v243: lock a two-finger gesture to ONE thing (pinch = zoom, drag together = tilt/turn, twist = turn) once it's clear what you're doing,
       // instead of zooming, orbiting and twisting at once on every wobble. Gentler turn/tilt rates; tiny pinch jitter ignored.
       // judged on the NET change since the fingers went down (phones send each finger's move separately, so per-event deltas look like a wobbly drag)
-      const G=PAN.g||(PAN.g={mode:null,s:PAN.c.slice()});
-      if(!G.mode){const S0=G.s;let ta=m[4]-S0[4];while(ta>Math.PI)ta-=2*Math.PI;while(ta<-Math.PI)ta+=2*Math.PI;
-        const mv=Math.hypot(m[0]-S0[0],m[1]-S0[1]),pz=Math.abs(m[2]-S0[2])*1.1,tz=(S0[2]<40||m[2]<40)?0:Math.abs(ta)*m[2]*.5,mx=Math.max(mv,pz,tz);
-        if(mx>16){G.mode=pz===mx?'zoom':tz===mx?'twist':'orbit';G.r=m.slice();G.rt=performance.now()}}
-      else{// v244: soft lock. Watch the last ~0.35 s: if you clearly start a different motion (drag after a pinch, say), switch to it without lifting
-        const R=G.r;let ta=m[4]-R[4];while(ta>Math.PI)ta-=2*Math.PI;while(ta<-Math.PI)ta+=2*Math.PI;
-        const c={orbit:Math.hypot(m[0]-R[0],m[1]-R[1]),zoom:Math.abs(m[2]-R[2])*1.1,twist:(R[2]<40||m[2]<40)?0:Math.abs(ta)*m[2]*.5},cur=c[G.mode];
-        let best=G.mode;for(const k in c)if(k!==G.mode&&c[k]>18&&c[k]>cur*1.7&&c[k]>c[best])best=k;
-        if(best!==G.mode){G.mode=best;G.r=m.slice();G.rt=performance.now()}else if(performance.now()-G.rt>350){G.r=m.slice();G.rt=performance.now()}}
+      // v245: recent motion as decaying signed sums (half-life ~0.4 s): slow steady tilts build up and win, finger-by-finger events cancel out
+      const G=PAN.g||(PAN.g={mode:null,ox:0,oy:0,z:0,t:0,ts:performance.now()}),now=performance.now(),dk=Math.exp(-Math.max(0,now-G.ts)/580);G.ts=now;
+      G.ox=G.ox*dk+dx;G.oy=G.oy*dk+dy;G.z=G.z*dk+(m[2]-(G.ld!=null?G.ld:PAN.c[2]));G.ld=m[2];G.t=G.t*dk+tw;
+      {const c={orbit:Math.hypot(G.ox,G.oy),zoom:Math.abs(G.z)*1.1,twist:(m[2]<40)?0:Math.abs(G.t)*m[2]*.5};
+       if(!G.mode){const mx=Math.max(c.orbit,c.zoom,c.twist);if(mx>12)G.mode=c.zoom===mx?'zoom':c.twist===mx?'twist':'orbit'}
+       else{let best=G.mode;for(const k in c)if(k!==G.mode&&c[k]>12&&c[k]>c[G.mode]*1.4&&c[k]>c[best])best=k;if(best!==G.mode){G.mode=best;if(best!=='orbit'){G.ox=G.oy=0}if(best!=='zoom')G.z=0;if(best!=='twist')G.t=0}}}
       if(G.mode==='zoom'){if(PAN.c[2]>20&&m[2]>20){const f=PAN.c[2]/m[2];if(Math.abs(f-1)>.003)panZoom(f);else{PAN.c=[PAN.c[0],PAN.c[1],PAN.c[2],PAN.c[3],m[4]];return}}}
       else if(G.mode==='twist')panOrb(tw*.8,0);
-      else if(G.mode==='orbit')panOrb(-dx*.0045,dy*.0033)}}PAN.c=m},true);
+      else if(G.mode==='orbit')panOrb(-dx*.0052,dy*.0045)}}PAN.c=m},true);
 const panEnd=e=>{if(e.pointerId===PAN.mid){PAN.mid=null;e.stopImmediatePropagation();return}
   if(!PAN.ps.has(e.pointerId))return;PAN.ps.delete(e.pointerId);if(!PAN.on)return;e.stopImmediatePropagation();
   PAN.g=null;if(PAN.ps.size)PAN.c=panMid();else{PAN.on=false;PAN.c=null;panSave()}};
