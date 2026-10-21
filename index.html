@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v244: two-finger soft lock: after zooming you can slide straight into tilting/turning (or twisting) without lifting your fingers; it switches when a different motion clearly takes over. -->
 <!-- v243: easier pinch/zoom: a two-finger gesture locks to one action once it's clear (pinch zooms, dragging together tilts/turns, twisting turns) instead of doing all three at once; gentler turn/tilt; pinch jitter ignored. -->
 <!-- v242: v241's ground dressing cost ~600k triangles (2800 grit stones and the extra rocks were each a 320-triangle shape): stones now 80 triangles, grit 20. Same look, under 100k. Background pines no longer cast shadows (~190k fewer shadow triangles). -->
 <!-- v241: loading sting: the white K logo (stem drops in, chevron slides in, light sweep, KOWALSKI CONCRETE / PRESENTS) for ~2.2 s, then the Slab Rush card and loading bar; splash never closes before 2.9 s. Also richer close-up ground around the forms: 60% more stones and clods, ~2800 grit stones (4000 in prep pits), small bent twigs, form-board offcuts, chips and sawdust near the forms, dry grass clippings along the cut sod edge. -->
@@ -6266,7 +6267,12 @@ addEventListener('pointermove',e=>{if(e.pointerId===PAN.mid){e.stopImmediateProp
       const G=PAN.g||(PAN.g={mode:null,s:PAN.c.slice()});
       if(!G.mode){const S0=G.s;let ta=m[4]-S0[4];while(ta>Math.PI)ta-=2*Math.PI;while(ta<-Math.PI)ta+=2*Math.PI;
         const mv=Math.hypot(m[0]-S0[0],m[1]-S0[1]),pz=Math.abs(m[2]-S0[2])*1.1,tz=(S0[2]<40||m[2]<40)?0:Math.abs(ta)*m[2]*.5,mx=Math.max(mv,pz,tz);
-        if(mx>16)G.mode=pz===mx?'zoom':tz===mx?'twist':'orbit'}
+        if(mx>16){G.mode=pz===mx?'zoom':tz===mx?'twist':'orbit';G.r=m.slice();G.rt=performance.now()}}
+      else{// v244: soft lock. Watch the last ~0.35 s: if you clearly start a different motion (drag after a pinch, say), switch to it without lifting
+        const R=G.r;let ta=m[4]-R[4];while(ta>Math.PI)ta-=2*Math.PI;while(ta<-Math.PI)ta+=2*Math.PI;
+        const c={orbit:Math.hypot(m[0]-R[0],m[1]-R[1]),zoom:Math.abs(m[2]-R[2])*1.1,twist:(R[2]<40||m[2]<40)?0:Math.abs(ta)*m[2]*.5},cur=c[G.mode];
+        let best=G.mode;for(const k in c)if(k!==G.mode&&c[k]>18&&c[k]>cur*1.7&&c[k]>c[best])best=k;
+        if(best!==G.mode){G.mode=best;G.r=m.slice();G.rt=performance.now()}else if(performance.now()-G.rt>350){G.r=m.slice();G.rt=performance.now()}}
       if(G.mode==='zoom'){if(PAN.c[2]>20&&m[2]>20){const f=PAN.c[2]/m[2];if(Math.abs(f-1)>.003)panZoom(f);else{PAN.c=[PAN.c[0],PAN.c[1],PAN.c[2],PAN.c[3],m[4]];return}}}
       else if(G.mode==='twist')panOrb(tw*.8,0);
       else if(G.mode==='orbit')panOrb(-dx*.0045,dy*.0033)}}PAN.c=m},true);
