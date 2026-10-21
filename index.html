@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v247: Laneway Garage Pad: the camera-side neighbour's garage is gone (it filled the bottom of the view); the other neighbour's garage had a flat dark 21 ft roof slab that read as a stray grey square from above; now a shingled gable roof with ridge cap, eave trim and sided gable ends. -->
 <!-- v246: mud you can feel (110 wet splash drops thrown in a crown and stretched along their flight; drops that miss the slab leave grey spatter on form tops and the dirt ring, up to 260 per job; heavy lumps landing give a small camera kick and a buzz). Real reflections in wet concrete (planar mirror render at 1/3 size every other frame while wet, Effects/Sharp; clipped at the slab plane). Step-change stalls: world merges built one batch per frame (3 ms budget) and only re-probed when something unmerged. Background pines: only standing pines are drawn (hidden ones were drawn squashed), far ones (>70 ft) use half the leaf cards at 1.42x, frustum culled. -->
 <!-- v245: tilt/turn after a zoom registers without lifting (two-finger mode is judged on recent motion that builds up, so slow tilts win), tilt a bit more responsive; the sun shadow fades out at the edge of its area instead of drawing a hard line that moves with the zoom, and reaches further when zoomed out. -->
 <!-- v244: two-finger soft lock: after zooming you can slide straight into tilting/turning (or twisting) without lifting your fingers; it switches when a different motion clearly takes over. -->
@@ -2814,9 +2815,15 @@ function regTick(t){if(!REGG.children.length)return;REGG.children.forEach(o=>{if
 function laneScene(){flatP(240,12,asphaltM,0,-.29,13);oldSlab(-120,120,19,20.6);
   house(0,-34,44,0,[['slider',-6],['win',6],['win',14],['door',-15],['light',-10],['spout',20]]);
   fence(-60,7,-14,7);fence(14,7,60,7);fence(-14,-12,-14,7);fence(14,-12,14,7);
-  [[-34,1],[34,1]].forEach(([x,f])=>{const m=new THREE.MeshStandardMaterial({map:sidingTex(pick(RT().siding||SIDING)),roughness:.85});box(20,10,20,m,x,4.7,-3);addOb(x-10,-13,x+10,7);
+  [[34,1]].forEach(([x,f])=>{/* v247: only the far neighbour's garage; the one on the camera side sat across the bottom of the view */const m=new THREE.MeshStandardMaterial({map:sidingTex(pick(RT().siding||SIDING)),roughness:.85});box(20,10,20,m,x,4.7,-3);addOb(x-10,-13,x+10,7);
     {const gm=new THREE.MeshStandardMaterial({color:0xe9e6df,roughness:.6});box(16,8,.3,gm,x,3.7,7.05);for(let k=1;k<4;k++)box(16,.07,.1,HD.dark,x,-.3+k*2,7.25);for(let k=0;k<5;k++)box(2.6,.9,.06,HD.winM,x-6.4+k*3.2,6.6,7.24);
-     box(17,.5,.3,trimM,x,7.95,7.1);[-1,1].forEach(q=>box(.5,8.3,.3,trimM,x+q*8.25,3.8,7.1))}const r=box(21,.5,21,new THREE.MeshStandardMaterial({color:0x3a3d40,roughness:.8}),x,9.9,-3);r.rotation.x=-.06});
+     box(17,.5,.3,trimM,x,7.95,7.1);[-1,1].forEach(q=>box(.5,8.3,.3,trimM,x+q*8.25,3.8,7.1))}/* v247: the neighbours' laneway garages get a real shingled gable roof with eaves and gable ends; the old flat 21 ft slab read as a big grey square from above */
+     {const rm=roofM.clone();if(roofM.map){rm.map=roofM.map.clone();rm.map.repeat.set(4,4);rm.map.needsUpdate=true}rm.color.set(pick(RT().roof||[0x3b3a3c,0x4a4642,0x2f3134]));const pitch=.42,half=10.9,L=half/Math.cos(pitch)+.2;
+      [-1,1].forEach(q=>{const p=box(L,.3,21.6,rm,x+q*half/2,9.6+Math.tan(pitch)*half/2,-3);p.rotation.z=-q*pitch});
+      box(.5,.5,21.8,trimM,x,9.6+Math.tan(pitch)*half+.05,-3);
+      const sh=new THREE.Shape();sh.moveTo(-10,0);sh.lineTo(10,0);sh.lineTo(0,Math.tan(pitch)*10);sh.closePath();const gg=new THREE.ExtrudeGeometry(sh,{depth:.3,bevelEnabled:false});
+      [[7,-.3],[-13,0]].forEach(([zz])=>{const gm=new THREE.Mesh(gg,m);gm.position.set(x,9.7,zz);gm.castShadow=gm.receiveShadow=true;sceneG.add(gm)});
+      box(21.2,.3,.3,trimM,x,9.75,7.2);box(21.2,.3,.3,trimM,x,9.75,-13.2)}});
   const pm=new THREE.MeshStandardMaterial({color:0x5b4a3a,roughness:.95}),wm=new THREE.MeshBasicMaterial({color:0x1a1a1a});
   const poles=[-90,-45,0,45,90].map(x=>{box(.7,30,.7,pm,x,14.7,20.2);box(.3,.3,6,pm,x,27.5,20.2);return x});
   for(let k=0;k<poles.length-1;k++)[-2.6,0,2.6].forEach(dz=>{const a=new THREE.Vector3(poles[k],27.7,20.2+dz),b=new THREE.Vector3(poles[k+1],27.7,20.2+dz),m=a.clone().lerp(b,.5);m.y-=2.2;
