@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v243: easier pinch/zoom: a two-finger gesture locks to one action once it's clear (pinch zooms, dragging together tilts/turns, twisting turns) instead of doing all three at once; gentler turn/tilt; pinch jitter ignored. -->
 <!-- v242: v241's ground dressing cost ~600k triangles (2800 grit stones and the extra rocks were each a 320-triangle shape): stones now 80 triangles, grit 20. Same look, under 100k. Background pines no longer cast shadows (~190k fewer shadow triangles). -->
 <!-- v241: loading sting: the white K logo (stem drops in, chevron slides in, light sweep, KOWALSKI CONCRETE / PRESENTS) for ~2.2 s, then the Slab Rush card and loading bar; splash never closes before 2.9 s. Also richer close-up ground around the forms: 60% more stones and clods, ~2800 grit stones (4000 in prep pits), small bent twigs, form-board offcuts, chips and sawdust near the forms, dry grass clippings along the cut sod edge. -->
 <!-- v240: ground detail about twice as strong: coarse grain x1.05 (was .55) out to 75 ft, plus a fine 13x grain layer up close (fades 6-26 ft), wider clamp .4-1.75, per-ground strengths raised ~25%. -->
@@ -6247,22 +6248,31 @@ function panHideTick(t){const act=(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>
   PH.hid.forEach(o=>{if(!nh.has(o)){o.visible=true;o.userData.phT=t}});nh.forEach(o=>{if(!PH.hid.has(o)&&!o.visible)return;if(!PH.hid.has(o))o.userData.phT=t;o.visible=false});PH.hid=new Set([...nh].filter(o=>!o.visible))}
 function panSave(){try{localStorage.setItem('bts-zoom',JSON.stringify(ZOOM))}catch(_){}}
 function panMid(){const v=[...PAN.ps.values()],n=v.length;let x=0,y=0;v.forEach(p=>{x+=p[0];y+=p[1]});return[x/n,y/n,n>1?Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1]):0,n,n>1?Math.atan2(v[1][1]-v[0][1],v[1][0]-v[0][0]):0]}
-function panTip(){if(PAN.tip)return;PAN.tip=true;try{if(localStorage.getItem('bts-pantip2'))return;localStorage.setItem('bts-pantip2','1')}catch(_){}say('Two fingers: drag or twist to orbit, pinch to zoom, three fingers to slide. Tap the zoom % to recentre.','info','panTip',4500)}
+function panTip(){if(PAN.tip)return;PAN.tip=true;try{if(localStorage.getItem('bts-pantip2'))return;localStorage.setItem('bts-pantip2','1')}catch(_){}say('Pinch to zoom. Two fingers together: drag to tilt and turn, or twist to turn. Three fingers slide. Tap the zoom % to recentre.','info','panTip',5000)}
 addEventListener('pointerdown',e=>{if(e.target!==cv)return;
   if(e.pointerType==='mouse'){if((e.button===2||e.button===1)&&panOK()){e.preventDefault();e.stopImmediatePropagation();PAN.mid=e.pointerId;PAN.mb=e.button;PAN.c=[e.clientX,e.clientY];try{cv.setPointerCapture(e.pointerId)}catch(_){}}return}
   PAN.ps.set(e.pointerId,[e.clientX,e.clientY]);
   if(PAN.on){e.preventDefault();e.stopImmediatePropagation();try{cv.setPointerCapture(e.pointerId)}catch(_){}PAN.c=panMid();return}
   if(PAN.ps.size>=2&&panOK()){PAN.on=true;e.preventDefault();e.stopImmediatePropagation();try{cv.setPointerCapture(e.pointerId)}catch(_){}
-    try{if(ptr.down)up()}catch(_){ptr.down=false}SLC.ps.clear();SLC.pd=0;PAN.c=panMid();panTip();try{gestHide(1)}catch(_){}}},true);
+    try{if(ptr.down)up()}catch(_){ptr.down=false}SLC.ps.clear();SLC.pd=0;PAN.c=panMid();PAN.g=null;panTip();try{gestHide(1)}catch(_){}}},true);
 addEventListener('pointermove',e=>{if(e.pointerId===PAN.mid){e.stopImmediatePropagation();const dx=e.clientX-PAN.c[0],dy=e.clientY-PAN.c[1];if(e.shiftKey||PAN.mb===1)panBy(dx,dy);else panOrb(-dx*.007,dy*.005);PAN.c=[e.clientX,e.clientY];return}
   if(!PAN.ps.has(e.pointerId))return;PAN.ps.set(e.pointerId,[e.clientX,e.clientY]);if(!PAN.on)return;e.stopImmediatePropagation();e.preventDefault();
   const m=panMid();if(PAN.c&&PAN.c[3]===m[3]){const dx=m[0]-PAN.c[0],dy=m[1]-PAN.c[1];
     if(m[3]>=3)panBy(dx,dy);
     else if(m[3]===2){let tw=m[4]-PAN.c[4];if(tw>Math.PI)tw-=2*Math.PI;if(tw<-Math.PI)tw+=2*Math.PI;if(PAN.c[2]<40||m[2]<40)tw=0;
-      panOrb(-dx*.007+tw,dy*.005);if(PAN.c[2]>20&&m[2]>20)panZoom(PAN.c[2]/m[2])}}PAN.c=m},true);
+      // v243: lock a two-finger gesture to ONE thing (pinch = zoom, drag together = tilt/turn, twist = turn) once it's clear what you're doing,
+      // instead of zooming, orbiting and twisting at once on every wobble. Gentler turn/tilt rates; tiny pinch jitter ignored.
+      // judged on the NET change since the fingers went down (phones send each finger's move separately, so per-event deltas look like a wobbly drag)
+      const G=PAN.g||(PAN.g={mode:null,s:PAN.c.slice()});
+      if(!G.mode){const S0=G.s;let ta=m[4]-S0[4];while(ta>Math.PI)ta-=2*Math.PI;while(ta<-Math.PI)ta+=2*Math.PI;
+        const mv=Math.hypot(m[0]-S0[0],m[1]-S0[1]),pz=Math.abs(m[2]-S0[2])*1.1,tz=(S0[2]<40||m[2]<40)?0:Math.abs(ta)*m[2]*.5,mx=Math.max(mv,pz,tz);
+        if(mx>16)G.mode=pz===mx?'zoom':tz===mx?'twist':'orbit'}
+      if(G.mode==='zoom'){if(PAN.c[2]>20&&m[2]>20){const f=PAN.c[2]/m[2];if(Math.abs(f-1)>.003)panZoom(f);else{PAN.c=[PAN.c[0],PAN.c[1],PAN.c[2],PAN.c[3],m[4]];return}}}
+      else if(G.mode==='twist')panOrb(tw*.8,0);
+      else if(G.mode==='orbit')panOrb(-dx*.0045,dy*.0033)}}PAN.c=m},true);
 const panEnd=e=>{if(e.pointerId===PAN.mid){PAN.mid=null;e.stopImmediatePropagation();return}
   if(!PAN.ps.has(e.pointerId))return;PAN.ps.delete(e.pointerId);if(!PAN.on)return;e.stopImmediatePropagation();
-  if(PAN.ps.size)PAN.c=panMid();else{PAN.on=false;PAN.c=null;panSave()}};
+  PAN.g=null;if(PAN.ps.size)PAN.c=panMid();else{PAN.on=false;PAN.c=null;panSave()}};
 addEventListener('pointerup',panEnd,true);addEventListener('pointercancel',panEnd,true);
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(!panOK())return;e.preventDefault();panZoom(e.deltaY>0?1.06:1/1.06);clearTimeout(panSave.t);panSave.t=setTimeout(panSave,400)},{passive:false});
