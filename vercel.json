@@ -1,44 +1,62 @@
 {
- "headers": [
-  {
-   "source": "/(.*).mp3",
-   "headers": [
+  "headers": [
     {
-     "key": "Cache-Control",
-     "value": "public, max-age=31536000, immutable"
-    }
-   ]
-  },
-  {
-   "source": "/sw.js",
-   "headers": [
+      "source": "/(.*).mp3",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
-     "key": "Cache-Control",
-     "value": "no-cache"
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
     }
-   ]
+  ],
+  "rewrites": [
+    {
+      "source": "/models/kowalski-worker.glb",
+      "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_133410_44376faf-b03e-4955-87c7-1b7a67a89663.glb"
+    },
+    {
+      "source": "/models/foreman-idle.glb",
+      "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134317_9f434fab-1da5-4a88-a0c8-f026e1c91126.glb"
+    },
+    {
+      "source": "/models/foreman-walk.glb",
+      "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134320_262215c4-3ad9-42d2-8e5d-b1d816ef2abe.glb"
+    },
+    {
+      "source": "/models/inspector-idle.glb",
+      "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261019_000457_1d922933-ea9b-42a6-94d5-ecb53a95fa40.glb"
+    },
+    {
+      "source": "/models/inspector-walk.glb",
+      "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261019_002921_6478660d-3c6f-4ac3-9f74-cd0d417bb568.glb"
+    }
+  ],
+  "images": {
+    "sizes": [
+      640,
+      828,
+      1080
+    ],
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "d8j0ntlcm91z4.cloudfront.net",
+        "pathname": "/**"
+      }
+    ],
+    "formats": [
+      "image/webp"
+    ],
+    "minimumCacheTTL": 31536000
   }
- ],
- "rewrites": [
-  {
-   "source": "/models/kowalski-worker.glb",
-   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_133410_44376faf-b03e-4955-87c7-1b7a67a89663.glb"
-  },
-  {
-   "source": "/models/foreman-idle.glb",
-   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134317_9f434fab-1da5-4a88-a0c8-f026e1c91126.glb"
-  },
-  {
-   "source": "/models/foreman-walk.glb",
-   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_134320_262215c4-3ad9-42d2-8e5d-b1d816ef2abe.glb"
-  },
-  {
-   "source": "/models/inspector-idle.glb",
-   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261019_000457_1d922933-ea9b-42a6-94d5-ecb53a95fa40.glb"
-  },
-  {
-   "source": "/models/inspector-walk.glb",
-   "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261019_002921_6478660d-3c6f-4ac3-9f74-cd0d417bb568.glb"
-  }
- ]
 }
