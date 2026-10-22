@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v253"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v254"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -26,6 +26,7 @@
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
+<!-- v254: playable on more phones (an iPhone ran rough). iOS detected (IS_IOS/IS_MOB): mobile pixel ratio 1.35 like Android, 30/60 fps choice shown. Battery saver keeps 1.2x on phones (was 1x: a third of an iPhone's screen resolution) and now gets adaptive resolution. Quality governor (GOV): when frames stay over budget with resolution at 80%, it sheds effects one at a time (wet reflections, contact shadows + sun rays, grass + shadows every 3rd frame, HDR filter, small shadow map + every 4th frame, no sun shadows + 30 fps), only then lets resolution go lower; remembered per GPU+mode, eased back one level after a comfortable job. Meter shows what's been shed. -->
 <!-- v253: storefront awning side cheeks no longer stick out past the awning (a mirrored duplicate hung 3 m beyond the valance). -->
 <!-- v252: cinematic logo intro: the sting fades up from black, the K builds slowly, the name and PRESENTS settle, light sweeps, it holds, then fades out (~7 s) before the game card fades in; loading never cuts it short. -->
 <!-- v251: new Kowalski logo everywhere. The custom KOWALSKI / CONCRETE / CONTRACTING INC. lettering (traced to vectors) replaces the system font on every sign, truck, decal, share card and the loading sting; the K mark is the new ink/amber K on light paint and bone/amber K on dark, no backgrounds. -->
@@ -2098,7 +2099,7 @@ function streamTex(){
 const cv=$('cv');let renderer=null;
 try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'})}catch(e){}
 if(!renderer){const d=document.createElement('div');d.className='nogl';d.textContent='This game needs WebGL. Try opening it in Chrome.';$('stagewrap').appendChild(d);cv.style.height='240px'}
-const IS_AND=/Android/i.test(navigator.userAgent),LOWMEM=(navigator.deviceMemory||8)<=4;
+const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1),IS_AND=/Android/i.test(navigator.userAgent),IS_MOB=IS_AND||IS_IOS||/Mobi/i.test(navigator.userAgent),LOWMEM=(navigator.deviceMemory||8)<=4;
 let crashLast=null;try{crashLast=JSON.parse(localStorage.getItem('bts-alive')||'null')}catch(e){}
 let safeGfx=false;// v185: full graphics unless the player picks Battery saver
 if(GFX==='saver')safeGfx=true;else if(GFX==='sharp')safeGfx=false;let FPSCAP=GFX==='saver'||(IS_AND&&GFX!=='sharp');try{if(GFX!=='saver'&&localStorage.getItem('bts-fps60')==='1')FPSCAP=false}catch(e){}
@@ -2118,7 +2119,7 @@ function gradeChunk(){const src=THREE.ShaderChunk.tonemapping_pars_fragment.spli
 gradeChunk();
 function setGrade(o){Object.assign(GRADE,o||{});gradeChunk();scene.traverse(m=>{if(m.material)(Array.isArray(m.material)?m.material:[m.material]).forEach(x=>x.needsUpdate=true)})}
 let TONE=THREE.CustomToneMapping;
-if(!renderer);else{renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=TONE;renderer.shadowMap.enabled=true;renderer.shadowMap.type=IS_AND&&GFX!=='sharp'?THREE.PCFShadowMap:THREE.PCFShadowMap;renderer.setPixelRatio(Math.min(safeGfx?1:GFX==='sharp'?1.75:IS_AND?1.35:1.5,window.devicePixelRatio||1))}
+if(!renderer);else{renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=TONE;renderer.shadowMap.enabled=true;renderer.shadowMap.type=IS_AND&&GFX!=='sharp'?THREE.PCFShadowMap:THREE.PCFShadowMap;renderer.setPixelRatio(Math.min(safeGfx?(IS_MOB?1.2:1):GFX==='sharp'?1.75:IS_MOB?1.35:1.5,window.devicePixelRatio||1))}
 let glLost=false,glLostT=0;
 /* ---------- Sharp-mode finishing filter: HDR render, glow on bright wet sheen, film tone curve, light colour grade, vignette ---------- */
 const POST={on:false,ok:null,w:0,h:0};
@@ -2230,7 +2231,7 @@ function detailAll(){if(safeGfx||!renderer)return;scene.traverse(o=>{if(!o.isMes
    sheen samples it, so houses, the truck, trees and sky show in the shine. Clipped at the slab plane so nothing under it leaks in. */
 const REFL={U:{t:{value:null},m:{value:new THREE.Matrix4()},k:{value:0}},rt:null,cam:new THREE.PerspectiveCamera(),n:0,
   v:new THREE.Vector3(),p:new THREE.Vector3(),la:new THREE.Vector3(),tg:new THREE.Vector3(),rm:new THREE.Matrix4(),pl:new THREE.Plane(),cp:new THREE.Vector4(),q:new THREE.Vector4(),N:new THREE.Vector3(0,1,0)};
-function reflTick(){const R=REFL,U=R.U;const want=!!(POST.ok&&POST.on&&!lowQ&&!glLost&&GLARE.k.value>0&&slabMat.clearcoat>.08&&slab.visible);
+function reflTick(){const R=REFL,U=R.U;const want=!!(GOV.lv<1&&POST.ok&&POST.on&&!lowQ&&!glLost&&GLARE.k.value>0&&slabMat.clearcoat>.08&&slab.visible);
   const tk=want?1:0;U.k.value+=(tk-U.k.value)*.15;if(U.k.value<.01){U.k.value=0;return}
   if(!R.rt){R.rt=new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,depthBuffer:true,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});U.t.value=R.rt.texture}
   if(!want||(R.n++&1))return;
@@ -2254,7 +2255,7 @@ function zoomFog(){const F=scene.fog;if(!F||!FOG0.f)return;const z=ZOOM[view]||1
   F.near=FOG0.n+ex;F.far=FOG0.f+ex;const cf=Math.max(FOG0.cf||420,F.far+80);if(Math.abs(camera.far-cf)>1){camera.far=cf;camera.updateProjectionMatrix()}}
 function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
   // v235: at 60 fps the shadow map (a second render of everything that casts) updates at 30 Hz; the sun hardly moves and moving tools lag one frame at most
-  if(!FPSCAP&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++&1)===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0;try{shFit()}catch(e){}}}else{renderer.shadowMap.autoUpdate=true;try{shFit()}catch(e){}}
+  if((!FPSCAP||(SHD.every||1)>1)&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++%(SHD.every||2))===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0;try{shFit()}catch(e){}}}else{renderer.shadowMap.autoUpdate=true;try{shFit()}catch(e){}}
   if(glLost||lowQ||!postInit()||!POST.on){if(renderer.toneMapping!==TONE)renderer.toneMapping=TONE;renderer.render(scene,camera);return}
   // the filter does the tone curve itself, so the scene renders linear HDR into the buffer
   try{postSize();try{reflTick()}catch(e){}if(renderer.toneMapping!==THREE.NoToneMapping)renderer.toneMapping=THREE.NoToneMapping;renderer.setRenderTarget(POST.main);const gOn=!!(GRASS.mesh&&POST.aoOn);if(gOn)camera.layers.disable(1);renderer.render(scene,camera);if(gOn)camera.layers.enable(1);
@@ -7842,7 +7843,7 @@ function startJob(){
   weather=WEATHER[wxKeyNow()];pickTOD();$('wxLabel').textContent=weather.label+(TOD.n?' · '+TOD.n:'');
   if(LV.steps.includes('stamp')){LV.color=STAMP_COLORS.find(c=>c.id===stampSel.color).c;STILE=makeStampTile()}try{pbrApply(scene)}catch(e){}try{buildEnv(todEnv(weather))}catch(e){window.__showErr('env: '+e.message)}try{gpsShape();gpsSync()}catch(e){console.warn('gps',e)}reset();setStageUI();
   runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));try{boardStart()}catch(e){console.warn('board',e)}BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
-  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}try{detailAll()}catch(e){console.warn('detail',e)}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
+  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{adrJob()}catch(e){}try{govApply()}catch(e){}try{detailAll()}catch(e){console.warn('detail',e)}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
 }
 $('start').addEventListener('click',()=>{try{const L=LEVELS[jobIdx];if(L&&!practice){planOpen();return}plan.on=false;startJob()}catch(e){window.__showErr('start: '+e.message)}});
 let rsArm=0;
@@ -8062,7 +8063,7 @@ function buildSC(){
   };
   Object.assign(SC,strSC(q,tm));Object.assign(SC,brgSC(q,tm));
   return {SC,q,w,tm,ratio,r,RG,maxP}}
-function finish(timedOut){
+function finish(timedOut){try{govJobEnd()}catch(e){}
   chalk=[];try{updateSurface();slabTex.needsUpdate=true}catch(e){}// v198: chalk lines are gone once the job's done
   leafStains=0;leaves.forEach(l=>{if(l.gone||!l.landed)return;leafStains++;const c=cellAt(l.tx,l.tz);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const j=c+dy*GW+dx;if(j>=0&&j<N&&inR[j])weak[j]=Math.min(1,weak[j]+.5)}});
   photoA=snapPhoto();
@@ -8122,16 +8123,36 @@ const PRBASE=renderer?renderer.getPixelRatio():1;// the pixel ratio the graphics
 if(renderer)renderer.info.autoReset=false;// one count per frame, not per pass (the filter renders several passes)
 const PERF={on:false,el:null,lastD:0,ema:16.7,n:0,w0:0,ivMax:0,js:0,jsMax:0,hitch:0,progBase:0,progMid:0,progName:'',warm:0,mem:0,memT:0,gpu:'',txt:''};
 try{PERF.on=localStorage.getItem('bts-perf')==='1'}catch(e){}
-const ADR={k:1,min:.66,max:1,top:9,over:0,under:0,hold:0,ceil:9,ceilT:0,on:!safeGfx};
+const ADR={k:1,min:.66,max:1,top:9,over:0,under:0,hold:0,ceil:9,ceilT:0,on:true};
 // v233: on strong phones the image can get sharper than the mode's ratio. Only in 60 fps mode, where frame times show real headroom (at the 30 cap every frame looks on time)
 function adrMax(){return FPSCAP||GFX==='saver'?1:Math.max(1,Math.min(2,window.devicePixelRatio||1)/PRBASE)}
-function adrApply(k,t){if(!renderer)return;k=Math.max(ADR.min,Math.min(adrMax(),k));if(Math.abs(k-ADR.k)<.005)return;ADR.k=k;
+function adrApply(k,t){if(!renderer)return;k=Math.max(typeof GOV!=='undefined'&&GOV.lv<GOV.max?Math.max(ADR.min,.8):ADR.min,Math.min(adrMax(),k));if(Math.abs(k-ADR.k)<.005)return;ADR.k=k;
   try{renderer.setPixelRatio(PRBASE*k);resize()}catch(e){}ADR.hold=t+1500;ADR.over=ADR.under=0}
 function adrHold(ms){ADR.hold=Math.max(ADR.hold,performance.now()+(ms||2500));ADR.over=ADR.under=0}
+
+/* v254: quality governor, for phones that can't carry the full look (first seen on an iPhone). When frames stay over budget with the
+   resolution already at its floor, it sheds the most expensive effects one at a time, cheapest-to-lose first, holding 3 s between steps:
+   1 wet reflections, 2 contact shadows + sun rays, 3 grass blades + shadows redrawn every 3rd frame, 4 HDR filter (bloom/grade pass),
+   5 smaller shadow map + every 4th frame + lower resolution floor, 6 no sun shadows + 30 fps. The level it reaches is remembered for this
+   phone (per GPU) so the next launch starts there; a job that runs comfortably lets it try one level better next time. */
+const GOV={lv:0,max:6,hold:0,good:0,bad:0,key:'',start:0,names:['','refl','ao','grass','hdr','shadow','lite']};
+try{const gl=renderer&&renderer.getContext(),x=gl&&gl.getExtension('WEBGL_debug_renderer_info');GOV.key='bts-gov:'+(gl?String(gl.getParameter(x?x.UNMASKED_RENDERER_WEBGL:gl.RENDERER)):'?').slice(0,40)+':'+GFX;
+  GOV.lv=Math.max(0,Math.min(GOV.max,+(localStorage.getItem(GOV.key)||0)));GOV.start=GOV.lv}catch(e){}
+function govApply(){const L=GOV.lv;if(!renderer)return;
+  try{if(L>=2&&POST.ok)POST.aoOn=false}catch(e){}
+  try{if(L>=3&&GRASS.mesh)GRASS.mesh.visible=false}catch(e){}
+  try{if(L>=4&&POST.ok)POST.on=false}catch(e){}
+  try{if(L>=5&&sun.shadow.mapSize.x>512){sun.shadow.mapSize.set(512,512);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}ADR.min=.5}}catch(e){}
+  try{if(L>=6){sun.castShadow=false;FPSCAP=true}}catch(e){}
+  SHD.every=L>=5?4:L>=3?3:FPSCAP?1:2}
+function govStep(t){if(GOV.lv>=GOV.max||t<GOV.hold)return;GOV.lv++;GOV.hold=t+3000;GOV.bad=1;govApply();adrHold(1500);try{localStorage.setItem(GOV.key,GOV.lv)}catch(e){}}
+function govJobEnd(){try{if(!GOV.bad&&GOV.good>40000&&GOV.lv>0)localStorage.setItem(GOV.key,GOV.lv-1)}catch(e){}GOV.good=0;GOV.bad=0}
 function adrTick(t,iv){
   if(!ADR.on||!running||document.hidden||glLost||t<ADR.hold||iv>400)return;
   const bud=FPSCAP?33.4:16.7;PERF.ema=PERF.ema*.9+Math.min(iv,120)*.1;
   if(PERF.ema>bud*1.22){ADR.over+=iv;ADR.under=0}else{ADR.over=Math.max(0,ADR.over-iv*.5);ADR.under=PERF.ema<bud*1.07?ADR.under+iv:0}
+  if(PERF.ema<bud*1.05)GOV.good+=iv;
+  if(ADR.over>2200&&GOV.lv<GOV.max&&ADR.k<=Math.max(ADR.min,.8)+.005){ADR.over=0;govStep(t);return}
   const hi=ADR.k>1.001;
   // above the base ratio: back off fast, and never retry a level that failed until the next job (no see-sawing)
   if(ADR.over>(hi?900:1600)&&ADR.k>ADR.min){if(hi)ADR.top=Math.min(ADR.top,ADR.k-.01);else{ADR.ceil=ADR.k;ADR.ceilT=t+25000}adrApply(hi?Math.max(1,ADR.k*.85):ADR.k*.87,t);return}
@@ -8175,7 +8196,7 @@ function perfFrame(t,js,menu){if(!renderer)return;const inf=renderer.info,drew=i
   const txt=`${fps.toFixed(0)}/${FPSCAP?30:60} fps ${ms.toFixed(1)}ms w${PERF.ivMax.toFixed(0)} h${PERF.hitch} js${(PERF.js/PERF.n).toFixed(1)}
 ${inf.render.calls} draws ${k(inf.render.triangles)} tris ${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)}MB
 ${(PRBASE*ADR.k).toFixed(2)}x/${(PRBASE*Math.min(adrMax(),ADR.top)).toFixed(2)} ${v.x}x${v.y} e${PERF.ema.toFixed(1)} u${(ADR.under/1000).toFixed(0)} sh+${PERF.progMid}
-${GFX} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}${typeof PSEC!=='undefined'&&PSEC.log.length?'\nhitch '+PSEC.log.join('\n      '):''}`;
+${GFX}${GOV.lv?' -'+GOV.names.slice(1,GOV.lv+1).join(','):''} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}${typeof PSEC!=='undefined'&&PSEC.log.length?'\nhitch '+PSEC.log.join('\n      '):''}`;
   const el=perfEl();el.style.display=coachOpen?'none':'';if(txt!==PERF.txt){PERF.txt=txt;el.textContent=txt}
   PERF.n=0;PERF.w0=t;PERF.ivMax=0;PERF.js=0;PERF.jsMax=0}
 /* compile every material in the scene (hidden tools, trucks, tarps included) and pre-upload their textures,
@@ -11349,7 +11370,7 @@ window.__errCtx=()=>({job:LV&&LV.id,step:STAGES&&STAGES[stage]&&STAGES[stage].ke
  $('perfSeg').after(b);setInterval(paint,4000)}
 {const seg=$('perfSeg'),bs=seg.querySelectorAll('[data-f]'),pt=$('perfTgl');
  const paint=()=>{bs.forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.f==='30')===FPSCAP)));pt.setAttribute('aria-pressed',String(PERF.on))};
- if(!IS_AND||GFX==='saver'){bs.forEach(b=>b.hidden=true);seg.style.gridTemplateColumns='1fr'}
+ if(!IS_MOB||GFX==='saver'){bs.forEach(b=>b.hidden=true);seg.style.gridTemplateColumns='1fr'}
  bs.forEach(b=>b.addEventListener('click',()=>{FPSCAP=b.dataset.f==='30';try{localStorage.setItem('bts-fps60',FPSCAP?'0':'1')}catch(e){}ADR.ceil=9;ADR.top=9;if(ADR.k>adrMax())adrApply(adrMax(),performance.now());adrHold(1500);paint();buzz(8)}));
  pt.addEventListener('click',()=>{perfShow(!PERF.on);paint();buzz(8)});paint()}
 
