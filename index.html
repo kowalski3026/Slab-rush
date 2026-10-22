@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v262"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v263"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -38,7 +38,7 @@
 #world .wpan img{display:block;width:100%;height:100%;object-fit:cover;animation:wdrift 26s ease-in-out infinite alternate;transform-origin:50% 50%}
 #world .wpan+.wpan img{animation-delay:-9s}#world .wpan+.wpan+.wpan img{animation-delay:-17s}
 @keyframes wdrift{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.05) translate(-1%,.6%)}}
-#world .wpan{overflow:hidden}
+#world .wpan{overflow:visible}#world .wimg{position:absolute;inset:0;overflow:hidden}
 #world .wreg{position:absolute;left:12px;right:12px;top:calc(76px + env(safe-area-inset-top));z-index:2;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
 #world .wreg::-webkit-scrollbar{display:none}
 #world .wreg button{flex:none;padding:6px 12px;border-radius:999px;font:700 13px var(--f-label);letter-spacing:.5px;text-transform:uppercase;background:rgba(20,21,24,.72);color:#cfd2d8;border:1px solid rgba(255,255,255,.14)}
@@ -109,6 +109,12 @@
 #world .wtop::before{content:'';position:absolute;left:0;right:0;top:0;bottom:-34px;z-index:-1;pointer-events:none;opacity:var(--k,0);background:linear-gradient(180deg,#05060a 0,#05060a 64%,rgba(5,6,10,0) 100%)}
 #world .wpan:first-child img{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 150px);mask-image:linear-gradient(180deg,transparent 0,#000 150px)}
 #world .wpan:first-child{background:transparent}
+</style>
+<style>
+/* v263: sky extended upward in Higgsfield; header is a black-to-clear fade over it, no solid band */
+#world .wpan:first-child img{-webkit-mask-image:none;mask-image:none}
+#world .wtop{background:linear-gradient(180deg,rgba(2,4,10,.96) 0,rgba(2,4,10,.7) 34%,rgba(2,4,10,.18) 78%,rgba(2,4,10,0) 100%);padding-bottom:26px}
+#world .wpin{z-index:1}
 </style>
 </head><body>
 
@@ -11531,7 +11537,7 @@ try{(function(){
   // v257: every region has its own world. img = panels top to bottom; pins = [panel, x%, y% within panel, name, sub, job ids]
   const CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/',P=f=>CDN+f;
   const WORLDS={
-    on:{img:[P('hf_20261022_151448_5b61657c-e0fc-4057-9533-7178ecdf3013.png'),P('hf_20261022_151448_4d612458-c97b-4a8d-9fcc-2ac800fc2fea.png'),P('hf_20261022_151447_f276235d-727c-4bb8-9599-55e796286c13.png')],pins:[
+    on:{ext:506/2688,img:[P('hf_20261022_170912_21329367-017a-40b5-93a2-dc12bd3f3fe1.png'),P('hf_20261022_151448_4d612458-c97b-4a8d-9fcc-2ac800fc2fea.png'),P('hf_20261022_151447_f276235d-727c-4bb8-9599-55e796286c13.png')],pins:[
       [0,62,40,'Muskoka','Cottage country',['cottage','cottsteps']],[0,32,63,'Lakeside','Pools & decks',['stamp']],[0,68,87,'Heated Drives','Snowmelt',['heated']],
       [1,30,10,'Training Yard','Start here',['tutorial','custom']],[1,66,32,'Backyards','Patios & pads',['patio','shed','court','hottub']],[1,34,56,'Front Yards','Walks, porches & steps',['walk','curvewalk','porch','stairs','exposed']],[1,64,82,'Driveways','Pour & finish',['drive1','drive2','drivewalk','stampdrive','freeze','garage']],
       [2,38,10,'Main Street','Sidewalks',['sidewalk','downtown']],[2,64,30,'New Build','Curbs, walls & foundations',['curb','retain','foundation']],[2,36,52,'Industrial Park','Big floors',['firehall','warehouse']],[2,60,81,'Hwy 400','Night work',['night','bridge']]]},
@@ -11552,11 +11558,11 @@ try{(function(){
   const W=$('world'),sheet=$('wsheet'),dim=$('wdim');let reg='on';
   const idx=id=>LEVELS.findIndex(L=>L.id===id);
   function pins(){const map=$('wMap'),Wd=WORLDS[reg],n=Wd.img.length;
-    if(map.dataset.r!==reg){map.dataset.r=reg;map.innerHTML=Wd.img.map((u,i)=>`<div class="wpan"><img alt="" src="${u}" ${i?'loading="lazy"':''} decoding="async"></div>`).join('')}
-    map.querySelectorAll('.wpin').forEach(p=>p.remove());const R=regById(reg);$('wTwist').textContent=R.twist||R.sub||'';
-    Wd.pins.forEach((z0,k)=>{if(z0[0]>=n)return;const z=[z0[1],(z0[0]*100+z0[2])/n,z0[3],z0[4],z0[5]];const js=z[4].map(idx).filter(i=>i>=0);if(!js.length)return;const done=js.filter(i=>bestOf(LEVELS[i].id)>=65).length;
+    if(map.dataset.r!==reg){map.dataset.r=reg;const ex=Wd.ext||0;map.innerHTML=Wd.img.map((u,i)=>`<div class="wpan" ${i===0&&ex?`style="aspect-ratio:1520/${Math.round(2688*(1+ex))}"`:''}><div class="wimg"><img alt="" src="${u}" ${i?'loading="lazy"':''} decoding="async" ${i===0&&ex?'style="object-position:top"':''}></div></div>`).join('')}
+    map.querySelectorAll('.wpin').forEach(p=>p.remove());const pans=map.querySelectorAll('.wpan'),ex0=Wd.ext||0;const R=regById(reg);$('wTwist').textContent=R.twist||R.sub||'';
+    Wd.pins.forEach((z0,k)=>{if(z0[0]>=n)return;const z=[z0[1],(z0[0]===0&&ex0)?(ex0+z0[2]/100)/(1+ex0)*100:z0[2],z0[3],z0[4],z0[5]];const js=z[4].map(idx).filter(i=>i>=0);if(!js.length)return;const done=js.filter(i=>bestOf(LEVELS[i].id)>=65).length;
       const b=document.createElement('button');b.className='wpin'+(done===js.length?' done':'');b.style.left=z[0]+'%';b.style.top=z[1]+'%';b.style.setProperty('--rc',REG_COL[reg]||'#ff8a12');b.dataset.k=k;
-      b.innerHTML=`<b>${z[2]}<small>${done}/${js.length} jobs</small></b><i></i>`;b.addEventListener('click',()=>{buzz(8);openZone(k)});map.appendChild(b)})}
+      b.innerHTML=`<b>${z[2]}<small>${done}/${js.length} jobs</small></b><i></i>`;b.addEventListener('click',()=>{buzz(8);openZone(k)});(pans[z0[0]]||map).appendChild(b)})}
   function regs(){$('wReg').innerHTML=REGIONS.map(r=>{const ok=regOk(r.id);return `<button data-r="${r.id}" class="${ok?'':'lk'}" aria-pressed="${r.id===reg}">${ok?'':'🔒 '}${r.name}</button>`}).join('');
     $('wReg').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const r=b.dataset.r;buzz(6);
       if(hasW(r)&&regOk(r)){reg=r;regs();pins();$('wScroll').scrollTop=0;return}if(!regOk(r)){renderJobs.rv=r;renderJobs.view=null;renderJobs();more(true);return}
@@ -11578,8 +11584,8 @@ try{(function(){
   // world follows the old home: shown whenever the menu is, hidden while a job runs
   new MutationObserver(()=>{if($('intro').hidden)document.body.classList.remove('more');sync()}).observe($('intro'),{attributes:true,attributeFilter:['hidden']});
   // v261: the map starts below the header so the logo and chips never sit on top of a pin
-  try{const hd=document.querySelector('#world .wtop'),sc=$('wScroll'),fit=()=>{const h=hd.offsetHeight;if(!h)return;const P=Math.max(0,h-90);sc.style.paddingTop=P+'px';
-      sc.style.background=`linear-gradient(180deg,#04060d 0,#0a1c48 ${Math.round(P*.3)}px,#26559c ${Math.round(P*.65)}px,#8fadd6 ${P+6}px,#0e0f12 ${P+7}px) local`};
+  try{const hd=document.querySelector('#world .wtop'),sc=$('wScroll'),fit=()=>{const h=hd.offsetHeight;if(!h)return;const P=0;sc.style.paddingTop='0px';
+      sc.style.background='#0e0f12'};
     sc.addEventListener('scroll',()=>{W.style.setProperty('--k',Math.min(1,sc.scrollTop/150).toFixed(3))},{passive:true});
     if(window.ResizeObserver)new ResizeObserver(fit).observe(hd);addEventListener('resize',fit);fit();setTimeout(fit,400);
     const _s=sync;sync=function(){_s();requestAnimationFrame(fit)}}catch(e){}
