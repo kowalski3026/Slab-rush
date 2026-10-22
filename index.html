@@ -3307,7 +3307,7 @@ function brgDress(){const E=LV.elev,yl=new THREE.MeshStandardMaterial({color:0xf
    const S2=new THREE.Group();S2.position.set(10,0,0);B.add(S2);BRG.exS=S2;bx(7.4,.8,.8,yl,3.7,0,0,S2);
    const R=new THREE.Group();R.position.set(7.4,0,0);S2.add(R);BRG.exR=R;bx(1,3.2,1,dk,0,-1.6,0,R);const ch=cyl(.2,1.4,st,0,-3.8,0,R);BRG.exChisel=ch}
   // tall light towers down on the shoulders either side of the bridge, heads up above the deck, aimed at the pour
-  BRG.lights=[];const tw=[[-14,-30,-10,-3],[14,30,10,3],[14,-30,12,-4],[-14,30,-12,4]].slice(0,safeGfx?2:4);
+  BRG.lights=[];const tw=[[-29,-20,-10,-3],[29,20,10,3],[29,-20,12,-4],[-29,20,-12,4]].slice(0,safeGfx?2:4);
   tw.forEach(([x,z,tx,tz])=>{const T=new THREE.Group();T.position.set(x,-.3,z);REGG.add(T);bx(5,1.8,2.4,yl,0,1.3,0,T);bx(5.2,.3,2.6,dk,0,.35,0,T);[-1,1].forEach(s=>cyl(.75,.45,dk,s*1.4,.75,.6,T,'x'));
     cyl(.22,E+19,dk,0,(E+19)/2+1,0,T);bx(.18,.18,4.6,dk,0,E+20.4,0,T);const yaw=Math.atan2(tx-x,tz-z);
     [[-1.5,E+20.9],[1.5,E+20.9],[-1.5,E+19.7],[1.5,E+19.7]].forEach(([lz,ly])=>{const hd=new THREE.Group();hd.position.set(0,ly,lz);hd.rotation.y=yaw;T.add(hd);bx(1.2,.9,.45,dk,0,0,0,hd,.6);const f=new THREE.Mesh(new THREE.PlaneGeometry(1,.7),lamp);f.position.set(0,-.14,.25);f.rotation.x=.6;hd.add(f)});
@@ -3406,7 +3406,11 @@ const BRGAUTO={demo:()=>{BRG.ch.forEach((c,i)=>{c.gone=1;c.hp=0;c.t=1;brgChunk(i
 /* ---------- v172 Ontario pack: the 400 bridge deck, a Muskoka cottage pad, a fire hall apron ---------- */
 // the bridge: this span is the pour; the spans either side are already done. Girders and pier caps underneath,
 // the 400 running under it with traffic, parapets along both sides, rails for the deck finisher.
-function bridgeSite(){const E=LV.elev,W=26,y0=E-.3,gm=new THREE.MeshStandardMaterial({color:0xb9b4aa,roughness:.9}),dk=new THREE.MeshStandardMaterial({color:0xa8a39a,roughness:.95});
+function brgConc(rx,ry,col){const t=ctex(256,256,(g,w,h)=>{g.fillStyle=col;g.fillRect(0,0,w,h);for(let i=0;i<2600;i++){const v=Math.random();g.fillStyle=v<.5?'rgba(60,55,48,'+(.05+Math.random()*.08)+')':'rgba(255,252,240,'+(.04+Math.random()*.07)+')';g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*3,1+Math.random()*3)}
+  for(let i=0;i<9;i++){const x=Math.random()*w,gr=g.createLinearGradient(x,0,x+6,h);gr.addColorStop(0,'rgba(40,36,30,0)');gr.addColorStop(.5,'rgba(40,36,30,.14)');gr.addColorStop(1,'rgba(40,36,30,0)');g.fillStyle=gr;g.fillRect(x,0,5+Math.random()*8,h)}
+  g.strokeStyle='rgba(40,36,30,.35)';g.lineWidth=1;for(let i=0;i<4;i++){g.beginPath();let x=Math.random()*w,y=Math.random()*h;g.moveTo(x,y);for(let k=0;k<6;k++){x+=(Math.random()-.5)*26;y+=8+Math.random()*14;g.lineTo(x,y)}g.stroke()}});
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);return new THREE.MeshStandardMaterial({map:t,bumpMap:t,bumpScale:.8,roughness:1,metalness:0})}
+function bridgeSite(){const E=LV.elev,W=26,y0=E-.3,gm=brgConc(18,1,'#b4afa4'),dk=brgConc(6,1,'#a29d92');lawn();
   flatP(46,260,asphaltM,0,-.29,0,6);[-11.5,0,11.5].forEach(x=>flatP(.35,260,lineM,x,-.284,0));flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),-22.6,-.284,0);flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),22.6,-.284,0);
   addOb(-24,-130,24,130);
   [[-90,-24.2],[24.2,90]].forEach(([a,b])=>{box(b-a,1.2,W,dk,(a+b)/2,y0-.3,0)});
@@ -3415,17 +3419,30 @@ function bridgeSite(){const E=LV.elev,W=26,y0=E-.3,gm=new THREE.MeshStandardMate
   [-1,1].forEach(sd=>{const z=sd*(W/2-.1);box(180,3.2,1.3,gm,0,E+1.3,z);box(180,.3,1.6,gm,0,E-.3,z)});
   lightTower(-34,-26);lightTower(34,26);
   // approach embankments so the bridge meets the land
-  [-1,1].forEach(sd=>{const g=new THREE.BoxGeometry(60,y0+.3,W+8);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x6b5a44,roughness:1}));m.position.set(sd*120,(y0+.3)/2-.3,0);m.receiveShadow=true;sceneG.add(m);addOb(sd*120-30,-W/2-4,sd*120+30,W/2+4)})}
+  [-1,1].forEach(sd=>{const g=new THREE.BoxGeometry(60,y0+.3,W+8);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x6b5a44,roughness:1}));m.position.set(sd*120,(y0+.3)/2-.3,0);m.receiveShadow=true;sceneG.add(m);addOb(sd*120-30,-W/2-4,sd*120+30,W/2+4);flatP(60,W+8,lawnM,sd*120,y0+.012,0,6)});
+  // grass verges and gravel shoulders either side of the highway
+  [-1,1].forEach(sd=>{flatP(5,260,new THREE.MeshStandardMaterial({color:0x7d776c,roughness:1}),sd*25.5,-.288,0,8)});
+  for(let z=-120;z<=120;z+=40)[-1,1].forEach(sd=>{box(.18,2.6,.18,new THREE.MeshStandardMaterial({color:0x8a8d90,roughness:.5,metalness:.6}),sd*27.6,1,z+(sd>0?10:0));box(.12,.5,40,new THREE.MeshStandardMaterial({color:0xb7bcc0,roughness:.35,metalness:.7}),sd*27.6,.75,z+(sd>0?30:20))});
+}
 function bridgeDress(){const E=LV.elev,bk=new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.6});
   try{brgDress()}catch(e){console.warn('brgDress',e)}
-  // highway traffic under the bridge
-  const cols=[0xc0392b,0xf1f1ec,0x1f3561,0x2b2b2b,0x7a7f86,0x2f8a5a];for(let k=0;k<10;k++){const lane=[-17,-6,6,17][k%4],dir=lane<0?1:-1,c=new THREE.Group();
-    const b=new THREE.Mesh(new THREE.BoxGeometry(6,2.2,14),new THREE.MeshStandardMaterial({color:cols[k%cols.length],roughness:.4,metalness:.3}));b.position.y=1.3;b.castShadow=true;c.add(b);
-    const cab=new THREE.Mesh(new THREE.BoxGeometry(5.4,1.8,6),new THREE.MeshStandardMaterial({color:0x1c2830,roughness:.08,metalness:.4}));cab.position.set(0,2.9,-dir*1);c.add(cab);
-    [[-2.4,4],[2.4,4],[-2.4,-4],[2.4,-4]].forEach(([x,z])=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.8,12),bk);t.rotation.z=Math.PI/2;t.position.set(x,.7,z);c.add(t)});
-    [-1.8,1.8].forEach(x=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.8,.4,.1),new THREE.MeshBasicMaterial({color:dir>0?0xfff2c8:0xff3a2a}));l.position.set(x,1.6,dir*7.05);c.add(l)});
-    c.position.set(lane,-.3,-120+k*26);c.userData.drive=dir*(38+Math.random()*16);REGG.add(c)}}
-function bridgeTick(dt){REGG.children.forEach(o=>{const v=o.userData.drive;if(!v)return;o.position.z+=v*dt;if(o.position.z>130)o.position.z-=260;if(o.position.z<-130)o.position.z+=260});
+  // highway traffic under the bridge: rolling cars with glass, wheels and headlights; a lane the pump or mixer is parked in is closed
+  const cols=[0x8a1f1a,0xdad8d0,0x1f2f4f,0x232426,0x6d7278,0x2c5a45],rub=new THREE.MeshStandardMaterial({color:0x141414,roughness:.95}),glass=new THREE.MeshStandardMaterial({color:0x0e161b,roughness:.12,metalness:.5}),hub=new THREE.MeshStandardMaterial({color:0x9a9da0,roughness:.4,metalness:.8});
+  for(let k=0;k<10;k++){const lane=[-17,-6,6,17][k%4],dir=lane<0?1:-1,c=new THREE.Group(),big=k%5===4;
+    const pm=new THREE.MeshStandardMaterial({color:cols[k%cols.length],roughness:.55,metalness:.35});const L=big?18:13.5;
+    const lo=new THREE.Mesh(new THREE.BoxGeometry(5.8,1.5,L),pm);lo.position.y=1.5;lo.castShadow=true;c.add(lo);
+    if(big){const cb=new THREE.Mesh(new THREE.BoxGeometry(5.8,4.8,L*.72),new THREE.MeshStandardMaterial({color:0xcfcdc6,roughness:.8}));cb.position.set(0,3.9,-dir*L*.14);cb.castShadow=true;c.add(cb);const hd=new THREE.Mesh(new THREE.BoxGeometry(5.6,2.6,4),pm);hd.position.set(0,3,dir*(L/2-2));c.add(hd)}
+    else{const cab=new THREE.Mesh(new THREE.BoxGeometry(5.2,1.5,L*.5),glass);cab.position.set(0,2.9,-dir*.6);cab.castShadow=true;c.add(cab);const rf=new THREE.Mesh(new THREE.BoxGeometry(5.0,.18,L*.46),pm);rf.position.set(0,3.7,-dir*.6);c.add(rf)}
+    [[-2.55,L*.32],[2.55,L*.32],[-2.55,-L*.32],[2.55,-L*.32]].forEach(([x,z])=>{const t=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.9,16),rub);t.rotation.z=Math.PI/2;t.position.set(x,1.15,z);c.add(t);const h=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.95,12),hub);h.rotation.z=Math.PI/2;h.position.set(x,1.15,z);c.add(h)});
+    [-1.9,1.9].forEach(x=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.9,.45,.12),new THREE.MeshBasicMaterial({color:dir>0?0xfff2c8:0xff2a1a}));l.position.set(x,1.9,dir*(L/2+.02));c.add(l);const t=new THREE.Mesh(new THREE.BoxGeometry(.9,.4,.12),new THREE.MeshBasicMaterial({color:dir>0?0xff2a1a:0xfff2c8}));t.position.set(x,1.9,-dir*(L/2+.02));c.add(t)});
+    const pool=new THREE.Mesh(new THREE.PlaneGeometry(5,16),new THREE.MeshBasicMaterial({color:0xffe9b0,transparent:true,opacity:.1,depthWrite:false,blending:THREE.AdditiveBlending}));pool.rotation.x=-Math.PI/2;pool.position.set(0,.05,dir*(L/2+8));c.add(pool);
+    c.position.set(lane,-.3,-120+k*26);c.userData.drive=dir*(34+Math.random()*14);c.userData.lane=lane;c.userData.len=L;REGG.add(c)}
+  // cones and barrels closing the lanes under the work
+  const cn=new THREE.MeshStandardMaterial({color:0xff6a10,roughness:.7}),bn=new THREE.MeshStandardMaterial({color:0xf2f0ea,roughness:.8});
+  [-1,1].forEach(sd=>{for(let k=0;k<6;k++){const z=sd*(34+k*3.4),x=sd*(11.5+(k<4?0:0));const o=new THREE.Mesh(new THREE.ConeGeometry(.45,1.5,12),cn);o.position.set(0,.45,0);const g=new THREE.Group();g.position.set(x+ (k*.0),0,z);g.add(o);const st=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.12,12),bn);st.position.y=-.25;g.add(st);REGG.add(g)}})}
+function bridgeTick(dt){const bl=[];[pumpG,truck].forEach(o=>{if(o&&o.visible){const c=Math.cos(o.rotation.y),sn=Math.sin(o.rotation.y);[[0,0],[10,0],[20,0],[34,0],[3.7,-8.2],[3.7,10.6],[34.3,-7.5],[34.3,9.9]].forEach(([lx,lz])=>bl.push([o.position.x+lx*c+lz*sn,o.position.z-lx*sn+lz*c]))}});
+  REGG.children.forEach(o=>{const v=o.userData.drive;if(!v)return;o.position.z+=v*dt;if(o.position.z>130)o.position.z-=260;if(o.position.z<-130)o.position.z+=260;
+    const ln=o.userData.lane;let blocked=false;for(const p of bl){if(Math.abs(p[0]-ln)<6.2){blocked=true;break}}o.visible=!(blocked&&Math.abs(o.position.z)<75)});
   try{brgTick(dt)}catch(e){console.warn('brgTick',e)}}
 // Muskoka: a cottage on the lake, dock, Muskoka chairs
 function cottageScene(){house(-2,-9,40,0,[['slider',-6],['win',6],['win',14],['door',-15],['light',-1.2]],{col:'#6b4a2e',chimney:12});
