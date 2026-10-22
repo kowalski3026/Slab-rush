@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v270"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v271"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -3268,8 +3268,8 @@ function brgVis(){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,si=
   if(BRG.bw)BRG.bw.visible=sofDone;if(BRG.ex)BRG.ex.visible=k==='demo';
   slab.visible=S.pour==null||stage>=S.pour}
 // ---- the dress: hoe ram, Bid-Well, and deck lights (world space, in REGG) ----
-function brgDress(){const E=LV.elev,yl=new THREE.MeshStandardMaterial({color:0xf0b41c,roughness:.45,metalness:.25}),dk=new THREE.MeshStandardMaterial({color:0x232527,roughness:.6,metalness:.3}),
-    st=new THREE.MeshStandardMaterial({color:0x9aa0a6,roughness:.35,metalness:.75}),gl=new THREE.MeshStandardMaterial({color:0x1b2a33,roughness:.08,metalness:.5}),
+function brgDress(){const E=LV.elev,yl=new THREE.MeshStandardMaterial({color:0xe6ab1a,roughness:.62,metalness:.08}),dk=new THREE.MeshStandardMaterial({color:0x232527,roughness:.7,metalness:.25}),
+    cake=new THREE.MeshStandardMaterial({color:0x8d8a83,roughness:.9,metalness:.05}),st=new THREE.MeshStandardMaterial({color:0x9aa0a6,roughness:.35,metalness:.75}),gl=new THREE.MeshStandardMaterial({color:0x1b2a33,roughness:.08,metalness:.5}),
     lamp=new THREE.MeshStandardMaterial({color:0xfffbe8,emissive:0xfff1c8,emissiveIntensity:3});
   const bx=(w,hh,d,m,x,y,z,par,rx,ry,rz)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),m);o.position.set(x,y,z);if(rx)o.rotation.x=rx;if(ry)o.rotation.y=ry;if(rz)o.rotation.z=rz;o.castShadow=o.receiveShadow=true;par.add(o);return o};
   const cyl=(r,l,m,x,y,z,par,ax)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,14),m);if(ax==='x')o.rotation.z=Math.PI/2;else if(ax==='z')o.rotation.x=Math.PI/2;o.position.set(x,y,z);o.castShadow=true;par.add(o);return o};
@@ -3286,13 +3286,19 @@ function brgDress(){const E=LV.elev,yl=new THREE.MeshStandardMaterial({color:0xf
    [[-1.6,-12.3],[1.6,-12.3],[-1.6,-8.5],[1.6,-8.5]].forEach(([x,z])=>bx(.1,1.4,.1,yl,x,7.1,z,G));[-1.6,1.6].forEach(x=>bx(.1,.1,3.9,yl,x,7.8,-10.4,G));bx(3.3,.1,.1,yl,0,7.8,-12.3,G);
    bx(.9,1.1,.6,dk,.6,7,-9.3,G);bx(.7,.05,.5,new THREE.MeshStandardMaterial({color:0x6fd36a,emissive:0x2a6a28,emissiveIntensity:1}),.6,7.56,-9.3,G);
    {const s=new THREE.Mesh(new THREE.PlaneGeometry(6.4,1.2),signMat('KOWALSKI · DECK','#1d1d1d','#f2b23a'));s.position.set(-1.5,5.25,-4);s.rotation.y=-Math.PI/2;G.add(s);const s2=s.clone();s2.position.x=1.5;s2.rotation.y=Math.PI/2;G.add(s2)}
+   // v271: beacon, ladder, hydraulic hoses, exhaust puffs
+   {const bm=new THREE.MeshStandardMaterial({color:0xff8a00,emissive:0xff6a00,emissiveIntensity:0,roughness:.3});const bc=new THREE.Mesh(new THREE.SphereGeometry(.28,12,8,0,Math.PI*2,0,Math.PI/2),bm);bc.position.set(-.8,8.4,9.6);G.add(bc);BRG.beacon=bm;
+    const pl=new THREE.PointLight(0xff8a1a,0,14,2);pl.position.set(-.8,8.8,9.6);G.add(pl);BRG.beaconL=pl;
+    [-1.3,1.3].forEach(x=>bx(.08,3.6,.08,st,x,5.3,-12.4,G));for(let k=0;k<8;k++)bx(2.6,.06,.06,st,0,3.9+k*.42,-12.4,G);
+    const hm=new THREE.MeshStandardMaterial({color:0x111214,roughness:.8});for(let k=0;k<4;k++){const hz=new THREE.Mesh(new THREE.TorusGeometry(.5+k*.05,.05,6,14,Math.PI),hm);hz.position.set(-1.1+k*.7,5.6,5.2);hz.rotation.set(0,0,Math.PI);G.add(hz)}
+    BRG.puff=[];const pmx=new THREE.SpriteMaterial({color:0x777a7c,transparent:true,opacity:0,depthWrite:false});for(let k=0;k<8;k++){const sp=new THREE.Sprite(pmx.clone());sp.visible=false;REGG.add(sp);BRG.puff.push({s:sp,t:1})}BRG.pT=0}
    // festoon cable along the top
    for(let k=0;k<10;k++){const z=-H+2+k*2.6;const c=new THREE.Mesh(new THREE.TorusGeometry(.6,.04,5,10,Math.PI),dk);c.position.set(.2,6.4,z);c.rotation.set(0,Math.PI/2,Math.PI);G.add(c)}
    // carriage: hangs off the bottom chords and runs back and forth across the deck
    const C=new THREE.Group();G.add(C);BRG.car=C;bx(3.4,1.1,2.6,yl,0,3.6,0,C);bx(3,.4,2.4,dk,0,2.9,0,C);[-1.3,1.3].forEach(x=>bx(.22,2,.22,yl,x,1.9,-.9,C));[-1.3,1.3].forEach(x=>bx(.22,2,.22,yl,x,1.9,.9,C));
    const dP=new THREE.Group();dP.position.set(0,.47,0);C.add(dP);cyl(.45,3.8,st,0,0,0,dP,'x');[-1,1].forEach(e=>{for(let k=0;k<6;k++){const b=new THREE.Mesh(new THREE.BoxGeometry(3.7,.05,.06),dk);const a=k*Math.PI/3;b.position.set(0,Math.cos(a)*.46,Math.sin(a)*.46);b.rotation.x=a;dP.add(b)}});BRG.drum=dP;
    const hel=new THREE.Curve();hel.getPoint=function(t,o=new THREE.Vector3()){const a=t*Math.PI*2*8;return o.set(-1.8+t*3.6,Math.cos(a)*.27,Math.sin(a)*.27)};
-   [-1,1].forEach(sd=>{const A=new THREE.Group();A.position.set(0,.33,sd*1.05);C.add(A);A.add(new THREE.Mesh(new THREE.TubeGeometry(hel,160,.05,5,false),st));const core=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,3.7,10),st);core.rotation.z=Math.PI/2;A.add(core);BRG.spin.push(A);A.userData.aug=sd});
+   [-1,1].forEach(sd=>{const A=new THREE.Group();A.position.set(0,.33,sd*1.05);C.add(A);A.add(new THREE.Mesh(new THREE.TubeGeometry(hel,160,.06,5,false),cake));const core=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,3.7,10),cake);core.rotation.z=Math.PI/2;A.add(core);BRG.spin.push(A);A.userData.aug=sd});
    [-1,1].forEach(x=>bx(.16,.3,2.7,dk,x*1.95,.55,0,C));
    for(let k=0;k<3;k++){const hz=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,2.6,6),dk);hz.position.set(-.8+k*.8,5.2,0);C.add(hz)}
    // lights on the truss pointing down at the carriage
@@ -3352,8 +3358,8 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
   if(BRG.bw){const live=running&&(k==='pour'||k==='screed');let sp=0,want=0;BW.wait=false;
     const lowAhead=(sd,n)=>{const c0=Math.floor(BW.x);let lo=0;for(let dc=1;dc<=n;dc++){const c=c0+sd*dc;if(c<RX0||c>=RX1)continue;for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(inR[i]&&h[i]<lo)lo=h[i]}}return lo};
     if(live&&k==='screed'&&ptr.down){BW.auto=false;BW.hand=true;BW.tx=Math.max(RX0-3,Math.min(RX1+3,ptr.x));const d=BW.tx-BW.x;
-      if(Math.abs(d)>.05){if(!stowChute&&placed+wasted<LOAD_M3)BW.wait=lowAhead(Math.sign(d),3)<-1.5;want=Math.sign(d)*Math.min(Math.abs(d),(BW.wait?.4:2.6)*dt*(12/CELL_IN))}}
-    else if(live&&BW.auto){const sd=-BW.s,end=sd<0?RX0-3.2:RX1+3.2;if(sd*(end-BW.x)>0){BW.wait=lowAhead(sd,3)<-1.5;if(!BW.wait)want=sd*Math.min(Math.abs(end-BW.x),1.3*dt*(12/CELL_IN))}
+      if(Math.abs(d)>.05){if(!stowChute&&placed+wasted<LOAD_M3)BW.wait=lowAhead(Math.sign(d),3)<-1.5;want=Math.sign(d)*Math.min(Math.abs(d),(BW.wait?.25:1.0)*dt*(12/CELL_IN))}}
+    else if(live&&BW.auto){const sd=-BW.s,end=sd<0?RX0-3.2:RX1+3.2;if(sd*(end-BW.x)>0){BW.wait=lowAhead(sd,3)<-1.5;if(!BW.wait)want=sd*Math.min(Math.abs(end-BW.x),.5*dt*(12/CELL_IN))}
       else{BW.auto=false;BW.done=true;say('Bid-Well\'s walked off the end of the span. Deck\'s struck and finished.','good','bwDone',0)}}
     if(want){const x0=BW.x,x1=BW.x+want;BW.dir=Math.sign(want);const c0=Math.floor(x0),c1=Math.floor(x1);if(BW.dir!==BW.ld)BW.last=null;BW.ld=BW.dir;
       for(let c=c0;BW.dir>0?c<=c1:c>=c1;c+=BW.dir){if(c===BW.last)continue;BW.last=c;bwCol(c)}BW.x=x1;sp=Math.abs(want)/dt}
@@ -3365,11 +3371,17 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
     if(live&&k==='screed'&&(ptr.down||BW.auto)&&!stowChute&&placed+wasted<LOAD_M3&&usePump()){let best=-1,bv=-.45;const c0=Math.floor(BW.x),sd=BW.auto?-BW.s:BW.dir;for(let dc=2;dc<=8;dc++){const c=c0+sd*dc;if(c<RX0||c>=RX1)continue;for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(inR[i]&&h[i]<bv){bv=h[i];best=i}}}
       if(best>=0){tipTarget.set(wx(best%GW+.5),0,wz(((best/GW)|0)+.5));if(!BW.feed){pourStep.hold=true}pouring=true;BW.feed=true;placedAtLeave=placed}else if(BW.feed){pouring=false;BW.feed=false}}
     else if(BW.feed&&k==='screed'){pouring=false;BW.feed=false}else if(k!=='screed')BW.feed=false;
-    const work=!!want||(live&&BW.auto&&!BW.wait);BW.cz+=BW.cd*dt*(work?7.5:0);if(BW.cz>11.2){BW.cz=11.2;BW.cd=-1}if(BW.cz<-11.2){BW.cz=-11.2;BW.cd=1}
+    const work=!!want||(live&&BW.auto&&!BW.wait);BW.cz+=BW.cd*dt*(work?3.4:0);if(BW.cz>11.2){BW.cz=11.2;BW.cd=-1}if(BW.cz<-11.2){BW.cz=-11.2;BW.cd=1}
     BRG.bw.position.x+=(wx(BW.x)-BRG.bw.position.x)*Math.min(1,dt*10);BRG.car.position.z=BW.cz;
-    BRG.spin.forEach(o=>{if(o.userData.aug)o.rotation.x+=dt*(work?14:0)*o.userData.aug;else if(o.userData.wheel)o.rotation.z-=sp*dt*1.9*BW.dir});if(BRG.drum)BRG.drum.rotation.x-=dt*(work?6:0)*BW.cd;
+    try{bwLife(dt,work,sp,E)}catch(e){}
+    BRG.spin.forEach(o=>{if(o.userData.aug)o.rotation.x+=dt*(work?7:0)*o.userData.aug;else if(o.userData.wheel)o.rotation.z-=sp*dt*1.9*BW.dir});if(BRG.drum)BRG.drum.rotation.x-=dt*(work?3.2:0)*BW.cd;
     // the boom swings clear of the deck when it isn't placing
     {const on=running&&(k==='pour'||k==='screed');const now=performance.now();if(on&&!ptr.down&&!pouring&&!BW.feed){if(!BRG.idleT)BRG.idleT=now}else BRG.idleT=0;BRG.stow=on&&!!BRG.idleT&&now-BRG.idleT>900}}}
+function bwLife(dt,work,sp,E){const G=BRG.bw;if(!G)return;const now=performance.now(),on=!!(running&&(STAGES[stage].key==='pour'||STAGES[stage].key==='screed'));
+  if(BRG.beacon){const b=on&&(((now/450)|0)%2===0)?1:0;BRG.beacon.emissiveIntensity=b*3.5;BRG.beaconL.intensity=b*(safeGfx?0:900)}
+  G.position.y=E+(on?Math.sin(now*.05)*.012*(work?1:.45):0);
+  if(BRG.puff&&on){BRG.pT+=dt;if(BRG.pT>(work?.22:.6)){BRG.pT=0;const p=BRG.puff.find(q=>q.t>=1);if(p){p.t=0;p.s.position.set(G.position.x+.6,E+9.9,10.6);p.s.visible=true}}}
+  if(BRG.puff)BRG.puff.forEach(p=>{if(p.t>=1)return;p.t=Math.min(1,p.t+dt*.7);p.s.scale.setScalar(.5+p.t*2.2);p.s.material.opacity=.28*(1-p.t);p.s.position.y+=dt*1.6;p.s.position.x+=dt*.6;if(p.t>=1)p.s.visible=false})}
 // how many feet of full-depth mud sit in front of the parked Bid-Well (from the far end of the span back)
 // the Bid-Well parks at the end of the span that's at the top of the screen (away from the camera), or at the end the pour started from
 const RX0w=()=>wx(RX0);
