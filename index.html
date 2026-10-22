@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v269"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v270"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -3410,8 +3410,42 @@ function brgConc(rx,ry,col){const t=ctex(256,256,(g,w,h)=>{g.fillStyle=col;g.fil
   for(let i=0;i<9;i++){const x=Math.random()*w,gr=g.createLinearGradient(x,0,x+6,h);gr.addColorStop(0,'rgba(40,36,30,0)');gr.addColorStop(.5,'rgba(40,36,30,.14)');gr.addColorStop(1,'rgba(40,36,30,0)');g.fillStyle=gr;g.fillRect(x,0,5+Math.random()*8,h)}
   g.strokeStyle='rgba(40,36,30,.35)';g.lineWidth=1;for(let i=0;i<4;i++){g.beginPath();let x=Math.random()*w,y=Math.random()*h;g.moveTo(x,y);for(let k=0;k<6;k++){x+=(Math.random()-.5)*26;y+=8+Math.random()*14;g.lineTo(x,y)}g.stroke()}});
   t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);return new THREE.MeshStandardMaterial({map:t,bumpMap:t,bumpScale:.8,roughness:1,metalness:0})}
+
+// v270: roadside realism: grass tufts and weeds, rocks, jersey barriers, white lane dashes, oil stains and a road-work sign
+function brgScatter(E){
+  const rnd=(a,b)=>a+Math.random()*(b-a),tmp=new THREE.Object3D();
+  // grass tufts: crossed alpha cards, instanced
+  const gt=ctex(128,128,(g,w,h)=>{g.clearRect(0,0,w,h);for(let i=0;i<46;i++){const x=rnd(10,w-10),bh=rnd(40,118),lean=rnd(-18,18);g.strokeStyle=`hsl(${rnd(78,104)},${rnd(35,55)}%,${rnd(22,42)}%)`;g.lineWidth=rnd(1.4,3.2);g.beginPath();g.moveTo(x,h);g.quadraticCurveTo(x+lean*.4,h-bh*.6,x+lean,h-bh);g.stroke()}});
+  gt.wrapS=gt.wrapT=THREE.ClampToEdgeWrapping;
+  const gm=new THREE.MeshStandardMaterial({map:gt,alphaTest:.45,side:THREE.DoubleSide,roughness:1}),N=1100,pl=new THREE.PlaneGeometry(2.6,2);pl.translate(0,1,0);
+  const im=new THREE.InstancedMesh(pl,gm,N*2);let n=0;
+  const ok=(x,z)=>!(Math.abs(z)<16&&Math.abs(x)<96)&&!(Math.abs(Math.abs(x)-29)<4&&Math.abs(Math.abs(z)-20)<4)&&Math.abs(x)>23.6&&Math.abs(x)<140&&Math.abs(z)<135;
+  for(let i=0;i<N;i++){let x,z,t=0;do{x=(Math.random()<.5?-1:1)*rnd(24,120);z=rnd(-130,130);t++}while(!ok(x,z)&&t<20);if(!ok(x,z))continue;const sc=rnd(.7,1.5),ry=Math.random()*3.14;
+    for(let k=0;k<2;k++){tmp.position.set(x,-.3,z);tmp.rotation.set(0,ry+k*1.57,0);tmp.scale.set(sc,sc*rnd(.8,1.3),sc);tmp.updateMatrix();im.setMatrixAt(n++,tmp.matrix)}}
+  im.count=n;im.castShadow=false;im.receiveShadow=false;sceneG.add(im);
+  // rocks and rubble at the verge
+  const rg=new THREE.IcosahedronGeometry(1,0),rm=new THREE.MeshStandardMaterial({color:0x7c7870,roughness:1,flatShading:true}),rk=new THREE.InstancedMesh(rg,rm,160);let rn=0;
+  for(let i=0;i<160;i++){const x=(Math.random()<.5?-1:1)*rnd(23.8,100),z=rnd(-120,120);if(!ok(x,z))continue;tmp.position.set(x,-.3+.1,z);tmp.rotation.set(rnd(0,3),rnd(0,3),rnd(0,3));const s0=rnd(.25,.9);tmp.scale.set(s0*rnd(1,1.6),s0*.6,s0*rnd(1,1.4));tmp.updateMatrix();rk.setMatrixAt(rn++,tmp.matrix)}
+  rk.count=rn;rk.castShadow=true;sceneG.add(rk);
+  // jersey barriers shielding the work zone from the lanes
+  const sh=new THREE.Shape();sh.moveTo(-1.05,0);sh.lineTo(1.05,0);sh.lineTo(.8,.85);sh.lineTo(.42,2.5);sh.lineTo(-.42,2.5);sh.lineTo(-.8,.85);sh.closePath();
+  const jg=new THREE.ExtrudeGeometry(sh,{depth:11.8,bevelEnabled:false});jg.translate(0,0,-5.9);
+  const jm=brgConc(2,1,'#b7b2a7');
+  [-1,1].forEach(sd=>{for(let k=-4;k<=4;k++){const m=new THREE.Mesh(jg,jm);m.position.set(sd*21.4,-.29,k*12.2);m.castShadow=m.receiveShadow=true;sceneG.add(m)}});
+  // white lane dashes
+  const dm=new THREE.MeshStandardMaterial({color:0xe9e7df,roughness:.75}),dg=new THREE.PlaneGeometry(.3,9);dg.rotateX(-Math.PI/2);const di=new THREE.InstancedMesh(dg,dm,2*11*2);let dn=0;
+  [-11.5,11.5].forEach(x=>{for(let z=-128;z<128;z+=24){tmp.position.set(x,-.283,z+4.5);tmp.rotation.set(0,0,0);tmp.scale.set(1,1,1);tmp.updateMatrix();di.setMatrixAt(dn++,tmp.matrix)}});di.count=dn;di.receiveShadow=true;sceneG.add(di);
+  // oil stains and tire scrub on the asphalt
+  const st=ctex(128,128,(g,w,h)=>{const gr=g.createRadialGradient(64,64,4,64,64,60);gr.addColorStop(0,'rgba(8,8,10,.55)');gr.addColorStop(.6,'rgba(8,8,10,.22)');gr.addColorStop(1,'rgba(8,8,10,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)});
+  const sm=new THREE.MeshBasicMaterial({map:st,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  for(let i=0;i<26;i++){const w=rnd(2.5,7),p=new THREE.Mesh(new THREE.PlaneGeometry(w,w*rnd(1,3)),sm);p.rotation.x=-Math.PI/2;p.rotation.z=Math.random()*.4;p.position.set([-17,-6,6,17][i%4]+rnd(-2,2),-.281,rnd(-120,120));sceneG.add(p)}
+  // road-work sign on the shoulder
+  const sg=ctex(256,256,(g,w,h)=>{g.fillStyle='#ff7a14';g.save();g.translate(128,128);g.rotate(Math.PI/4);g.fillRect(-88,-88,176,176);g.strokeStyle='#111';g.lineWidth=7;g.strokeRect(-80,-80,160,160);g.restore();g.fillStyle='#111';g.font='bold 30px Arial';g.textAlign='center';g.fillText('ROAD',128,112);g.fillText('WORK',128,148);g.font='bold 22px Arial';g.fillText('AHEAD',128,178)});
+  sg.wrapS=sg.wrapT=THREE.ClampToEdgeWrapping;const sgm=new THREE.MeshStandardMaterial({map:sg,transparent:true,alphaTest:.4,roughness:.5,side:THREE.DoubleSide}),pm2=new THREE.MeshStandardMaterial({color:0x6c6f73,roughness:.5,metalness:.6});
+  [[26.5,-60,0],[-26.5,60,Math.PI]].forEach(([x,z,ry])=>{box(.2,5.6,.2,pm2,x,2.5,z);const p=new THREE.Mesh(new THREE.PlaneGeometry(4.2,4.2),sgm);p.position.set(x,6.3,z);p.rotation.y=ry+Math.PI/2;p.castShadow=true;sceneG.add(p)});
+}
 function bridgeSite(){const E=LV.elev,W=26,y0=E-.3,gm=brgConc(18,1,'#b4afa4'),dk=brgConc(6,1,'#a29d92');lawn();
-  flatP(46,260,asphaltM,0,-.29,0,6);[-11.5,0,11.5].forEach(x=>flatP(.35,260,lineM,x,-.284,0));flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),-22.6,-.284,0);flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),22.6,-.284,0);
+  flatP(46,260,asphaltM,0,-.29,0,6);flatP(.35,260,lineM,0,-.284,0);flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),-22.6,-.284,0);flatP(.5,260,new THREE.MeshStandardMaterial({color:0xf2efe8}),22.6,-.284,0);
   addOb(-24,-130,24,130);
   [[-90,-24.2],[24.2,90]].forEach(([a,b])=>{box(b-a,1.2,W,dk,(a+b)/2,y0-.3,0)});
   for(let k=-3;k<=3;k++){const z=k*3.6;box(180,4.2,1.4,gm,0,y0-3,z)}
@@ -3420,6 +3454,7 @@ function bridgeSite(){const E=LV.elev,W=26,y0=E-.3,gm=brgConc(18,1,'#b4afa4'),dk
   lightTower(-34,-26);lightTower(34,26);
   // approach embankments so the bridge meets the land
   [-1,1].forEach(sd=>{const g=new THREE.BoxGeometry(60,y0+.3,W+8);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x6b5a44,roughness:1}));m.position.set(sd*120,(y0+.3)/2-.3,0);m.receiveShadow=true;sceneG.add(m);addOb(sd*120-30,-W/2-4,sd*120+30,W/2+4);flatP(60,W+8,lawnM,sd*120,y0+.012,0,6)});
+  try{brgScatter(E)}catch(e){console.warn('brgScatter',e)}
   // grass verges and gravel shoulders either side of the highway
   [-1,1].forEach(sd=>{flatP(5,260,new THREE.MeshStandardMaterial({color:0x7d776c,roughness:1}),sd*25.5,-.288,0,8)});
   for(let z=-120;z<=120;z+=40)[-1,1].forEach(sd=>{box(.18,2.6,.18,new THREE.MeshStandardMaterial({color:0x8a8d90,roughness:.5,metalness:.6}),sd*27.6,1,z+(sd>0?10:0));box(.12,.5,40,new THREE.MeshStandardMaterial({color:0xb7bcc0,roughness:.35,metalness:.7}),sd*27.6,.75,z+(sd>0?30:20))});
