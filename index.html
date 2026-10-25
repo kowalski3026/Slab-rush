@@ -8478,7 +8478,7 @@ function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new 
     const wrap=new THREE.Group();wrap.add(o);o.rotation.y=MIXP.rot;o.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(o);const sz=b.getSize(new THREE.Vector3());
     o.scale.multiplyScalar((ref.max.x-ref.min.x)*.98/sz.x);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);
     o.position.x+=ref.min.x-b.min.x;o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
-    wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){console.warn('mixer glb',e)}},undefined,e=>console.warn('mixer glb',e))}
+    wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){MIXP.err=String(e);console.warn('mixer glb',e)}},undefined,e=>{MIXP.err=String(e&&e.message||e);console.warn('mixer glb',e)})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
