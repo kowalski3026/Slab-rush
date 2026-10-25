@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v279"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v280"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -1342,7 +1342,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -2528,7 +2528,7 @@ const TODS={morning:{n:'Morning',el0:8,el1:20,sunK:.9,hemiK:1.05,warm:.4,sky:0x5
   golden:{n:'Golden hour',el0:11,el1:3.5,sunK:.95,hemiK:.9,warm:.95,sky:0x4570bd,hor:0xf0cfae,exp:1.06},
   overcast:{n:'Overcast',el0:30,el1:26,sunK:.38,hemiK:1.75,warm:0,sky:0x8796a8,hor:0xbfc5cc,gnd:0x5d5850,exp:1.1,cn:70,cc:'214,218,224'}};
 let TOD=TODS.afternoon;
-function pickTOD(){TOD=TODS.afternoon;if(weather.night||LV.tut)return;const r=daily&&daily.L===LV?seeded((daily.seed||7)+91)():Math.random(),hot=weather===WEATHER.hot,cold=weather===WEATHER.cold;
+function pickTOD(){TOD=TODS.afternoon;if(weather.night||LV.tut||LV.paint)return;const r=daily&&daily.L===LV?seeded((daily.seed||7)+91)():Math.random(),hot=weather===WEATHER.hot,cold=weather===WEATHER.cold;
   const pool=RT().tod&&!hot?RT().tod:hot?['midday','midday','afternoon','golden']:cold?['overcast','overcast','morning','afternoon']:['morning','midday','afternoon','afternoon','golden','overcast'];TOD=TODS[pool[Math.floor(r*pool.length)]];if(TOD!==TODS.overcast){TOD=TODS.day;DAY.h=dayHour0();dayCol(DAY.h)}}
 /* v213: one full day. Sunrise light for the prep work, the sun climbs through the pour, tops out while you finish and sinks
    into golden hour for the cut and cure. Sun height and travel, sky dome, fog, exposure, light colour and the sky HDRI all follow it.
@@ -8064,7 +8064,7 @@ function prepCash(crew){const r=PREPT.res;if(!r||!PREPT.on)return 0;const k=Math
 function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
 function startJob(){
   stage=0;toolsOff();rk.used=false;rk.load=0;
-  applyLevel(LEVELS[jobIdx]);
+  applyLevel(LEVELS[jobIdx]);try{bkdLoad(LV)}catch(e){}
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
   if(mode==='career'&&!LV.free&&quote==='premium'&&!skipQuote&&Math.random()>premiumOdds()){quote='market';renderCareer();
     $('startNote').hidden=false;$('startNote').textContent='The customer turned down your premium quote and went with someone cheaper. Your quote is set back to Market. Tap Back it in to take the job at that price.';$('startNote').scrollIntoView({block:'center'});return}
@@ -8447,6 +8447,52 @@ function warmTick(){if(!WARMQ.length||!renderer)return;const t0=performance.now(
 let WETV=0,last=performance.now(),surfT=0,ema=.016,lowQ=safeGfx,errShown=false,menuTick=0,orbitAng=.6;
 const introEl=$('intro'),resEl=$('results'),edEl=$('editor'),lbEl=$('board');
 function enterLowQ(){if(!renderer)return;lowQ=true;renderer.setPixelRatio(1);sun.shadow.mapSize.set(512,512);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}try{resize()}catch(e){}}
+/* ---------- v280: painted job sites ----------
+   A job with LV.paint is played from one fixed camera spot. Everything around the work (yard, house, lake, trees, sky) is one hand-painted picture
+   shot from that spot; only the work itself (forms, concrete, tools, truck) is 3D on top. Zoom and pan never move the camera, they only turn it and
+   narrow the lens (camera.zoom), so the painting always lines up. The ground becomes a shadow catcher so 3D tools still cast onto the painting. */
+const BKD={on:false,L:null,tex:null,quad:null,P:new THREE.Vector3(),Q:new THREE.Quaternion(),PV:0,PH:0,hid:[],gmat:null,shM:null,load:null,
+  v:new THREE.Vector3(),f:new THREE.Vector3(),o:new THREE.PerspectiveCamera(),Qi:new THREE.Quaternion()};// a camera so lookAt aims -Z, like the real one
+function bkdLoad(L){const C=L&&L.paint;if(!C)return;if(BKD.load&&BKD.load.L===L)return;BKD.load={L,ok:false};
+  new THREE.TextureLoader().load(C.img,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;
+    if(BKD.load&&BKD.load.L===L){if(BKD.tex&&BKD.tex!==t)BKD.tex.dispose();BKD.tex=t;BKD.load.ok=true}},undefined,()=>{console.warn('paint: could not load',C.img)})}
+function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
+  BKD.PV=C.fov*Math.PI/360;BKD.PH=Math.atan(Math.tan(BKD.PV)*C.asp);
+  const D=300,h=2*D*Math.tan(BKD.PV),w=h*C.asp;
+  if(!BKD.quad){BKD.quad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({depthWrite:false,depthTest:false,fog:false,toneMapped:false}));
+    BKD.quad.renderOrder=-1000;BKD.quad.frustumCulled=false;BKD.quad.layers.set(4);BKD.quad.raycast=()=>{};scene.add(BKD.quad)}
+  const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true}
+function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;bkdBuild(C);camera.layers.enable(4);
+  if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
+function bkdOff(){if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+  BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
+// the yard, sky and far scenery stay hidden (their own code switches them back on, so this runs every frame)
+function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=>{if(o.isLight||o===BKD.quad||o===ground||o===POST.quad||o===siteG||o===slab||o===truck)return false;const b=new THREE.Box3().setFromObject(o);if(b.isEmpty())return false;
+    const c=b.getCenter(BKD.v);return b.min.distanceTo(c)>70||Math.hypot(c.x-RCX,c.z-RCZ)>48};
+  const hide=o=>{if(!seen.has(o)){keep.push([o,o.visible]);seen.add(o)}o.visible=false};
+  [sky,clouds,sunGlow,moonM,sceneG,REGG].forEach(o=>o&&hide(o));treeIMs.forEach(hide);
+  scene.children.forEach(o=>{if(o.userData&&o.userData.lm)hide(o)});
+  siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='base')hide(o)});// the painting has the gravel base; the 3D one is a full rectangle that covered the pool corner
+  if(!BKD.farDone){BKD.farDone=true;scene.children.forEach(o=>{if(o.visible&&!o.isPoints&&far(o))hide(o)})}
+  keep.forEach(([o])=>o.visible=false);
+  if(ground.material!==BKD.shM){BKD.gmat=ground.material;ground.material=BKD.shM}}
+function bkdTick(){const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden);
+  if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
+  if(!BKD.on)return;bkdHideTick();
+  // where the game wanted to look this frame, and how much of the ground it wanted to see there
+  const c=camera,f=BKD.f.set(0,0,-1).applyQuaternion(c.quaternion);let L;
+  if(f.y<-.04){const k=(ELV()-c.position.y)/f.y;L=BKD.v.copy(c.position).addScaledVector(f,k)}else L=BKD.v.copy(lookC);
+  const dG=Math.max(1,c.position.distanceTo(L)),dP=Math.max(1,BKD.P.distanceTo(L));
+  const t0=Math.tan(c.fov*Math.PI/360),asp=c.aspect,mg=.035;
+  // never show past the edge of the painting: limit how wide the lens can open, then how far it can turn
+  let z=dP/dG;const zMin=Math.max(t0/Math.tan(BKD.PV-mg),t0*asp/Math.tan(BKD.PH-mg));if(z<zMin)z=zMin;
+  const hv=Math.atan(t0/z),hh=Math.atan(t0*asp/z);
+  BKD.Qi.copy(BKD.Q).invert();const d=BKD.f.copy(L.sub(BKD.P)).applyQuaternion(BKD.Qi);
+  let yaw=Math.atan2(d.x,-d.z),pit=Math.atan2(d.y,Math.hypot(d.x,d.z));const ly=Math.max(0,BKD.PH-hh-mg),lp=Math.max(0,BKD.PV-hv-mg);
+  yaw=Math.max(-ly,Math.min(ly,yaw));pit=Math.max(-lp,Math.min(lp,pit));
+  d.set(Math.sin(yaw)*Math.cos(pit),Math.sin(pit),-Math.cos(yaw)*Math.cos(pit)).applyQuaternion(BKD.Q);
+  c.position.copy(BKD.P);c.lookAt(BKD.v.copy(BKD.P).add(d));
+  if(Math.abs(c.zoom-z)>1e-4){c.zoom=z;c.updateProjectionMatrix()}}
 function frame(t){
   requestAnimationFrame(frame);
   {const cap=FPSCAP?31:IS_AND?15:0;if(cap){if(t-(frame.lt||0)<cap)return;frame.lt=t}}
@@ -8501,6 +8547,7 @@ function step(t,dt){
   try{bugCamera(dt)}catch(e){console.warn('bugcam',e)}
   try{rideCamera(dt)}catch(e){console.warn('ridecam',e)}
   if(shakeA>.004){camera.position.x+=(Math.random()-.5)*shakeA;camera.position.y+=(Math.random()-.5)*shakeA*.7;camera.position.z+=(Math.random()-.5)*shakeA;shakeA*=Math.pow(.004,dt)}else shakeA=0;
+  try{bkdTick()}catch(e){console.warn('bkd',e)}
   feelTick(t,dt);try{drillTick()}catch(e){}
   drawFrame();bootDone();
   if(running){const bk=STAGES[stage]&&STAGES[stage].key;
@@ -11744,6 +11791,7 @@ try{(function(){
   sync();
 })()}catch(e){console.warn('world',e)}
 try{BOOT.at(.5,'Loading')}catch(e){}
+if(/[?&]dev\b/.test(location.search))window.__SR=c=>eval(c);
 })()}catch(e){window.__showErr(e.message)}
 },20);
 </script>
