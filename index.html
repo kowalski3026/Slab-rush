@@ -8472,12 +8472,12 @@ function bkdOff(){BKSLAB.value=1e9;BKLID.value=1e9;try{mixPTick(false)}catch(e){
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model. The game's own chute still does the pour;
    the drum on this model doesn't spin yet. MIXP.rot turns the model so its cab points along truck-local +x (the code truck's front). */
-const MIXP={url:'models/mixer-photo.glb',obj:null,tried:false,rot:Math.PI};
+const MIXP={url:'models/mixer-photo.glb',obj:null,tried:false,rot:Math.PI,h:12,rear:14.6};
 function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new THREE.GLTFLoader().load(MIXP.url,g=>{try{const o=g.scene;o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;if(m.material)m.material.envMapIntensity=.9}});
     truck.updateMatrixWorld(true);const inv=truck.matrixWorld.clone().invert(),ref=new THREE.Box3().setFromObject(MX.root).applyMatrix4(inv);// code truck's footprint, truck-local
     const wrap=new THREE.Group();wrap.add(o);o.rotation.y=MIXP.rot;o.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(o);const sz=b.getSize(new THREE.Vector3());
-    o.scale.multiplyScalar((ref.max.x-ref.min.x)*.98/sz.x);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);
-    o.position.x+=ref.min.x-b.min.x;o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
+    o.scale.multiplyScalar(MIXP.h/sz.y);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);// real size: ~12 ft tall
+    o.position.x+=MIXP.rear-b.min.x;// rear bumper just behind the chute pivot (truck-local 15.4), clear of the formso.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
     wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){MIXP.err=String(e);console.warn('mixer glb',e)}},undefined,e=>{MIXP.err=String(e&&e.message||e);console.warn('mixer glb',e)})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
