@@ -8468,8 +8468,18 @@ function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fr
   const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true}
 function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){BKSLAB.value=1e9;BKLID.value=1e9;if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){BKSLAB.value=1e9;BKLID.value=1e9;try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
+/* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model. The game's own chute still does the pour;
+   the drum on this model doesn't spin yet. MIXP.rot turns the model so its cab points along truck-local +x (the code truck's front). */
+const MIXP={url:'models/mixer-photo.glb',obj:null,tried:false,rot:Math.PI};
+function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new THREE.GLTFLoader().load(MIXP.url,g=>{try{const o=g.scene;o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;if(m.material)m.material.envMapIntensity=.9}});
+    truck.updateMatrixWorld(true);const inv=truck.matrixWorld.clone().invert(),ref=new THREE.Box3().setFromObject(MX.root).applyMatrix4(inv);// code truck's footprint, truck-local
+    const wrap=new THREE.Group();wrap.add(o);o.rotation.y=MIXP.rot;o.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(o);const sz=b.getSize(new THREE.Vector3());
+    o.scale.multiplyScalar((ref.max.x-ref.min.x)*.98/sz.x);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);
+    o.position.x+=ref.min.x-b.min.x;o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
+    wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){console.warn('mixer glb',e)}},undefined,e=>console.warn('mixer glb',e))}
+function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
   const W=SLAB_W+8,D=SLAB_D+8,x0=-W/2,z0=-D/2,S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,S,S);
@@ -8498,6 +8508,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   keep.forEach(([o])=>o.visible=false);
   if(ground.material!==BKD.shM){BKD.gmat=ground.material;ground.material=BKD.shM}
   try{bkdLot()}catch(e){console.warn('bkdLot',e)}
+  try{mixPTick(true)}catch(e){}
   {const k=STAGES[stage]&&STAGES[stage].key,y=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(slab):null;BKSLAB.value=y==null?1e9:y;
    // invisible lid over the undug ground: writes depth only, so trench walls and anything below grade stay hidden until that cell is dug
    const ly=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(pitMesh):null;BKLID.value=ly==null?1e9:ly;

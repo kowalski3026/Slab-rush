@@ -47,6 +47,10 @@
     {
       "source": "/paint/pooldeck-before.webp",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/198f3f1b-40b2-44e0-ad22-8daa4854e2d0.webp"
+    },
+    {
+      "source": "/models/mixer-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/588d830d-f041-41fc-bb24-ed1db449f8be.glb"
     }
   ],
   "images": {
