@@ -8517,7 +8517,13 @@ scene.add(fun);fun.visible=false;CHF.fun=fun;
   [-1,1].forEach(sd=>{const c=new THREE.CatmullRomCurve3(Array.from({length:8},(_,j)=>{const t=j/7,e=t*t*(3-2*t);return new THREE.Vector3(sd*(CHF.R0+(CHF.r-CHF.R0)*e),CHF.R0+(CHF.r-CHF.R0)*e+CHF.h0+(CHF.h-CHF.h0)*e,t*CHF.L)}));
     const e=new THREE.Mesh(new THREE.TubeGeometry(c,16,.055,6),lip);e.castShadow=true;fl.add(e)});
   scene.add(fl);fl.visible=false;CHF.fl=fl}
-function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&chute.visible;if(!CHF.fl.visible)return;
+function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&chute.visible;
+  // wet concrete riding down the trough and flare while it pours
+  if(!CHF.mud){const m=new THREE.MeshStandardMaterial({map:sTex,color:0xb9b3a8,roughness:.42,metalness:0});const g=new THREE.PlaneGeometry(.8,1).rotateX(-Math.PI/2).translate(0,.13,.5);
+    CHF.mud=new THREE.Mesh(g,m);chute.add(CHF.mud);const gf=new THREE.PlaneGeometry(1,CHF.L).rotateX(-Math.PI/2).translate(0,.16,CHF.L/2),pf=gf.attributes.position;
+    for(let i=0;i<pf.count;i++){const z=pf.getZ(i)/CHF.L,e=z*z*(3-2*z),w=1.5+(.8-1.5)*e;pf.setX(i,pf.getX(i)*w)}CHF.mudF=new THREE.Mesh(gf,m);CHF.fl.add(CHF.mudF)}
+  CHF.mud.visible=CHF.mudF.visible=on&&chute.visible&&!!(pouring||RUN.flow);
+  if(!CHF.fl.visible)return;
   const d=mixPChutePose.d||(mixPChutePose.d=new THREE.Vector3()),len=PIVOT.distanceTo(tip);d.copy(tip).sub(PIVOT).normalize();
   CHF.fl.position.copy(PIVOT);CHF.fl.quaternion.copy(chute.quaternion);
   // the trough begins where the flare ends
@@ -8525,7 +8531,7 @@ function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&c
   // funnel sits upright on the mouth, turning with the chute
   CHF.fun.position.copy(PIVOT).addScaledVector(d,.55);CHF.fun.position.y+=CHF.R0*.35;CHF.fun.rotation.set(0,Math.atan2(d.x,d.z),0)}
 function mixPChuteTex(){if(MIXP.chM)return;const t=new THREE.TextureLoader().load('tex/chute-photo.webp');t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1.2,3);t.anisotropy=8;
-  MIXP.chM=new THREE.MeshStandardMaterial({map:t,roughness:.62,metalness:.55,side:THREE.DoubleSide})}
+  MIXP.chM=new THREE.MeshStandardMaterial({map:t,roughness:.78,metalness:.3,envMapIntensity:.6,side:THREE.DoubleSide})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use;
   if(use){if(MIXP.drum){const q=mixPTick.q||(mixPTick.q=new THREE.Quaternion());MIXP.drum.quaternion.copy(MIXP.dq).multiply(q.setFromAxisAngle(new THREE.Vector3(1,0,0),-drumAng))}
     // the pour chute hangs from this truck's own collector outlet
