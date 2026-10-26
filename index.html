@@ -1342,7 +1342,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -4205,9 +4205,10 @@ diffuseColor.rgb*=gCol;`)
   sh.fragmentShader=F};
 slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+'gl209';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
-const BKSLAB={value:1e9},BKLID={value:1e9};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;
-  sh.vertexShader='varying float vBkS;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkS=(modelMatrix*vec4(transformed,1.0)).y;');
-  sh.fragmentShader='varying float vBkS;\nuniform float bkSY;\n'+sh.fragmentShader.replace(/void main\(\)\s*\{/,'void main() {\nif(vBkS>bkSY)discard;')}}
+const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;
+  sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
+  // v285: on a painted site the slab is also trimmed back off the painted pool coping (bkKO = keep-out rect x0,z0,x1,z1)
+  sh.fragmentShader='varying vec3 vBkP;\nuniform float bkSY;\nuniform vec4 bkKO;\n'+sh.fragmentShader.replace(/void main\(\)\s*\{/,'void main() {\nif(vBkP.y>bkSY||(vBkP.x>bkKO.x&&vBkP.x<bkKO.z&&vBkP.z>bkKO.y&&vBkP.z<bkKO.w))discard;')}}
 /* v209: if a phone can't build the detailed slab shader (too many textures or too long), fall back to the plain one
    instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
 if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
@@ -8468,23 +8469,45 @@ function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fr
   const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true}
 function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){BKSLAB.value=1e9;BKLID.value=1e9;try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
-/* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model. The game's own chute still does the pour;
-   the drum on this model doesn't spin yet. MIXP.rot turns the model so its cab points along truck-local +x (the code truck's front). */
-const MIXP={url:'models/mixer-photo.glb',obj:null,tried:false,rot:Math.PI,h:12,rear:14.6};
-function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new THREE.GLTFLoader().load(MIXP.url,g=>{try{const o=g.scene;o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;if(m.material)m.material.envMapIntensity=.9}});
+/* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
+   v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
+   pour chute hangs from this truck's real collector outlet, with a photo steel-and-concrete texture. Numbers are in the model's own units
+   (cab at -x, rear at +x, length ~0.98): drum axis y=.04+.22x, radius profile below; chute block x>.385, -.078<y<.075; outlet at (.385,-.005,0). */
+const MIXP={url:'models/mixer-photo.glb',obj:null,tried:false,rot:Math.PI,h:12,rear:14.6,drum:null,dq:new THREE.Quaternion(),piv:null,piv0:MIX_PIV.clone(),chM:null};
+function mixPSplit(o){let mesh=null;o.traverse(m=>{if(m.isMesh&&!mesh)mesh=m});if(!mesh)return;const g=mesh.geometry,P=g.attributes.position,I=g.index;if(!I)return;
+  const rx=[-.105,-.09,-.03,0,.15,.21,.27,.30,.335],rr=[.10,.115,.135,.146,.146,.133,.116,.108,.10],R=x=>{if(x<=rx[0])return rr[0];for(let i=1;i<rx.length;i++)if(x<=rx[i]){const f=(x-rx[i-1])/(rx[i]-rx[i-1]);return rr[i-1]+f*(rr[i]-rr[i-1])}return rr[rr.length-1]};
+  const lab=new Uint8Array(P.count);for(let i=0;i<P.count;i++){const x=P.getX(i),y=P.getY(i),z=P.getZ(i),d=Math.hypot(y-(.04+.22*x),z),r=R(x);
+    lab[i]=x>-.11&&x<.336&&d>r-.04&&d<r+.014?1:x>.385&&y>-.078&&y<.075?2:0}
+  const body=[],drum=[];for(let t=0;t<I.count;t+=3){const a=I.getX(t),b=I.getX(t+1),c=I.getX(t+2),n1=(lab[a]===1)+(lab[b]===1)+(lab[c]===1),n2=(lab[a]===2)+(lab[b]===2)+(lab[c]===2);
+    if(n1>=2)drum.push(a,b,c);else if(n2<2)body.push(a,b,c)}
+  const gb=g.clone();gb.setIndex(body);mesh.geometry=gb;
+  const gd=g.clone();gd.setIndex(drum);const A=new THREE.Vector3(.12,.04+.22*.12,0),dir=new THREE.Vector3(1,.22,0).normalize();
+  const pv=new THREE.Group();pv.position.copy(A);pv.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),dir);MIXP.dq.copy(pv.quaternion);
+  const dm=new THREE.Mesh(gd,mesh.material);dm.quaternion.copy(pv.quaternion).invert();dm.position.copy(A).negate().applyQuaternion(dm.quaternion);dm.castShadow=dm.receiveShadow=true;pv.add(dm);
+  mesh.parent.add(pv);pv.position.applyMatrix4(mesh.matrix);MIXP.drum=pv;
+  const op=new THREE.Object3D();op.position.set(.385,-.005,0).applyMatrix4(mesh.matrix);mesh.parent.add(op);MIXP.piv=op}
+function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new THREE.GLTFLoader().load(MIXP.url,g=>{try{const o=g.scene;try{mixPSplit(o)}catch(e){console.warn('mixer split',e)}o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;if(m.material)m.material.envMapIntensity=.9}});
     truck.updateMatrixWorld(true);const inv=truck.matrixWorld.clone().invert(),ref=new THREE.Box3().setFromObject(MX.root).applyMatrix4(inv);// code truck's footprint, truck-local
     const wrap=new THREE.Group();wrap.add(o);o.rotation.y=MIXP.rot;o.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(o);const sz=b.getSize(new THREE.Vector3());
-    o.scale.multiplyScalar(MIXP.h/sz.y);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);// real size: ~12 ft tall
-    o.position.x+=MIXP.rear-b.min.x;/* rear bumper just behind the chute pivot (truck-local 15.4), clear of the forms */o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
+    o.scale.multiplyScalar(MIXP.h/sz.y);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);/* real size: ~12 ft tall */
+    o.position.x+=MIXP.rear-b.min.x;/* rear bumper just behind the old chute pivot, clear of the forms */
+    o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
     wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){MIXP.err=String(e);console.warn('mixer glb',e)}},undefined,e=>{MIXP.err=String(e&&e.message||e);console.warn('mixer glb',e)})}
-function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use}
+function mixPChuteTex(){if(MIXP.chM)return;const t=new THREE.TextureLoader().load('tex/chute-photo.webp');t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1.2,3);t.anisotropy=8;
+  MIXP.chM=new THREE.MeshStandardMaterial({map:t,roughness:.62,metalness:.55,side:THREE.DoubleSide})}
+function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use;
+  if(use){if(MIXP.drum){const q=mixPTick.q||(mixPTick.q=new THREE.Quaternion());MIXP.drum.quaternion.copy(MIXP.dq).multiply(q.setFromAxisAngle(new THREE.Vector3(1,0,0),-drumAng))}
+    // the pour chute hangs from this truck's own collector outlet
+    if(MIXP.piv){truck.updateMatrixWorld(true);MIXP.piv.updateWorldMatrix(true,false);const w=MIXP.piv.getWorldPosition(mixPTick.v||(mixPTick.v=new THREE.Vector3()));MIX_PIV.copy(truck.worldToLocal(w));if(!arrive)PIVOT.copy(truck.localToWorld(MIX_PIV.clone()))}
+    mixPChuteTex();chute.children.forEach(c=>{if(c.isMesh&&c.material!==MIXP.chM){c.userData.m0=c.userData.m0||c.material;c.material=MIXP.chM}})}
+  else{MIX_PIV.copy(MIXP.piv0);chute.children.forEach(c=>{if(c.isMesh&&c.userData.m0)c.material=c.userData.m0})}}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
   const W=SLAB_W+8,D=SLAB_D+8,x0=-W/2,z0=-D/2,S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,S,S);
   const poly=(P,col)=>{g.fillStyle=col;g.beginPath();P.forEach((p,i)=>{const u=(p[0]-x0)/W*S,v=(p[1]-z0)/D*S;i?g.lineTo(u,v):g.moveTo(u,v)});g.closePath();g.fill()};
-  poly(offsetPoly(Z,1.6),'#fff');if(zoneI)poly(offsetPoly(zoneI,-1.6),'#000');((BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut)||[]).forEach(r=>poly([[r[0],r[1]],[r[2],r[1]],[r[2],r[3]],[r[0],r[3]]],'#000'));
+  poly(offsetPoly(Z,1.6),'#fff');if(zoneI)poly(offsetPoly(zoneI,-1.6),'#000');{const km=(BKD.L&&BKD.L.paint&&BKD.L.paint.koPad)||0;((BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut)||[]).forEach(r=>poly([[r[0]-km,r[1]-km],[r[2]+km,r[1]-km],[r[2]+km,r[3]+km],[r[0]-km,r[3]+km]],'#000'))}
   const t=new THREE.CanvasTexture(cv);t.flipY=false;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;
   if(BKD.mask)BKD.mask.t.dispose();BKD.mask={Z,I:zoneI,t,r:new THREE.Vector4(x0,z0,W,D)};BKD.clips.forEach(e=>Object.values(e).forEach(c=>{const sh=c.userData.sh;if(sh)sh.uniforms.bkM.value=t}));return BKD.mask}
 function bkdClip(m,cutY){if(!m||m.userData.bkClip)return m;const ck=cutY==null?'':cutY.toFixed(2);let c=BKD.clips.get(m)&&BKD.clips.get(m)[ck];if(c)return c;c=m.clone();c.userData={bkClip:true,orig:m};const prev=m.onBeforeCompile,pk=m.customProgramCacheKey?m.customProgramCacheKey():'';
@@ -8494,7 +8517,7 @@ function bkdClip(m,cutY){if(!m||m.userData.bkClip)return m;const ck=cutY==null?'
   c.customProgramCacheKey=()=>pk+'|bkclip'+(cutY==null?'':'cut');const e=BKD.clips.get(m)||{};e[ck]=c;BKD.clips.set(m,e);return c}
 // full (dig-first) job: the 'before' photo shows the lawn, so undug ground isn't drawn in 3D; once a cell is dug below its starting height it appears
 function bkdTop(o){if(BKD.top.has(o))return BKD.top.get(o);const pa=o.geometry.attributes&&o.geometry.attributes.position;if(!pa||!pa.count)return null;let my=-1e9;for(let i=0;i<pa.count;i++)my=Math.max(my,pa.getY(i));o.updateMatrixWorld();const y=my+o.matrixWorld.elements[13]-.03;BKD.top.set(o,y);return y}
-function bkdLot(){if(!bkdMask())return;siteG.children.forEach(o=>{if(o.isMesh&&/^(ring|gravel)$/.test(o.userData.kind||'')){const m=o.material;o.material=bkdClip(m.userData&&m.userData.bkClip?m.userData.orig:m,null)}});const cut=!!(BKD.C&&BKD.C.imgPrep);
+function bkdLot(){if(!bkdMask())return;siteG.traverse(o=>{if(o.isMesh&&o.material&&/^(ring|gravel|form|stake|splat)$/.test(o.userData.kind||(o.parent&&o.parent.userData&&o.parent.userData.kind)||'')){const m=o.material;o.material=bkdClip(m.userData&&m.userData.bkClip?m.userData.orig:m,null)}});const cut=!!(BKD.C&&BKD.C.imgPrep);
   [lotGround,pitMesh].forEach(o=>{let m=o.material;if(o===lotGround&&m===BKD.shM)m=BKD.gmat||lawnM;if(m.userData&&m.userData.bkClip)m=m.userData.orig;const y=cut?bkdTop(o):null;if(cut&&y==null)return;o.material=bkdClip(m,y)})}
 // the yard, sky and far scenery stay hidden (their own code switches them back on, so this runs every frame)
 function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=>{if(o.isLight||o===BKD.quad||o===ground||o===POST.quad||o===siteG||o===slab||o===truck)return false;const b=new THREE.Box3().setFromObject(o);if(b.isEmpty())return false;
@@ -8509,6 +8532,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   if(ground.material!==BKD.shM){BKD.gmat=ground.material;ground.material=BKD.shM}
   try{bkdLot()}catch(e){console.warn('bkdLot',e)}
   try{mixPTick(true)}catch(e){}
+  {const ko=BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut&&BKD.L.paint.keepOut[0],km=(BKD.L&&BKD.L.paint&&BKD.L.paint.koPad)||0;if(ko)BKKO.value.set(ko[0]-km,ko[1]-km,ko[2]+km,ko[3]+km);else BKKO.value.set(1e9,1e9,1e9,1e9)}
   {const k=STAGES[stage]&&STAGES[stage].key,y=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(slab):null;BKSLAB.value=y==null?1e9:y;
    // invisible lid over the undug ground: writes depth only, so trench walls and anything below grade stay hidden until that cell is dug
    const ly=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(pitMesh):null;BKLID.value=ly==null?1e9:ly;

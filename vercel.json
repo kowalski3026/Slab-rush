@@ -51,6 +51,10 @@
     {
       "source": "/models/mixer-photo.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/588d830d-f041-41fc-bb24-ed1db449f8be.glb"
+    },
+    {
+      "source": "/tex/chute-photo.webp",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/a7d9f04d-ff46-496f-9e60-f0ec860d4715.webp"
     }
   ],
   "images": {
