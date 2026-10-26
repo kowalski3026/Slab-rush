@@ -8486,8 +8486,8 @@ function mixPSplit(o){let mesh=null;o.traverse(m=>{if(m.isMesh&&!mesh)mesh=m});i
   const gd=g.clone();gd.setIndex(drum);const A=new THREE.Vector3(.12,.04+.22*.12,0),dir=new THREE.Vector3(1,.22,0).normalize();
   const pv=new THREE.Group();pv.position.copy(A);pv.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),dir);MIXP.dq.copy(pv.quaternion);
   const dm=new THREE.Mesh(gd,mesh.material);dm.quaternion.copy(pv.quaternion).invert();dm.position.copy(A).negate().applyQuaternion(dm.quaternion);dm.castShadow=dm.receiveShadow=true;pv.add(dm);
-  mesh.parent.add(pv);pv.position.applyMatrix4(mesh.matrix);MIXP.drum=pv;
-  const op=new THREE.Object3D();op.position.set(.385,-.005,0).applyMatrix4(mesh.matrix);mesh.parent.add(op);MIXP.piv=op}
+  mesh.add(pv);MIXP.drum=pv;// children of the mesh, so they share its node transform (the compressed file carries a scale there)
+  const op=new THREE.Object3D();op.position.set(.385,-.005,0);mesh.add(op);MIXP.piv=op}
 function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new THREE.GLTFLoader().load(MIXP.url,g=>{try{const o=g.scene;try{mixPSplit(o)}catch(e){console.warn('mixer split',e)}o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;if(m.material)m.material.envMapIntensity=.9}});
     truck.updateMatrixWorld(true);const inv=truck.matrixWorld.clone().invert(),ref=new THREE.Box3().setFromObject(MX.root).applyMatrix4(inv);// code truck's footprint, truck-local
     const wrap=new THREE.Group();wrap.add(o);o.rotation.y=MIXP.rot;o.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(o);const sz=b.getSize(new THREE.Vector3());
