@@ -5255,7 +5255,7 @@ shadowAll(rakeG);rakeG.visible=false;scene.add(rakeG);
 const rakeMound=(()=>{const g=new THREE.CapsuleGeometry(.5,1,8,18);g.rotateZ(Math.PI/2);const P=g.attributes.position,v=new THREE.Vector3();
   for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i);const n=.11*Math.sin(v.x*11.1+v.y*7)*Math.cos(v.z*9.3+v.x*4)+.07*Math.sin(v.x*23+v.z*19)+.05*(Math.random()-.5);const l=Math.hypot(v.y,v.z)||1;P.setY(i,v.y+v.y/l*n);P.setZ(i,v.z+v.z/l*n)}
   g.computeVertexNormals();const L=new THREE.TextureLoader(),mp=L.load('tex/craw.jpg'),nm=L.load('tex/craw_n.jpg');mp.colorSpace=THREE.SRGBColorSpace;[mp,nm].forEach(t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,1)});
-  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:mp,normalMap:nm,normalScale:new THREE.Vector2(1.2,1.2),color:0x9b9993,roughness:.42,metalness:0}));m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m);return m})();
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:mp,normalMap:nm,normalScale:new THREE.Vector2(1.2,1.2),color:0x868c95,roughness:.42,metalness:0}));m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m);return m})();
 
 // ---- rubber boots and legs of the raker
 const workerG=new THREE.Group();
