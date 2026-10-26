@@ -8517,7 +8517,29 @@ scene.add(fun);fun.visible=false;CHF.fun=fun;
   [-1,1].forEach(sd=>{const c=new THREE.CatmullRomCurve3(Array.from({length:8},(_,j)=>{const t=j/7,e=t*t*(3-2*t);return new THREE.Vector3(sd*(CHF.R0+(CHF.r-CHF.R0)*e),CHF.R0+(CHF.r-CHF.R0)*e+CHF.h0+(CHF.h-CHF.h0)*e,t*CHF.L)}));
     const e=new THREE.Mesh(new THREE.TubeGeometry(c,16,.055,6),lip);e.castShadow=true;fl.add(e)});
   scene.add(fl);fl.visible=false;CHF.fl=fl}
-function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&chute.visible;
+/* v287: the trough is built from real sections (~4-5 ft each) instead of one stretched piece: pale rolled rails along both top edges,
+   and a fold-over clamp bracket at every joint (a strap under the trough, ears on both rails, a pin and a handle). */
+const CHS={g:null,secs:[],clamps:[],rail:null};
+function chsClamp(){const g=new THREE.Group(),st=CHS.rail,dk=CHS.dk;
+  const strap=new THREE.Mesh(new THREE.TorusGeometry(.61,.045,5,16,Math.PI).rotateZ(Math.PI).translate(0,.55,0),dk);strap.castShadow=true;g.add(strap);
+  const seam=new THREE.Mesh(new THREE.TorusGeometry(.565,.018,4,16,Math.PI).rotateZ(Math.PI).translate(0,.55,0),CHS.seamM);seam.position.z=.001;g.add(seam);
+  [-1,1].forEach(sd=>{const ear=new THREE.Mesh(new THREE.BoxGeometry(.12,.3,.26),dk);ear.position.set(sd*.83,.98,0);ear.castShadow=true;g.add(ear);
+    const up=new THREE.Mesh(new THREE.BoxGeometry(.07,.5,.09),dk);up.position.set(sd*.66,.75,0);up.rotation.z=sd*.25;g.add(up);
+    const pin=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.42,8).rotateX(Math.PI/2),st);pin.position.set(sd*.83,1.07,0);g.add(pin);
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.38,6),dk);h.position.set(sd*.97,1.18,-.1);h.rotation.set(-.5,0,sd*.45);g.add(h)});
+  CHS.g.add(g);return g}
+function chsSection(){const g=new THREE.Group(),tr=new THREE.Mesh(chute.children[0].geometry,MIXP.chM);tr.castShadow=tr.receiveShadow=true;g.add(tr);
+  [-1,1].forEach(sd=>{const r=new THREE.Mesh(CHS.railG,CHS.rail);r.position.set(sd*.8,1.07,0);r.castShadow=true;g.add(r)});CHS.g.add(g);return g}
+function chsPose(on,len){if(!CHS.g){CHS.g=new THREE.Group();scene.add(CHS.g);
+    CHS.rail=new THREE.MeshStandardMaterial({color:0xdcdcd4,roughness:.5,metalness:.35});CHS.dk=new THREE.MeshStandardMaterial({color:0x8e9295,roughness:.55,metalness:.6});
+    CHS.seamM=new THREE.MeshBasicMaterial({color:0x2a2a28});CHS.railG=new THREE.CylinderGeometry(.065,.065,1,8).rotateX(Math.PI/2).translate(0,0,.5)}
+  CHS.g.visible=on;if(!on)return;CHS.g.position.copy(chute.position);CHS.g.quaternion.copy(chute.quaternion);
+  const n=Math.max(1,Math.ceil(len/4.8)),seg=len/n;
+  while(CHS.secs.length<n)CHS.secs.push(chsSection());while(CHS.clamps.length<n)CHS.clamps.push(chsClamp());
+  CHS.secs.forEach((g,i)=>{g.visible=i<n;if(i<n){g.position.z=i*seg;g.scale.z=seg}});
+  CHS.clamps.forEach((c,i)=>{c.visible=i<n;if(i<n)c.position.z=i*seg});// a clamp where the flare meets the first section, and at each joint after
+  chute.children.forEach(c=>{if(c!==CHF.mud)c.visible=false});bands.forEach(b=>b.visible=false)}
+function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&chute.visible;if(!(on&&chute.visible))chsPose(false);
   // wet concrete riding down the trough and flare while it pours
   if(!CHF.mud){const m=new THREE.MeshStandardMaterial({map:sTex,color:0xb9b3a8,roughness:.42,metalness:0});const g=new THREE.PlaneGeometry(.8,1).rotateX(-Math.PI/2).translate(0,.13,.5);
     CHF.mud=new THREE.Mesh(g,m);chute.add(CHF.mud);const gf=new THREE.PlaneGeometry(1,CHF.L).rotateX(-Math.PI/2).translate(0,.16,CHF.L/2),pf=gf.attributes.position;
@@ -8529,7 +8551,7 @@ function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&c
   // the trough begins where the flare ends
   const k=Math.min(CHF.L,len*.5);chute.position.copy(PIVOT).addScaledVector(d,k);chute.scale.z=Math.max(.5,len-k);
   // funnel sits upright on the mouth, turning with the chute
-  CHF.fun.position.copy(PIVOT).addScaledVector(d,.55);CHF.fun.position.y+=CHF.R0*.35;CHF.fun.rotation.set(0,Math.atan2(d.x,d.z),0)}
+  CHF.fun.position.copy(PIVOT).addScaledVector(d,.55);CHF.fun.position.y+=CHF.R0*.35;CHF.fun.rotation.set(0,Math.atan2(d.x,d.z),0);chsPose(true,chute.scale.z)}
 function mixPChuteTex(){if(MIXP.chM)return;const t=new THREE.TextureLoader().load('tex/chute-photo.webp');t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1.2,3);t.anisotropy=8;
   MIXP.chM=new THREE.MeshStandardMaterial({map:t,roughness:.78,metalness:.3,envMapIntensity:.6,side:THREE.DoubleSide})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use;
@@ -8538,7 +8560,7 @@ function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP
     if(MIXP.piv){truck.updateMatrixWorld(true);MIXP.piv.updateWorldMatrix(true,false);const w=MIXP.piv.getWorldPosition(mixPTick.v||(mixPTick.v=new THREE.Vector3()));MIX_PIV.copy(truck.worldToLocal(w));if(!arrive)PIVOT.copy(truck.localToWorld(MIX_PIV.clone()))}
     mixPChuteTex();chute.children.forEach(c=>{if(c.isMesh&&c.material!==MIXP.chM){c.userData.m0=c.userData.m0||c.material;c.material=MIXP.chM}});
     bands.forEach(b=>{if(b.material!==MIXP.chM){b.userData.m0=b.userData.m0||b.material;b.material=MIXP.chM}});mixPChutePose(true)}
-  else{MIX_PIV.copy(MIXP.piv0);chute.children.forEach(c=>{if(c.isMesh&&c.userData.m0)c.material=c.userData.m0});bands.forEach(b=>{if(b.userData.m0)b.material=b.userData.m0});if(CHF.fun)CHF.fun.visible=CHF.fl.visible=false}}
+  else{MIX_PIV.copy(MIXP.piv0);chute.children.forEach(c=>{if(c.isMesh&&c.userData.m0)c.material=c.userData.m0});bands.forEach(b=>{if(b.userData.m0)b.material=b.userData.m0});if(CHF.fun)CHF.fun.visible=CHF.fl.visible=false;if(CHS.g){CHS.g.visible=false;chute.children.forEach(c=>{if(c!==CHF.mud)c.visible=true})}}}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
   const W=SLAB_W+8,D=SLAB_D+8,x0=-W/2,z0=-D/2,S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,S,S);
