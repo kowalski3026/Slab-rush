@@ -2175,7 +2175,7 @@ function updateSurface(){
   // bump: ripple where the paste is wet and untroweled, rock where unfloated, broom grooves, tooled edges and joints
   bpx.fillStyle='rgb(128,128,128)';bpx.fillRect(0,0,TW,TH);
   const rip=set<.5?1:Math.max(.25,1-(set-.5)*3);
-  maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.35)*rip,ripple);
+  maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
   maskDraw(bpx,i=>(1-Math.min(1,closed[i]))*.95,rough);
   bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
   if(!GPS.on)maskDraw(bpx,i=>band[i]?Math.min(1,edged[i])*.9:0,'rgb(132,132,132)');
@@ -2404,9 +2404,9 @@ function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
     for(let k=0;k<2;k++){POST.blur.uniforms.t.value=POST.a.texture;POST.blur.uniforms.d.value.set(1/POST.a.width*(k+1),0);pass(POST.blur,POST.b);
       POST.blur.uniforms.t.value=POST.b.texture;POST.blur.uniforms.d.value.set(0,1/POST.a.height*(k+1));pass(POST.blur,POST.a)}
     const f=POST.fin.uniforms;f.aoK.value=0;
-    POST.aoN=(POST.aoN||0)+1;const aoRe=FPSCAP||(POST.aoN&1)||!POST.aoHave||camera.position.distanceToSquared(POST.aoCam||camera.position)>.04||Math.abs(camera.quaternion.dot(POST.aoQ||camera.quaternion))<.99999;
+    POST.aoN=(POST.aoN||0)+1;const aoRe=FPSCAP||(POST.aoN&1)||!POST.aoHave||camera.position.distanceToSquared(POST.aoCam||camera.position)>.04||Math.abs(camera.quaternion.dot(POST.aoQ||camera.quaternion))<.99999||camera.zoom!==POST.aoZ||camera.fov!==POST.aoF;// v291: a lens zoom (painted sites) changes the picture too
     if(POST.aoOn&&POST.aoM&&!aoRe){f.ao.value=POST.ao.texture;f.aoK.value=window.AOK!=null?window.AOK:.75}
-    else if(POST.aoOn&&POST.aoM){try{(POST.aoCam||(POST.aoCam=new THREE.Vector3())).copy(camera.position);(POST.aoQ||(POST.aoQ=new THREE.Quaternion())).copy(camera.quaternion);POST.aoHave=1;const D=POST.main.depthTexture,A=POST.aoM.uniforms,B=POST.aoB.uniforms;A.dT.value=D;A.pInv.value.copy(camera.projectionMatrixInverse);A.p11.value=camera.projectionMatrix.elements[5];
+    else if(POST.aoOn&&POST.aoM){try{(POST.aoCam||(POST.aoCam=new THREE.Vector3())).copy(camera.position);(POST.aoQ||(POST.aoQ=new THREE.Quaternion())).copy(camera.quaternion);POST.aoHave=1;POST.aoZ=camera.zoom;POST.aoF=camera.fov;const D=POST.main.depthTexture,A=POST.aoM.uniforms,B=POST.aoB.uniforms;A.dT.value=D;A.pInv.value.copy(camera.projectionMatrixInverse);A.p11.value=camera.projectionMatrix.elements[5];
       A.k.value=weather&&weather.night?.7:1;pass(POST.aoM,POST.ao);B.dT.value=D;B.pInv.value.copy(camera.projectionMatrixInverse);
       B.t.value=POST.ao.texture;B.d.value.set(1/POST.ao.width,0);pass(POST.aoB,POST.ao2);B.t.value=POST.ao2.texture;B.d.value.set(0,1/POST.ao.height);pass(POST.aoB,POST.ao);
       f.ao.value=POST.ao.texture;f.aoK.value=window.AOK!=null?window.AOK:.75}catch(e){console.warn('ao off',e);POST.aoOn=false}}
@@ -4139,9 +4139,12 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float cream=clamp(C.b,0.,1.),lump=(1.-cream)*gRel*(1.-.7*gPh);
    // v288 photo concrete: real fresh-placed mud (stone, paste, shine) blending to floated cream as it's struck off and floated
    ${CPH.on?`if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec4 ck=texture2D(cPk,pr);float fl=texture2D(cPk,pf).g*2.,rw=ck.r*2.;
-    // once it's struck off the lumps are gone: halfway to cream, then floating finishes it
-    float cr2=max(cream,texture2D(gBD,uvG).a*.55);
-    diffuseColor.rgb*=mix(1.,mix(rw,fl,cr2),inK*gPh);vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*.75*(1.-cr2)*inK*gPh;diffuseColor.rgb*=1.-.16*(1.-cr2)*inK*gPh;}`:''}
+    // v291: three looks. Placed mud: lumps and stone. Struck off: flat but open and sandy (fine grain, little shine). Bull floated: closed,
+    // smooth creamy paste with only a faint mottle. The line between struck and floated reads clearly, like on a real pour.
+    float scr=texture2D(gBD,uvG).a,fg=texture2D(cPk,p*1.35+.11).r*2.;float rough=mix(rw,mix(1.,fg,1.25),scr);
+    float det=mix(rough,mix(1.,fl,.3),cream);diffuseColor.rgb*=mix(1.,det,inK*gPh);
+    vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*mix(.75,.22,scr)*(1.-cream)*inK*gPh;
+    diffuseColor.rgb*=1.-(.16-.08*scr)*(1.-cream)*inK*gPh;gRgh+=.12*(1.-cream)*scr*inK*gPh;}`:''}
    // fresh mud lumps: soft blobs at 4 in and 1.5 in, gone once it's struck and floated
    vec2 q=p*2.9;float n1=gVN(q),n1x=gVN(q+vec2(.05,0.)),n1z=gVN(q+vec2(0.,.05));vec2 q2=p*8.;float n2=gVN(q2),n2x=gVN(q2+vec2(.05,0.)),n2z=gVN(q2+vec2(0.,.05));
    float aaL=clamp(1.6-fwidth(p.x)*18.,0.,1.);
