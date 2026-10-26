@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v300"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v301"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v301: color hardener throws dust: grains fall from hand height and soft billows of the hardener color puff up where they land, roll out, drift downwind and settle. -->
 <!-- v300: raking: a real come-along (aluminum blade, toothed hook, braced socket, 6.5 ft handle with grip, crud and splatter); the load rides as a lumpy roll of mud in front of the blade; the head trails your finger more when loaded, tips back when you pull and leans in when you push; an overloaded blade spills around its ends; rake lines a bit stronger. -->
 <!-- v299: rain splash rings stop when the rain stops (they kept popping while the ground dried) and are cleared for the result photos. -->
 <!-- v298: painted sites: result photos are drone shots of the real-looking yard with your concrete in it; 1 year later uses the plain-lawn photo so grass meets the slab. -->
@@ -7705,8 +7706,36 @@ $('rPov').addEventListener('click',e=>{e.stopPropagation();buzz(8);rideCycle()})
  window.addEventListener('keyup',e=>{const m=KM[(e.key||'').toLowerCase()];if(m)RIDE.key[m]=false},true);
  window.addEventListener('blur',()=>{for(const q in RIDE.key)RIDE.key[q]=false})}
 
+/* v301: color hardener dust. Each throw sends grains falling from hand height; where they land, soft billows of the hardener's
+   color puff up, roll outward, drift downwind and settle. Soft round sprites drawn in one Points call (max 420). */
+const CDUST={N:420,pts:null,pos:null,vel:null,age:null,life:null,siz:null,col:null,alp:null,i:0,c:new THREE.Color()};
+{const N=CDUST.N,g=new THREE.BufferGeometry();CDUST.pos=new Float32Array(N*3);CDUST.vel=new Float32Array(N*3);CDUST.age=new Float32Array(N).fill(9);CDUST.life=new Float32Array(N).fill(1);
+ CDUST.siz=new Float32Array(N);CDUST.col=new Float32Array(N*3);CDUST.alp=new Float32Array(N);CDUST.kind=new Uint8Array(N);
+ g.setAttribute('position',new THREE.BufferAttribute(CDUST.pos,3));g.setAttribute('size',new THREE.BufferAttribute(CDUST.siz,1));g.setAttribute('color',new THREE.BufferAttribute(CDUST.col,3));g.setAttribute('alpha',new THREE.BufferAttribute(CDUST.alp,1));
+ const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uS:{value:300}},vertexColors:true,
+  vertexShader:'attribute float size;attribute float alpha;varying vec3 vC;varying float vA;varying float vS;void main(){vC=color;vA=alpha;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=clamp(size*uS/-mv.z,1.,180.);vS=size;}'.replace('void main','uniform float uS;void main'),
+  fragmentShader:'varying vec3 vC;varying float vA;varying float vS;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}void main(){vec2 q=gl_PointCoord-.5;float r=length(q)*2.;if(r>1.)discard;float k=vS>.25?(.55+.45*n(q*5.+vS*37.))*(1.-smoothstep(.25,1.,r)):1.-smoothstep(.5,1.,r);float a=vA*k;if(a<.01)discard;gl_FragColor=vec4(vC*(.92+.16*(1.-r)),a);}'});
+ CDUST.pts=new THREE.Points(g,m);CDUST.pts.frustumCulled=false;CDUST.pts.renderOrder=6;scene.add(CDUST.pts)}
+function cdustColor(){try{const sc=STAMP_COLORS.find(c=>c.id===stampSel.color)||STAMP_COLORS[0];CDUST.c.setStyle(sc.c)}catch(e){CDUST.c.setRGB(.8,.7,.55)}return CDUST.c}
+function cdustEmit(X,Y,Z,kind,c){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.kind[i]=kind;D.age[i]=0;
+  if(kind===0){// a grain falling from the hand
+    D.pos[i*3]=X+(Math.random()-.5)*.8;D.pos[i*3+1]=Y+2.6+Math.random()*.6;D.pos[i*3+2]=Z+(Math.random()-.5)*.8;D.vel[i*3]=(Math.random()-.5)*1.2;D.vel[i*3+1]=-2-Math.random()*2;D.vel[i*3+2]=(Math.random()-.5)*1.2;D.life[i]=.45+Math.random()*.2;D.siz[i]=.06+Math.random()*.05}
+  else{// a billow rolling out from where it landed
+    const a=Math.random()*6.283,sp=.6+Math.random()*1.4;D.pos[i*3]=X+Math.cos(a)*.4;D.pos[i*3+1]=Y+.1+Math.random()*.25;D.pos[i*3+2]=Z+Math.sin(a)*.4;
+    D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=.35+Math.random()*.7;D.vel[i*3+2]=Math.sin(a)*sp;D.life[i]=1.8+Math.random()*1.6;D.siz[i]=.5+Math.random()*.5}
+  const v=.85+Math.random()*.25;D.col[i*3]=Math.min(1,c.r*v);D.col[i*3+1]=Math.min(1,c.g*v);D.col[i*3+2]=Math.min(1,c.b*v)}
+function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),now=performance.now();
+  for(let k=0;k<5;k++)cdustEmit(X,Y,Z,0,c);
+  if(now-(CDUST.t||0)>45){CDUST.t=now;const n=4+(Math.random()*3|0);for(let k=0;k<n;k++)cdustEmit(X+(Math.random()-.5)*1.4,Y,Z+(Math.random()-.5)*1.4,1,c)}}
+function cdustTick(dt){const D=CDUST;let live=0;const w=(TREE&&TREE.wind?TREE.wind.value:0)*.6+.35;
+  for(let i=0;i<D.N;i++){if(D.age[i]>=D.life[i]){if(D.alp[i]){D.alp[i]=0;live++}continue}live++;D.age[i]+=dt;const t=D.age[i]/D.life[i],j=i*3;
+    if(D.kind[i]===0){D.vel[j+1]-=9*dt;D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.alp[i]=.9*(1-t*t)}
+    else{const dr=Math.exp(-dt*1.8);D.vel[j]=D.vel[j]*dr+w*dt*1.2;D.vel[j+2]*=dr;D.vel[j+1]=D.vel[j+1]*Math.exp(-dt*1.2)-.05*dt;
+      D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.siz[i]+=dt*(.9+.5*(1-t));D.alp[i]=.42*Math.min(1,t*7)*Math.pow(1-t,1.6)}}
+  D.pts.visible=live>0;if(!live)return;const g=D.pts.geometry;g.attributes.position.needsUpdate=g.attributes.size.needsUpdate=g.attributes.alpha.needsUpdate=g.attributes.color.needsUpdate=true;
+  D.pts.material.uniforms.uS.value=renderer?renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360))*camera.zoom:300}
 /* ---------- color hardener ---------- */
-function colorAt(x,y){
+function colorAt(x,y){try{cdustThrow(x,y)}catch(e){}
   const R=3.2/LS,b=bleed(set);let work=0;
   for(let cy=Math.max(RY0,Math.floor(y-R));cy<=Math.min(RY1-1,Math.ceil(y+R));cy++)
   for(let cx=Math.max(RX0,Math.floor(x-R));cx<=Math.min(RX1-1,Math.ceil(x+R));cx++){
@@ -7887,7 +7916,7 @@ function updateTools(dt,t){
       dummy.updateMatrix();mound.setMatrixAt(r,dummy.matrix)}}
     mound.instanceMatrix.needsUpdate=true;
   }
-  updateRake(dt);updateMats(dt);try{updateXT(dt)}catch(e){}
+  updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{updateXT(dt)}catch(e){}
   blob.visible=false;
   if(!ptr.down){if(k==='joint'&&jArmed&&jArmed.o===jMode){const run=jRun(jMode,jArmed.p,jArmed.at!=null?jArmed.at:(jMode==='x'?(RY0+RY1)/2:(RX0+RX1)/2));if(run){guide.visible=true;guide.material.opacity=.95;
       if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false}}return}
@@ -11600,7 +11629,7 @@ function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){h
    The 1-year-later shot swaps in that side's 'before' photo (plain lawn), so grass meets the aged slab. */
 function snapPaint(pre){const c=camera,yr=!!BKD.yr;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
   const tk=[truck,chute,lumps,splash].concat(typeof CHF!=='undefined'?[CHF.fun,CHF.fl]:[]).concat(typeof CHS!=='undefined'&&CHS.g?[CHS.g]:[]).filter(Boolean).map(o=>[o,o.visible]);if(yr)tk.forEach(([o])=>o.visible=false);
   const yt=yr&&BKD.yrTex&&BKD.yrSrc!==(BKD.load&&BKD.load.src)?BKD.yrTex:null,qm=BKD.quad.material.map,cm=BKD.cop&&BKD.cop.material.map;
   if(yt){BKD.quad.material.map=yt;if(BKD.cop)BKD.cop.material.map=yt}
@@ -11617,7 +11646,7 @@ function snapPhoto0(pre){if(!renderer)return null;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const p=camera.position.clone(),q=camera.quaternion.clone(),portrait=cssW<cssH,th=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const hv=(portrait?RW:RD)/2+2.5,hh=(portrait?RD:RW)/2+2.5,d=Math.max(hv/th,hh/(th*asp));
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
   camera.up.set(portrait?1:0,0,portrait?0:-1);camera.position.set(RCX,d+ELV(),RCZ);camera.lookAt(RCX,ELV(),RCZ);
   drawFrame();const url=cv.toDataURL('image/jpeg',.86);
   camera.up.set(0,1,0);camera.position.copy(p);camera.quaternion.copy(q);vis.forEach(([o,v])=>o.visible=v);return url}catch(e){return null}}
