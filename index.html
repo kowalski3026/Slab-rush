@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v294"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v295"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v295: Pool Deck has 4 photo sides: twist two fingers to walk round the yard; the backdrop cuts to the nearest drone view (all made from one 3D layout so the pad lines up). -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
 <!-- v255: tree files retry up to 3 times (1.5/3/4.5 s) instead of giving up on one failed fetch; if they still fail, the next job start tries again. -->
@@ -1342,7 +1343,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2]},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -8512,9 +8513,22 @@ function enterLowQ(){if(!renderer)return;lowQ=true;renderer.setPixelRatio(1);sun
    narrow the lens (camera.zoom), so the painting always lines up. The ground becomes a shadow catcher so 3D tools still cast onto the painting. */
 const BKD={on:false,L:null,tex:null,quad:null,P:new THREE.Vector3(),Q:new THREE.Quaternion(),PV:0,PH:0,hid:[],gmat:null,shM:null,load:null,
   v:new THREE.Vector3(),f:new THREE.Vector3(),o:new THREE.PerspectiveCamera(),Qi:new THREE.Quaternion(),clips:new Map(),mask:null,C:null,top:new Map()};// a camera so lookAt aims -Z, like the real one
-function bkdLoad(L){const C=L&&L.paint;if(!C)return;const src=isPrep()&&C.imgPrep?C.imgPrep:C.img;if(BKD.load&&BKD.load.L===L&&BKD.load.src===src)return;BKD.load={L,src,ok:false};// a full job (dig first) uses the 'before' painting: lawn where the pad goes
-  new THREE.TextureLoader().load(src,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;
-    if(BKD.load&&BKD.load.L===L&&BKD.load.src===src){if(BKD.tex&&BKD.tex!==t)BKD.tex.dispose();BKD.tex=t;BKD.load.ok=true;BKD.L=null}},undefined,()=>{console.warn('paint: could not load',src)})}
+/* v295: a painted site can have several photo views (paint.views), each shot from a drone spot 90 degrees further round the pad. Turning the
+   camera (two-finger twist) snaps the backdrop to the nearest view with a quick cut; the 3D work stays put because every photo was made from the
+   same 3D layout of the yard. Only the current view (and the one being loaded) is kept on the GPU. */
+function bkdC(L){L=L||BKD.L||LV;const C=L&&L.paint;if(!C||!C.views)return C;const k=BKD.vi|0;if(C._vc&&C._vk===k)return C._vc;C._vk=k;return C._vc=Object.assign({},C,C.views[k]||{})}
+function bkdTex(src,cb){const c=BKD.cache||(BKD.cache={});let e=c[src];if(e&&e.t){if(cb)cb(e.t);return}if(e){if(cb)e.cb.push(cb);return}
+  e=c[src]={t:null,cb:cb?[cb]:[]};new THREE.TextureLoader().load(src,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;
+    e.t=t;const f=e.cb;e.cb=[];f.forEach(g=>g(t))},undefined,()=>{console.warn('paint: could not load',src);delete c[src]})}
+function bkdDrop(t){const c=BKD.cache||{};for(const k in c)if(c[k].t===t){delete c[k];t.dispose()}}
+function bkdLoad(L){const C=L&&L.paint;if(!C)return;if(!BKD.load||BKD.load.L!==L){BKD.vi=0;BKD.want=null}const V=bkdC(L),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;if(BKD.load&&BKD.load.L===L&&BKD.load.src===src)return;BKD.load={L,src,ok:false};// a full job (dig first) uses the 'before' painting: lawn where the pad goes
+  bkdTex(src,t=>{if(BKD.load&&BKD.load.L===L&&BKD.load.src===src){const old=BKD.tex;BKD.tex=t;BKD.load.ok=true;BKD.L=null;if(old&&old!==t)bkdDrop(old)}})}
+function bkdFade(){let d=BKD.fd;if(!d){d=BKD.fd=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#0b0a08;opacity:0;pointer-events:none;z-index:0';cv.parentNode.insertBefore(d,cv.nextSibling)}
+  d.style.transition='none';d.style.opacity='.9';void d.offsetWidth;d.style.transition='opacity .38s ease-out';requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.opacity='0'}))}
+function bkdViewTick(){const C=LV&&LV.paint;if(!C||!C.views||!BKD.load||BKD.load.L!==LV)return;const n=C.views.length,a=-PAN.yaw/(Math.PI/2);let k=Math.round(a);
+  if(Math.abs(a-k)>.4)return;k=((k%n)+n)%n;if(k===BKD.vi){BKD.want=null;return}if(BKD.want===k)return;
+  const V=Object.assign({},C,C.views[k]),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;BKD.want=k;
+  bkdTex(src,t=>{if(BKD.want!==k||!BKD.load||BKD.load.L!==LV)return;bkdFade();const old=BKD.tex;BKD.vi=k;BKD.want=null;BKD.load={L:LV,src,ok:true};BKD.tex=t;BKD.L=null;if(old&&old!==t)bkdDrop(old)})}
 function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
   BKD.PV=C.fov*Math.PI/360;BKD.PH=Math.atan(Math.tan(BKD.PV)*C.asp);
   const D=300,h=2*D*Math.tan(BKD.PV),w=h*C.asp;
@@ -8524,7 +8538,7 @@ function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fr
 /* v290: the concrete runs right up to the pool. The coping is a thin 3D strip (keep-out rect, from its edge to ~1.2 ft in) textured with the
    photo itself through the painting's camera: it lines up with the painted stone at any zoom, wet mud stops against it, and the chute and
    tools still pass in front of it. */
-function bkdCoping(){const C=BKD.L&&BKD.L.paint;if(!C||!C.keepOut||!BKD.tex){if(BKD.cop)BKD.cop.visible=false;return}
+function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(BKD.cop)BKD.cop.visible=false;return}
   if(!BKD.cop||BKD.cop.userData.L!==BKD.L||BKD.cop.material.map!==BKD.tex){if(BKD.cop){scene.remove(BKD.cop);BKD.cop.geometry.dispose();BKD.cop.material.dispose()}
     const cam=BKD.o;cam.fov=C.fov;cam.aspect=C.asp;cam.updateProjectionMatrix();cam.updateMatrixWorld(true);const gs=[];
     C.keepOut.forEach(r=>{const o=C.copOut||0,k=C.copIn||1.2,sh=new THREE.Shape([[r[0]-o,r[1]-o],[r[2]+o,r[1]-o],[r[2]+o,r[3]+o],[r[0]-o,r[3]+o]].map(q=>new THREE.Vector2(q[0],q[1])));
@@ -8535,7 +8549,7 @@ function bkdCoping(){const C=BKD.L&&BKD.L.paint;if(!C||!C.keepOut||!BKD.tex){if(
     const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
     m.renderOrder=3;m.raycast=()=>{};m.userData.L=BKD.L;scene.add(m);BKD.cop=m}
   BKD.cop.visible=true}
-function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);camera.layers.enable(4);
+function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Twist two fingers to walk round the yard — there are '+L.paint.views.length+' sides to see.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
 function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
@@ -8678,7 +8692,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
        sh.fragmentShader='varying float vBkS;\nuniform float bkSY;\n'+sh.fragmentShader.replace(/void main\(\)\s*\{/,'void main() {\nif(vBkS<bkSY)discard;')};m.customProgramCacheKey=()=>'bklid';
      BKD.lid=new THREE.Mesh(pitMesh.geometry,m);BKD.lid.renderOrder=-900;BKD.lid.matrixAutoUpdate=false;BKD.lid.frustumCulled=false;BKD.lid.raycast=()=>{};scene.add(BKD.lid)}
    const L=BKD.lid;L.visible=ly!=null&&pitMesh.visible;if(L.visible){L.geometry=pitMesh.geometry;pitMesh.updateMatrixWorld();L.matrix.copy(pitMesh.matrixWorld);L.matrixWorld.copy(pitMesh.matrixWorld)}}}
-function bkdTick(){const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden);
+function bkdTick(){try{bkdViewTick()}catch(e){}const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden);
   if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
   if(!BKD.on)return;bkdHideTick();
   // where the game wanted to look this frame, and how much of the ground it wanted to see there
