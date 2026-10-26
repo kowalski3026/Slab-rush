@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v308"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v309"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v309: Worn photo-real pump truck (game boom, turret, outriggers and hopper ride on the model) and slipform (game mould stays to shape the curb). -->
 <!-- v308: Worn, photo-real excavator: tracks, cab, engine and counterweight from a 3D model of a beat-up 8-ton machine; the boom, stick and bucket get worn, muddy paint. Cab view keeps the built cab. -->
 <!-- v307: Truck placement uses the job being started, not the last one played. -->
 <!-- v306: New hot tub photo with the tub sitting 6 ft off the pad. -->
@@ -5094,7 +5095,7 @@ const pRedM=new THREE.MeshStandardMaterial({color:new THREE.Color(0xc8261c),map:
 const PUMP_S=2.8,PUMPM=buildPump(THREE,{textures:true,kmark:KMARK,fontDisplay:'"Saira Stencil One",Impact,sans-serif',fontCond:'"Saira Condensed","Arial Narrow",sans-serif'});
 PUMPM.root.scale.setScalar(PUMP_S);PUMPM.root.position.set(27.4-PUMPM.TX*PUMP_S,0,1.2);pumpG.add(PUMPM.root);
 PUMPM.setLegs(1);PUMPM.hose.visible=false;PUMPM.root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-{pumpG.updateMatrixWorld(true);const stat=[];PUMPM.root.traverse(o=>{if(!o.isMesh)return;let p=o.parent;while(p&&p!==PUMPM.root){if(p===PUMPM.turret||p===PUMPM.hopper)return;p=p.parent}stat.push(o)});
+{pumpG.updateMatrixWorld(true);const stat=[],lp=new Set(PUMPM.legs.map(l=>l.piv));PUMPM.root.traverse(o=>{if(!o.isMesh)return;let p=o.parent;while(p&&p!==PUMPM.root){if(p===PUMPM.turret||p===PUMPM.hopper||lp.has(p))return;p=p.parent}stat.push(o)});
  try{mergeInto(PUMPM.root,stat);[PUMPM.turret,...PUMPM.secs].forEach(g=>mergeInto(g,g.children.filter(o=>o.isMesh&&!o.children.length)))}catch(e){console.warn('pump merge',e)}}
 {const redo=()=>{try{PUMPM.repaint()}catch(e){}};KMARK.addEventListener('load',redo);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(redo)}
 // boom solver works in feet in the boom plane, origin at the main pivot
@@ -5115,7 +5116,21 @@ function boomIK(D,H,ymin){const n=PL.length;if(!pJ){pJ=[[0,0]];let a=1.25;for(le
   // first section always climbs out of the turret
   return pJ}
 let pYaw=null;
-function pumpPose(tx,ty,tz,t){const ry=pumpG.rotation.y,c=Math.cos(ry),s=Math.sin(ry);
+/* v309: worn photo-real pump truck. Cab, chassis and wheels are a Higgsfield image-to-3D model with its folded boom and turret cut off
+   offline; the game's own turret, boom, outriggers and hopper still do the work on top of it. */
+const PMP={url:'models/pump-photo.glb',tried:false,w:null,on:false,proc:[]};
+function pmpLoad(){if(PMP.tried||!THREE.GLTFLoader)return;PMP.tried=true;new THREE.GLTFLoader().load(PMP.url,g=>{try{let mh=null;
+    g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;const m=o.material;if(m){m.envMapIntensity=.8;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.FrontSide;m.needsUpdate=true}if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals();mh=o});
+    if(!mh)throw new Error('no mesh');mh.geometry.computeBoundingBox();const b=mh.geometry.boundingBox;
+    const k=11.5/(b.max.x-b.min.x),cx=(b.max.x+b.min.x)/2,cz=(b.max.z+b.min.z)/2,yb=b.min.y;// pump-local metres: bumper to bumper -5.6..5.9
+    const w=new THREE.Group();w.rotation.y=Math.PI;w.scale.setScalar(k);w.position.x=.15;mh.position.set(-cx,-yb,-cz);w.add(mh);w.visible=false;w.userData.live=true;
+    const keep=new Set([PUMPM.turret,PUMPM.hopper,PUMPM.hose,...PUMPM.legs.map(l=>l.piv)]);PMP.proc=PUMPM.root.children.filter(o=>!keep.has(o));
+    PUMPM.root.add(w);PMP.w=w;
+    // the model's deck sits higher than the built one: lift the turret (and the boom solver's pivot) onto it
+    const deck=(.07-yb)*k;PMP.dy=Math.max(0,deck-PUMPM.RING_Y);PMP.ty0=PUMPM.turret.position.y;PMP.pt0=P_T[1];PMP.on=false}catch(e){PMP.err=String(e);console.warn('pump glb',e)}},undefined,e=>{PMP.err=String(e&&e.message||e);console.warn('pump glb',e)})}
+function pmpTick(){if(!pumpG.visible)return;pmpLoad();if(!PMP.w||PMP.on)return;PMP.on=true;PMP.w.visible=true;PMP.proc.forEach(o=>o.visible=false);
+  PUMPM.turret.position.y=PMP.ty0+PMP.dy;P_T[1]=PMP.pt0+PMP.dy*PUMP_S}
+function pumpPose(tx,ty,tz,t){try{pmpTick()}catch(e){}const ry=pumpG.rotation.y,c=Math.cos(ry),s=Math.sin(ry);
   const Tx=pumpG.position.x+P_T[0]*c+P_T[2]*s,Tz=pumpG.position.z-P_T[0]*s+P_T[2]*c,Ty=pumpG.position.y+P_T[1];
   const dx=tx-Tx,dz=tz-Tz,D=Math.max(3,Math.hypot(dx,dz))+P_BACK,want=Math.atan2(dx,dz);
   pYaw=pYaw==null?want:lerpAng(pYaw,want,.25);const yaw=pYaw;
@@ -10856,7 +10871,22 @@ const SLK=(()=>{const op=slipG.userData.op;if(op)slipG.remove(op);slipG.traverse
  slipG.userData={fill:{position:{y:0}},belt:{offset:{y:0}},mud:{visible:false},cvLow,op,hopTop};
  try{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>K.redraw())}catch(e){}
  return{K,FT,cvLow,hopTop}})();
-function slipKTick(dt,feeding){const K=SLK.K,run=sl.v>.1;K.state.beltOn=feeding||run;K.state.trimOn=K.state.vibOn=run;K.state.fill=Math.max(.05,sl.hop);K.setTravel(sl.s/SLK.FT);K.tick(dt,performance.now()/1000);
+/* v309: worn photo-real slipform body (Higgsfield image-to-3D). It replaces the built tracks, chassis and conveyor; the built mould stays,
+   since that's what shapes the curb. The truck's stream now lands in the model's conveyor hopper. */
+const SLP={url:'models/slipform-photo.glb',tried:false,w:null,on:false,proc:[],cv0:null};
+function slpLoad(){if(SLP.tried||!THREE.GLTFLoader)return;SLP.tried=true;new THREE.GLTFLoader().load(SLP.url,g=>{try{let mh=null;
+    g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;const m=o.material;if(m){m.envMapIntensity=.8;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.FrontSide;m.needsUpdate=true}if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals();mh=o});
+    if(!mh)throw new Error('no mesh');const K=SLK.K,R=K.root;R.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(R.matrixWorld).invert(),bb=new THREE.Box3(),tmp=new THREE.Box3(),M=new THREE.Matrix4();
+    const skip=new Set([K.mould]);R.traverse(o=>{if(!o.isMesh||!o.geometry)return;let p=o;while(p){if(skip.has(p))return;p=p.parent}if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();tmp.copy(o.geometry.boundingBox).applyMatrix4(M.multiplyMatrices(inv,o.matrixWorld));bb.union(tmp)});
+    mh.geometry.computeBoundingBox();const b=mh.geometry.boundingBox,k=(bb.max.x-bb.min.x)/(b.max.x-b.min.x);
+    const w=new THREE.Group();w.rotation.y=Math.PI;w.scale.setScalar(k);mh.position.set(-(b.max.x+b.min.x)/2,-b.min.y,-(b.max.z+b.min.z)/2);w.position.set((bb.max.x+bb.min.x)/2,bb.min.y,(bb.max.z+bb.min.z)/2);w.add(mh);w.visible=false;w.userData.live=true;
+    // hide everything built except the mould
+    SLP.proc=[];R.children.forEach(o=>{if(o===K.chassis){o.children.forEach(c=>{if(c!==K.mould)SLP.proc.push(c)})}else SLP.proc.push(o)});
+    R.add(w);SLP.w=w;SLP.cv0=slipG.userData.cvLow.clone();
+    // the truck pours into the hopper at the top of the model's conveyor (its far end)
+    w.updateMatrixWorld(true);SLP.cv=slipG.worldToLocal(mh.localToWorld(new THREE.Vector3(b.min.x+.03,b.max.y-.11,(b.max.z+b.min.z)/2)));SLP.on=false}catch(e){SLP.err=String(e);console.warn('slipform glb',e)}},undefined,e=>{SLP.err=String(e&&e.message||e);console.warn('slipform glb',e)})}
+function slpTick(){slpLoad();if(!SLP.w||SLP.on)return;SLP.on=true;SLP.w.visible=true;SLP.proc.forEach(o=>o.visible=false);slipG.userData.cvLow.copy(SLP.cv);const op=slipG.userData.op;if(op)op.visible=false}
+function slipKTick(dt,feeding){try{slpTick()}catch(e){}const K=SLK.K,run=sl.v>.1;K.state.beltOn=feeding||run;K.state.trimOn=K.state.vibOn=run;K.state.fill=Math.max(.05,sl.hop);K.setTravel(sl.s/SLK.FT);K.tick(dt,performance.now()/1000);
   const b=K.beacon;if(b)b.material.emissiveIntensity=run?(Math.sin(performance.now()*.009)>0?2.2:.25):.5}
 // a finisher walking behind with a broom, and the stream from the truck into the conveyor
 const slipFin=makeWorker(0xf26a1b,0xffffff);slipFin.userData.armL.rotation.x=-1;slipFin.userData.armR.rotation.x=-1;
