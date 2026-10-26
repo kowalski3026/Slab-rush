@@ -7727,10 +7727,10 @@ function cdustEmit(X,Y,Z,kind,c){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.kind[i]=kin
 function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),now=performance.now();
   for(let k=0;k<3;k++)cdustEmit(X,Y,Z,0,c);
   const n=2+(Math.random()*2|0);for(let k=0;k<n;k++)cdustEmit(X+(Math.random()-.5)*1.4,Y,Z+(Math.random()-.5)*1.4,1,c)}// billows scale with how far you sweep
-function cdustTick(dt){const D=CDUST;let live=0;const w=(TREE&&TREE.wind?TREE.wind.value:0)*.6+.35;
+function cdustTick(dt){const D=CDUST;let live=0;const w=.3;// gentle drift (TREE.wind is a sway clock, not a strength)
   for(let i=0;i<D.N;i++){if(D.age[i]>=D.life[i]){if(D.alp[i]){D.alp[i]=0;live++}continue}live++;D.age[i]+=dt;const t=D.age[i]/D.life[i],j=i*3;
     if(D.kind[i]===0){D.vel[j+1]-=9*dt;D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.alp[i]=.9*(1-t*t)}
-    else{const dr=Math.exp(-dt*1.8);D.vel[j]=D.vel[j]*dr+w*dt*1.2;D.vel[j+2]*=dr;D.vel[j+1]=D.vel[j+1]*Math.exp(-dt*1.2)-.05*dt;
+    else{const dr=Math.exp(-dt*1.8);D.vel[j]=D.vel[j]*dr+w*(1-dr);D.vel[j+2]*=dr;D.vel[j+1]=D.vel[j+1]*Math.exp(-dt*1.2)-.05*dt;
       D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.siz[i]+=dt*(1.5+1.2*(1-t));D.alp[i]=.6*Math.min(1,t*8)*Math.pow(1-t,1.4)}}
   D.pts.visible=live>0;if(!live)return;const g=D.pts.geometry;g.attributes.position.needsUpdate=g.attributes.size.needsUpdate=g.attributes.alpha.needsUpdate=g.attributes.color.needsUpdate=true;
   D.pts.material.uniforms.uS.value=renderer?renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360))*camera.zoom:300}
