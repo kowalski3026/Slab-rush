@@ -10946,7 +10946,7 @@ const EXP={url:'models/excavator-photo.glb',tried:false,wh:null,wu:null,on:false
    for(let i=0;i<70;i++){const x=Math.random()*w,y=Math.random()*h,r=3+Math.random()*12;g.fillStyle=`rgba(140,132,120,${.25+Math.random()*.3})`;g.beginPath();g.arc(x,y,r,0,6.28);g.fill()}},.35,.35);
   exYel.map=t;exYel.roughness=.72;exYel.needsUpdate=true}
 function exPLoad(){if(EXP.tried||!THREE.GLTFLoader)return;EXP.tried=true;new THREE.GLTFLoader().load(EXP.url,g=>{try{let mu=null,mh=null;
-    g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;const m=o.material;if(m){m.envMapIntensity=.8;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.FrontSide;m.needsUpdate=true}if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals()if(/part1/.test(o.name))mu=o;else mh=o});
+    g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;const m=o.material;if(m){m.envMapIntensity=.8;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.FrontSide;m.needsUpdate=true}if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals();if(/part1/.test(o.name))mu=o;else mh=o});
     if(!mu||!mh)throw new Error('parts missing');
     // the two parts share one vertex list, so measure the tracks from their own triangles
     const P=mu.geometry.attributes.position,I=mu.geometry.index,lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];for(let i=0;i<I.count;i++){const v=I.getX(i),x=P.getX(v),y=P.getY(v),z=P.getZ(v);if(x<lo[0])lo[0]=x;if(x>hi[0])hi[0]=x;if(y<lo[1])lo[1]=y;if(z<lo[2])lo[2]=z;if(z>hi[2])hi[2]=z}
