@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v298"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v299"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v299: rain splash rings stop when the rain stops (they kept popping while the ground dried) and are cleared for the result photos. -->
 <!-- v298: painted sites: result photos are drone shots of the real-looking yard with your concrete in it; 1 year later uses the plain-lawn photo so grass meets the slab. -->
 <!-- v297: 1-year-later photo: lawn grows right up to the slab on painted sites too (the trench ring and soil no longer come back for the shot). -->
 <!-- v296: painted sites: zoomed out / turned no longer cuts the 3D pad away (near plane); pour-only uses the photo's packed stone (3D trench ring and gravel border hidden); turn arrows + a short twist step one side. -->
@@ -5506,7 +5507,7 @@ function reset(){setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()
   joints=[];curJ=null;jDrag=null;jArmed=null;set=0;chalk=[];stowChute=false;stage=0;acc=STAGES.map(()=>({w:0,q:0}));boardX=-2;lastCol=null;flags={};placed=0;wasted=0;placedAtLeave=0;pouring=false;
   [bctx,brx,tcx,trx,fcx,scx,stb,stx].forEach(c=>c.clearRect(0,0,TW,TH));clearBlankets();stc.fillStyle='#fff';stc.fillRect(0,0,TW,TH);
   stampHits.fill(0);stampQ.fill(0);stampDrag=new Set();mats.forEach(o=>{o.t=-1;o.applied=true;o.m.visible=false});
-  rk.used=false;rk.load=0;rk.lpx=rk.lpz=1e9;expo.fill(0);tubeReset();prepReset();if(typeof planEvent==='function'&&ev){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;$('evBtn').hidden=true}setJMode('x');setPourTool('chute',true);
+  rk.used=false;rk.load=0;rk.lpx=rk.lpz=1e9;expo.fill(0);tubeReset();prepReset();if(typeof planEvent==='function'&&ev){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true}setJMode('x');setPourTool('chute',true);
   truck.visible=chute.visible=lumps.visible=splash.visible=true;bands.forEach(b=>b.visible=true);try{spatClear()}catch(e){}
   tip.set(RCX+4,1.6,RCZ);tipTarget.copy(tip);
   surfDirty=geoDirty=true;userView=false;closeLook.set(0,0,1);setView(0);
@@ -8362,7 +8363,7 @@ function finish(timedOut){try{govJobEnd()}catch(e){}
   chalk=[];try{updateSurface();slabTex.needsUpdate=true}catch(e){}// v198: chalk lines are gone once the job's done
   leafStains=0;leaves.forEach(l=>{if(l.gone||!l.landed)return;leafStains++;const c=cellAt(l.tx,l.tz);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const j=c+dy*GW+dx;if(j>=0&&j<N&&inR[j])weak[j]=Math.min(1,weak[j]+.5)}});
   photoA=snapPhoto();
-  running=false;hold(false);pouring=false;hideHint();$('evBtn').hidden=true;$('siteBtn').hidden=true;try{BK.hide()}catch(e){}tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;
+  running=false;hold(false);pouring=false;hideHint();$('evBtn').hidden=true;$('siteBtn').hidden=true;try{BK.hide()}catch(e){}tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}
   mats.forEach(o=>{if(o.t>=0&&!o.applied)applyStamp(o)});
   if(stage===S.pour)placedAtLeave=placed;
   const {SC,q,w,tm,ratio,r,RG,maxP}=buildSC();
@@ -11418,9 +11419,9 @@ const RRING={N:140,im:null,sp:null,L:[],S:[]};
  RRING.sp=new THREE.InstancedMesh(new THREE.SphereGeometry(.018,5,3),new THREE.MeshBasicMaterial({color:0xe6eef6,transparent:true,opacity:.7,depthWrite:false}),200);RRING.sp.count=0;RRING.sp.frustumCulled=false;scene.add(RRING.sp);
  for(let i=0;i<RRING.N;i++)RRING.L.push({t:9,d:1,x:0,y:0,z:0,s:.3});for(let i=0;i<200;i++)RRING.S.push({t:9,x:0,y:0,z:0,vx:0,vy:0,vz:0})}
 function rainHitY(x,z){try{if(tarpOn&&tarpMesh.visible&&pointInPoly(x,z,SHAPE))return tarpYAt(x,z);if(pointInPoly(x,z,SHAPE)){const u=gu(x),v=gv(z);return Math.max(yOf(sampleH(u,v))+.01,ELV()?-1e9:-.282)}}catch(e){}return -.285+terrY(x,z)}
-function rainRings(dt){const R=RRING,w=RAIN.w;if(!R.im)return;if(w<.03){R.im.count=0;R.sp.count=0;return}
+function rainRings(dt,on){const R=RRING,w=RAIN.w;if(!R.im)return;if(w<.03||(!on&&!R.im.count&&!R.sp.count)){R.im.count=0;R.sp.count=0;return}// v299: new drops only while it's actually raining; the last rings fade out
   const cx=lookC.x,cz=lookC.z,rad=18*Math.max(1,LS*.6),C=new THREE.Color();let n=0,m=0;
-  R.L.forEach(r=>{r.t+=dt/r.d;if(r.t>=1&&Math.random()<w*1.3){const a=Math.random()*6.283,d=Math.sqrt(Math.random())*rad;r.x=cx+Math.cos(a)*d;r.z=cz+Math.sin(a)*d;r.y=rainHitY(r.x,r.z)+.004;r.t=0;r.d=.35+Math.random()*.35;r.s=.22+Math.random()*.35;
+  R.L.forEach(r=>{r.t+=dt/r.d;if(on&&r.t>=1&&Math.random()<w*1.3){const a=Math.random()*6.283,d=Math.sqrt(Math.random())*rad;r.x=cx+Math.cos(a)*d;r.z=cz+Math.sin(a)*d;r.y=rainHitY(r.x,r.z)+.004;r.t=0;r.d=.35+Math.random()*.35;r.s=.22+Math.random()*.35;
       const sb=R.S.find(q=>q.t>=1);if(sb&&Math.random()<.45){Object.assign(sb,{t:0,x:r.x,y:r.y,z:r.z,vx:(Math.random()-.5)*1.4,vy:1.2+Math.random()*1.5,vz:(Math.random()-.5)*1.4})}}
     if(r.t<1){const e=Math.sqrt(r.t);dummy.position.set(r.x,r.y,r.z);dummy.rotation.set(0,0,0);dummy.scale.set(r.s*e+.02,1,r.s*e+.02);dummy.updateMatrix();R.im.setMatrixAt(n,dummy.matrix);const f=(1-r.t)*w;C.setRGB(f,f,f);R.im.setColorAt(n,C);n++}});
   R.S.forEach(q=>{if(q.t<1){q.t+=dt*2.2;q.vy-=14*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;dummy.position.set(q.x,q.y,q.z);dummy.scale.setScalar(1);dummy.updateMatrix();R.sp.setMatrixAt(m++,dummy.matrix)}});
@@ -11493,13 +11494,13 @@ function tarpTick(dt){if(!tarpMesh.visible||!TC.mesh)return;TC.acc+=Math.min(dt,
 function tarpYAt(x,z){const C=TC;if(!C.mesh)return .92+ELV();const F=3.28084,i=Math.max(0,Math.min(C.NX-1,Math.round(((x-RCX)/F+C.Wm/2)/(C.Wm/(C.NX-1))))),k=Math.max(0,Math.min(C.NZ-1,Math.round(((z-RCZ)/F+C.Dm/2)/(C.Dm/(C.NZ-1)))));return C.P[(k*C.NX+i)*3+1]*F+.04}
 /* v207: rain you can see. While it rains the light drops, the yard, forms and gravel go dark and glossy, and an untarped slab
    pools water in its lows and pits where the drops land. Everything dries back over ~40 s after the rain passes. */
-function rainTick(dt){const raining=!!(ev&&ev.type==='rain'&&ev.phase==='rain'&&running),tg=raining?1:0;RAIN.w+=(tg-RAIN.w)*Math.min(1,dt*(raining?.6:.025));try{rainRings(raining?dt:dt*3)}catch(e){console.warn('rings',e)}
+function rainTick(dt){const raining=!!(ev&&ev.type==='rain'&&ev.phase==='rain'&&running),tg=raining?1:0;RAIN.w+=(tg-RAIN.w)*Math.min(1,dt*(raining?.6:.025));try{rainRings(raining?dt:dt*3,raining)}catch(e){console.warn('rings',e)}
   const st=raining&&!tarpOn&&set<.92?1:0;RAIN.slab+=(st-RAIN.slab)*Math.min(1,dt*(st?.5:.05));if(RAIN.w<.002&&RAIN.slab<.002){if(RAIN.base){rainApply(0);RAIN.base=null}return}
   if(!RAIN.base){RAIN.base={sun:sun.intensity,hemi:hemi.intensity,fill:fill.intensity};RAIN.mats=[lawnM,dirtRingM,gravelRingM,woodM,stakeM,dirtM].filter(Boolean).map(m=>({m,c:m.color.clone(),r:m.roughness}))}
   rainApply(RAIN.w);if(RAIN.slab>.01)surfDirty=true}
 function rainApply(w){const B=RAIN.base;if(!B)return;sun.intensity=B.sun*(1-.6*w);hemi.intensity=B.hemi*(1-.2*w);fill.intensity=B.fill*(1-.3*w);
   RAIN.mats.forEach(q=>{q.m.color.copy(q.c).multiplyScalar(1-.32*w);q.m.roughness=q.r*(1-.45*w)})}
-function planEvent(rng,maySkip){try{if(RAIN.base){RAIN.w=RAIN.slab=0;rainApply(0);RAIN.base=null}}catch(e){}ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;$('evBtn').hidden=true;
+function planEvent(rng,maySkip){try{if(RAIN.base){RAIN.w=RAIN.slab=0;rainApply(0);RAIN.base=null}}catch(e){}ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true;
   if(LV.free||S.blanket!=null||(typeof practice!=='undefined'&&practice))return;const r=rng||Math.random;if(LV.ev){ev={type:LV.ev,at:.3+r()*.2,phase:'wait',t:0,hits:0};return}const rn=RT().rain||0,wn=RT().wind||0;if((!rng||maySkip)&&r()>(rn||wn?.93:.7))return;
   ev={type:r()<rn?'rain':r()<wn?'wind':(weather&&weather.night?['rain','wind','wind']:['rain','wind','sun'])[Math.floor(r()*3)],at:.3+r()*.28,phase:'wait',t:0,hits:0}}
 function evStep(dt){
@@ -11551,7 +11552,7 @@ function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){h
    The 1-year-later shot swaps in that side's 'before' photo (plain lawn), so grass meets the aged slab. */
 function snapPaint(pre){const c=camera,yr=!!BKD.yr;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
   const tk=[truck,chute,lumps,splash].concat(typeof CHF!=='undefined'?[CHF.fun,CHF.fl]:[]).concat(typeof CHS!=='undefined'&&CHS.g?[CHS.g]:[]).filter(Boolean).map(o=>[o,o.visible]);if(yr)tk.forEach(([o])=>o.visible=false);
   const yt=yr&&BKD.yrTex&&BKD.yrSrc!==(BKD.load&&BKD.load.src)?BKD.yrTex:null,qm=BKD.quad.material.map,cm=BKD.cop&&BKD.cop.material.map;
   if(yt){BKD.quad.material.map=yt;if(BKD.cop)BKD.cop.material.map=yt}
@@ -11568,7 +11569,7 @@ function snapPhoto0(pre){if(!renderer)return null;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const p=camera.position.clone(),q=camera.quaternion.clone(),portrait=cssW<cssH,th=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const hv=(portrait?RW:RD)/2+2.5,hh=(portrait?RD:RW)/2+2.5,d=Math.max(hv/th,hh/(th*asp));
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
   camera.up.set(portrait?1:0,0,portrait?0:-1);camera.position.set(RCX,d+ELV(),RCZ);camera.lookAt(RCX,ELV(),RCZ);
   drawFrame();const url=cv.toDataURL('image/jpeg',.86);
   camera.up.set(0,1,0);camera.position.copy(p);camera.quaternion.copy(q);vis.forEach(([o,v])=>o.visible=v);return url}catch(e){return null}}
