@@ -8495,14 +8495,44 @@ function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new 
     o.position.x+=MIXP.rear-b.min.x;/* rear bumper just behind the old chute pivot, clear of the forms */
     o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
     wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){MIXP.err=String(e);console.warn('mixer glb',e)}},undefined,e=>{MIXP.err=String(e&&e.message||e);console.warn('mixer glb',e)})}
+/* v286: a real chute starts in a round collector funnel under the drum outlet, then flares from wide and round into the U trough.
+   Both are fixed-size pieces at the outlet (they don't stretch); the game's trough starts where the flare ends. Sizes in feet. */
+const CHF={L:1.9,R0:1.15,r:.55,h0:.55,h:.62,fun:null,fl:null};
+function mixPFlareGeo(){const NA=22,NL=14,pos=[],uv=[],idx=[];
+  for(let j=0;j<=NL;j++){const t=j/NL,e=t*t*(3-2*t),r=CHF.R0+(CHF.r-CHF.R0)*e,h=CHF.h0+(CHF.h-CHF.h0)*e,z=t*CHF.L;
+    for(let i=0;i<=NA;i++){const u=i/NA;let x,y;// left wall down, round bottom, right wall up
+      if(u<.18){const k=u/.18;x=-r;y=r+h*(1-k)}else if(u>.82){const k=(u-.82)/.18;x=r;y=r+h*k}else{const a=Math.PI+(u-.18)/.64*Math.PI;x=Math.cos(a)*r;y=r+Math.sin(a)*r}
+      pos.push(x,y,z);uv.push(u*1.4,t*.7)}}
+  for(let j=0;j<NL;j++)for(let i=0;i<NA;i++){const a=j*(NA+1)+i,b=a+NA+1;idx.push(a,b,a+1,b,b+1,a+1)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
+function mixPChuteParts(){if(CHF.fun)return;mixPChuteTex();
+  const lip=new THREE.MeshStandardMaterial({color:0xd9dcdd,roughness:.45,metalness:.6});
+  // collector: an open round funnel, wide at the top, necking into the flare
+  const fg=new THREE.LatheGeometry([[.6,0],[.66,.25],[.85,.65],[1.1,1.05],[1.32,1.35],[1.36,1.45]].map(p=>new THREE.Vector2(p[0],p[1])),28);
+  const fun=new THREE.Group(),fm=new THREE.Mesh(fg,MIXP.chM);fm.castShadow=fm.receiveShadow=true;fun.add(fm);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.36,.06,6,32).rotateX(Math.PI/2),lip);rim.position.y=1.45;fun.add(rim);
+scene.add(fun);fun.visible=false;CHF.fun=fun;
+  // flare: wide round mouth tapering into the trough, with rolled steel edges
+  const fl=new THREE.Group(),m=new THREE.Mesh(mixPFlareGeo(),MIXP.chM);m.castShadow=m.receiveShadow=true;fl.add(m);
+  [-1,1].forEach(sd=>{const c=new THREE.CatmullRomCurve3(Array.from({length:8},(_,j)=>{const t=j/7,e=t*t*(3-2*t);return new THREE.Vector3(sd*(CHF.R0+(CHF.r-CHF.R0)*e),CHF.R0+(CHF.r-CHF.R0)*e+CHF.h0+(CHF.h-CHF.h0)*e,t*CHF.L)}));
+    const e=new THREE.Mesh(new THREE.TubeGeometry(c,16,.055,6),lip);e.castShadow=true;fl.add(e)});
+  scene.add(fl);fl.visible=false;CHF.fl=fl}
+function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&chute.visible;if(!CHF.fl.visible)return;
+  const d=mixPChutePose.d||(mixPChutePose.d=new THREE.Vector3()),len=PIVOT.distanceTo(tip);d.copy(tip).sub(PIVOT).normalize();
+  CHF.fl.position.copy(PIVOT);CHF.fl.quaternion.copy(chute.quaternion);
+  // the trough begins where the flare ends
+  const k=Math.min(CHF.L,len*.5);chute.position.copy(PIVOT).addScaledVector(d,k);chute.scale.z=Math.max(.5,len-k);
+  // funnel sits upright on the mouth, turning with the chute
+  CHF.fun.position.copy(PIVOT).addScaledVector(d,.55);CHF.fun.position.y+=CHF.R0*.35;CHF.fun.rotation.set(0,Math.atan2(d.x,d.z),0)}
 function mixPChuteTex(){if(MIXP.chM)return;const t=new THREE.TextureLoader().load('tex/chute-photo.webp');t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1.2,3);t.anisotropy=8;
   MIXP.chM=new THREE.MeshStandardMaterial({map:t,roughness:.62,metalness:.55,side:THREE.DoubleSide})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use;
   if(use){if(MIXP.drum){const q=mixPTick.q||(mixPTick.q=new THREE.Quaternion());MIXP.drum.quaternion.copy(MIXP.dq).multiply(q.setFromAxisAngle(new THREE.Vector3(1,0,0),-drumAng))}
     // the pour chute hangs from this truck's own collector outlet
     if(MIXP.piv){truck.updateMatrixWorld(true);MIXP.piv.updateWorldMatrix(true,false);const w=MIXP.piv.getWorldPosition(mixPTick.v||(mixPTick.v=new THREE.Vector3()));MIX_PIV.copy(truck.worldToLocal(w));if(!arrive)PIVOT.copy(truck.localToWorld(MIX_PIV.clone()))}
-    mixPChuteTex();chute.children.forEach(c=>{if(c.isMesh&&c.material!==MIXP.chM){c.userData.m0=c.userData.m0||c.material;c.material=MIXP.chM}})}
-  else{MIX_PIV.copy(MIXP.piv0);chute.children.forEach(c=>{if(c.isMesh&&c.userData.m0)c.material=c.userData.m0})}}
+    mixPChuteTex();chute.children.forEach(c=>{if(c.isMesh&&c.material!==MIXP.chM){c.userData.m0=c.userData.m0||c.material;c.material=MIXP.chM}});
+    bands.forEach(b=>{if(b.material!==MIXP.chM){b.userData.m0=b.userData.m0||b.material;b.material=MIXP.chM}});mixPChutePose(true)}
+  else{MIX_PIV.copy(MIXP.piv0);chute.children.forEach(c=>{if(c.isMesh&&c.userData.m0)c.material=c.userData.m0});bands.forEach(b=>{if(b.userData.m0)b.material=b.userData.m0});if(CHF.fun)CHF.fun.visible=CHF.fl.visible=false}}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
   const W=SLAB_W+8,D=SLAB_D+8,x0=-W/2,z0=-D/2,S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,S,S);
