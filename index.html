@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v304"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v305"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v305: On photo sites the mixer backs up to the far side of the pad so it stops blocking the view. Rain falls as steady streaks and never shows up behind or inside a house. Hot tub moved 6 ft off the pad. Big residential slabs pour at a real truck rate instead of scaling up with size. Stripped steps show concrete sides in the 1-year photo. -->
 <!-- v304: Two-finger drag now slides the view across the photo when zoomed in on photo sites, so you can see the whole pad. The last 11 Ontario jobs get their drone photos. -->
 <!-- v303: 18 more Ontario jobs get a real-looking drone photo backdrop (one view each, made from the game's own render of that yard so the pad lines up), with a lawn-only version for dig-first jobs and the 1-year photo. -->
 <!-- v302: color hardener dust redone: bursts of lit, lumpy billows that skid out along the slab then roll up and swell (sun-lit tops, shaded undersides), instead of a flat haze; no size cap. -->
@@ -1371,7 +1372,7 @@ const LEVELS=[
    slab:'14 × 28 ft court, 4 in thick',finish:'Light trowel, fine broom, joints at 10 ft'},
   {id:'hottub',name:'Hot Tub Pad',tag:'8 × 8 ft · 6 in thick',shape:rectPoly(.83,-4.17,8.75,3.75,.6),depth:6,steps:['pour','screed','float','edge','broom'],
    wTxt:'8 ft',pTxt:'8 ft',maxPanel:10.5,minPanel:3.5,sunFlip:true,
-   scene:()=>{house(2,-6.6,44,0,[['door',-3],['win',4.5],['win',11],['ac',-12],['bed',15,6],['spout',-7.5],['light',-.8]]);hotTub(4.8,9.8);lawn()},
+   scene:()=>{house(2,-6.6,44,0,[['door',-3],['win',4.5],['win',11],['ac',-12],['bed',15,6],['spout',-7.5],['light',-.8]]);hotTub(4.8,15.8);lawn()},
    lede:'A pad beside the back door for a 6-person hot tub. The tub\'s sitting on the lawn waiting. Poured 6 in thick to carry the weight. No joints at this size.',
    slab:'8 × 8 ft pad, 6 in thick',mix:'32 MPa, 5–8% air, 6 in thick',finish:'Broom, no joints at 8 ft'},
   {id:'garage',name:'Garage Floor',tag:'22 × 20 ft · power trowel',ls:2,shape:[[-11,-10,1],[11,-10,1],[11,10,1],[-11,10]],steps:['pour','screed','float','power','joint'],
@@ -2831,6 +2832,13 @@ function strBuild(){REB=null;REBX=[];STR.pieces=[];STR.risers=[];STR.bars=[];
     if(t)bx(.29,.125,W+.6,studM,X-.21,top+.08,(z0+z1)/2,G);// strongback across the top so it doesn't belly
     G.userData.strForm=1;g.add(G);const gh=bx(.2,H+.04,W+.1,gM,X,(top+lo)/2,(z0+z1)/2);gh.castShadow=gh.receiveShadow=false;gh.renderOrder=5;
     STR.risers.push({m:G,gh,placed:false,t,X:wx(T.c0)})});
+  // v305: the stripped steps for the 1-year photo: formed concrete faces on both sides of every step, the riser fronts and the back of the landing, down to grade
+  {const sk=new THREE.Group(),cm=oldConcM.clone();cm.roughness=.93;cm.color=new THREE.Color(0xd8d4cb);const yg=-.06,nT=STR.T.length;
+    const pl=(w,hh,d,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),cm);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;sk.add(o)};
+    STR.T.forEach((T,t)=>{const xa=wx(T.c0),xb=wx(T.c1),top=T.rise/12;[z0+.02,z1-.02].forEach(z=>pl(xb-xa,top-yg,.06,(xa+xb)/2,(top+yg)/2,z));
+      const lo=t?STR.T[t-1].rise/12:yg;pl(.06,top-lo,W-.02,xa+.02,(top+lo)/2,(z0+z1)/2)});
+    {const T=STR.T[nT-1],top=T.rise/12;pl(.06,top-yg,W-.02,wx(T.c1)-.02,(top+yg)/2,(z0+z1)/2)}
+    sk.visible=false;sk.userData.strSkin=1;g.add(sk);STR.skin=sk}
   // rebar: 10M bent to follow the steps every 12 in, then cross bars on each tread and the landing
   const tube=(pts,r,m)=>{const P=new THREE.CurvePath();for(let i=0;i<pts.length-1;i++)P.add(new THREE.LineCurve3(pts[i],pts[i+1]));const o=new THREE.Mesh(new THREE.TubeGeometry(P,pts.length*6,r,6,false),m);o.castShadow=true;g.add(o);return o};
   const nT=STR.T.length,last=STR.T[nT-1],V=(x,y,z)=>new THREE.Vector3(x,y,z),cov=.2;
@@ -3804,7 +3812,7 @@ function retainScene(){lawn();const bankT=(()=>{const t=lawnTex.clone();t.needsU
   box(80,3.5,10,dirtM,0,1.45,-13);const top=flatP(80,10,new THREE.MeshStandardMaterial({map:bankT,roughness:1}),0,3.21,-13,2.9);addOb(-40,-18,40,-8);
   house(0,-24,50,0,[['slider',0],['win',-9],['win',9],['bed',13,6]],{raise:3.5});shrub(-8,6,1.1);shrub(9,6.5,.9)}
 function box(w,h,d,m,x,y,z,ry,parent){const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);if(ry)b.rotation.y=ry;b.castShadow=b.receiveShadow=true;(parent||sceneG).add(b);return b}
-let obst=[],lawnOn=false;const addOb=(x0,z0,x1,z1)=>obst.push([Math.min(x0,x1),Math.min(z0,z1),Math.max(x0,x1),Math.max(z0,z1)]);
+let obst=[],rainOcc=[],lawnOn=false;const addOb=(x0,z0,x1,z1)=>obst.push([Math.min(x0,x1),Math.min(z0,z1),Math.max(x0,x1),Math.max(z0,z1)]);
 function flatP(w,d,m,x,y,z,rep){if(w*d>30)addOb(x-w/2,z-d/2,x+w/2,z+d/2);const g=new THREE.PlaneGeometry(w,d);g.rotateX(-Math.PI/2);if(rep){const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*w/rep,uv.getY(i)*d/rep)}const p=new THREE.Mesh(g,m);p.position.set(x,y,z);p.receiveShadow=true;sceneG.add(p);return p}
 const SIDING=['#c9c4b8','#a9bccb','#e3d9c2','#93a88a','#7d93ad','#ece6d8','#b99f78','#5d6166','#9e4b3c','#c7b28e','#6f8a9e','#d8c8a4'],ROOFC=[0xffffff,0xd9c8b4,0xb0b8c0,0x9a8a7a,0x8a7f78],DOORC=[0x6b2a22,0x2e4a3a,0x1f2f4a,0x2b2b2b,0x7a5a2a,0x8a1f1f];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -4050,7 +4058,18 @@ function placeTruck(mode){TRK.far=false;TRK.p0=null;
   if(mode&&typeof mode==='object'){truck.position.set(mode.x,-.28,mode.z);truck.rotation.y=mode.ry||0}
   else if(mode==='street'){truck.position.set((LV.curb||-16)-3,-.28,SLAB_D/2+1-15.4);truck.rotation.y=-Math.PI/2}
   else{truck.position.set(SLAB_W/2-10,-.28,0);truck.rotation.y=0}
+  try{if(LV&&LV.paint&&LV.paint.cam&&!LV.slip&&!LV.bridge)truckAway(LV.paint)}catch(e){console.warn('truckAway',e)}
   truck.updateMatrixWorld(true);PIVOT.copy(truck.localToWorld(MIX_PIV.clone()))}
+/* v305: on photo sites the camera never moves much, so a truck parked on the camera's side sits right in front of the pad.
+   Back it up to the side of the pad facing away from the camera instead, skipping any side where it would land in a house or garage. */
+function truckAway(P){let fx=P.look[0]-P.cam[0],fz=P.look[2]-P.cam[2];const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+  const E=[[1,0,SLAB_W/2,SLAB_D/2],[-1,0,SLAB_W/2,SLAB_D/2],[0,1,SLAB_D/2,SLAB_W/2],[0,-1,SLAB_D/2,SLAB_W/2]];let best=null;
+  for(const[dx,dz,h,w]of E)for(const lt of[0,.45,-.45]){const tx=-dz,tz=dx,lat=lt*Math.max(0,w-5),px=dx*(h-10)+tx*lat,pz=dz*(h-10)+tz*lat,ry=Math.atan2(-dz,dx),c=Math.cos(ry),sn=Math.sin(ry);
+    const pts=[[12.5,-4.6],[42,-4.6],[12.5,7.1],[42,7.1]].map(([lx,lz])=>[px+lx*c+lz*sn,pz-lx*sn+lz*c]),b=[Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];
+    let hit=false;for(const o of obst){if(b[0]<o[2]+1&&b[2]>o[0]-1&&b[1]<o[3]+1&&b[3]>o[1]-1){hit=true;break}}if(hit)continue;
+    // far side wins; a side-on truck beats one parked between the camera and the pad; centred beats off-centre
+    const sc=dx*fx+dz*fz-Math.abs(lt)*.15;if(!best||sc>best.sc)best={sc,px,pz,ry}}
+  if(best&&best.sc>-.3){truck.position.set(best.px,-.28,best.pz);truck.rotation.y=best.ry;TRK.away=true}}
 
 // tape
 const tape=new THREE.Mesh(new THREE.PlaneGeometry(SLAB_W,.36),new THREE.MeshStandardMaterial({map:tapeTex(),roughness:.45,metalness:.1}));
@@ -5583,7 +5602,7 @@ function pourStep(dt){
   // the chute swings to where you tapped before the gate opens, so mud doesn't land all along the way
   {const lag=Math.hypot(tip.x-tipTarget.x,tip.z-tipTarget.z);if(pourStep.hold){if(lag>.8)return;pourStep.hold=false}else if(lag>3)return}
   if(placed+wasted>=LOAD_M3){pouring=false;if(!stowChute){stowChute=true;say(placed<NEED_M3*.97?`Drum's empty and you're about ${Math.max(.25,NEED_M3-placed).toFixed(2)} m³ short. Tap Truck to call another one, or rake it out.`:'Drum\'s empty. Chute\'s swung clear. Rake it out, then hit Next.','info','empty',0)}return}
-  const rate=.075*Math.min(Math.pow(LS,1.6),2.2)*dt*(usePump()?1.35:1)*(gear('truck')?1.25:1)*planPourK(); // m3 per step. v157: capped for big lots, a pump puts out about a yard every few seconds, not cubic metres a second
+  const rate=.075*(LS>2.6?Math.min(Math.pow(LS,1.6),2.2):Math.min(Math.pow(LS,.35),1.25))*dt*(usePump()?1.35:1)*(gear('truck')?1.25:1)*planPourK(); // m3 per step. v157: capped for big lots, a pump puts out about a yard every few seconds, not cubic metres a second
   const cx=(tip.x+SLAB_W/2)/SLAB_W*GW,cy=(tip.z+SLAB_D/2)/SLAB_D*GH;
   if(formLeak(tip.x,tip.z)){wasted+=rate*.6;say('No form there! Concrete\'s running out under the gap.','bad','leak')}
   if(STR.on&&strLeak(tip.x,tip.z)){wasted+=rate*.6;say('No form there! It\'s running out of the steps.','bad','leak')}
@@ -8528,7 +8547,7 @@ function finish(timedOut){try{govJobEnd()}catch(e){}
    if(LV.peds)x+=prints?`<div class="risk">Footprints<b class="${prints>6?'hi':'mid'}">${prints}</b>People walked through it. Those prints are in there for good.</div>`:`<div class="risk">Foot traffic<b class="lo">Kept off</b>Nobody got a boot in your concrete.</div>`;
    if(x)$('rRisks').insertAdjacentHTML('beforeend',x)}
   let photoY=null;if(photoA&&(!LV.wall||LV.id==='retain')&&!LV.steps.includes('slip')){// v231: the retaining wall gets a year-later shot too
-  blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold|splat)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});const yg=yearGrass();try{BKD.yr=1}catch(e){}photoY=snapPhoto(()=>ageSlab(crack[1]));try{BKD.yr=0}catch(e){}yg();fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
+  blankets.forEach(m=>m.visible=false);const fh=[];siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|rebar|rebdot|rebhold|splat)$/.test(o.userData.kind||'')||o.userData.strForm)){fh.push(o);o.visible=false}});const yg=yearGrass();try{BKD.yr=1}catch(e){}if(STR.on&&STR.skin)STR.skin.visible=true;photoY=snapPhoto(()=>ageSlab(crack[1]));if(STR.skin)STR.skin.visible=false;try{BKD.yr=0}catch(e){}yg();fh.forEach(o=>o.visible=true);blankets.forEach(m=>m.visible=true);try{updateSurface();slabTex.needsUpdate=true}catch(e){}}
   $('rPhotos').classList.toggle('three',!!photoY);$('phY').parentElement.hidden=!photoY;if(photoY)$('phY').src=photoY;
   if(cab.used)$('rRisks').insertAdjacentHTML('beforeend','<div class="risk">Operator<b class="lo">+3</b>Dug it from the cab. Bonus points.</div>');
   $('rPhotos').hidden=!photoA;$('phSave').hidden=!photoA;$('phShare').hidden=!photoA;$('rpOpen').hidden=REPLAY.length<4;if(photoA){$('phA').src=photoA;$('phB').src=photoB||photoA;$('phB').parentElement.hidden=!photoB}
@@ -9671,9 +9690,9 @@ function grassBuild(){if(GRASS.mesh){GRASS.mesh.removeFromParent();GRASS.mesh.tr
   scene.traverse(o=>{if(o.isLight)o.layers.enable(1)});camera.layers.enable(1)}
 function mergeScenery(){try{sceneG.updateMatrixWorld(true);
   // the excavator's no-go boxes come from the meshes as built, before they're merged
-  staticBlk=[];grassBlk=[];sceneG.traverse(o=>{if(!o.isMesh||!o.geometry)return;let v=o;while(v){if(!v.visible)return;v=v.parent}const b=new THREE.Box3().setFromObject(o),z=b.getSize(new THREE.Vector3());
+  staticBlk=[];grassBlk=[];rainOcc=[];sceneG.traverse(o=>{if(!o.isMesh||!o.geometry)return;let v=o;while(v){if(!v.visible)return;v=v.parent}const b=new THREE.Box3().setFromObject(o),z=b.getSize(new THREE.Vector3());
     if(!o.isInstancedMesh&&Math.max(z.x,z.z)<420&&Math.max(z.x,z.z)>.3&&!(RCX>b.min.x&&RCX<b.max.x&&RCZ>b.min.z&&RCZ<b.max.z))grassBlk.push([b.min.x-.15,b.min.z-.15,b.max.x+.15,b.max.z+.15]);
-    if(z.y<1.5||z.x>120||z.z>120||b.max.y<.8||Math.max(z.x,z.z)<1.2)return;staticBlk.push([b.min.x,b.min.z,b.max.x,b.max.z])});
+    if(z.y<1.5||z.x>120||z.z>120||b.max.y<.8||Math.max(z.x,z.z)<1.2)return;staticBlk.push([b.min.x,b.min.z,b.max.x,b.max.z]);if(b.max.y>7&&z.x*z.z>30&&!o.userData.live)rainOcc.push([b.min.x,b.min.z,b.max.x,b.max.z])});
   let saved=0;sceneG.children.slice().forEach(c=>{if(c.isGroup&&!c.userData.live){const l=[];c.traverse(o=>{if(o.isMesh)l.push(o)});saved+=mergeInto(c,l)}});
   saved+=mergeInto(sceneG,sceneG.children.filter(o=>o.isMesh&&!o.userData.live));return saved}catch(e){console.warn('merge',e);return 0}}
 
@@ -11533,8 +11552,8 @@ function updatePrep(dt,t){updateMark(dt,t);updateBlankets(dt);updateCure();updat
 
 /* ---------- weather events: rain (tarp it), wind and sun (sets faster) ---------- */
 let ev=null,tarpOn=false;
-const rainIM=new THREE.InstancedMesh(new THREE.BoxGeometry(.025,1.1,.025),new THREE.MeshBasicMaterial({color:0xb8c8dc,transparent:true,opacity:.55,depthWrite:false}),600),rainP=[],rdm=new THREE.Object3D();
-rainIM.visible=false;scene.add(rainIM);for(let i=0;i<600;i++)rainP.push([0,-1,0]);
+const rainIM=new THREE.InstancedMesh(new THREE.BoxGeometry(.022,2.4,.022),new THREE.MeshBasicMaterial({color:0xb8c8dc,transparent:true,opacity:.34,depthWrite:false}),900),rainP=[],rdm=new THREE.Object3D();
+rainIM.visible=false;scene.add(rainIM);for(let i=0;i<900;i++)rainP.push([0,-1,0]);
 /* v250: rain that hits things. Splash rings spread on the ground, the slab and the tarp around the camera; a few drops bounce up as
    tiny splashes; water drips off the tarp's low edge. Scales with how hard it's raining. */
 const RRING={N:140,im:null,sp:null,L:[],S:[]};
@@ -11546,7 +11565,7 @@ const RRING={N:140,im:null,sp:null,L:[],S:[]};
 function rainHitY(x,z){try{if(tarpOn&&tarpMesh.visible&&pointInPoly(x,z,SHAPE))return tarpYAt(x,z);if(pointInPoly(x,z,SHAPE)){const u=gu(x),v=gv(z);return Math.max(yOf(sampleH(u,v))+.01,ELV()?-1e9:-.282)}}catch(e){}return -.285+terrY(x,z)}
 function rainRings(dt,on){const R=RRING,w=RAIN.w;if(!R.im)return;if(w<.03||(!on&&!R.im.count&&!R.sp.count)){R.im.count=0;R.sp.count=0;return}// v299: new drops only while it's actually raining; the last rings fade out
   const cx=lookC.x,cz=lookC.z,rad=18*Math.max(1,LS*.6),C=new THREE.Color();let n=0,m=0;
-  R.L.forEach(r=>{r.t+=dt/r.d;if(on&&r.t>=1&&Math.random()<w*1.3){const a=Math.random()*6.283,d=Math.sqrt(Math.random())*rad;r.x=cx+Math.cos(a)*d;r.z=cz+Math.sin(a)*d;r.y=rainHitY(r.x,r.z)+.004;r.t=0;r.d=.35+Math.random()*.35;r.s=.22+Math.random()*.35;
+  R.L.forEach(r=>{r.t+=dt/r.d;if(on&&r.t>=1&&Math.random()<w*1.3){const a=Math.random()*6.283,d=Math.sqrt(Math.random())*rad;r.x=cx+Math.cos(a)*d;r.z=cz+Math.sin(a)*d;if(rainBlocked(r.x,r.z))return;r.y=rainHitY(r.x,r.z)+.004;r.t=0;r.d=.35+Math.random()*.35;r.s=.22+Math.random()*.35;
       const sb=R.S.find(q=>q.t>=1);if(sb&&Math.random()<.45){Object.assign(sb,{t:0,x:r.x,y:r.y,z:r.z,vx:(Math.random()-.5)*1.4,vy:1.2+Math.random()*1.5,vz:(Math.random()-.5)*1.4})}}
     if(r.t<1){const e=Math.sqrt(r.t);dummy.position.set(r.x,r.y,r.z);dummy.rotation.set(0,0,0);dummy.scale.set(r.s*e+.02,1,r.s*e+.02);dummy.updateMatrix();R.im.setMatrixAt(n,dummy.matrix);const f=(1-r.t)*w;C.setRGB(f,f,f);R.im.setColorAt(n,C);n++}});
   R.S.forEach(q=>{if(q.t<1){q.t+=dt*2.2;q.vy-=14*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;dummy.position.set(q.x,q.y,q.z);dummy.scale.setScalar(1);dummy.updateMatrix();R.sp.setMatrixAt(m++,dummy.matrix)}});
@@ -11652,12 +11671,21 @@ function rippleStep(dt){const m=rippleIM,P=m.userData.p,d=rdm;m.visible=true;
       q.y=tarpOn?tarpYAt(x,z):(pointInPoly(x,z,SHAPE)?surfY(x,z)+.015:-1e3)}
     const k=Math.max(0,q.t)/.7,sc=q.t<0||q.y<-100?0.0001:.12+k*.55;d.position.set(q.x,q.y,q.z);d.rotation.set(0,0,0);d.scale.set(sc,1,sc);d.updateMatrix();m.setMatrixAt(i,d.matrix);const a=(1-k)*.9;m.instanceColor.setXYZ(i,a,a,a)}
   m.instanceMatrix.needsUpdate=true;m.instanceColor.needsUpdate=true}
+/* v305: drops are long enough to blur across a whole frame, so the rain reads as a steady fall instead of flickering dashes.
+   No drops inside a house, and on photo sites none behind one either (the house is part of the photo, so a drop there was drawn on its wall). */
+function rainSegHit(ax,az,bx,bz,o){let t0=0,t1=1;const dx=bx-ax,dz=bz-az;for(const[p,q,lo,hi]of[[ax,dx,o[0],o[2]],[az,dz,o[1],o[3]]]){if(Math.abs(q)<1e-6){if(p<lo||p>hi)return false;continue}
+  let a=(lo-p)/q,b=(hi-p)/q;if(a>b)[a,b]=[b,a];t0=Math.max(t0,a);t1=Math.min(t1,b);if(t0>t1)return false}return true}
+function rainBlocked(x,z){const bk=typeof BKD!=='undefined'&&BKD.on;for(const o of rainOcc){if(x>o[0]-.5&&x<o[2]+.5&&z>o[1]-.5&&z<o[3]+.5)return true;if(bk&&rainSegHit(camera.position.x,camera.position.z,x,z,[o[0]-.5,o[1]-.5,o[2]+.5,o[3]+.5]))return true}return false}
+function rainSpot(p){
+  for(let k=0;k<6;k++){const x=RCX+(Math.random()-.5)*(RW+18),z=RCZ+(Math.random()-.5)*(RD+18);
+    const bad=rainBlocked(x,z);
+    if(!bad||k===5){p[0]=x;p[2]=z;p[1]=-20+Math.random()*16;p[3]=bad?1:0;return}}}
 function evVisual(dt){
   const rain=rainIM.visible,sunny=ev&&ev.phase==='on'&&ev.type==='sun';
   const bwl=LV&&LV.bridge&&weather.night?1:0;// night bridge: the light plant on the deck carries the scene, not the moon
   sun.intensity=LK*weather.sunI*TOD.sunK*CSH.k*(rain?.4:ev&&ev.phase==='warn'?.7:sunny?1.25:1)*(bwl?4.5:1);hemi.intensity=LK*weather.hemi*TOD.hemiK*(rain?.75:1)*skyHK()*(bwl?2:1);if(!rain)rippleIM.visible=false;else rippleStep(dt);
-  if(rain){for(let i=0;i<rainP.length;i++){const p=rainP[i];p[1]-=46*dt;if(p[1]<-.3){p[0]=RCX+(Math.random()-.5)*(RW+18);p[2]=RCZ+(Math.random()-.5)*(RD+18);p[1]=6+Math.random()*16}
-    rdm.position.set(p[0],p[1],p[2]);rdm.updateMatrix();rainIM.setMatrixAt(i,rdm.matrix)}rainIM.instanceMatrix.needsUpdate=true}
+  if(rain){for(let i=0;i<rainP.length;i++){const p=rainP[i];p[1]-=46*dt;if(p[1]<-.3){rainSpot(p);p[1]+=26}
+    rdm.position.set(p[0],p[1],p[2]);rdm.scale.setScalar(p[3]?0:1);rdm.updateMatrix();rainIM.setMatrixAt(i,rdm.matrix)}rdm.scale.setScalar(1);rainIM.instanceMatrix.needsUpdate=true}
   tarpTick(dt)}
 $('evBtn').addEventListener('click',()=>{if(!ev||(ev.phase!=='warn'&&ev.phase!=='rain')||tarpOn)return;tarpOn=true;ptr.down=false;
   tarpDeploy();$('evBtn').textContent='Tarped';$('evBtn').disabled=true;buzz(20);say('Tarp\'s on. Sit tight till it passes.','good','tarp',0)});
