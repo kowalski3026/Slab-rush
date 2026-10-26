@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v309"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v310"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v310: Photo sites: boom pump sets up on a gravel drive well back from the pad, cab toward the pour, mixer backed straight up to its hopper. -->
 <!-- v309: Worn photo-real pump truck (game boom, turret, outriggers and hopper ride on the model) and slipform (game mould stays to shape the curb). -->
 <!-- v308: Worn, photo-real excavator: tracks, cab, engine and counterweight from a 3D model of a beat-up 8-ton machine; the boom, stick and bucket get worn, muddy paint. Cab view keeps the built cab. -->
 <!-- v307: Truck placement uses the job being started, not the last one played. -->
@@ -5139,8 +5140,33 @@ function pumpPose(tx,ty,tz,t){try{pmpTick()}catch(e){}const ry=pumpG.rotation.y,
   {let prev=0;const rel=[];for(let i=0;i<PL.length;i++){const a=Math.atan2(J[i+1][1]-J[i][1],J[i+1][0]-J[i][0]);let d=a-prev;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;rel.push(d);prev=a}PUMPM.setJoints(rel)}
   pumpG.updateMatrixWorld(true);const tp=PUMPM.tipWorld(),bx=tp.x,by=tp.y,bz=tp.z,sw=Math.sin((t||0)*.002)*.12;
   pHose.position.set(bx,by,bz);const v=new THREE.Vector3(tx+sw-bx,ty-by,tz-bz),L=v.length();pHose.scale.set(1,Math.max(.5,L),1);pHose.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),v.normalize())}
+/* v310: on photo sites the pump sets up like a real one: out on a gravel drive well back from the pad, cab toward the pour,
+   boom over the top, and the mixer backed straight up to the hopper at the pump's tail. Nothing parked sideways on the lawn. */
+let pumpDriveM=null;
+function pumpDrive(){const P=placeTruck.L&&placeTruck.L.paint;if(!P)return false;
+  let fx=P.look[0]-P.cam[0],fz=P.look[2]-P.cam[2];const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+  const E=[[1,0,SLAB_W/2,SLAB_D/2],[-1,0,SLAB_W/2,SLAB_D/2],[0,1,SLAB_D/2,SLAB_W/2],[0,-1,SLAB_D/2,SLAB_W/2]];let best=null;
+  for(const[dx,dz,h,w]of E)for(const lt of[0,.4,-.4]){const ry=Math.atan2(-dz,dx),c=Math.cos(ry),sn=Math.sin(ry),lat=lt*Math.max(0,w-6);
+    const ex=dx*h-dz*lat,ez=dz*h+dx*lat,at=(a,b)=>[ex+a*c+b*sn,ez-a*sn+b*c];// a: out from the pad edge, b: across
+    const pts=[[4,-11.5],[88,-11.5],[4,11.5],[88,11.5]].map(([a,b])=>at(a,b)),bb=[Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];
+    let hit=false;for(const o of obst){if(bb[0]<o[2]+1&&bb[2]>o[0]-1&&bb[1]<o[3]+1&&bb[3]>o[1]-1){hit=true;break}}if(hit)continue;
+    // the outrigger pads must stay off the pour too (irregular shapes)
+    if([[13.7,-10.6],[13.7,8.2],[44.3,-9.9],[44.3,7.5]].some(([a,b])=>{const[x,z]=at(a,b);return pointInPoly(x,z,SHAPE)||nearestOnPoly(x,z)[2]<4}))continue;
+    const sc=dx*fx+dz*fz-Math.abs(lt)*.15;if(!best||sc>best.sc)best={sc,ry,c,sn,at}}
+  if(!best||best.sc<-.3)return false;
+  const{ry,at}=best;
+  // pump: cab 12 ft off the edge facing the pad, hopper at the far end
+  const po=at(48,0);pumpG.position.set(po[0],-.28,po[1]);pumpG.rotation.y=ry+Math.PI;
+  // mixer: same line, tail backed up to the pump's hopper, chute over it
+  const mo=at(32.5,-1.2);truck.position.set(mo[0],-.28,mo[1]);truck.rotation.y=ry;truck.userData.hide=false;
+  // gravel drive under both trucks, out past the mixer's cab
+  try{if(!pumpDriveM){pumpDriveM=gravelRingM}const len=78,wd=14,g=new THREE.PlaneGeometry(len,wd);g.rotateX(-Math.PI/2);
+    const ps=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<ps.count;i++)uv.setXY(i,ps.getX(i)/6,ps.getZ(i)/6);
+    const m=new THREE.Mesh(g,pumpDriveM),cc=at(3+len/2,0);m.position.set(cc[0],-.284,cc[1]);m.rotation.y=ry;m.receiveShadow=true;m.renderOrder=-1;sceneG.add(m)}catch(e){console.warn('pump drive',e)}
+  truck.updateMatrixWorld(true);PIVOT.copy(truck.localToWorld(MIX_PIV.clone()));return true}
 function placePump(){pJ=null;pYaw=null;pumpG.position.set(truck.position.x,-.28,truck.position.z);pumpG.rotation.y=truck.rotation.y;truck.userData.hide=false;
   if(!usePump())return;
+  if(TRK.away&&pumpDrive())return;
   const ry=truck.rotation.y,c=Math.cos(ry),s=Math.sin(ry),at=(lx,lz,ox,oz)=>[ox+lx*c+lz*s,oz-lx*s+lz*c];
   // keep the outrigger pads off the pour: slide the pump out across its own width until all four pads are clear
   {const pads=[[3.7,-8.2],[3.7,10.6],[34.3,-7.5],[34.3,9.9]],clear=(ox,oz)=>pads.every(([lx,lz])=>{const [x,z]=at(lx,lz,ox,oz);return !pointInPoly(x,z,SHAPE)&&nearestOnPoly(x,z)[2]>2.5});
