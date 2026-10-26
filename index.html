@@ -4141,10 +4141,10 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    ${CPH.on?`if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec4 ck=texture2D(cPk,pr);float fl=texture2D(cPk,pf).g*2.,rw=ck.r*2.;
     // v291: three looks. Placed mud: lumps and stone. Struck off: flat but open and sandy (fine grain, little shine). Bull floated: closed,
     // smooth creamy paste with only a faint mottle. The line between struck and floated reads clearly, like on a real pour.
-    float scr=texture2D(gBD,uvG).a,fg=texture2D(cPk,p*1.35+.11).r*2.;float rough=mix(rw,mix(1.,fg,1.25),scr);
-    float det=mix(rough,mix(1.,fl,.3),cream);diffuseColor.rgb*=mix(1.,det,inK*gPh);
-    vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*mix(.75,.22,scr)*(1.-cream)*inK*gPh;
-    diffuseColor.rgb*=1.-(.16-.08*scr)*(1.-cream)*inK*gPh;gRgh+=.12*(1.-cream)*scr*inK*gPh;}`:''}
+    float scr=max(texture2D(gBD,uvG).a,step(.5,cream)),cl=clamp(texture2D(gED,uvG).b*1.15,0.,1.),fg=texture2D(cPk,p*1.35+.11).r*2.;float rough=mix(rw,mix(1.,fg,1.25),scr);
+    float det=mix(rough,mix(1.,fl,.22),cl)*(1.+.05*cl);diffuseColor.rgb*=mix(1.,det,inK*gPh);
+    vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*mix(.75,.22,scr)*(1.-cl)*inK*gPh;
+    diffuseColor.rgb*=1.-(.16-.08*scr)*(1.-cl)*inK*gPh;gRgh+=(.12*(1.-cl)*scr-.1*cl)*inK*gPh;}`:''}
    // fresh mud lumps: soft blobs at 4 in and 1.5 in, gone once it's struck and floated
    vec2 q=p*2.9;float n1=gVN(q),n1x=gVN(q+vec2(.05,0.)),n1z=gVN(q+vec2(0.,.05));vec2 q2=p*8.;float n2=gVN(q2),n2x=gVN(q2+vec2(.05,0.)),n2z=gVN(q2+vec2(0.,.05));
    float aaL=clamp(1.6-fwidth(p.x)*18.,0.,1.);
@@ -4219,10 +4219,10 @@ diffuseColor.rgb*=gCol;`)
   sh.fragmentShader=F};
 slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl209';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
-const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;
+const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
   // v285: on a painted site the slab is also trimmed back off the painted pool coping (bkKO = keep-out rect x0,z0,x1,z1)
-  sh.fragmentShader='varying vec3 vBkP;\nuniform float bkSY;\nuniform vec4 bkKO;\n'+sh.fragmentShader.replace(/void main\(\)\s*\{/,'void main() {\nif(vBkP.y>bkSY||(vBkP.x>bkKO.x&&vBkP.x<bkKO.z&&vBkP.z>bkKO.y&&vBkP.z<bkKO.w))discard;')}}
+  sh.fragmentShader='varying vec3 vBkP;\nuniform float bkSY;\nuniform vec4 bkKO;\nuniform float bkE;\n'+sh.fragmentShader.replace(/void main\(\)\s*\{/,'void main() {\nif((bkE>.5&&vBkP.y<-.343)||vBkP.y>bkSY||(vBkP.x>bkKO.x&&vBkP.x<bkKO.z&&vBkP.z>bkKO.y&&vBkP.z<bkKO.w))discard;')}}
 /* v209: if a phone can't build the detailed slab shader (too many textures or too long), fall back to the plain one
    instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
 if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
@@ -8519,7 +8519,7 @@ function bkdCoping(){const C=BKD.L&&BKD.L.paint;if(!C||!C.keepOut||!BKD.tex){if(
   BKD.cop.visible=true}
 function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
    v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
@@ -8652,6 +8652,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   try{bkdGrade(true)}catch(e){}
   try{mixPTick(true)}catch(e){}
   BKKO.value.set(1e9,1e9,1e9,1e9);try{bkdCoping()}catch(e){console.warn('coping',e)}
+  BKE.value=isPrep()?0:1;// pour-only job: the photo is the gravel base
   {const k=STAGES[stage]&&STAGES[stage].key,y=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(slab):null;BKSLAB.value=y==null?1e9:y;
    // invisible lid over the undug ground: writes depth only, so trench walls and anything below grade stay hidden until that cell is dug
    const ly=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(pitMesh):null;BKLID.value=ly==null?1e9:ly;
