@@ -7714,7 +7714,7 @@ const CDUST={N:640,pts:null,pos:null,vel:null,age:null,life:null,siz:null,col:nu
  g.setAttribute('position',new THREE.BufferAttribute(CDUST.pos,3));g.setAttribute('size',new THREE.BufferAttribute(CDUST.siz,1));g.setAttribute('color',new THREE.BufferAttribute(CDUST.col,3));g.setAttribute('alpha',new THREE.BufferAttribute(CDUST.alp,1));
  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uS:{value:300}},vertexColors:true,
   vertexShader:'attribute float size;attribute float alpha;varying vec3 vC;varying float vA;varying float vS;void main(){vC=color;vA=alpha;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=clamp(size*uS/-mv.z,1.,180.);vS=size;}'.replace('void main','uniform float uS;void main'),
-  fragmentShader:'varying vec3 vC;varying float vA;varying float vS;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}void main(){vec2 q=gl_PointCoord-.5;float r=length(q)*2.;if(r>1.)discard;float k=vS>.25?(.55+.45*n(q*5.+vS*37.))*(1.-smoothstep(.25,1.,r)):1.-smoothstep(.5,1.,r);float a=vA*k;if(a<.01)discard;gl_FragColor=vec4(vC*(.92+.16*(1.-r)),a);}'});
+  fragmentShader:'varying vec3 vC;varying float vA;varying float vS;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}void main(){vec2 q=gl_PointCoord-.5;float r=length(q)*2.;if(r>1.)discard;float k=vS>.25?(.55+.45*n(q*5.+vS*37.))*(1.-smoothstep(.25,1.,r)):1.-smoothstep(.5,1.,r);float a=vA*k;if(a<.01)discard;gl_FragColor=vec4(vC*(.92+.16*(1.-r)),a);\n#include <colorspace_fragment>\n}'});
  CDUST.pts=new THREE.Points(g,m);CDUST.pts.frustumCulled=false;CDUST.pts.renderOrder=6;scene.add(CDUST.pts)}
 function cdustColor(){try{const sc=STAMP_COLORS.find(c=>c.id===stampSel.color)||STAMP_COLORS[0];CDUST.c.setStyle(sc.c)}catch(e){CDUST.c.setRGB(.8,.7,.55)}return CDUST.c}
 function cdustEmit(X,Y,Z,kind,c){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.kind[i]=kind;D.age[i]=0;
@@ -7722,7 +7722,7 @@ function cdustEmit(X,Y,Z,kind,c){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.kind[i]=kin
     D.pos[i*3]=X+(Math.random()-.5)*.8;D.pos[i*3+1]=Y+2.6+Math.random()*.6;D.pos[i*3+2]=Z+(Math.random()-.5)*.8;D.vel[i*3]=(Math.random()-.5)*1.2;D.vel[i*3+1]=-2-Math.random()*2;D.vel[i*3+2]=(Math.random()-.5)*1.2;D.life[i]=.45+Math.random()*.2;D.siz[i]=.06+Math.random()*.05}
   else{// a billow rolling out from where it landed
     const a=Math.random()*6.283,sp=.6+Math.random()*1.4;D.pos[i*3]=X+Math.cos(a)*.4;D.pos[i*3+1]=Y+.1+Math.random()*.25;D.pos[i*3+2]=Z+Math.sin(a)*.4;
-    D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=.6+Math.random()*1.1;D.vel[i*3+2]=Math.sin(a)*sp;D.life[i]=2.4+Math.random()*1.8;D.siz[i]=.9+Math.random()*.8}
+    D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=.6+Math.random()*1.1;D.vel[i*3+2]=Math.sin(a)*sp;D.life[i]=2.4+Math.random()*1.8;D.siz[i]=.7+Math.random()*.6}
   const v=.85+Math.random()*.25;D.col[i*3]=Math.min(1,c.r*v);D.col[i*3+1]=Math.min(1,c.g*v);D.col[i*3+2]=Math.min(1,c.b*v)}
 function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),now=performance.now();
   for(let k=0;k<3;k++)cdustEmit(X,Y,Z,0,c);
@@ -7731,7 +7731,7 @@ function cdustTick(dt){const D=CDUST;let live=0;const w=.3;// gentle drift (TREE
   for(let i=0;i<D.N;i++){if(D.age[i]>=D.life[i]){if(D.alp[i]){D.alp[i]=0;live++}continue}live++;D.age[i]+=dt;const t=D.age[i]/D.life[i],j=i*3;
     if(D.kind[i]===0){D.vel[j+1]-=9*dt;D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.alp[i]=.9*(1-t*t)}
     else{const dr=Math.exp(-dt*1.8);D.vel[j]=D.vel[j]*dr+w*(1-dr);D.vel[j+2]*=dr;D.vel[j+1]=D.vel[j+1]*Math.exp(-dt*1.2)-.05*dt;
-      D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.siz[i]+=dt*(1.5+1.2*(1-t));D.alp[i]=.6*Math.min(1,t*8)*Math.pow(1-t,1.4)}}
+      D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.siz[i]+=dt*(1.1+1*(1-t));D.alp[i]=.26*Math.min(1,t*8)*Math.pow(1-t,1.5)}}
   D.pts.visible=live>0;if(!live)return;const g=D.pts.geometry;g.attributes.position.needsUpdate=g.attributes.size.needsUpdate=g.attributes.alpha.needsUpdate=g.attributes.color.needsUpdate=true;
   D.pts.material.uniforms.uS.value=renderer?renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360))*camera.zoom:300}
 /* ---------- color hardener ---------- */
