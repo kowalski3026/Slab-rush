@@ -8477,7 +8477,7 @@ function mixPLoad(){if(MIXP.tried||!THREE.GLTFLoader)return;MIXP.tried=true;new 
     truck.updateMatrixWorld(true);const inv=truck.matrixWorld.clone().invert(),ref=new THREE.Box3().setFromObject(MX.root).applyMatrix4(inv);// code truck's footprint, truck-local
     const wrap=new THREE.Group();wrap.add(o);o.rotation.y=MIXP.rot;o.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(o);const sz=b.getSize(new THREE.Vector3());
     o.scale.multiplyScalar(MIXP.h/sz.y);o.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(o);// real size: ~12 ft tall
-    o.position.x+=MIXP.rear-b.min.x;// rear bumper just behind the chute pivot (truck-local 15.4), clear of the formso.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
+    o.position.x+=MIXP.rear-b.min.x;/* rear bumper just behind the chute pivot (truck-local 15.4), clear of the forms */o.position.y+=ref.min.y-b.min.y;o.position.z+=(ref.min.z+ref.max.z)/2-(b.min.z+b.max.z)/2;
     wrap.visible=false;truck.add(wrap);MIXP.obj=wrap}catch(e){MIXP.err=String(e);console.warn('mixer glb',e)}},undefined,e=>{MIXP.err=String(e&&e.message||e);console.warn('mixer glb',e)})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
