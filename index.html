@@ -7729,8 +7729,8 @@ const CDUST={N:360,G:180,pts:null,i:0,gi:0,c:new THREE.Color()};
     float d=smoothstep(1.,.15,r+(.5-f)*.75);if(d<.01)discard;
     vec3 nm=normalize(vR*q.x+vU*q.y+cross(vR,vU)*sqrt(max(0.,1.-r*r))*.9+vec3(f-.5)*.6);// puff normal for lighting
     float lit=max(0.,dot(nm,normalize(uSun)));float ao=.72+.28*smoothstep(-1.,.6,q.y);// shaded underside
-    vec3 col=vC*(uAmb*ao+uSunC*lit*.75)*(.9+.2*f);
-    gl_FragColor=vec4(col,d*vP.y*(.55+.45*f));
+    vec3 col=vC*(uAmb*ao*.85+uSunC*lit*.95)*(.85+.3*f);
+    gl_FragColor=vec4(col,min(1.,d*vP.y*(.6+.6*f)));
     #include <colorspace_fragment>
    }`});
  CDUST.pts=new THREE.Mesh(g,m);CDUST.pts.frustumCulled=false;CDUST.pts.renderOrder=6;CDUST.pts.raycast=()=>{};scene.add(CDUST.pts);
@@ -7740,8 +7740,8 @@ const CDUST={N:360,G:180,pts:null,i:0,gi:0,c:new THREE.Color()};
  CDUST.grains=new THREE.Points(gg,CDUST.gm);CDUST.grains.frustumCulled=false;scene.add(CDUST.grains)}
 function cdustColor(){try{const sc=STAMP_COLORS.find(c=>c.id===stampSel.color)||STAMP_COLORS[0];CDUST.c.setStyle(sc.c)}catch(e){CDUST.c.setRGB(.8,.7,.55)}return CDUST.c}
 function cdustPuff(X,Y,Z,c,big){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.age[i]=0;const a=Math.random()*6.283,sp=big?.5+Math.random()*.6:1.6+Math.random()*1.8;
-  D.off[i*3]=X+Math.cos(a)*.15;D.off[i*3+1]=Y+.08;D.off[i*3+2]=Z+Math.sin(a)*.15;D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=big?1.1+Math.random()*.8:.25+Math.random()*.5;D.vel[i*3+2]=Math.sin(a)*sp;
-  D.life[i]=big?3.2+Math.random()*1.8:2+Math.random()*1.4;D.s0[i]=big?.35:.2;D.s1[i]=big?2.6+Math.random()*1.6:1.2+Math.random()*1.1;D.a0[i]=big?.55:.4;D.sd[i]=Math.random();
+  D.off[i*3]=X+Math.cos(a)*.15;D.off[i*3+1]=Y+.08;D.off[i*3+2]=Z+Math.sin(a)*.15;D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=big?1.4+Math.random()*1:.25+Math.random()*.5;D.vel[i*3+2]=Math.sin(a)*sp;
+  D.life[i]=big?3.2+Math.random()*1.8:2+Math.random()*1.4;D.s0[i]=big?.35:.2;D.s1[i]=big?2.6+Math.random()*1.6:1.2+Math.random()*1.1;D.a0[i]=big?.8:.6;D.sd[i]=Math.random();
   const v=.9+Math.random()*.2;D.col[i*3]=c.r*v;D.col[i*3+1]=c.g*v;D.col[i*3+2]=c.b*v}
 function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),D=CDUST;
   for(let k=0;k<3;k++){const j=D.gi;D.gi=(j+1)%D.G;D.ga[j]=0;D.gp[j*3]=X+(Math.random()-.5)*.9;D.gp[j*3+1]=Y+2.4+Math.random()*.7;D.gp[j*3+2]=Z+(Math.random()-.5)*.9;D.gv[j*3]=(Math.random()-.5)*1.4;D.gv[j*3+1]=-2-Math.random()*2;D.gv[j*3+2]=(Math.random()-.5)*1.4}
