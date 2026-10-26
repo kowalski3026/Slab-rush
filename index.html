@@ -1342,7 +1342,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:.55,copIn:1.25,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -4047,11 +4047,11 @@ const bumpTex=new THREE.CanvasTexture(bumpC),ccTex=new THREE.CanvasTexture(ccC);
 {const af=safeGfx?2:8;[slabTex,roughTex,bumpTex,ccTex].forEach(t=>t.anisotropy=af)}
 const slabMat=new THREE.MeshPhysicalMaterial({map:slabTex,bumpMap:bumpTex,bumpScale:.045,roughness:1,roughnessMap:roughTex,metalness:0,clearcoat:0,clearcoatRoughness:.07,clearcoatMap:ccTex,envMapIntensity:1});
 const SLABD={on:false,n:null,m:null};
-const CPH={U:{cRw:{value:null},cFl:{value:null},cRwN:{value:null},gPh:{value:0}}};
-(()=>{const L=new THREE.TextureLoader(),T=(f,srgb)=>{const t=L.load('tex/'+f,()=>{CPH.n=(CPH.n||0)+1;if(CPH.n===3){CPH.U.gPh.value=1;try{surfDirty=true}catch(e){}}});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;return t};
-  if(typeof safeGfx!=='undefined'&&safeGfx)return;const w=T('craw.jpg',true),f=T('cflt.jpg',true),n=T('craw_n.jpg',false);
-  // the shader reads them as linear 0..1 detail around 0.5, so decode the colour ones linearly too
-  w.colorSpace=f.colorSpace=THREE.NoColorSpace;CPH.U.cRw.value=w;CPH.U.cFl.value=f;CPH.U.cRwN.value=n})();
+const CPH={on:false,off:false,U:{cPk:{value:null},gPh:{value:1}}};
+/* v290: the concrete photo detail is ONE packed texture (R raw-mud detail, G floated-paste detail, BA raw-mud normal) so the slab shader fits
+   phones that only allow 16 textures. When it's on, the older slab detail maps are switched off (they did the same job). */
+(()=>{if(typeof safeGfx!=='undefined'&&safeGfx)return;const t=new THREE.TextureLoader().load('tex/cpack.webp',()=>{if(CPH.off)return;CPH.on=true;SLABD.try=1;SLABD.on=false;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}});
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.colorSpace=THREE.NoColorSpace;t.premultiplyAlpha=false;CPH.U.cPk.value=t})();
 function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Promise.all([pbrImg('slab_n'),pbrImg('slab_m')]).then(([a,b])=>{if(!a||!b)return;const T=im=>{const t=new THREE.Texture(im);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.needsUpdate=true;return t};
   SLABD.n=T(a);SLABD.m=T(b);SLABD.on=true;slabMat.needsUpdate=true}).catch(()=>{})}
 /* v155: GPU surface, part 1. Joints and tooled edges are drawn analytically in the slab shader at any resolution:
@@ -4118,10 +4118,10 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
     F=F.replace('varying vec2 vDW;','varying vec2 vDW;\nuniform sampler2D dN;uniform sampler2D dM;')
      .replace('#include <map_fragment>','#include <map_fragment>\n{float mt=texture2D(dM,vDW*vec2(.26,.52)).r+texture2D(dM,vDW*vec2(.061,.122)+.37).r-1.;diffuseColor.rgb*=1.+mt*.7;}')
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 du=vDW*vec2(.29,.58);vec3 dn=texture2D(dN,du).xyz*2.-1.;dn.xy*=.55*smoothstep(.25,.85,roughnessFactor);normal=pertD(-vViewPosition,normal,dn,gl_FrontFacing?1.:-1.,du);}')}
-  if(GPS.on){Object.assign(sh.uniforms,GPS.U,CPH.U);
+  if(GPS.on){Object.assign(sh.uniforms,GPS.U);if(CPH.on)Object.assign(sh.uniforms,CPH.U);
     F=F.replace('varying vec2 vDW;',`varying vec2 vDW;
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
-float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;uniform sampler2D cRw;uniform sampler2D cFl;uniform sampler2D cRwN;uniform float gPh;uniform float gSD;
+float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;${CPH.on?'uniform sampler2D cPk;uniform float gPh;':'float gPh=0.;'}uniform float gSD;
 uniform sampler2D gMR;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
@@ -4138,10 +4138,10 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
    float cream=clamp(C.b,0.,1.),lump=(1.-cream)*gRel*(1.-.7*gPh);
    // v288 photo concrete: real fresh-placed mud (stone, paste, shine) blending to floated cream as it's struck off and floated
-   if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec3 rw=texture2D(cRw,pr).rgb*2.,fl=texture2D(cFl,pf).rgb*2.;
+   ${CPH.on?`if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec4 ck=texture2D(cPk,pr);float fl=texture2D(cPk,pf).g*2.,rw=ck.r*2.;
     // once it's struck off the lumps are gone: halfway to cream, then floating finishes it
     float cr2=max(cream,texture2D(gBD,uvG).a*.55);
-    diffuseColor.rgb*=mix(vec3(1.),mix(rw,fl,cr2),inK*gPh);vec3 nr=texture2D(cRwN,pr).xyz*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*.75*(1.-cr2)*inK*gPh;diffuseColor.rgb*=1.-.16*(1.-cr2)*inK*gPh;}
+    diffuseColor.rgb*=mix(1.,mix(rw,fl,cr2),inK*gPh);vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*.75*(1.-cr2)*inK*gPh;diffuseColor.rgb*=1.-.16*(1.-cr2)*inK*gPh;}`:''}
    // fresh mud lumps: soft blobs at 4 in and 1.5 in, gone once it's struck and floated
    vec2 q=p*2.9;float n1=gVN(q),n1x=gVN(q+vec2(.05,0.)),n1z=gVN(q+vec2(0.,.05));vec2 q2=p*8.;float n2=gVN(q2),n2x=gVN(q2+vec2(.05,0.)),n2z=gVN(q2+vec2(0.,.05));
    float aaL=clamp(1.6-fwidth(p.x)*18.,0.,1.);
@@ -4214,7 +4214,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);\n#endif')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+'gl209';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl209';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -4223,7 +4223,7 @@ const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9
 /* v209: if a phone can't build the detailed slab shader (too many textures or too long), fall back to the plain one
    instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
 if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
-  if(SLABD.on){SLABD.on=false}else if(GPS.on){GPS.on=false}slabMat.needsUpdate=true}}
+  if(CPH.on){CPH.on=false;CPH.off=true}else if(SLABD.on){SLABD.on=false}else if(GPS.on){GPS.on=false}slabMat.needsUpdate=true}}
 try{if(renderer&&renderer.capabilities.maxTextures<16){SLABD.try=1}}catch(e){}
 function gpsInit(){if(GPS.on||safeGfx||!renderer)return;GPS.on=true;gpsShape();gpsSync();slabMat.needsUpdate=true}
 const slab=new THREE.Mesh(slabGeo,slabMat);slab.receiveShadow=true;slab.castShadow=false;scene.add(slab);
@@ -6276,7 +6276,7 @@ function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typ
 function mudSlump(){return (LV&&LV.slump)||MUD.slump}
 function mudFlow(dt){const A=MUD.age,Y=Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
   let moved=0;const rate=a=>a<1.2?3.2:a<4?1.4:a<10?.5*(1-(a-4)/6):0;
-  const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi]);if(!r)return;
+  const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
     const m=Math.min((d-y)*.45,(d-y)*r*dt);h[hi]-=m;h[lo]+=m;moved+=m;if(A[lo]>A[hi]+.6)A[lo]=A[hi]+.6};
   for(let it=0;it<2;it++){const fl=it&1;for(let y=0;y<GH;y++)for(let x0=0;x0<GW;x0++){const x=fl?GW-1-x0:x0,i=y*GW+x;
     if(x<GW-1)flow(i,i+1,Y);if(y<GH-1){flow(i,i+GW,Y);if(x<GW-1)flow(i,i+GW+1,Yd);if(x>0)flow(i,i+GW-1,Yd)}}}
@@ -6989,7 +6989,7 @@ function rakeMove(x,y){liveRake(x,y);
     for(let cy=Math.max(RY0,Math.floor(py-HW-1));cy<=Math.min(RY1-1,Math.ceil(py+HW+1));cy++)
     for(let cx=Math.max(RX0,Math.floor(px-HW-1));cx<=Math.min(RX1-1,Math.ceil(px+HW+1));cx++){
       const ox=cx+.5-px,oy=cy+.5-py,al=ox*ux+oy*uy,pe=ox*nx+oy*ny;if(Math.abs(al)>.6||Math.abs(pe)>HW)continue;
-      const i=cy*GW+cx,e=h[i]-T;if(!inR[i])continue;markAdd(rkA,rkC,rkS,i,ux,uy,.22*(1-Math.abs(pe)/HW*.5));
+      const i=cy*GW+cx,e=h[i]-T;if(!inR[i])continue;markAdd(rkA,rkC,rkS,i,ux,uy,.22*(1-Math.abs(pe)/HW*.5));try{if(MUD.age[i]>.5)MUD.age[i]=.5}catch(_){}// worked mud is live again and settles
       if(e>0){const t=e*.62;h[i]-=t;rk.load+=t;moved+=t}
       else{lows.push(i);def+=-e*.85}}
     // whatever the blade is over that's low gets a share of this step's drop, not each cell a share of the whole load
@@ -7002,7 +7002,7 @@ function rakeEnd(){
   if(rk.load<=0)return;const cells=[];
   for(let cy=Math.max(RY0,Math.floor(rk.y-3));cy<=Math.min(RY1-1,Math.ceil(rk.y+3));cy++)
   for(let cx=Math.max(RX0,Math.floor(rk.x-3));cx<=Math.min(RX1-1,Math.ceil(rk.x+3));cx++){const ox=cx+.5-rk.x-rk.ux*.9,oy=cy+.5-rk.y-rk.uy*.9;if(ox*ox+oy*oy<4.5&&inR[cy*GW+cx])cells.push(cy*GW+cx)}
-  if(cells.length){const a=rk.load/cells.length;cells.forEach(i=>h[i]+=a)}
+  if(cells.length){const a=rk.load/cells.length;cells.forEach(i=>{h[i]+=a;try{MUD.age[i]=0}catch(_){}})}
   rk.load=0;geoDirty=surfDirty=true;
 }
 
@@ -8500,9 +8500,20 @@ function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fr
   if(!BKD.quad){BKD.quad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({depthWrite:false,depthTest:false,fog:false,toneMapped:false}));
     BKD.quad.renderOrder=-1000;BKD.quad.frustumCulled=false;BKD.quad.layers.set(4);BKD.quad.raycast=()=>{};scene.add(BKD.quad)}
   const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true}
+/* v290: the concrete runs right up to the pool. The photo's own coping (a band around the keep-out rect, projected through the painting's
+   camera) is drawn back over the 3D with a soft mask, so the edge always sits exactly on the painted stone at any zoom. */
+function bkdCoping(){const C=BKD.L&&BKD.L.paint;if(!C||!C.keepOut||!BKD.quad||!BKD.tex){if(BKD.cop)BKD.cop.visible=false;return}
+  if(!BKD.cop||BKD.cop.userData.L!==BKD.L||BKD.cop.material.map!==BKD.tex){const W=512,H=Math.round(512/C.asp),[cv,g]=mk(W,H),cam=BKD.o;cam.fov=C.fov;cam.aspect=C.asp;cam.updateProjectionMatrix();cam.updateMatrixWorld(true);
+    const v=new THREE.Vector3(),P=(x,z)=>{v.set(x,.05,z).project(cam);return[(v.x+1)/2*W,(1-v.y)/2*H]},R=(r,k)=>{const q=[[r[0]-k,r[1]-k],[r[2]+k,r[1]-k],[r[2]+k,r[3]+k],[r[0]-k,r[3]+k]];const S=[];for(let e=0;e<4;e++){const a=q[e],b=q[(e+1)%4];for(let t=0;t<8;t++)S.push(P(a[0]+(b[0]-a[0])*t/8,a[1]+(b[1]-a[1])*t/8))}return S};
+    g.fillStyle='#000';g.fillRect(0,0,W,H);g.filter='blur(1.2px)';g.fillStyle='#fff';
+    C.keepOut.forEach(r=>{g.beginPath();R(r,C.copOut||.5).forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();R(r,-(C.copIn||1.2)).reverse().forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill('evenodd')});
+    const mt=new THREE.CanvasTexture(cv);if(BKD.cop){scene.remove(BKD.cop);BKD.cop.material.alphaMap&&BKD.cop.material.alphaMap.dispose();BKD.cop.material.dispose()}
+    const m=new THREE.Mesh(BKD.quad.geometry,new THREE.MeshBasicMaterial({map:BKD.tex,alphaMap:mt,transparent:true,depthTest:false,depthWrite:false,fog:false,toneMapped:false}));
+    m.renderOrder=900;m.frustumCulled=false;m.layers.set(4);m.raycast=()=>{};m.userData.L=BKD.L;scene.add(m);BKD.cop=m}
+  const m=BKD.cop;m.visible=true;m.position.copy(BKD.quad.position);m.quaternion.copy(BKD.quad.quaternion);m.scale.copy(BKD.quad.scale)}
 function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
    v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
@@ -8634,7 +8645,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   try{bkdLot()}catch(e){console.warn('bkdLot',e)}
   try{bkdGrade(true)}catch(e){}
   try{mixPTick(true)}catch(e){}
-  {const ko=BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut&&BKD.L.paint.keepOut[0],km=(BKD.L&&BKD.L.paint&&BKD.L.paint.koPad)||0;if(ko)BKKO.value.set(ko[0]-km,ko[1]-km,ko[2]+km,ko[3]+km);else BKKO.value.set(1e9,1e9,1e9,1e9)}
+  BKKO.value.set(1e9,1e9,1e9,1e9);try{bkdCoping()}catch(e){console.warn('coping',e)}
   {const k=STAGES[stage]&&STAGES[stage].key,y=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(slab):null;BKSLAB.value=y==null?1e9:y;
    // invisible lid over the undug ground: writes depth only, so trench walls and anything below grade stay hidden until that cell is dug
    const ly=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(pitMesh):null;BKLID.value=ly==null?1e9:ly;
@@ -11483,7 +11494,9 @@ function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){h
     const uv=g.attributes.uv,ps=g.attributes.position;for(let i=0;i<ps.count;i++)uv.setXY(i,(ps.getX(i)+160)/320,(-ps.getZ(i)+160)/320);
     const mt=ground.material.clone();mt.polygonOffset=true;mt.polygonOffsetFactor=1;mt.polygonOffsetUnits=2;m=new THREE.Mesh(g,mt);m.position.y=-.299-E;m.receiveShadow=true;scene.add(m)}catch(e){console.warn('yearGrass',e)}
   return()=>{hid.forEach(o=>o.visible=true);if(m){scene.remove(m);m.geometry.dispose();m.material.dispose()}}}
-function snapPhoto(pre){if(!renderer)return null;try{
+function snapPhoto(pre){if(!renderer)return null;const bk=typeof BKD!=='undefined'&&BKD.on;let bkH=null;if(bk){bkH=BKD.hid.map(([o])=>[o,o.visible]);BKD.hid.forEach(([o,v])=>o.visible=v);if(BKD.cop)BKD.cop.visible=false;BKD.quad.visible=false;BKD.gm2=ground.material;ground.material=BKD.gmat||lawnM}
+  try{const r=snapPhoto0(pre);return r}finally{if(bk){bkH.forEach(([o,v])=>o.visible=v);BKD.quad.visible=true;ground.material=BKD.gm2}}}
+function snapPhoto0(pre){if(!renderer)return null;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const p=camera.position.clone(),q=camera.quaternion.clone(),portrait=cssW<cssH,th=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const hv=(portrait?RW:RD)/2+2.5,hh=(portrait?RD:RW)/2+2.5,d=Math.max(hv/th,hh/(th*asp));
