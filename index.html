@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v299"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v300"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v300: raking: a real come-along (aluminum blade, toothed hook, braced socket, 6.5 ft handle with grip, crud and splatter); the load rides as a lumpy roll of mud in front of the blade; the head trails your finger more when loaded, tips back when you pull and leans in when you push; an overloaded blade spills around its ends; rake lines a bit stronger. -->
 <!-- v299: rain splash rings stop when the rain stops (they kept popping while the ground dried) and are cleared for the result photos. -->
 <!-- v298: painted sites: result photos are drone shots of the real-looking yard with your concrete in it; 1 year later uses the plain-lawn photo so grass meets the slab. -->
 <!-- v297: 1-year-later photo: lawn grows right up to the slab on painted sites too (the trench ring and soil no longer come back for the shot). -->
@@ -5212,15 +5213,48 @@ const bootM=new THREE.MeshStandardMaterial({color:0x141414,roughness:.5});
 const mudM=new THREE.MeshStandardMaterial({color:0x8a857c,roughness:.6});
 
 // ---- come-along rake
-const rakeG=new THREE.Group();
-{const rm=new THREE.MeshStandardMaterial({color:0x7d7f80,roughness:.5,metalness:.65});
- const bl=new THREE.Mesh(new THREE.BoxGeometry(1.7,.36,.04),rm);bl.position.set(0,.2,0);rakeG.add(bl);
- const lip=new THREE.Mesh(new THREE.BoxGeometry(1.7,.04,.16),rm);lip.position.set(0,.37,.06);rakeG.add(lip);
- const crud=new THREE.Mesh(new THREE.BoxGeometry(1.6,.12,.06),mudM);crud.position.set(0,.06,-.03);rakeG.add(crud);
- const hk=new THREE.Mesh(new THREE.BoxGeometry(.12,.3,.12),rm);hk.position.set(0,.3,.08);rakeG.add(hk);
- const hd=handle(4.4,40);hd.position.y+=.32;rakeG.add(hd)}
+/* v300: a real come-along (concrete placer). 20 in x 4.5 in aluminum blade with a toothed hook folded along the top, a welded socket
+   with two braces, and a 6.5 ft aluminum handle with a rubber grip. Sizes in feet; x across the blade, +z back toward the raker's hands.
+   It carries dried crud on the face and splatter up the handle. The load rides in front of the blade as a lumpy roll of mud. */
+const rakeG=new THREE.Group(),RKV={tilt:0,px:null,pz:null,py:0,bob:0,pull:0};
+{const brushed=(()=>{const[c,g]=mk(256,64);g.fillStyle='#b9bdc0';g.fillRect(0,0,256,64);
+   for(let i=0;i<900;i++){const y=Math.random()*64,v=150+Math.random()*90|0;g.strokeStyle=`rgba(${v},${v+3},${v+6},${.12+Math.random()*.2})`;g.lineWidth=.6;g.beginPath();g.moveTo(Math.random()*256,y);g.lineTo(Math.random()*256,y+(Math.random()-.5)*.6);g.stroke()}
+   for(let i=0;i<60;i++){g.fillStyle=`rgba(90,88,84,${.08+Math.random()*.18})`;g.beginPath();g.ellipse(Math.random()*256,Math.random()*64,2+Math.random()*10,1+Math.random()*3,Math.random(),0,7);g.fill()}
+   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t})();
+ const al=new THREE.MeshStandardMaterial({map:brushed,color:0xffffff,roughness:.36,metalness:.82,envMapIntensity:.9});
+ const alD=new THREE.MeshStandardMaterial({map:brushed,color:0xa9acaf,roughness:.42,metalness:.8});
+ const grip=new THREE.MeshStandardMaterial({color:0x1c1d1f,roughness:.8});
+ const crudM=new THREE.MeshStandardMaterial({color:0x8d887e,roughness:.75});
+ const W=1.67,H=.38,T=.028;
+ // blade: slightly bowed so the face cups the mud, worn bright along the bottom edge
+ {const g=new THREE.BoxGeometry(W,H,T,16,4,1),P=g.attributes.position;for(let i=0;i<P.count;i++){const x=P.getX(i)/(W/2);P.setZ(i,P.getZ(i)+.035*(1-x*x))}g.computeVertexNormals();
+  const b=new THREE.Mesh(g,al);b.position.set(0,H/2+.01,0);rakeG.add(b);
+  const lip=new THREE.Mesh(new THREE.BoxGeometry(W,.03,T*1.2),new THREE.MeshStandardMaterial({color:0xe2e4e6,roughness:.22,metalness:.95}));lip.position.set(0,.025,.035);rakeG.add(lip)}
+ // the hook: a strip folded back along the top with teeth for pulling
+ {const hk=new THREE.Mesh(new THREE.BoxGeometry(W,.025,.12),alD);hk.position.set(0,H+.02,.06);hk.rotation.x=-.35;rakeG.add(hk);
+  const tg=new THREE.BoxGeometry(.05,.07,.025);for(let i=0;i<14;i++){const t=new THREE.Mesh(tg,alD);t.position.set(-W/2+.07+i*(W-.14)/13,H-.005,.125);t.rotation.x=.5;rakeG.add(t)}}
+ // welded socket and braces
+ const elev=34*Math.PI/180,sx=0,sy=H*.62,sz=.05;
+ {const sk=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,.42,10),alD);sk.rotation.x=Math.PI/2-elev;sk.position.set(sx,sy+Math.sin(elev)*.21,sz+Math.cos(elev)*.21);rakeG.add(sk);
+  const pl=new THREE.Mesh(new THREE.BoxGeometry(.22,.24,.03),alD);pl.position.set(0,sy,.04);rakeG.add(pl);
+  [-1,1].forEach(sd=>{const a=new THREE.Vector3(sd*.62,H*.7,.035),b=new THREE.Vector3(0,sy+Math.sin(elev)*.34,sz+Math.cos(elev)*.34),d=b.clone().sub(a);
+   const br=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,d.length(),6),alD);br.position.copy(a).add(b).multiplyScalar(.5);br.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());rakeG.add(br)})}
+ // 6.5 ft handle with a rubber grip at the end
+ {const L=6.5,hd=new THREE.Group();hd.position.set(sx,sy,sz);hd.rotation.x=-elev;// local +z runs up the handle
+  const tube=new THREE.Mesh(new THREE.CylinderGeometry(.048,.048,L,12).rotateX(Math.PI/2).translate(0,0,L/2),al);hd.add(tube);
+  const gp=new THREE.Mesh(new THREE.CylinderGeometry(.056,.056,.75,12).rotateX(Math.PI/2).translate(0,0,L-.4),grip);hd.add(gp);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(.058,10,6),grip);cap.position.z=L-.02;hd.add(cap);
+  // splatter up the bottom of the handle
+  for(let i=0;i<9;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(.06,6,4),crudM);s.position.set((Math.random()-.5)*.06,(Math.random()-.5)*.06,.15+Math.random()*1.1);s.scale.set(.5+Math.random()*.6,.4+Math.random()*.4,.6+Math.random()*1.4);hd.add(s)}
+  rakeG.add(hd)}
+ // dried crud caked on the face and along the bottom
+ {const cg=new THREE.SphereGeometry(1,8,5);for(let i=0;i<26;i++){const m=new THREE.Mesh(cg,crudM),x=(Math.random()-.5)*(W-.1),y=.03+Math.pow(Math.random(),1.8)*H*.8;
+   m.position.set(x,y,-.02-Math.random()*.01);m.scale.set(.03+Math.random()*.07,.02+Math.random()*.05,.012+Math.random()*.02);rakeG.add(m)}}}
 shadowAll(rakeG);rakeG.visible=false;scene.add(rakeG);
-const rakeMound=new THREE.Mesh(new THREE.SphereGeometry(1,16,10,0,Math.PI*2,0,Math.PI/2),concM);rakeMound.castShadow=true;rakeMound.visible=false;scene.add(rakeMound);
+// the roll of mud riding in front of the blade: a lumpy capsule across the blade, sized by the load
+const rakeMound=(()=>{const g=new THREE.CapsuleGeometry(.5,1,6,14);g.rotateZ(Math.PI/2);const P=g.attributes.position,v=new THREE.Vector3();
+  for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i);const n=.09*Math.sin(v.x*9.1+v.y*5)*Math.cos(v.z*7.3+v.x*3)+.06*(Math.random()-.5);const l=Math.hypot(v.y,v.z)||1;P.setY(i,v.y+v.y/l*n);P.setZ(i,v.z+v.z/l*n)}
+  g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x7e7a72,roughness:.38,metalness:0}));m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m);return m})();
 
 // ---- rubber boots and legs of the raker
 const workerG=new THREE.Group();
@@ -7017,12 +7051,16 @@ function rakeMove(x,y){liveRake(x,y);
     for(let cy=Math.max(RY0,Math.floor(py-HW-1));cy<=Math.min(RY1-1,Math.ceil(py+HW+1));cy++)
     for(let cx=Math.max(RX0,Math.floor(px-HW-1));cx<=Math.min(RX1-1,Math.ceil(px+HW+1));cx++){
       const ox=cx+.5-px,oy=cy+.5-py,al=ox*ux+oy*uy,pe=ox*nx+oy*ny;if(Math.abs(al)>.6||Math.abs(pe)>HW)continue;
-      const i=cy*GW+cx,e=h[i]-T;if(!inR[i])continue;markAdd(rkA,rkC,rkS,i,ux,uy,.22*(1-Math.abs(pe)/HW*.5));try{if(MUD.age[i]>.5)MUD.age[i]=.5}catch(_){}// worked mud is live again and settles
+      const i=cy*GW+cx,e=h[i]-T;if(!inR[i])continue;markAdd(rkA,rkC,rkS,i,ux,uy,.3*(1-Math.abs(pe)/HW*.5));try{if(MUD.age[i]>.5)MUD.age[i]=.5}catch(_){}// worked mud is live again and settles
       if(e>0){const t=e*.62;h[i]-=t;rk.load+=t;moved+=t}
       else{lows.push(i);def+=-e*.85}}
     // whatever the blade is over that's low gets a share of this step's drop, not each cell a share of the whole load
     if(rk.load>0&&def>0){const dep=Math.min(rk.load*give,def),k=dep/def;for(const i of lows){const f=-(h[i]-T)*.85*k;h[i]+=f}rk.load-=dep;moved+=dep}
-    lows.length=0;def=0}
+    lows.length=0;def=0;
+    // v300: more than the blade can hold rolls off around its ends and leaves a ridge each side
+    const cap=2*HW*48/CELL_IN;if(rk.load>cap){const sp=(rk.load-cap)*.35;let ns=0;const ends=[];
+      for(const sd of[-1,1]){const ex=px+nx*sd*(HW+.9),ey=py+ny*sd*(HW+.9),cx=Math.floor(ex),cy=Math.floor(ey);if(cx>=RX0&&cx<RX1&&cy>=RY0&&cy<RY1&&inR[cy*GW+cx])ends.push(cy*GW+cx)}
+      if(ends.length){ends.forEach(i=>{h[i]+=sp/ends.length;try{MUD.age[i]=0}catch(_){}});rk.load-=sp;moved+=sp}}}
   rk.x=x;rk.y=y;rk.ux=ux;rk.uy=uy;
   if(moved>.05){geoDirty=surfDirty=true;if(performance.now()-buzzT>140){buzzT=performance.now();buzz(5)}}
 }
@@ -7036,11 +7074,20 @@ function rakeEnd(){
 
 function updateRake(dt){
   const on=running&&STAGES[stage]&&STAGES[stage].key==='pour'&&pourTool==='rake'&&rk.used;
-  rakeG.visible=on;workerG.visible=false;rakeMound.visible=on&&rk.load>.25;if(!on)return;
-  const hx=wx(rk.x),hz=wz(rk.y),hy=surfY(hx,hz);
+  rakeG.visible=on;workerG.visible=false;rakeMound.visible=on&&rk.load>.25;if(!on){RKV.px=null;return}
+  const tx=wx(rk.x),tz=wz(rk.y);if(RKV.px==null){RKV.px=tx;RKV.pz=tz}
+  // the head trails the finger a touch, more when it's loaded, so it feels heavy
+  const lag=Math.min(1,dt*(22-Math.min(12,rk.load*.35)));RKV.px+=(tx-RKV.px)*lag;RKV.pz+=(tz-RKV.pz)*lag;
+  const hx=RKV.px,hz=RKV.pz,hy=surfY(hx,hz);
   if(ptr.down)rkYaw=steerYaw(rkYaw,'rake',dt);const yaw=rkYaw;
-  rakeG.position.set(hx,hy,hz);rakeG.rotation.y=yaw;
-  if(rk.load>.25){const r=Math.cbrt(rk.load)*.2,off=.3+r;rakeMound.position.set(hx+rk.ux*off,hy+.01,hz+rk.uy*off);rakeMound.scale.set(Math.min(.85,r*2.6),Math.min(.3,r*.8),Math.min(.5,r*1.3));rakeMound.rotation.y=yaw}
+  // pulling toward the handle tips the blade back onto the hook; pushing leans it forward
+  const mvx=wx(rk.x+rk.ux)-wx(rk.x),mvz=wz(rk.y+rk.uy)-wz(rk.y),ml=Math.hypot(mvx,mvz)||1,pull=ptr.down?(mvx*Math.sin(yaw)+mvz*Math.cos(yaw))/ml:0;
+  RKV.pull+=(pull-RKV.pull)*Math.min(1,dt*8);RKV.bob+=dt*(ptr.down?(rk.sp||0)*.9+4:0);
+  const shake=ptr.down?Math.min(.035,rk.load*.0016)*Math.sin(RKV.bob*7):0;
+  rakeG.position.set(hx,hy+Math.abs(shake)*.4,hz);rakeG.rotation.set(-.14*RKV.pull+shake,yaw,0,'YXZ');
+  if(rk.load>.25){const cap=2*2.1/LS*48/CELL_IN,f=Math.min(1.6,rk.load/cap),r=.12+.22*Math.sqrt(f),off=.08+r*.9,side=RKV.pull>0?1:-1;// mud rides ahead of the way the blade is travelling
+    rakeMound.position.set(hx+mvx/ml*off,hy+r*.25,hz+mvz/ml*off);
+    rakeMound.scale.set(1.25+.45*f,r*1.25,r*2);rakeMound.rotation.set(0,yaw,0);rakeMound.rotateX(RKV.bob*.6*side)}
 }
 
 
