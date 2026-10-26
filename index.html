@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v301"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v302"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v302: color hardener dust redone: bursts of lit, lumpy billows that skid out along the slab then roll up and swell (sun-lit tops, shaded undersides), instead of a flat haze; no size cap. -->
 <!-- v301: color hardener throws dust: grains fall from hand height and soft billows of the hardener color puff up where they land, roll out, drift downwind and settle. -->
 <!-- v300: raking: a real come-along (aluminum blade, toothed hook, braced socket, 6.5 ft handle with grip, crud and splatter); the load rides as a lumpy roll of mud in front of the blade; the head trails your finger more when loaded, tips back when you pull and leans in when you push; an overloaded blade spills around its ends; rake lines a bit stronger. -->
 <!-- v299: rain splash rings stop when the rain stops (they kept popping while the ground dried) and are cleared for the result photos. -->
@@ -7706,34 +7707,63 @@ $('rPov').addEventListener('click',e=>{e.stopPropagation();buzz(8);rideCycle()})
  window.addEventListener('keyup',e=>{const m=KM[(e.key||'').toLowerCase()];if(m)RIDE.key[m]=false},true);
  window.addEventListener('blur',()=>{for(const q in RIDE.key)RIDE.key[q]=false})}
 
-/* v301: color hardener dust. Each throw sends grains falling from hand height; where they land, soft billows of the hardener's
-   color puff up, roll outward, drift downwind and settle. Soft round sprites drawn in one Points call (max 420). */
-const CDUST={N:640,pts:null,pos:null,vel:null,age:null,life:null,siz:null,col:null,alp:null,i:0,c:new THREE.Color()};
-{const N=CDUST.N,g=new THREE.BufferGeometry();CDUST.pos=new Float32Array(N*3);CDUST.vel=new Float32Array(N*3);CDUST.age=new Float32Array(N).fill(9);CDUST.life=new Float32Array(N).fill(1);
- CDUST.siz=new Float32Array(N);CDUST.col=new Float32Array(N*3);CDUST.alp=new Float32Array(N);CDUST.kind=new Uint8Array(N);
- g.setAttribute('position',new THREE.BufferAttribute(CDUST.pos,3));g.setAttribute('size',new THREE.BufferAttribute(CDUST.siz,1));g.setAttribute('color',new THREE.BufferAttribute(CDUST.col,3));g.setAttribute('alpha',new THREE.BufferAttribute(CDUST.alp,1));
- const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uS:{value:300}},vertexColors:true,
-  vertexShader:'attribute float size;attribute float alpha;varying vec3 vC;varying float vA;varying float vS;void main(){vC=color;vA=alpha;vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=clamp(size*uS/-mv.z,1.,180.);vS=size;}'.replace('void main','uniform float uS;void main'),
-  fragmentShader:'varying vec3 vC;varying float vA;varying float vS;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}void main(){vec2 q=gl_PointCoord-.5;float r=length(q)*2.;if(r>1.)discard;float k=vS>.25?(.55+.45*n(q*5.+vS*37.))*(1.-smoothstep(.25,1.,r)):1.-smoothstep(.5,1.,r);float a=vA*k;if(a<.01)discard;gl_FragColor=vec4(vC*(.92+.16*(1.-r)),a);\n#include <colorspace_fragment>\n}'});
- CDUST.pts=new THREE.Points(g,m);CDUST.pts.frustumCulled=false;CDUST.pts.renderOrder=6;scene.add(CDUST.pts)}
+/* v302: color hardener dust, take two. Each throw drops grains from hand height; where they land a burst of billows puffs up:
+   a fat core and smaller satellites that shove outward along the ground, then roll up and slow, swelling as they go. Each billow is a
+   camera-facing card drawn as a lit puff (fbm cauliflower edge, sun-lit top, shaded underside, denser core) in the hardener's color,
+   so it reads as a dust cloud with volume instead of a flat haze. One instanced draw, no size cap. */
+const CDUST={N:360,G:180,pts:null,i:0,gi:0,c:new THREE.Color()};
+{const N=CDUST.N,g=new THREE.InstancedBufferGeometry();const q=new THREE.PlaneGeometry(1,1);g.index=q.index;g.setAttribute('position',q.attributes.position);g.setAttribute('uv',q.attributes.uv);
+ const A=(n,k)=>{const a=new THREE.InstancedBufferAttribute(new Float32Array(N*k),k);a.setUsage(THREE.DynamicDrawUsage);g.setAttribute(n,a);return a.array};
+ CDUST.off=A('iOff',3);CDUST.prm=A('iPrm',4);CDUST.col=A('iCol',3);g.instanceCount=0;
+ CDUST.vel=new Float32Array(N*3);CDUST.age=new Float32Array(N).fill(9);CDUST.life=new Float32Array(N).fill(1);CDUST.s0=new Float32Array(N);CDUST.s1=new Float32Array(N);CDUST.a0=new Float32Array(N);CDUST.sd=new Float32Array(N);
+ const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uSun:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color(1,.95,.85)},uAmb:{value:.55}},
+  vertexShader:`attribute vec3 iOff;attribute vec4 iPrm;attribute vec3 iCol;varying vec2 vUv;varying vec4 vP;varying vec3 vC;varying vec3 vR;varying vec3 vU;
+   void main(){vUv=uv;vP=iPrm;vC=iCol;vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
+    float c=cos(iPrm.w*6.283),s=sin(iPrm.w*6.283);vec2 p=position.xy*iPrm.x;p=vec2(c*p.x-s*p.y,s*p.x+c*p.y);vR=R;vU=U;
+    gl_Position=projectionMatrix*viewMatrix*vec4(iOff+R*p.x+U*p.y,1.);}`,
+  fragmentShader:`uniform vec3 uSun;uniform vec3 uSunC;uniform float uAmb;varying vec2 vUv;varying vec4 vP;varying vec3 vC;varying vec3 vR;varying vec3 vU;
+   float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+   float fb(vec2 p){float a=.5,v=0.;for(int i=0;i<4;i++){v+=a*n(p);p*=2.03;a*=.5;}return v;}
+   void main(){vec2 q=vUv*2.-1.;float r=length(q);if(r>1.)discard;float sd=vP.z*17.3;
+    float f=fb(q*2.2+sd)*.65+fb(q*5.+sd*1.7+vP.y*.4)*.35;// lumpy edge that churns as it ages
+    float d=smoothstep(1.,.15,r+(.5-f)*.75);if(d<.01)discard;
+    vec3 nm=normalize(vR*q.x+vU*q.y+cross(vR,vU)*sqrt(max(0.,1.-r*r))*.9+vec3(f-.5)*.6);// puff normal for lighting
+    float lit=max(0.,dot(nm,normalize(uSun)));float ao=.72+.28*smoothstep(-1.,.6,q.y);// shaded underside
+    vec3 col=vC*(uAmb*ao+uSunC*lit*.75)*(.9+.2*f);
+    gl_FragColor=vec4(col,d*vP.y*(.55+.45*f));
+    #include <colorspace_fragment>
+   }`});
+ CDUST.pts=new THREE.Mesh(g,m);CDUST.pts.frustumCulled=false;CDUST.pts.renderOrder=6;CDUST.pts.raycast=()=>{};scene.add(CDUST.pts);
+ // falling grains: tiny streaks, plain points
+ const gg=new THREE.BufferGeometry();CDUST.gp=new Float32Array(CDUST.G*3).fill(-1e4);CDUST.gv=new Float32Array(CDUST.G*3);CDUST.ga=new Float32Array(CDUST.G).fill(9);
+ gg.setAttribute('position',new THREE.BufferAttribute(CDUST.gp,3));CDUST.gm=new THREE.PointsMaterial({size:.07,transparent:true,opacity:.85,depthWrite:false});
+ CDUST.grains=new THREE.Points(gg,CDUST.gm);CDUST.grains.frustumCulled=false;scene.add(CDUST.grains)}
 function cdustColor(){try{const sc=STAMP_COLORS.find(c=>c.id===stampSel.color)||STAMP_COLORS[0];CDUST.c.setStyle(sc.c)}catch(e){CDUST.c.setRGB(.8,.7,.55)}return CDUST.c}
-function cdustEmit(X,Y,Z,kind,c){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.kind[i]=kind;D.age[i]=0;
-  if(kind===0){// a grain falling from the hand
-    D.pos[i*3]=X+(Math.random()-.5)*.8;D.pos[i*3+1]=Y+2.6+Math.random()*.6;D.pos[i*3+2]=Z+(Math.random()-.5)*.8;D.vel[i*3]=(Math.random()-.5)*1.2;D.vel[i*3+1]=-2-Math.random()*2;D.vel[i*3+2]=(Math.random()-.5)*1.2;D.life[i]=.45+Math.random()*.2;D.siz[i]=.06+Math.random()*.05}
-  else{// a billow rolling out from where it landed
-    const a=Math.random()*6.283,sp=.6+Math.random()*1.4;D.pos[i*3]=X+Math.cos(a)*.4;D.pos[i*3+1]=Y+.1+Math.random()*.25;D.pos[i*3+2]=Z+Math.sin(a)*.4;
-    D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=.6+Math.random()*1.1;D.vel[i*3+2]=Math.sin(a)*sp;D.life[i]=2.4+Math.random()*1.8;D.siz[i]=.7+Math.random()*.6}
-  const v=.85+Math.random()*.25;D.col[i*3]=Math.min(1,c.r*v);D.col[i*3+1]=Math.min(1,c.g*v);D.col[i*3+2]=Math.min(1,c.b*v)}
-function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),now=performance.now();
-  for(let k=0;k<3;k++)cdustEmit(X,Y,Z,0,c);
-  const n=2+(Math.random()*2|0);for(let k=0;k<n;k++)cdustEmit(X+(Math.random()-.5)*1.4,Y,Z+(Math.random()-.5)*1.4,1,c)}// billows scale with how far you sweep
-function cdustTick(dt){const D=CDUST;let live=0;const w=.3;// gentle drift (TREE.wind is a sway clock, not a strength)
-  for(let i=0;i<D.N;i++){if(D.age[i]>=D.life[i]){if(D.alp[i]){D.alp[i]=0;live++}continue}live++;D.age[i]+=dt;const t=D.age[i]/D.life[i],j=i*3;
-    if(D.kind[i]===0){D.vel[j+1]-=9*dt;D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.alp[i]=.9*(1-t*t)}
-    else{const dr=Math.exp(-dt*1.8);D.vel[j]=D.vel[j]*dr+w*(1-dr);D.vel[j+2]*=dr;D.vel[j+1]=D.vel[j+1]*Math.exp(-dt*1.2)-.05*dt;
-      D.pos[j]+=D.vel[j]*dt;D.pos[j+1]+=D.vel[j+1]*dt;D.pos[j+2]+=D.vel[j+2]*dt;D.siz[i]+=dt*(1.1+1*(1-t));D.alp[i]=.26*Math.min(1,t*8)*Math.pow(1-t,1.5)}}
-  D.pts.visible=live>0;if(!live)return;const g=D.pts.geometry;g.attributes.position.needsUpdate=g.attributes.size.needsUpdate=g.attributes.alpha.needsUpdate=g.attributes.color.needsUpdate=true;
-  D.pts.material.uniforms.uS.value=renderer?renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360))*camera.zoom:300}
+function cdustPuff(X,Y,Z,c,big){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.age[i]=0;const a=Math.random()*6.283,sp=big?.5+Math.random()*.6:1.6+Math.random()*1.8;
+  D.off[i*3]=X+Math.cos(a)*.15;D.off[i*3+1]=Y+.08;D.off[i*3+2]=Z+Math.sin(a)*.15;D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=big?1.1+Math.random()*.8:.25+Math.random()*.5;D.vel[i*3+2]=Math.sin(a)*sp;
+  D.life[i]=big?3.2+Math.random()*1.8:2+Math.random()*1.4;D.s0[i]=big?.35:.2;D.s1[i]=big?2.6+Math.random()*1.6:1.2+Math.random()*1.1;D.a0[i]=big?.55:.4;D.sd[i]=Math.random();
+  const v=.9+Math.random()*.2;D.col[i*3]=c.r*v;D.col[i*3+1]=c.g*v;D.col[i*3+2]=c.b*v}
+function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),D=CDUST;
+  for(let k=0;k<3;k++){const j=D.gi;D.gi=(j+1)%D.G;D.ga[j]=0;D.gp[j*3]=X+(Math.random()-.5)*.9;D.gp[j*3+1]=Y+2.4+Math.random()*.7;D.gp[j*3+2]=Z+(Math.random()-.5)*.9;D.gv[j*3]=(Math.random()-.5)*1.4;D.gv[j*3+1]=-2-Math.random()*2;D.gv[j*3+2]=(Math.random()-.5)*1.4}
+  // a burst where the handful lands: one core billow, a few that skid out along the slab
+  D.k=(D.k||0)+1;if(D.k%2)return;cdustPuff(X,Y,Z,c,true);const n=2+(Math.random()*2|0);for(let k=0;k<n;k++)cdustPuff(X+(Math.random()-.5)*.6,Y,Z+(Math.random()-.5)*.6,c,false)}
+function cdustTick(dt){const D=CDUST;let live=0;
+  // grains
+  let gl=0;for(let j=0;j<D.G;j++){if(D.ga[j]>=1)continue;gl++;D.ga[j]+=dt*2;D.gv[j*3+1]-=9*dt;D.gp[j*3]+=D.gv[j*3]*dt;D.gp[j*3+1]+=D.gv[j*3+1]*dt;D.gp[j*3+2]+=D.gv[j*3+2]*dt;if(D.ga[j]>=1)D.gp[j*3+1]=-1e4}
+  D.grains.visible=gl>0;if(gl){D.gm.color.copy(D.c);D.grains.geometry.attributes.position.needsUpdate=true}
+  // billows: shove out fast and low, then drag slows them, they lift and swell; fade in quick, thin out slow
+  let n=0;for(let i=0;i<D.N;i++){if(D.age[i]>=D.life[i])continue;D.age[i]+=dt;const t=Math.min(1,D.age[i]/D.life[i]),j=i*3;
+    const dh=Math.exp(-dt*2.6),dv=Math.exp(-dt*1.1);D.vel[j]=D.vel[j]*dh+.25*(1-dh);D.vel[j+2]*=dh;D.vel[j+1]=D.vel[j+1]*dv+(t<.5?.18:-.05)*dt;
+    D.off[j]+=D.vel[j]*dt;D.off[j+1]+=D.vel[j+1]*dt;D.off[j+2]+=D.vel[j+2]*dt;
+    const sz=D.s0[i]+(D.s1[i]-D.s0[i])*(1-Math.pow(1-t,2.4)),al=D.a0[i]*Math.min(1,t*14)*Math.pow(1-t,1.3);
+    // pack the live ones at the front for the draw
+    const o=n*3,p=n*4;if(n!==i){D.off[o]=D.off[j];D.off[o+1]=D.off[j+1];D.off[o+2]=D.off[j+2];D.vel[o]=D.vel[j];D.vel[o+1]=D.vel[j+1];D.vel[o+2]=D.vel[j+2];D.col[o]=D.col[j];D.col[o+1]=D.col[j+1];D.col[o+2]=D.col[j+2];
+      D.age[n]=D.age[i];D.life[n]=D.life[i];D.s0[n]=D.s0[i];D.s1[n]=D.s1[i];D.a0[n]=D.a0[i];D.sd[n]=D.sd[i];D.age[i]=9}
+    D.prm[p]=sz;D.prm[p+1]=al;D.prm[p+2]=D.sd[n];D.prm[p+3]=D.sd[n]+t*.08;n++}
+  D.i=n%D.N;const g=D.pts.geometry;g.instanceCount=n;D.pts.visible=n>0;if(!n)return;
+  ['iOff','iPrm','iCol'].forEach(k=>g.attributes[k].needsUpdate=true);
+  // light it like the scene: the sun's direction and warmth, the sky for the shade
+  try{const U=D.pts.material.uniforms;U.uSun.value.copy(sun.position).sub(sun.target.position).normalize();U.uSunC.value.copy(sun.color).multiplyScalar(Math.min(1.4,sun.intensity*.35));U.uAmb.value=Math.min(.9,.35+hemi.intensity*.25)}catch(e){}}
 /* ---------- color hardener ---------- */
 function colorAt(x,y){try{cdustThrow(x,y)}catch(e){}
   const R=3.2/LS,b=bleed(set);let work=0;
