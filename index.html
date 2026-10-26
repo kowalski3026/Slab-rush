@@ -8478,7 +8478,7 @@ function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fr
   const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true}
 function bkdOn(){const L=LV,C=L.paint;BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
    v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
@@ -8570,6 +8570,15 @@ function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP
     mixPChuteTex();chute.children.forEach(c=>{if(c.isMesh&&c.material!==MIXP.chM){c.userData.m0=c.userData.m0||c.material;c.material=MIXP.chM}});
     bands.forEach(b=>{if(b.material!==MIXP.chM){b.userData.m0=b.userData.m0||b.material;b.material=MIXP.chM}});mixPChutePose(true)}
   else{MIX_PIV.copy(MIXP.piv0);chute.children.forEach(c=>{if(c.isMesh&&c.userData.m0)c.material=c.userData.m0});bands.forEach(b=>{if(b.userData.m0)b.material=b.userData.m0});if(CHF.fun)CHF.fun.visible=CHF.fl.visible=false;if(CHS.g){CHS.g.visible=false;chute.children.forEach(c=>{if(c!==CHF.mud)c.visible=true})}}}
+/* v288: on a painted site the 3D work is lit to match the photo: the game's sun, sky fill and reflections are scaled down and warmed to the
+   photo's late-afternoon light (the photo itself isn't lit). Each frame the game may set its own values, so the grade is re-applied on top. */
+const BKG={k:.62,warm:new THREE.Color(1,.88,.72),c:new THREE.Color(),L:[]};
+function bkdGrade(on){const ls=[[sun,1],[hemi,.85],[fill,.6]];
+  ls.forEach(([l,kk],i)=>{const r=BKG.L[i]||(BKG.L[i]={i:null,set:null,c:new THREE.Color(),cs:new THREE.Color()});
+    if(l.intensity!==r.set)r.i=l.intensity;if(!l.color.equals(r.cs))r.c.copy(l.color);
+    if(on){l.intensity=r.i*BKG.k*(i?kk:1);l.color.copy(r.c).lerp(r.c.clone().multiply(BKG.warm),i===1?.55:.35)}else{l.intensity=r.i;l.color.copy(r.c)}
+    r.set=l.intensity;r.cs.copy(l.color)});
+  if(scene.environmentIntensity!=null){if(scene.environmentIntensity!==BKG.es)BKG.e0=scene.environmentIntensity;scene.environmentIntensity=on?BKG.e0*.55:BKG.e0;BKG.es=scene.environmentIntensity}}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
   const W=SLAB_W+8,D=SLAB_D+8,x0=-W/2,z0=-D/2,S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,S,S);
@@ -8598,6 +8607,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   keep.forEach(([o])=>o.visible=false);
   if(ground.material!==BKD.shM){BKD.gmat=ground.material;ground.material=BKD.shM}
   try{bkdLot()}catch(e){console.warn('bkdLot',e)}
+  try{bkdGrade(true)}catch(e){}
   try{mixPTick(true)}catch(e){}
   {const ko=BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut&&BKD.L.paint.keepOut[0],km=(BKD.L&&BKD.L.paint&&BKD.L.paint.koPad)||0;if(ko)BKKO.value.set(ko[0]-km,ko[1]-km,ko[2]+km,ko[3]+km);else BKKO.value.set(1e9,1e9,1e9,1e9)}
   {const k=STAGES[stage]&&STAGES[stage].key,y=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(slab):null;BKSLAB.value=y==null?1e9:y;
