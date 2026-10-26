@@ -5232,7 +5232,7 @@ const rakeG=new THREE.Group(),RKV={tilt:0,px:null,pz:null,py:0,bob:0,pull:0};
   const lip=new THREE.Mesh(new THREE.BoxGeometry(W,.03,T*1.2),new THREE.MeshStandardMaterial({color:0xe2e4e6,roughness:.22,metalness:.95}));lip.position.set(0,.025,.035);rakeG.add(lip)}
  // the hook: a strip folded back along the top with teeth for pulling
  {const hk=new THREE.Mesh(new THREE.BoxGeometry(W,.025,.12),alD);hk.position.set(0,H+.02,.06);hk.rotation.x=-.35;rakeG.add(hk);
-  const tg=new THREE.BoxGeometry(.05,.07,.025);for(let i=0;i<14;i++){const t=new THREE.Mesh(tg,alD);t.position.set(-W/2+.07+i*(W-.14)/13,H-.005,.125);t.rotation.x=.5;rakeG.add(t)}}
+  const rv=new THREE.CylinderGeometry(.018,.018,.012,8).rotateX(Math.PI/2);[-.55,-.2,.2,.55].forEach(x=>{const r=new THREE.Mesh(rv,alD);r.position.set(x,H*.62,-.02);rakeG.add(r)})}
  // welded socket and braces
  const elev=34*Math.PI/180,sx=0,sy=H*.62,sz=.05;
  {const sk=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,.42,10),alD);sk.rotation.x=Math.PI/2-elev;sk.position.set(sx,sy+Math.sin(elev)*.21,sz+Math.cos(elev)*.21);rakeG.add(sk);
@@ -5252,9 +5252,10 @@ const rakeG=new THREE.Group(),RKV={tilt:0,px:null,pz:null,py:0,bob:0,pull:0};
    m.position.set(x,y,-.02-Math.random()*.01);m.scale.set(.03+Math.random()*.07,.02+Math.random()*.05,.012+Math.random()*.02);rakeG.add(m)}}}
 shadowAll(rakeG);rakeG.visible=false;scene.add(rakeG);
 // the roll of mud riding in front of the blade: a lumpy capsule across the blade, sized by the load
-const rakeMound=(()=>{const g=new THREE.CapsuleGeometry(.5,1,6,14);g.rotateZ(Math.PI/2);const P=g.attributes.position,v=new THREE.Vector3();
-  for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i);const n=.09*Math.sin(v.x*9.1+v.y*5)*Math.cos(v.z*7.3+v.x*3)+.06*(Math.random()-.5);const l=Math.hypot(v.y,v.z)||1;P.setY(i,v.y+v.y/l*n);P.setZ(i,v.z+v.z/l*n)}
-  g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x7e7a72,roughness:.38,metalness:0}));m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m);return m})();
+const rakeMound=(()=>{const g=new THREE.CapsuleGeometry(.5,1,8,18);g.rotateZ(Math.PI/2);const P=g.attributes.position,v=new THREE.Vector3();
+  for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i);const n=.11*Math.sin(v.x*11.1+v.y*7)*Math.cos(v.z*9.3+v.x*4)+.07*Math.sin(v.x*23+v.z*19)+.05*(Math.random()-.5);const l=Math.hypot(v.y,v.z)||1;P.setY(i,v.y+v.y/l*n);P.setZ(i,v.z+v.z/l*n)}
+  g.computeVertexNormals();const L=new THREE.TextureLoader(),mp=L.load('tex/craw.jpg'),nm=L.load('tex/craw_n.jpg');mp.colorSpace=THREE.SRGBColorSpace;[mp,nm].forEach(t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,1)});
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:mp,normalMap:nm,normalScale:new THREE.Vector2(1.2,1.2),color:0x9b9993,roughness:.42,metalness:0}));m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m);return m})();
 
 // ---- rubber boots and legs of the raker
 const workerG=new THREE.Group();
@@ -7087,7 +7088,7 @@ function updateRake(dt){
   rakeG.position.set(hx,hy+Math.abs(shake)*.4,hz);rakeG.rotation.set(-.14*RKV.pull+shake,yaw,0,'YXZ');
   if(rk.load>.25){const cap=2*2.1/LS*48/CELL_IN,f=Math.min(1.6,rk.load/cap),r=.12+.22*Math.sqrt(f),off=.08+r*.9,side=RKV.pull>0?1:-1;// mud rides ahead of the way the blade is travelling
     rakeMound.position.set(hx+mvx/ml*off,hy+r*.25,hz+mvz/ml*off);
-    rakeMound.scale.set(1.25+.45*f,r*1.25,r*2);rakeMound.rotation.set(0,yaw,0);rakeMound.rotateX(RKV.bob*.6*side)}
+    rakeMound.scale.set(.72+.12*f,r*1.15,r*1.8);rakeMound.rotation.set(0,yaw,0);rakeMound.rotateX(RKV.bob*.6*side)}
 }
 
 
