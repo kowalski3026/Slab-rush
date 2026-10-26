@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v295"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v296"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v296: painted sites: zoomed out / turned no longer cuts the 3D pad away (near plane); pour-only uses the photo's packed stone (3D trench ring and gravel border hidden); turn arrows + a short twist step one side. -->
 <!-- v295: Pool Deck has 4 photo sides: twist two fingers to walk round the yard; the backdrop cuts to the nearest drone view (all made from one 3D layout so the pad lines up). -->
 <!-- v223: excavator arm behaves: joint limits (stick always bent, no hyperextension, boom never far below level, bucket curl limited), reach capped so it drives closer instead of stretching, boom and stick kept above ground, NaN guard so the arm can't vanish. -->
 <!-- v222: tape measure left out of the 1-year-later photo -->
@@ -888,6 +889,7 @@ html,body{background:#141518}
 /* v129 zoom control */
 #zoomCtl{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:5;display:grid;justify-items:center;gap:2px;padding:4px;border-radius:12px;background:rgba(14,15,18,.62);border:1px solid rgba(255,255,255,.12);box-shadow:0 6px 16px rgba(0,0,0,.4);opacity:.82;transition:opacity .2s}
 #zoomCtl.show{opacity:1}
+#vTurn{display:grid;gap:2px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.14)}#vTurn[hidden]{display:none}
 #zoomCtl button{width:42px;height:42px;border-radius:9px;border:1px solid #0a0a0b;background:linear-gradient(180deg,#34373e,#23252a);color:#ffb13a;font:700 24px/1 var(--f-label);display:grid;place-items:center;padding:0 0 2px;touch-action:none;user-select:none;-webkit-user-select:none}
 #zoomCtl button:active{background:linear-gradient(180deg,#ffa22a,#e8640c);color:#140800}
 #zPct{font:700 11px var(--f-mono);color:#e6dfd2;padding:2px 0;cursor:pointer}
@@ -924,7 +926,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
     <div class="vignette"></div>
     <div class="toast" id="toast"></div>
     <div class="pop" id="pop"></div>
-    <div id="zoomCtl"><button id="zIn" aria-label="Zoom in">+</button><span id="zPct">100%</span><button id="zOut" aria-label="Zoom out">−</button></div>
+    <div id="zoomCtl"><button id="zIn" aria-label="Zoom in">+</button><span id="zPct">100%</span><button id="zOut" aria-label="Zoom out">−</button><div id="vTurn" hidden><button id="vL" aria-label="Walk round left"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 3v5h5"/></svg></button><button id="vR" aria-label="Walk round right"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3v5h-5"/></svg></button></div></div>
     <div id="nailFx" aria-hidden="true"><i class="fl"></i><b class="st">NAILED IT</b></div>
     <div class="coach" id="coach" hidden><div class="ct" id="coachT"></div><div class="cb" id="coachB"></div><button class="btn primary" id="coachOk">Got it</button></div>
     <canvas id="confetti" class="confetti"></canvas>
@@ -5267,6 +5269,7 @@ function setView(i,keep){view=i;SLC.yaw=SLC.pitch=0;PAN.x=PAN.z=0;if(!keep)PAN.y
 function zoomLbl(){const b=$('zPct');if(b)b.textContent=Math.round(100/ZOOM[view])+'%'}
 function zoomStep(dir){ZOOM[view]=Math.max(.55,Math.min(2.5,ZOOM[view]*(dir>0?.95:1/.95)));if(Math.abs(ZOOM[view]-1)<.02)ZOOM[view]=1;try{localStorage.setItem('bts-zoom',JSON.stringify(ZOOM))}catch(e){}swoopT=0;computeCam();zoomLbl();buzz(6);
   const c=$('zoomCtl');c.classList.add('show');clearTimeout(zoomStep.t);zoomStep.t=setTimeout(()=>c.classList.remove('show'),1400)}
+$('vL').addEventListener('click',()=>bkdTurn(-1));$('vR').addEventListener('click',()=>bkdTurn(1));
 [['zIn',1],['zOut',-1]].forEach(([id,d])=>{const b=$(id);let rt=0,iv=0;const stop=()=>{clearTimeout(rt);clearInterval(iv)};
   b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();zoomStep(d);rt=setTimeout(()=>{iv=setInterval(()=>zoomStep(d),110)},420)});
   ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,stop))});
@@ -8521,14 +8524,21 @@ function bkdTex(src,cb){const c=BKD.cache||(BKD.cache={});let e=c[src];if(e&&e.t
   e=c[src]={t:null,cb:cb?[cb]:[]};new THREE.TextureLoader().load(src,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;
     e.t=t;const f=e.cb;e.cb=[];f.forEach(g=>g(t))},undefined,()=>{console.warn('paint: could not load',src);delete c[src]})}
 function bkdDrop(t){const c=BKD.cache||{};for(const k in c)if(c[k].t===t){delete c[k];t.dispose()}}
-function bkdLoad(L){const C=L&&L.paint;if(!C)return;if(!BKD.load||BKD.load.L!==L){BKD.vi=0;BKD.want=null}const V=bkdC(L),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;if(BKD.load&&BKD.load.L===L&&BKD.load.src===src)return;BKD.load={L,src,ok:false};// a full job (dig first) uses the 'before' painting: lawn where the pad goes
+function bkdLoad(L){const C=L&&L.paint;if(!C)return;if(!BKD.load||BKD.load.L!==L){BKD.vi=0;BKD.want=null;BKD.yb=0}const V=bkdC(L),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;if(BKD.load&&BKD.load.L===L&&BKD.load.src===src)return;BKD.load={L,src,ok:false};// a full job (dig first) uses the 'before' painting: lawn where the pad goes
   bkdTex(src,t=>{if(BKD.load&&BKD.load.L===L&&BKD.load.src===src){const old=BKD.tex;BKD.tex=t;BKD.load.ok=true;BKD.L=null;if(old&&old!==t)bkdDrop(old)}})}
 function bkdFade(){let d=BKD.fd;if(!d){d=BKD.fd=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#0b0a08;opacity:0;pointer-events:none;z-index:0';cv.parentNode.insertBefore(d,cv.nextSibling)}
   d.style.transition='none';d.style.opacity='.9';void d.offsetWidth;d.style.transition='opacity .38s ease-out';requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.opacity='0'}))}
-function bkdViewTick(){const C=LV&&LV.paint;if(!C||!C.views||!BKD.load||BKD.load.L!==LV)return;const n=C.views.length,a=-PAN.yaw/(Math.PI/2);let k=Math.round(a);
-  if(Math.abs(a-k)>.4)return;k=((k%n)+n)%n;if(k===BKD.vi){BKD.want=null;return}if(BKD.want===k)return;
-  const V=Object.assign({},C,C.views[k]),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;BKD.want=k;
-  bkdTex(src,t=>{if(BKD.want!==k||!BKD.load||BKD.load.L!==LV)return;bkdFade();const old=BKD.tex;BKD.vi=k;BKD.want=null;BKD.load={L:LV,src,ok:true};BKD.tex=t;BKD.L=null;if(old&&old!==t)bkdDrop(old)})}
+function bkdGo(k,yb){const C=LV&&LV.paint;if(!C||!C.views||!BKD.load)return;const V=Object.assign({},C,C.views[k]),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;BKD.want=k;
+  bkdTex(src,t=>{if(BKD.want!==k||!BKD.load||BKD.load.L!==LV)return;bkdFade();const old=BKD.tex;BKD.vi=k;BKD.want=null;BKD.yb=yb;PAN.yaw=yb;BKD.cool=performance.now()+650;
+    BKD.load={L:LV,src,ok:true};BKD.tex=t;BKD.L=null;if(old&&old!==t)bkdDrop(old);
+    // warm the browser cache for the two neighbouring sides so the next turn is quick
+    [1,-1].forEach(s=>{const W=Object.assign({},C,C.views[((k+s)%C.views.length+C.views.length)%C.views.length]);try{fetch(isPrep()&&W.imgPrep?W.imgPrep:W.img)}catch(e){}})})}
+function bkdTurn(step){const C=LV&&LV.paint;if(!C||!C.views||BKD.want!=null)return;const n=C.views.length;bkdGo((((BKD.vi|0)+step)%n+n)%n,(BKD.yb||0)-step*Math.PI/2);try{buzz(8)}catch(e){}}
+function bkdViewTick(){const C=LV&&LV.paint,on=!!(C&&C.views&&BKD.on);{const e=$('vTurn');if(e&&e.hidden===on)e.hidden=!on}
+  if(!C||!C.views||!BKD.load||BKD.load.L!==LV||BKD.want!=null||performance.now()<(BKD.cool||0))return;
+  if(PAN.yaw===0&&BKD.yb){bkdGo(0,0);return}// zoom reset: back to the first side
+  const d=-(PAN.yaw-(BKD.yb||0));if(Math.abs(d)<.3)return;// about a 17 degree twist turns to the next side
+  bkdTurn(d>0?1:-1)}
 function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
   BKD.PV=C.fov*Math.PI/360;BKD.PH=Math.atan(Math.tan(BKD.PV)*C.asp);
   const D=300,h=2*D*Math.tan(BKD.PV),w=h*C.asp;
@@ -8549,7 +8559,7 @@ function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(
     const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
     m.renderOrder=3;m.raycast=()=>{};m.userData.L=BKD.L;scene.add(m);BKD.cop=m}
   BKD.cop.visible=true}
-function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Twist two fingers to walk round the yard — there are '+L.paint.views.length+' sides to see.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
+function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
 function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
@@ -8675,7 +8685,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   const hide=o=>{if(!seen.has(o)){keep.push([o,o.visible]);seen.add(o)}o.visible=false};
   [sky,clouds,sunGlow,moonM,sceneG,REGG].forEach(o=>o&&hide(o));treeIMs.forEach(hide);
   scene.children.forEach(o=>{if(o.userData&&o.userData.lm)hide(o)});
-  siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='base')hide(o)});
+  siteG.children.forEach(o=>{const k=o.userData&&o.userData.kind;if(k==='base'||(!BKD.C&&(k==='ring'||k==='gravel'||k==='splat')))hide(o)});// v296: pour-only: the photo's packed stone and trench show, not the 3D ones
   if(BKD.C&&typeof turfL!=='undefined'&&turfL)hide(turfL);// full job: the photo's lawn is the sod until it's stripped// the painting has the gravel base; the 3D one is a full rectangle that covered the pool corner
   if(!BKD.farDone){BKD.farDone=true;scene.children.forEach(o=>{if(o.visible&&!o.isPoints&&far(o))hide(o)})}
   keep.forEach(([o])=>o.visible=false);
@@ -8756,7 +8766,7 @@ function step(t,dt){
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
   camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;camera.lookAt(lookC);
   try{panHideTick(t)}catch(e){}
-  try{if(cab.fov==null&&BUG.fov==null&&RIDE.fov==null){let nn=.5;if(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05){const d=camPos.distanceTo(lookC),h=Math.max(.5,camera.position.y-ELV()),f=camera.fov*Math.PI/360,el=Math.asin(Math.min(1,h/Math.max(d,.1)));nn=Math.max(.5,Math.min(d*.45,.85*h/Math.sin(Math.min(1.5,el+f*1.3))*Math.cos(f)))}{/* v248: pull the near plane IN at once (zooming in left it stuck far out and cut a hole in the ground); push it out gently */let nw=nn<camera.near?nn:camera.near+(nn-camera.near)*Math.min(1,dt*2.5);if(Math.abs(nw-nn)<.03)nw=nn;if(Math.abs(nw-camera.near)>.01){camera.near=nw;camera.updateProjectionMatrix()}}}}catch(e){} // cut branches/fences right at the lens without opening a hole in the ground // v166: orbited/slid views hide houses and sheds standing between the lens and the slab
+  try{if(cab.fov==null&&BUG.fov==null&&RIDE.fov==null){let nn=.5;if(!(typeof BKD!=='undefined'&&BKD.on)&&(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05)){const d=camPos.distanceTo(lookC),h=Math.max(.5,camera.position.y-ELV()),f=camera.fov*Math.PI/360,el=Math.asin(Math.min(1,h/Math.max(d,.1)));nn=Math.max(.5,Math.min(d*.45,.85*h/Math.sin(Math.min(1.5,el+f*1.3))*Math.cos(f)))}{/* v248: pull the near plane IN at once (zooming in left it stuck far out and cut a hole in the ground); push it out gently */let nw=nn<camera.near?nn:camera.near+(nn-camera.near)*Math.min(1,dt*2.5);if(Math.abs(nw-nn)<.03)nw=nn;if(Math.abs(nw-camera.near)>.01){camera.near=nw;camera.updateProjectionMatrix()}}}}catch(e){} // cut branches/fences right at the lens without opening a hole in the ground // v166: orbited/slid views hide houses and sheds standing between the lens and the slab
   if(arrive&&running){try{arriveStep(dt,t)}catch(e){console.warn('arrive',e);arrive=null}}
   try{barkTick(dt);siteTick(dt)}catch(e){console.warn('bark',e)}
   if(!cabCamera()&&cab.fov!=null){camera.fov=cab.fov;camera.near=.5;camera.updateProjectionMatrix();cab.fov=null}
