@@ -4136,12 +4136,12 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
-   float cream=clamp(C.b,0.,1.),lump=(1.-cream)*gRel;
+   float cream=clamp(C.b,0.,1.),lump=(1.-cream)*gRel*(1.-.7*gPh);
    // v288 photo concrete: real fresh-placed mud (stone, paste, shine) blending to floated cream as it's struck off and floated
    if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec3 rw=texture2D(cRw,pr).rgb*2.,fl=texture2D(cFl,pf).rgb*2.;
     // once it's struck off the lumps are gone: halfway to cream, then floating finishes it
     float cr2=max(cream,texture2D(gBD,uvG).a*.55);
-    diffuseColor.rgb*=mix(vec3(1.),mix(rw,fl,cr2),inK*gPh);vec3 nr=texture2D(cRwN,pr).xyz*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*.38*(1.-cr2)*inK*gPh;}
+    diffuseColor.rgb*=mix(vec3(1.),mix(rw,fl,cr2),inK*gPh);vec3 nr=texture2D(cRwN,pr).xyz*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*.75*(1.-cr2)*inK*gPh;}
    // fresh mud lumps: soft blobs at 4 in and 1.5 in, gone once it's struck and floated
    vec2 q=p*2.9;float n1=gVN(q),n1x=gVN(q+vec2(.05,0.)),n1z=gVN(q+vec2(0.,.05));vec2 q2=p*8.;float n2=gVN(q2),n2x=gVN(q2+vec2(.05,0.)),n2z=gVN(q2+vec2(0.,.05));
    float aaL=clamp(1.6-fwidth(p.x)*18.,0.,1.);
@@ -4229,7 +4229,9 @@ function gpsInit(){if(GPS.on||safeGfx||!renderer)return;GPS.on=true;gpsShape();g
 const slab=new THREE.Mesh(slabGeo,slabMat);slab.receiveShadow=true;slab.castShadow=false;scene.add(slab);
 
 if(renderer){const a=renderer.capabilities.getMaxAnisotropy();slabTex.anisotropy=a;roughTex.anisotropy=a}
-const yOf=v=>v>=0?v*EX/12:v/12;
+// v289: with real mud flow, heaps are shown nearly true height (the old 3.1x lift made every pile a hill)
+const EXf=()=>mudOn()?1.35:EX;
+const yOf=v=>v>=0?v*EXf()/12:v/12;
 
 function sampleH(u,v){ // bilinear on cell centers, using only cells inside the job footprint
   const fx=u-.5,fy=v-.5,x0=Math.floor(fx),y0=Math.floor(fy),tx=fx-x0,ty=fy-y0;let sm=0,ws=0;
@@ -4240,7 +4242,7 @@ function sampleH(u,v){ // bilinear on cell centers, using only cells inside the 
 function updateGeo(){
   if(typeof soilMode==='function'&&soilMode()){soilGeo();return}
   if(STR.on){strGeo();return}
-  const p=slabGeo.attributes.position,n=p.count,P=p.array,D0=-DEPTH-.4,D1=-DEPTH+.1,E=EX/12;
+  const p=slabGeo.attributes.position,n=p.count,P=p.array,D0=-DEPTH-.4,D1=-DEPTH+.1,E=EXf()/12;
   // v250: was ~6 ms a call (it runs every frame a tool is moving): bilinear lookups inlined, normals straight from the grid neighbours
   for(let k=0;k<n;k++){let v=D0;if(vMode[k]){const u=vU[k],w=vV[k],fx=u-.5,fy=w-.5,x0=Math.floor(fx),y0=Math.floor(fy),tx=fx-x0,ty=fy-y0;let sm=0,ws=0;
       for(let q=0;q<4;q++){const cx=x0+(q&1),cy=y0+(q>>1);if(cx<0||cy<0||cx>=GW||cy>=GH)continue;const i=cy*GW+cx;if(!inR[i])continue;const ww=((q&1)?tx:1-tx)*((q>>1)?ty:1-ty);if(ww<=0)continue;sm+=h[i]*ww;ws+=ww}
@@ -6272,7 +6274,7 @@ function runTick(dt,t){if(RUN.on&&((stage!==S.pour&&!runCarry())||!placeMode()))
 const MUD={age:new Float32Array(N).fill(99),slump:5};
 function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on)&&LS<=1.5)}
 function mudSlump(){return (LV&&LV.slump)||MUD.slump}
-function mudFlow(dt){const A=MUD.age,Y=Math.max(.3,.3*(9-mudSlump())),Yd=Y*1.414;dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
+function mudFlow(dt){const A=MUD.age,Y=Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
   let moved=0;const rate=a=>a<1.2?3.2:a<4?1.4:a<10?.5*(1-(a-4)/6):0;
   const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi]);if(!r)return;
     const m=Math.min((d-y)*.45,(d-y)*r*dt);h[hi]-=m;h[lo]+=m;moved+=m;if(A[lo]>A[hi]+.6)A[lo]=A[hi]+.6};
