@@ -4260,11 +4260,11 @@ function sampleH(u,v){ // bilinear on cell centers, using only cells inside the 
 function updateGeo(){
   if(typeof soilMode==='function'&&soilMode()){soilGeo();return}
   if(STR.on){strGeo();return}
-  const p=slabGeo.attributes.position,n=p.count,P=p.array,D0=-DEPTH-.4,D1=-DEPTH+.1,E=EXf()/12;
+  const p=slabGeo.attributes.position,n=p.count,P=p.array,D0=-DEPTH-.4,D1=-DEPTH+.1,E=EXf()/12,HOLD=BKE.value>.5&&STAGES[stage]&&STAGES[stage].key!=='pour';// v294: painted site after the pour: a hole stays a low concrete spot, not a window onto the backdrop
   // v250: was ~6 ms a call (it runs every frame a tool is moving): bilinear lookups inlined, normals straight from the grid neighbours
   for(let k=0;k<n;k++){let v=D0;if(vMode[k]){const u=vU[k],w=vV[k],fx=u-.5,fy=w-.5,x0=Math.floor(fx),y0=Math.floor(fy),tx=fx-x0,ty=fy-y0;let sm=0,ws=0;
       for(let q=0;q<4;q++){const cx=x0+(q&1),cy=y0+(q>>1);if(cx<0||cy<0||cx>=GW||cy>=GH)continue;const i=cy*GW+cx;if(!inR[i])continue;const ww=((q&1)?tx:1-tx)*((q>>1)?ty:1-ty);if(ww<=0)continue;sm+=h[i]*ww;ws+=ww}
-      v=ws>1e-4?sm/ws:sampleH2(u,w);if(v<D1)v=D0}
+      v=ws>1e-4?sm/ws:sampleH2(u,w);if(v<D1)v=HOLD?D1:D0}
     P[k*3+1]=v>=0?v*E:v/12}
   p.needsUpdate=true;
   const NA=slabGeo.attributes.normal.array,RW=VX+1;
@@ -8667,7 +8667,7 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
   try{bkdGrade(true)}catch(e){}
   try{mixPTick(true)}catch(e){}
   BKKO.value.set(1e9,1e9,1e9,1e9);try{bkdCoping()}catch(e){console.warn('coping',e)}
-  BKE.value=isPrep()?0:1;// pour-only job: the photo is the gravel base
+  BKE.value=isPrep()?0:1;{const hk=BKE.value>.5&&STAGES[stage]&&STAGES[stage].key!=='pour';if(BKD.hold!==hk){BKD.hold=hk;try{geoDirty=true}catch(e){}}}// pour-only job: the photo is the gravel base
   {const k=STAGES[stage]&&STAGES[stage].key,y=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(slab):null;BKSLAB.value=y==null?1e9:y;
    // invisible lid over the undug ground: writes depth only, so trench walls and anything below grade stay hidden until that cell is dug
    const ly=BKD.C&&BKD.C.imgPrep&&PREPK.has(k)?bkdTop(pitMesh):null;BKLID.value=ly==null?1e9:ly;
