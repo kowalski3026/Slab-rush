@@ -4149,7 +4149,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
     rw=mix(rw,texture2D(cPk,r1*.37+.71).r*2.,wB);
     // drag streaks: the board pulls paste and fines along its travel, so struck concrete is streaky, not even
     {vec2 sd=gSdir;float th=dot(sd,sd)>.01?.5*atan(sd.y,sd.x):0.;vec2 ld=vec2(cos(th),sin(th)),ac=vec2(-ld.y,ld.x);
-     float st=gVN(vec2(dot(p,ld)*17.,dot(p,ac)*.7))*.65+gVN(vec2(dot(p,ld)*5.,dot(p,ac)*.35+4.))*.35;fg*=1.+(st-.5)*.22;}
+     float st=gVN(vec2(dot(p,ac)*17.,dot(p,ld)*.7))*.65+gVN(vec2(dot(p,ac)*5.,dot(p,ld)*.35+4.))*.35;fg*=1.+(st-.5)*.22;}
     float rough=mix(rw,fg,scr);
     float det=mix(rough,mix(1.,fl,.22),cl)*(1.+.05*cl);diffuseColor.rgb*=mix(1.,det,inK*gPh);
     vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*mix(.75,.22,scr)*(1.-cl)*inK*gPh;
