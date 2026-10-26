@@ -2048,13 +2048,14 @@ function makeStampTile(){const T=STAMPS[stampSel.pat].gen(),W=T.s.width,H=T.s.he
   cg.drawImage(T.s,0,0);tg.drawImage(T.m,0,0);tg.globalCompositeOperation='source-in';tg.fillStyle=rel;tg.fillRect(0,0,W,H);cg.drawImage(t,0,0);return{col:c,bump:T.b,span:STAMPS[stampSel.pat].span||[1,1]}}
 let STILE=makeStampTile();
 
-const TEXD={brick:'tex/brick.jpg',fence:'tex/fence.jpg',siding:'tex/siding.jpg',track:'tex/track.jpg',steel:'tex/steel.jpg',metal:'tex/metal.jpg',board:'tex/board.jpg',lawn:'tex/lawn.jpg',dirt:'tex/dirt.jpg',gravel:'tex/gravel.jpg',asphalt:'tex/asphalt.jpg',oldconc:'tex/oldconc.jpg',ply:'tex/ply.jpg',roof:'tex/roof.jpg',mulch:'tex/mulch.jpg',conc:'tex/conc.jpg'};// v232: the photos live in tex/ now (they were base64 inside this file)
+const TEXD={brick:'tex/brick.jpg',fence:'tex/fence.jpg',siding:'tex/siding.jpg',track:'tex/track.jpg',steel:'tex/steel.jpg',metal:'tex/metal.jpg',board:'tex/board.jpg',lawn:'tex/lawn.jpg',dirt:'tex/dirt.jpg',gravel:'tex/gravel2.jpg',asphalt:'tex/asphalt.jpg',oldconc:'tex/oldconc.jpg',ply:'tex/ply.jpg',roof:'tex/roof.jpg',mulch:'tex/mulch.jpg',conc:'tex/conc.jpg'};// v232: the photos live in tex/ now (they were base64 inside this file)
 // photo textures (generated, made seamless) swap in over the procedural ones as soon as they decode
 const TEXI={};
 function texImg(k){if(!TEXI[k])TEXI[k]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=TEXD[k]}));return TEXI[k]}
 /* v152: PBR detail. Normal maps for the photo textures (tex/<key>_n.jpg), the scanned ambientCG asphalt (CC0), and scanned concrete pores on the slab. Loaded as separate files; anything that fails to load just stays as before */
 const PBRN={brick:.9,fence:.7,siding:.6,track:1,board:.4,lawn:.55,dirt:.9,gravel:1.1,oldconc:.6,ply:.3,roof:.8,mulch:1,conc:.5,asphalt:.9},PBRC={asphalt:'asphalt_c'},PBRI={};
-function pbrImg(f){if(!PBRI[f])PBRI[f]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='tex/'+f+'.jpg'}));return PBRI[f]}
+const PBRF={gravel_n:'gravel2_n'};// v288: photo maps that were replaced keep their key but load a new file
+function pbrImg(f){if(!PBRI[f])PBRI[f]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='tex/'+(PBRF[f]||f)+'.jpg'}));return PBRI[f]}
 const PBRT={};
 function pbrApply(root){if(safeGfx||!renderer||!root)return;root.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{
   if(!m||!m.map||m.normalMap||m.bumpMap||!(m.isMeshStandardMaterial||m.isMeshPhongMaterial)||m.userData.pbrTry)return;const k=m.map.userData&&m.map.userData.pk;if(!k||PBRN[k]==null)return;m.userData.pbrTry=1;
@@ -2062,7 +2063,7 @@ function pbrApply(root){if(safeGfx||!renderer||!root)return;root.traverse(o=>{if
 /* v232: compressed GPU textures. Photo colour maps and normal maps load as KTX2 (Basis ETC1S, transcoded to ASTC/ETC2/BC on the phone):
    about a sixth of the GPU memory of RGBA8 with mips, and no JPEG decode on the main thread. Every texture that uses the same photo now shares
    one GPU copy (it used to upload one per house/fence). If KTX2 can't load, the JPEG is used as before. */
-const KTX={ld:null,n:0,fail:0,T:{},keys:new Set(['board','brick','dirt','fence','gravel','mulch','oldconc','ply','roof','track','asphalt_c','asphalt_n','board_n','brick_n','conc_n','dirt_n','fence_n','gravel_n','lawn_n','mulch_n','oldconc_n','ply_n','roof_n','siding_n','track_n'])};
+const KTX={ld:null,n:0,fail:0,T:{},keys:new Set(['board','brick','dirt','fence','mulch','oldconc','ply','roof','track','asphalt_c','asphalt_n','board_n','brick_n','conc_n','dirt_n','fence_n','lawn_n','mulch_n','oldconc_n','ply_n','roof_n','siding_n','track_n'])};
 function ktxLoader(){if(KTX.ld)return KTX.ld;
   KTX.ld=Promise.resolve().then(()=>{let off=false;try{off=localStorage.getItem('bts-ktx')==='0'}catch(e){}if(off||!renderer||!window.WebAssembly||!window.Worker)return null;
     return import('./lib/loaders/KTX2Loader.js').then(m=>{const l=new m.KTX2Loader();l.setTranscoderPath('lib/basis/');l.setWorkerLimit(2);l.detectSupport(renderer);return l})}).catch(e=>{console.warn('ktx2 off',e);return null});return KTX.ld}
@@ -4046,6 +4047,11 @@ const bumpTex=new THREE.CanvasTexture(bumpC),ccTex=new THREE.CanvasTexture(ccC);
 {const af=safeGfx?2:8;[slabTex,roughTex,bumpTex,ccTex].forEach(t=>t.anisotropy=af)}
 const slabMat=new THREE.MeshPhysicalMaterial({map:slabTex,bumpMap:bumpTex,bumpScale:.045,roughness:1,roughnessMap:roughTex,metalness:0,clearcoat:0,clearcoatRoughness:.07,clearcoatMap:ccTex,envMapIntensity:1});
 const SLABD={on:false,n:null,m:null};
+const CPH={U:{cRw:{value:null},cFl:{value:null},cRwN:{value:null},gPh:{value:0}}};
+(()=>{const L=new THREE.TextureLoader(),T=(f,srgb)=>{const t=L.load('tex/'+f,()=>{CPH.n=(CPH.n||0)+1;if(CPH.n===3){CPH.U.gPh.value=1;try{surfDirty=true}catch(e){}}});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;return t};
+  if(typeof safeGfx!=='undefined'&&safeGfx)return;const w=T('craw.jpg',true),f=T('cflt.jpg',true),n=T('craw_n.jpg',false);
+  // the shader reads them as linear 0..1 detail around 0.5, so decode the colour ones linearly too
+  w.colorSpace=f.colorSpace=THREE.NoColorSpace;CPH.U.cRw.value=w;CPH.U.cFl.value=f;CPH.U.cRwN.value=n})();
 function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Promise.all([pbrImg('slab_n'),pbrImg('slab_m')]).then(([a,b])=>{if(!a||!b)return;const T=im=>{const t=new THREE.Texture(im);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.needsUpdate=true;return t};
   SLABD.n=T(a);SLABD.m=T(b);SLABD.on=true;slabMat.needsUpdate=true}).catch(()=>{})}
 /* v155: GPU surface, part 1. Joints and tooled edges are drawn analytically in the slab shader at any resolution:
@@ -4112,10 +4118,10 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
     F=F.replace('varying vec2 vDW;','varying vec2 vDW;\nuniform sampler2D dN;uniform sampler2D dM;')
      .replace('#include <map_fragment>','#include <map_fragment>\n{float mt=texture2D(dM,vDW*vec2(.26,.52)).r+texture2D(dM,vDW*vec2(.061,.122)+.37).r-1.;diffuseColor.rgb*=1.+mt*.7;}')
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 du=vDW*vec2(.29,.58);vec3 dn=texture2D(dN,du).xyz*2.-1.;dn.xy*=.55*smoothstep(.25,.85,roughnessFactor);normal=pertD(-vViewPosition,normal,dn,gl_FrontFacing?1.:-1.,du);}')}
-  if(GPS.on){Object.assign(sh.uniforms,GPS.U);
+  if(GPS.on){Object.assign(sh.uniforms,GPS.U,CPH.U);
     F=F.replace('varying vec2 vDW;',`varying vec2 vDW;
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
-float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;uniform float gSD;
+float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;uniform sampler2D cRw;uniform sampler2D cFl;uniform sampler2D cRwN;uniform float gPh;uniform float gSD;
 uniform sampler2D gMR;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
@@ -4131,13 +4137,16 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
    float cream=clamp(C.b,0.,1.),lump=(1.-cream)*gRel;
+   // v288 photo concrete: real fresh-placed mud (stone, paste, shine) blending to floated cream as it's struck off and floated
+   if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec3 rw=texture2D(cRw,pr).rgb*2.,fl=texture2D(cFl,pf).rgb*2.;
+    diffuseColor.rgb*=mix(vec3(1.),mix(rw,fl,cream),inK*gPh);vec3 nr=texture2D(cRwN,pr).xyz*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*.38*(1.-cream)*inK*gPh;}
    // fresh mud lumps: soft blobs at 4 in and 1.5 in, gone once it's struck and floated
    vec2 q=p*2.9;float n1=gVN(q),n1x=gVN(q+vec2(.05,0.)),n1z=gVN(q+vec2(0.,.05));vec2 q2=p*8.;float n2=gVN(q2),n2x=gVN(q2+vec2(.05,0.)),n2z=gVN(q2+vec2(0.,.05));
    float aaL=clamp(1.6-fwidth(p.x)*18.,0.,1.);
    vec2 lg=(vec2(n1x-n1,n1z-n1)/.05*2.9*.012+vec2(n2x-n2,n2z-n2)/.05*8.*.004*aaL)*lump;
    gRN=vec3(-lg.x,0.,-lg.y);gRK=inK;
    // stone showing through the paste
-   float stv=(1.-cream)*inK;if(stv>.02){vec2 g=p/.11,id=floor(g),f=fract(g);float md=9.,sh=0.;vec2 sp=vec2(0.);
+   float stv=(1.-cream)*inK*(1.-.7*gPh);if(stv>.02){vec2 g=p/.11,id=floor(g),f=fract(g);float md=9.,sh=0.;vec2 sp=vec2(0.);
     for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y)),r=gH2(id+o);vec2 dv=o+r*.8+.1-f;float rad=.18+.22*gH1(id+o+3.1),d=length(dv)-rad;if(d<md){md=d;sh=gH1(id+o+9.7);sp=dv;}}
     float fw=fwidth(g.x),aa=clamp(1.5-fw*3.,0.,1.),cov=(1.-smoothstep(-fw,fw,md))*step(.35,sh+(1.-cream)*.3);
     vec3 sc=sh<.55?vec3(1.1,1.09,1.07):sh<.8?vec3(.9,.88,.86):vec3(.76,.77,.8);

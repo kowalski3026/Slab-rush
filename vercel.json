@@ -55,6 +55,26 @@
     {
       "source": "/tex/chute-photo.webp",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/a7d9f04d-ff46-496f-9e60-f0ec860d4715.webp"
+    },
+    {
+      "source": "/tex/gravel2.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/74c27ecd-d8ac-4fd1-890f-35e785510201.jpg"
+    },
+    {
+      "source": "/tex/gravel2_n.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/9ecfd0b3-0203-4c56-9903-717c54d5c11f.jpg"
+    },
+    {
+      "source": "/tex/craw.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/ba6b5223-3f12-4d9f-97c7-d53ceee550ab.jpg"
+    },
+    {
+      "source": "/tex/craw_n.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/da4a59c4-df72-4eb2-b6a7-6e0246a71cce.jpg"
+    },
+    {
+      "source": "/tex/cflt.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/56dae823-4ac1-4f10-9f2d-e1c4793c5dc4.jpg"
     }
   ],
   "images": {
