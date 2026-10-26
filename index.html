@@ -4141,7 +4141,16 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    ${CPH.on?`if(gPh>.01){vec2 pr=p*.42,pf=p*.21+.37;vec4 ck=texture2D(cPk,pr);float fl=texture2D(cPk,pf).g*2.,rw=ck.r*2.;
     // v291: three looks. Placed mud: lumps and stone. Struck off: flat but open and sandy (fine grain, little shine). Bull floated: closed,
     // smooth creamy paste with only a faint mottle. The line between struck and floated reads clearly, like on a real pour.
-    float scr=max(texture2D(gBD,uvG).a,step(.5,cream)),cl=clamp(texture2D(gED,uvG).b*1.15,0.,1.),fg=texture2D(cPk,p*1.35+.11).r*2.;float rough=mix(rw,mix(1.,fg,1.25),scr);
+    float scr=max(texture2D(gBD,uvG).a,step(.5,cream)),cl=clamp(texture2D(gED,uvG).b*1.15,0.,1.);
+    // v292: no visible tiling. Three copies of the fine grain at different sizes and angles, cross-faded by slow noise; the raw mud gets two.
+    float wA=smoothstep(.28,.72,gVN(p*.37+3.1)),wB=smoothstep(.3,.7,gVN(p*.53+11.7));
+    vec2 r1=vec2(p.x*.454-p.y*.891,p.x*.891+p.y*.454),r2=vec2(p.x*-.669-p.y*.743,p.x*.743-p.y*.669);
+    float fg=mix(mix(texture2D(cPk,p*1.13+.11).r,texture2D(cPk,r1*.91+.53).r,wA),texture2D(cPk,r2*1.41+.27).r,wB);fg=1.+(fg*2.-1.)*1.45;
+    rw=mix(rw,texture2D(cPk,r1*.37+.71).r*2.,wB);
+    // drag streaks: the board pulls paste and fines along its travel, so struck concrete is streaky, not even
+    {vec2 sd=gSdir;float th=dot(sd,sd)>.01?.5*atan(sd.y,sd.x):0.;vec2 ld=vec2(cos(th),sin(th)),ac=vec2(-ld.y,ld.x);
+     float st=gVN(vec2(dot(p,ld)*17.,dot(p,ac)*.7))*.65+gVN(vec2(dot(p,ld)*5.,dot(p,ac)*.35+4.))*.35;fg*=1.+(st-.5)*.22;}
+    float rough=mix(rw,fg,scr);
     float det=mix(rough,mix(1.,fl,.22),cl)*(1.+.05*cl);diffuseColor.rgb*=mix(1.,det,inK*gPh);
     vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*mix(.75,.22,scr)*(1.-cl)*inK*gPh;
     diffuseColor.rgb*=1.-(.16-.08*scr)*(1.-cl)*inK*gPh;gRgh+=(.12*(1.-cl)*scr-.1*cl)*inK*gPh;}`:''}
@@ -4175,7 +4184,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float q=dot(p,ac),al=dot(p,ld);float ph=q*42.+gVN(vec2(al*.9,q*3.))*2.6+sin(al*.31)*.8;float aa=clamp(1.5-fwidth(ph)*.9,0.,1.);
    float amp=sa*(.35+.65*gVN(vec2(al*.5,q*1.5)))*aa;gTl+=ac*cos(ph)*.22*amp;
    // strike-off lines: thin paste lines where the board saws back and forth
-   float ln=1.-smoothstep(0.,.12+fwidth(ph)*.3,abs(fract(ph/6.2832*.5+.25)-.5));gCol*=1.-.035*ln*amp;}}}
+   float ln=1.-smoothstep(0.,.12+fwidth(ph)*.3,abs(fract(ph/6.2832*.5+.25)-.5));gCol*=1.-.075*ln*amp;}}}
  // v207 rain pits: little craters where drops hit soft concrete, each with a darker centre and a raised rim
  {float wk=texture2D(gED,uvG).a;if(wk>.02){vec2 g=p/.085,id=floor(g),f=fract(g);float best=9.;vec2 bv=vec2(0.);float bh=0.;
    for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y)),r=gH2(id+o);vec2 dv=o+r-f;float d=length(dv);if(d<best){best=d;bv=dv;bh=gH1(id+o+5.1);}}
