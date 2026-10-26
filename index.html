@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v307"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v308"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v308: Worn, photo-real excavator: tracks, cab, engine and counterweight from a 3D model of a beat-up 8-ton machine; the boom, stick and bucket get worn, muddy paint. Cab view keeps the built cab. -->
 <!-- v307: Truck placement uses the job being started, not the last one played. -->
 <!-- v306: New hot tub photo with the tub sitting 6 ft off the pad. -->
 <!-- v305: On photo sites the mixer backs up to the far side of the pad so it stops blocking the view. Rain falls as steady streaks and never shows up behind or inside a house. Hot tub moved 6 ft off the pad. Big residential slabs pour at a real truck rate instead of scaling up with size. Stripped steps show concrete sides in the 1-year photo. -->
@@ -10934,6 +10935,30 @@ function makeWorker(vest,hat){const g=new THREE.Group(),L=x=>new THREE.Color(x),
   const brim=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.04,20),hM);brim.position.set(0,.6,.03);brim.scale.z=1.1;head.add(brim);BX(.42,.04,.22,hM,0,.6,.42,head);BX(.08,.07,.62,hM,0,.92,0,head);
   groundBlob(g,1.5,.38);g.userData={armL,armR,head,legL,legR,up,ph:Math.random()*6};g.scale.setScalar(.92);g.visible=false;scene.add(g);return g}
 const crewChute=makeWorker(0xf26a1b,0xffffff),crewBoss=makeWorker(0xd8f03a,0xf2b23a),crewLab=makeWorker(0xf26a1b,0xffffff);
+/* v308: worn photo-real excavator. The tracks and the house (cab, engine, counterweight) are a Higgsfield image-to-3D model of a beat-up
+   8-ton machine, cut apart offline: the model's own boom, stick and bucket were removed, so the game's rigged boom, stick and bucket
+   (now in worn, muddy paint) still do all the digging. Cab view keeps the old built cab so the levers and seat are still there. */
+const EXP={url:'models/excavator-photo.glb',tried:false,wh:null,wu:null,on:false,procH:[],procU:[]};
+{const t=ctex(512,512,(g,w,h)=>{g.fillStyle='#e4e1d8';g.fillRect(0,0,w,h);
+   for(let i=0;i<260;i++){const x=Math.random()*w,y=Math.random()*h,r=6+Math.random()*40,gr=g.createRadialGradient(x,y,0,x,y,r),a=.05+Math.random()*.12;gr.addColorStop(0,`rgba(70,58,44,${a})`);gr.addColorStop(1,'rgba(70,58,44,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r)}
+   for(let i=0;i<420;i++){const x=Math.random()*w,y=Math.random()*h,l=4+Math.random()*30,a=Math.random()*6.28;g.strokeStyle=`rgba(${Math.random()<.5?'40,38,36':'200,200,195'},${.15+Math.random()*.35})`;g.lineWidth=.6+Math.random()*1.2;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke()}
+   for(let i=0;i<140;i++){const x=Math.random()*w,y=Math.random()*h;g.fillStyle=Math.random()<.5?'rgba(52,48,44,.75)':'rgba(120,64,30,.55)';g.beginPath();g.ellipse(x,y,1+Math.random()*5,1+Math.random()*3,Math.random()*3,0,6.28);g.fill()}
+   for(let i=0;i<70;i++){const x=Math.random()*w,y=Math.random()*h,r=3+Math.random()*12;g.fillStyle=`rgba(140,132,120,${.25+Math.random()*.3})`;g.beginPath();g.arc(x,y,r,0,6.28);g.fill()}},.35,.35);
+  exYel.map=t;exYel.roughness=.72;exYel.needsUpdate=true}
+function exPLoad(){if(EXP.tried||!THREE.GLTFLoader)return;EXP.tried=true;new THREE.GLTFLoader().load(EXP.url,g=>{try{let mu=null,mh=null;
+    g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;const m=o.material;if(m){m.envMapIntensity=.8;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.FrontSide;m.needsUpdate=true}if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals()if(/part1/.test(o.name))mu=o;else mh=o});
+    if(!mu||!mh)throw new Error('parts missing');
+    // the two parts share one vertex list, so measure the tracks from their own triangles
+    const P=mu.geometry.attributes.position,I=mu.geometry.index,lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];for(let i=0;i<I.count;i++){const v=I.getX(i),x=P.getX(v),y=P.getY(v),z=P.getZ(v);if(x<lo[0])lo[0]=x;if(x>hi[0])hi[0]=x;if(y<lo[1])lo[1]=y;if(z<lo[2])lo[2]=z;if(z>hi[2])hi[2]=z}
+    let hx=-1e9;{const I2=mh.geometry.index;for(let i=0;i<I2.count;i++){const x=P.getX(I2.getX(i));if(x>hx)hx=x}}
+    const k=6.2/(hi[0]-lo[0]),cx=(lo[0]+hi[0])/2,cz=(lo[2]+hi[2])/2,yb=lo[1];// track length matches the built mini-ex; the class size scales the whole machine
+    const wrap=(m,y)=>{const w=new THREE.Group();w.rotation.y=Math.PI/2;w.scale.setScalar(k);w.position.y=y;m.position.set(-cx,-yb,-cz);w.add(m);w.visible=false;w.userData.live=true;return w};
+    EXP.wu=wrap(mu,0);EXP.wh=wrap(mh,-XC.HY);
+    const keep=new Set([boomG,stickG,bucketG,exOp]);rams.forEach(r=>{keep.add(r.b);keep.add(r.rd)});
+    exHouse.children.forEach(o=>{if(keep.has(o))return;if(o.isMesh&&o.material===kDecalM&&kDecalM){o.position.set(0,(-.09-yb)*k-XC.HY,-(hx-cx)*k-.04);return}EXP.procH.push(o)});
+    EXP.procU=exUnder.children.slice();exHouse.add(EXP.wh);exUnder.add(EXP.wu);EXP.on=false}catch(e){EXP.err=String(e);console.warn('excavator glb',e)}},undefined,e=>{EXP.err=String(e&&e.message||e);console.warn('excavator glb',e)})}
+function exPTick(){if(!exG.visible&&!EXP.wh)return;exPLoad();if(!EXP.wh)return;const use=!(cabOn&&cabPov==='cab');if(use===EXP.on)return;EXP.on=use;
+  EXP.wh.visible=EXP.wu.visible=use;EXP.procH.forEach(o=>o.visible=!use);EXP.procU.forEach(o=>o.visible=!use)}
 // v95: an operator sits in the excavator cab, hands on the levers (hidden when the camera is the cab itself)
 const exOp=makeWorker(0xf26a1b,0xf2b23a);{const u=exOp.userData;exHouse.add(exOp);exOp.visible=true;exOp.scale.setScalar(.78);exOp.position.set(1.15,-.28,.12);
   exOp.traverse(o=>{if(o.userData&&o.userData.blob)o.visible=false});
@@ -10976,7 +11001,8 @@ function crewWork(dt,t){const u=crewBoss.userData,k=STAGES[stage].key,tool=CREWT
     else crewPose(u,{al:-.1,ar:-.1,zl:.05,zr:-.05});
     if(CW.wt<=0){CW.tgt=null}}}
 function updateCrew(dt,t){const k=STAGES[stage]&&STAGES[stage].key,pr=PREPK.has(k);
-  try{exOp.visible=!(cabOn&&cabPov==='cab'&&exG.visible);const ou=exOp.userData,so=t*.001;ou.head.rotation.y=Math.sin(so*.6)*.3;ou.armL.rotation.x=-1-(cab.mov||0)*Math.sin(so*3)*.12;ou.armR.rotation.x=-1.05+(cab.mov||0)*Math.sin(so*3+1)*.12}catch(e){}
+  try{exPTick()}catch(e){}
+  try{exOp.visible=!(cabOn&&cabPov==='cab'&&exG.visible)&&!EXP.on;const ou=exOp.userData,so=t*.001;ou.head.rotation.y=Math.sin(so*.6)*.3;ou.armL.rotation.x=-1-(cab.mov||0)*Math.sin(so*3)*.12;ou.armR.rotation.x=-1.05+(cab.mov||0)*Math.sin(so*3+1)*.12}catch(e){}
   crewChute.visible=running&&truck.visible&&k==='pour'&&!pumpG.visible;if(crewChute.visible){const ry=truck.rotation.y,c=Math.cos(ry),s2=Math.sin(ry);crewChute.position.set(PIVOT.x+(-1.6*c+2.6*s2),-.3,PIVOT.z+(1.6*s2+2.6*c));crewChute.rotation.y=Math.atan2(tip.x-crewChute.position.x,tip.z-crewChute.position.z)}
   if(!crewBoss.userData.placed||crewBoss.userData.lv!==LV){crewPlace();crewBoss.userData.placed=1;crewBoss.userData.lv=LV}
   crewBoss.visible=running&&!pr;crewLab.visible=running&&pr&&spoilPile.visible;if(crewLab.visible){crewLab.position.set(spoilPile.position.x+2.4,-.3,spoilPile.position.z+1.6);crewLab.rotation.y=Math.atan2(RCX-crewLab.position.x,RCZ-crewLab.position.z)}

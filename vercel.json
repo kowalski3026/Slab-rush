@@ -21,6 +21,10 @@
   ],
   "rewrites": [
     {
+      "source": "/models/excavator-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/963ec753-05df-4f0b-b57a-ad4e330325f2.glb"
+    },
+    {
       "source": "/models/kowalski-worker.glb",
       "destination": "https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/hf_20261016_133410_44376faf-b03e-4955-87c7-1b7a67a89663.glb"
     },
