@@ -8520,21 +8520,21 @@ scene.add(fun);fun.visible=false;CHF.fun=fun;
 /* v287: the trough is built from real sections (~4-5 ft each) instead of one stretched piece: pale rolled rails along both top edges,
    and a fold-over clamp bracket at every joint (a strap under the trough, ears on both rails, a pin and a handle). */
 const CHS={g:null,secs:[],clamps:[],rail:null};
-function chsClamp(){const g=new THREE.Group(),st=CHS.rail,dk=CHS.dk;
-  const strap=new THREE.Mesh(new THREE.TorusGeometry(.61,.045,5,16,Math.PI).rotateZ(Math.PI).translate(0,.55,0),dk);strap.castShadow=true;g.add(strap);
-  const seam=new THREE.Mesh(new THREE.TorusGeometry(.565,.018,4,16,Math.PI).rotateZ(Math.PI).translate(0,.55,0),CHS.seamM);seam.position.z=.001;g.add(seam);
-  [-1,1].forEach(sd=>{const ear=new THREE.Mesh(new THREE.BoxGeometry(.12,.3,.26),dk);ear.position.set(sd*.83,.98,0);ear.castShadow=true;g.add(ear);
-    const up=new THREE.Mesh(new THREE.BoxGeometry(.07,.5,.09),dk);up.position.set(sd*.66,.75,0);up.rotation.z=sd*.25;g.add(up);
-    const pin=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.42,8).rotateX(Math.PI/2),st);pin.position.set(sd*.83,1.07,0);g.add(pin);
-    const h=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.38,6),dk);h.position.set(sd*.97,1.18,-.1);h.rotation.set(-.5,0,sd*.45);g.add(h)});
+function chsClamp(){const g=new THREE.Group(),pl=CHS.rail,dk=CHS.dk;
+  const strap=new THREE.Mesh(new THREE.TorusGeometry(.62,.07,6,18,Math.PI).rotateZ(Math.PI).translate(0,.55,0),pl);strap.castShadow=true;g.add(strap);
+  const seam=new THREE.Mesh(new THREE.TorusGeometry(.5,.03,4,18,Math.PI).rotateZ(Math.PI).translate(0,.55,0),CHS.seamM);g.add(seam);// joint line across the inside
+  [-1,1].forEach(sd=>{const ear=new THREE.Mesh(new THREE.BoxGeometry(.2,.46,.4),pl);ear.position.set(sd*.86,.98,0);ear.castShadow=true;g.add(ear);
+    const up=new THREE.Mesh(new THREE.BoxGeometry(.1,.55,.14),pl);up.position.set(sd*.68,.72,0);up.rotation.z=sd*.25;up.castShadow=true;g.add(up);
+    const pin=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.56,10).rotateX(Math.PI/2),dk);pin.position.set(sd*.86,1.1,0);g.add(pin);
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.55,6),dk);h.position.set(sd*1.05,1.28,-.14);h.rotation.set(-.55,0,sd*.5);h.castShadow=true;g.add(h)});
   CHS.g.add(g);return g}
 function chsSection(){const g=new THREE.Group(),tr=new THREE.Mesh(chute.children[0].geometry,MIXP.chM);tr.castShadow=tr.receiveShadow=true;g.add(tr);
   [-1,1].forEach(sd=>{const r=new THREE.Mesh(CHS.railG,CHS.rail);r.position.set(sd*.8,1.07,0);r.castShadow=true;g.add(r)});CHS.g.add(g);return g}
 function chsPose(on,len){if(!CHS.g){CHS.g=new THREE.Group();scene.add(CHS.g);
     CHS.rail=new THREE.MeshStandardMaterial({color:0xdcdcd4,roughness:.5,metalness:.35});CHS.dk=new THREE.MeshStandardMaterial({color:0x8e9295,roughness:.55,metalness:.6});
-    CHS.seamM=new THREE.MeshBasicMaterial({color:0x2a2a28});CHS.railG=new THREE.CylinderGeometry(.065,.065,1,8).rotateX(Math.PI/2).translate(0,0,.5)}
+    CHS.seamM=new THREE.MeshBasicMaterial({color:0x2a2a28});CHS.railG=new THREE.CylinderGeometry(.085,.085,1,8).rotateX(Math.PI/2).translate(0,0,.5)}
   CHS.g.visible=on;if(!on)return;CHS.g.position.copy(chute.position);CHS.g.quaternion.copy(chute.quaternion);
-  const n=Math.max(1,Math.ceil(len/4.8)),seg=len/n;
+  const n=Math.max(1,Math.ceil(len/4.2)),seg=len/n;
   while(CHS.secs.length<n)CHS.secs.push(chsSection());while(CHS.clamps.length<n)CHS.clamps.push(chsClamp());
   CHS.secs.forEach((g,i)=>{g.visible=i<n;if(i<n){g.position.z=i*seg;g.scale.z=seg}});
   CHS.clamps.forEach((c,i)=>{c.visible=i<n;if(i<n)c.position.z=i*seg});// a clamp where the flare meets the first section, and at each joint after
