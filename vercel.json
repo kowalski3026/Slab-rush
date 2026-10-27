@@ -21,6 +21,14 @@
   ],
   "rewrites": [
     {
+      "source": "/models/plate-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/dc6f2cc3-ee49-42d9-8a11-fc0ec496fc2c.glb"
+    },
+    {
+      "source": "/models/roller-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/4119367c-ebf5-4652-919e-abd07dd34ff0.glb"
+    },
+    {
       "source": "/models/bidwell-photo2.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/55302783-bd18-4950-a7df-a3699181f333.glb"
     },
