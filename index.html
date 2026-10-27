@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v321"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v322"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v322: wheelbarrows and power buggies removed (Kris): placement is truck chute or pump only -->
 <!-- v321: Prairies region gets drone-photo backdrops (with before photos) on all 12 jobs. -->
 <!-- v320: Quebec region gets drone-photo backdrops (with before photos) on all 12 jobs. -->
 <!-- v319: BC region gets drone-photo backdrops (with before photos) on all 10 jobs. -->
@@ -657,8 +658,8 @@ body.menu .hud,body.menu .toast,body.menu .hint,body.menu .banner{opacity:0!impo
 #truckEta.soon{animation:tePulse .7s ease-in-out infinite alternate}
 #truckEta.here{background:#4cc36a}
 @keyframes tePulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.07)}}
-#toolSeg{grid-template-columns:1fr 1fr 1fr .9fr}#tTruck,#tBuggy{font-size:13px}#tTruck.wait{color:var(--amber)}
-#toolSeg{grid-template-columns:1fr 1fr 1fr .9fr}#tTruck,#tBuggy{font-size:13px}#tTruck.wait{color:var(--amber)}
+#toolSeg{grid-template-columns:1fr 1fr 1fr}#tTruck,#tBuggy{font-size:13px}#tTruck.wait{color:var(--amber)}
+#toolSeg{grid-template-columns:1fr 1fr 1fr}#tTruck,#tBuggy{font-size:13px}#tTruck.wait{color:var(--amber)}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.15);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 .seg button:focus-visible,.job:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .jcats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;overflow:visible;padding:0;margin:0 0 4px}
@@ -995,7 +996,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
       <div class="seg" id="toolSeg" hidden>
         <button id="tChute" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l16 9"/><path d="M5 3l16 9"/><path d="M19 15v5"/></svg>Chute</button>
         <button id="tRake" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h12"/><path d="M10 20L20 4"/><path d="M5 20v-3M8 20v-3M11 20v-3M14 20v-3"/></svg>Rake</button>
-        <button id="tBuggy" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11l-2 6H5z"/><path d="M12 14h6V9"/><circle cx="7" cy="18" r="2.5"/><circle cx="18" cy="18" r="2"/></svg>Buggy</button>
+        <button id="tBuggy" hidden aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11l-2 6H5z"/><path d="M12 14h6V9"/><circle cx="7" cy="18" r="2.5"/><circle cx="18" cy="18" r="2"/></svg>Buggy</button>
         <button id="tTruck" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Truck</button>
       </div>
       <div class="seg" id="bugSeg" hidden><button id="bAuto" aria-pressed="true">Auto</button><button id="bDrive" aria-pressed="false">Drive</button><span id="bugTx"></span></div>
@@ -6245,8 +6246,8 @@ function mkKBuggy(){const B=buildKBuggy(THREE,{tex:kbugTex(),merge:mergeGeos}),g
 
 var BUG={kind:'buggy',on:false,used:false,drive:false,carry:false,pov:'seat',r:null,st:0,tilt:0,dump:false,busyMine:false,fov:null,cp:null,cl:null,
   js:[{x:0,y:0},{x:0,y:0}],key:{u:false,d:false,l:false,r:false},uiT:0,msg:''};
-function runKind(){if(BUG&&BUG.on)return BUG.kind;if(typeof plan!=='undefined'&&planLive()&&(plan.place==='barrow'||plan.place==='buggy'))return plan.place;return null}
-function bugCan(){return !!(LV&&!LV.pump&&!LV.slip&&!LV.wall&&!LV.elev&&!LV.tut&&S.pour!=null)}
+function runKind(){return null}
+function bugCan(){return false&&!!(LV&&!LV.pump&&!LV.slip&&!LV.wall&&!LV.elev&&!LV.tut&&S.pour!=null)}
 function bugFull(){return !!(BUG&&(BUG.r||BUG.on)&&!BUG.drive&&placed+RUN.transit>=NEED_M3*1.03)}
 function runCarry(){return !!(BUG&&BUG.carry&&RUN.on&&!BUG.drive&&S.screed!=null&&stage===S.screed)}
 function bugMode(on,kind){if(on){if(!bugCan())return;runClear();BUG.kind=kind||'buggy';BUG.on=true;if(BUG.kind==='buggy')BUG.used=true;BUG.drive=false;pouring=false;truckFar(true);if(pourTool!=='chute')setPourTool('chute',true);
@@ -8410,7 +8411,6 @@ const PRACTICE=[
  {k:'form',sec:'Placing',ic:'forms',n:'Set forms',d:'Trace the boards and stakes',lv:'patio',st:'form',prep:1,goal:'Set 100% of the forms',tgt:1,gold:20,silver:40},
  {k:'rebar',sec:'Placing',ic:'forms',n:'Rebar mat',d:'Lay bars, tie the mat',lv:'patio',st:'rebar',prep:1,goal:'Lay the bars, then tie the mat',tgt:1,gold:35,silver:60},
  {k:'pour',sec:'Placing',ic:'chute',n:'Pour & rake',d:'Fill every corner, no bare spots',lv:'patio',st:'pour',goal:'Place the full load',tgt:1,gold:35,silver:60},
- {k:'buggy',sec:'Placing',ic:'chute',n:'Power buggy',d:'Load under the chute, haul it, dump it in',lv:'patio',st:'pour',goal:'Place the full load by buggy',tgt:1,gold:70,silver:120,buggy:true},
  {k:'screed',sec:'Placing',ic:'screed',n:'Screed',d:'Strike it off flat',lv:'patio',st:'screed',goal:'Strike it dead flat',tgt:1,gold:20,silver:35},
  {k:'float',sec:'Finishing',ic:'float',n:'Bull float',d:'Close up the surface',lv:'patio',st:'float',goal:'Close 100%',tgt:1,gold:20,silver:35},
  {k:'edge',sec:'Finishing',ic:'edger',n:'Edger',d:'Tool every edge',lv:'patio',st:'edge',goal:'Edge the whole slab',tgt:1,gold:25,silver:45},
@@ -11274,8 +11274,8 @@ const CREWS=[{n:'Just you',p:1,k:1.22,d:'Cheapest. On anything big the slab sets
   {n:'You + 1 helper',p:2,k:1,d:'The usual. Someone on the rake while you run the screed.'},
   {n:'2 finishers',p:3,k:.86,d:'Extra trowel hands. More time in the window.'},
   {n:'Full small crew',p:5,k:.72,d:'Fast and safe, but labour eats the profit on small jobs.'}];
-const PLACES={barrow:{n:'Wheelbarrow',r:.48,c:0,yph:3.2,d:'Free, slow. More hands, more barrows.'},buggy:{n:'Concrete buggy',r:.78,c:180,yph:8,d:'Ride-on buggy rental. Moves mud fast.'},
-  chute:{n:'Truck chute',r:1,c:0,yph:20,d:'Straight off the truck, if it can reach.'},pump:{n:'Pump truck',r:1,c:1100,yph:34,d:'Fastest placement there is. Pricey.'}};
+/* v322: no wheelbarrows or power buggies (Kris): the truck chute or the pump places it */
+const PLACES={  chute:{n:'Truck chute',r:1,c:0,yph:20,d:'Straight off the truck, if it can reach.'},pump:{n:'Pump truck',r:1,c:1100,yph:34,d:'Fastest placement there is. Pricey.'}};
 const TOOLS={screed:{n:'Power screed',c:120,d:'Rent a vibrating screed. Flatter, faster.',st:'screed'},bull:{n:'Mag bull float',c:60,d:'Wide magnesium float. Closes the top faster.',st:'float'},
   power:{n:'Power trowel',c:150,d:'Walk-behind rental. Hand-trowel work goes way faster.',st:'trowel'},ride:{n:'Ride-on trowel',c:350,d:'Rental. Covers a floor about 70% faster.',st:'power'},
   kit:{n:'Pro finishing kit',c:80,d:'Better edger, groover and broom. Faster, cleaner passes.',st:'edge|joint|broom'}};
@@ -11286,7 +11286,7 @@ const planT=k=>planLive()&&!!plan.t[k];
 function planToolsFor(L){const st=L.steps.join('|');return Object.keys(TOOLS).filter(k=>{const t=TOOLS[k];if(!new RegExp(t.st).test(st))return false;
   if(k==='screed'&&(gearOwn('pscreed')||gearOwn('laser')))return false;if(k==='ride'&&gearOwn('ride'))return false;if(k==='power'&&L.steps.includes('power'))return false;return true})}
 function gearOwn(k){return !!(career&&career.gear&&career.gear[k]&&mode==='career')}
-function planPlaces(L){if(L.pump)return['pump'];if(L.slip)return['chute'];return['barrow','buggy','chute','pump']}
+function planPlaces(L){if(L.pump)return['pump'];if(L.slip)return['chute'];return['chute','pump']}
 // gameplay multipliers (all 1 when there is no plan, e.g. practice)
 function planClockK(){if(!planLive())return gear('crew')?.85:1;return CREWS[plan.crew].k*(gearOwn('crew')?.94:1)}
 function planPourK(){if(!planLive())return 1;const P=PLACES[plan.place]||PLACES.chute;if(plan.place==='barrow'||plan.place==='buggy')return P.r*Math.max(.75,Math.min(1.35,1+.18*(CREWS[plan.crew].p-2)));return P.r}
