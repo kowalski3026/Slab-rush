@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v312"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v313"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v313: Worn photo-real Bid-Well model (box truss, end bogies on the rails) rides the span, its engine carriage runs along the truss with the game augers and drum under it. Night pours: concrete lifted to a light grey under the work lights so it reads against the steel. -->
 <!-- v312: Bridge Bid-Well keeps its built rig (box truss, end trucks on the rails, carriage with augers and drum) but is worn: chipped grimy yellow, rust streaks, concrete crust on the end trucks, legs and carriage, scuffed steel drum. -->
 <!-- v311: Pump set-up picks a real spot: parked along the street past the driveway mouth when there is one, otherwise nose-in on a gravel pad off the side of the pad, always behind the pad from the camera, cab toward the pour, outriggers off the forms, mixer backed straight to the hopper. Scenery kept off the trucks. -->
 <!-- v310: Photo sites: boom pump sets up on a gravel drive well back from the pad, cab toward the pour, mixer backed straight up to its hopper. -->
@@ -3332,6 +3333,24 @@ function brgVis(){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,si=
   if(BRG.bw)BRG.bw.visible=sofDone;if(BRG.ex)BRG.ex.visible=k==='demo';
   slab.visible=S.pour==null||stage>=S.pour}
 // ---- the dress: hoe ram, Bid-Well, and deck lights (world space, in REGG) ----
+/* v313: worn photo-real Bid-Well. A Higgsfield image-to-3D model of a beat-up box-truss paver (two trusses side by side, legs only at
+   the ends on wheeled bogies riding the screed rails, engine carriage), cut in two offline: part0 the truss, legs and bogies, part1 the
+   engine carriage. The truss rides with the game's machine down the span; the carriage runs back and forth along the truss with the
+   game's augers and finishing drum hanging under it, so it all moves the way the built one did. */
+const BWP={url:'models/bidwell-photo.glb',tried:false,w:null,c:null,on:false,G:null,k:1,cz0:0};
+function bwpLoad(){if(BWP.tried||!THREE.GLTFLoader)return;BWP.tried=true;new THREE.GLTFLoader().load(BWP.url,g=>{try{const parts={};
+    g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;const m=o.material;if(m){m.envMapIntensity=.8;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.DoubleSide;m.needsUpdate=true}if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals();parts[/part1/.test(o.name)||/part1/.test(o.parent&&o.parent.name)?1:0]=o});
+    if(!parts[0])throw new Error('no mesh');BWP.parts=parts;BWP.on=false}catch(e){BWP.err=String(e);console.warn('bidwell glb',e)}},undefined,e=>{BWP.err=String(e&&e.message||e);console.warn('bidwell glb',e)})}
+// model units: truss along x -0.95..0.95, trusses side by side in z (±0.235), bogie bottoms at y -0.198; carriage centre x -0.515, z 0.2
+function bwpMake(m,G){const H=BRG_RAIL+.4,k=2*H/1.9,ys=k*1.25,w=new THREE.Group();w.rotation.y=Math.PI/2;w.scale.set(k,ys,k);w.position.y=.62+.198*ys;w.add(m);G.add(w);w.userData.live=true;return{w,k}}
+function bwpTick(){const G=BRG.bw;if(!G)return;bwpLoad();if(!BWP.parts)return;
+  if(BWP.G!==G){// a fresh rig was built for this job: put the model on it and hide the built truss, end trucks and carriage box
+    BWP.G=G;const a=bwpMake(BWP.parts[0].clone(),G);BWP.w=a.w;BWP.k=a.k;BWP.c=null;
+    if(BWP.parts[1]){const b=bwpMake(BWP.parts[1].clone(),G);BWP.c=b.w;// carriage centre in the rig's frame: model x -0.515 -> rig z
+      BWP.c.updateMatrixWorld(true);const v=new THREE.Vector3(-.515,0,.2);BWP.c.children[0].localToWorld(v);G.worldToLocal(v);BWP.cz0=v.z}
+    const C=BRG.car;G.children.forEach(o=>{if(o===BWP.w||o===BWP.c||o===C||o.isLight||(o.target&&o.isObject3D&&!o.isMesh&&!o.isGroup))return;if(o.isMesh||o.isGroup)o.visible=false});
+    C.children.forEach(o=>{if(o.isMesh&&o.geometry&&o.geometry.type==='BoxGeometry')o.visible=false})}
+  if(BWP.c){const H=BRG_RAIL+.4,lim=H-4.2,z=Math.max(-lim,Math.min(lim,BRG.car.position.z));BWP.c.position.z=z-BWP.cz0;BRG.car.position.z=z}}
 /* v312: the built Bid-Well, worn: chipped, grimy yellow up top, concrete-crusted and rust-streaked low down (end trucks, legs, carriage), dirty black steel */
 let BWT=null;function bwTex(){if(BWT)return BWT;const crust=ctex(512,512,(g,w,h)=>{g.fillStyle='#e8e2d4';g.fillRect(0,0,w,h);
    for(let i=0;i<90;i++){const x=Math.random()*w,y=Math.random()*h*.6,l=20+Math.random()*120;const gr=g.createLinearGradient(x,y,x,y+l);gr.addColorStop(0,'rgba(140,70,28,.45)');gr.addColorStop(1,'rgba(140,70,28,0)');g.fillStyle=gr;g.fillRect(x,y,1.5+Math.random()*3,l)}
@@ -3449,7 +3468,7 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
       if(best>=0){tipTarget.set(wx(best%GW+.5),0,wz(((best/GW)|0)+.5));if(!BW.feed){pourStep.hold=true}pouring=true;BW.feed=true;placedAtLeave=placed}else if(BW.feed){pouring=false;BW.feed=false}}
     else if(BW.feed&&k==='screed'){pouring=false;BW.feed=false}else if(k!=='screed')BW.feed=false;
     const work=!!want||(live&&BW.auto&&!BW.wait);BW.cz+=BW.cd*dt*(work?3.4:0);if(BW.cz>11.2){BW.cz=11.2;BW.cd=-1}if(BW.cz<-11.2){BW.cz=-11.2;BW.cd=1}
-    BRG.bw.position.x+=(wx(BW.x)-BRG.bw.position.x)*Math.min(1,dt*10);BRG.car.position.z=BW.cz;
+    BRG.bw.position.x+=(wx(BW.x)-BRG.bw.position.x)*Math.min(1,dt*10);BRG.car.position.z=BW.cz;try{bwpTick()}catch(e){}
     try{bwLife(dt,work,sp,E)}catch(e){}
     BRG.spin.forEach(o=>{if(o.userData.aug)o.rotation.x+=dt*(work?7:0)*o.userData.aug;else if(o.userData.wheel)o.rotation.z-=sp*dt*1.9*BW.dir});if(BRG.drum)BRG.drum.rotation.x-=dt*(work?3.2:0)*BW.cd;
     // the boom swings clear of the deck when it isn't placing
@@ -8980,7 +8999,7 @@ function step(t,dt){
   }
   if((surfDirty&&t-surfT>(lowQ?180:110))||(t-surfT>1200&&!PREPK.has(STAGES[stage].key))){updateSurface();slabTex.needsUpdate=true;roughTex.needsUpdate=true;bumpTex.needsUpdate=true;ccTex.needsUpdate=true;surfDirty=false;surfT=t}
   if(geoDirty){updateGeo();geoDirty=false}
-  const b=bleed(set),wq=wetness(set-.04);const rw=typeof rainIM!=='undefined'&&rainIM.visible&&!tarpOn?1:0;WETV+=((Math.max(wq,b*.9,rw*.8))-WETV)*Math.min(1,dt*1.5);const nt=weather.night;slabMat.clearcoat=Math.max(.001,Math.min(1,Math.max(wq*.8,b*1.15,rw*.7))*(LV&&LV.wall?.3:1)*(nt?1:WETD.cc)*(stage===S.pour&&mudOn()?.45:1));slabMat.color.setScalar(1-.16*WETV);slabMat.envMapIntensity=1+(nt?.55:WETD.env)*WETV;slabMat.clearcoatRoughness=Math.max(nt?.06:WETD.rmin,.16-.1*clamp01(b*1.3)-.04*wq-(nt?0:WETD.r));
+  const b=bleed(set),wq=wetness(set-.04);const rw=typeof rainIM!=='undefined'&&rainIM.visible&&!tarpOn?1:0;WETV+=((Math.max(wq,b*.9,rw*.8))-WETV)*Math.min(1,dt*1.5);const nt=weather.night;slabMat.clearcoat=Math.max(.001,Math.min(1,Math.max(wq*.8,b*1.15,rw*.7))*(LV&&LV.wall?.3:1)*(nt?1:WETD.cc)*(stage===S.pour&&mudOn()?.45:1));slabMat.color.setScalar(1-.16*WETV);slabMat.envMapIntensity=nt?.35+.3*WETV:1+WETD.env*WETV;/* v313: at night the slab reads under the work lights: a soft grey lift so the mud is clearly lighter than the steel and soffit */if(nt)slabMat.emissive.setRGB(.2,.2,.19);else if(slabMat.emissive.r)slabMat.emissive.setRGB(0,0,0);slabMat.clearcoatRoughness=Math.max(nt?.06:WETD.rmin,.16-.1*clamp01(b*1.3)-.04*wq-(nt?0:WETD.r));
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
   updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);

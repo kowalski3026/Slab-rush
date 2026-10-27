@@ -21,6 +21,10 @@
   ],
   "rewrites": [
     {
+      "source": "/models/bidwell-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/ffdaca87-1e06-4378-9fc3-9aa16b793726.glb"
+    },
+    {
       "source": "/models/pump-photo.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/fa70816d-311c-46f8-aa1b-035dfb6d37b5.glb"
     },
