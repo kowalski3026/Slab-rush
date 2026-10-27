@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v324"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v325"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v325: photo sites: pump and mixer park at the side of the pad, not behind it where the photo house is -->
 <!-- v324: excavator cab view drops the photo backdrop and shows the full 3D world (houses, trees, sky) again; backdrop returns when you leave the cab -->
 <!-- v323: worn photo-built 3D plate packer and ride-on roller (Tripo) replace the coded ones; roller drums roll; K decals raycast onto the side covers -->
 <!-- v322: wheelbarrows and power buggies removed (Kris): placement is truck chute or pump only -->
@@ -5210,9 +5211,10 @@ function pumpDrive(){const Lv=placeTruck.L,P=Lv&&Lv.paint;if(!P||!P.cam||Lv.slip
     // outrigger pads: off the pour and not in anything
     if([[3.7,-8.2],[3.7,10.6],[34.3,-7.5],[34.3,9.9]].some(([lx,lz])=>{const[x,z]=at(36-lx,-lz);return inBox(x,z,.5)||pointInPoly(x,z,SHAPE)||nearestOnPoly(x,z)[2]<3}))continue;
     let drv=0;{const[mx,mz]=at(30,0);for(const o of obst)if(o.gnd&&mx>o[0]&&mx<o[2]&&mz>o[1]&&mz<o[3]){drv=1;break}}
-    // judge by where the trucks actually end up: behind the pad as the camera sees it, never in front of it
+    // judge by where the trucks actually end up (see v325 below)
     const[mx,mz]=at(30,0),vx=mx-PCX,vz=mz-PCZ,vl=Math.hypot(vx,vz)||1;
-    const sc=(vx*fx+vz*fz)/vl+drv-pen*.012;if(!best||sc>best.sc)best={sc,ry,at,drv}}
+    /* v325: on a photo site the house is what stands behind the pad, so a truck "behind" it sits on the roof. Prefer the pad's sides, never behind, mildly avoid in front (it would hide the pour) */
+    const bh=(vx*fx+vz*fz)/vl,lat=Math.abs(vx*(-fz)+vz*fx)/vl,sc=lat*1.2-Math.max(0,bh)*2.2-Math.max(0,-bh)*.5+drv*.5-pen*.012;if(!best||sc>best.sc)best={sc,ry,at,drv}}
   if(!best)return false;pumpDrive.best=best;
   const{ry,at}=best;
   // pump: cab toward the pad facing it, boom over the top, hopper at the far end
