@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v322"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v323"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v323: worn photo-built 3D plate packer and ride-on roller (Tripo) replace the coded ones; roller drums roll; K decals raycast onto the side covers -->
 <!-- v322: wheelbarrows and power buggies removed (Kris): placement is truck chute or pump only -->
 <!-- v321: Prairies region gets drone-photo backdrops (with before photos) on all 12 jobs. -->
 <!-- v320: Quebec region gets drone-photo backdrops (with before photos) on all 12 jobs. -->
@@ -10519,6 +10520,37 @@ const rollG=new THREE.Group();let compTool='plate';
  [-1,1].forEach(s=>{const k=new THREE.Mesh(new THREE.TorusGeometry(.2,.07,8,12,Math.PI/2),blM);k.position.set(s*(W/2-.05),4.85,-2.35);k.rotation.z=s<0?Math.PI/2:0;rollG.add(k)});
  if(typeof kDecalM!=='undefined'&&kDecalM){[-1,1].forEach(s=>{const d=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.6),kDecalM);d.position.set(s*(W/2+.24),2.7,1.4);d.rotation.y=s*Math.PI/2;rollG.add(d)})}
  rollG.userData={drums,last:new THREE.Vector3(),R};shadowAll(rollG);rollG.visible=false;scene.add(rollG)}
+// v323: worn photo-built 3D plate packer and ride-on roller replace the coded ones; roller drums split out of the mesh so they roll
+const CPM={plate:{url:'models/plate-worn.glb',tried:false,on:false},roll:{url:'models/roller-worn.glb',tried:false,on:false}};
+function cpmBake(g){let mh=null;g.scene.updateMatrixWorld(true);g.scene.traverse(o=>{if(o.isMesh&&!mh)mh=o});if(!mh)throw new Error('no mesh');
+  const geo=mh.geometry.clone();geo.applyMatrix4(mh.matrixWorld);if(!geo.attributes.normal)geo.computeVertexNormals();
+  const m=mh.material;if(m){m.envMapIntensity=.9;if(m.emissive)m.emissive.set(0);m.emissiveMap=null;m.flatShading=false;m.side=THREE.FrontSide;if(m.metalness>.6)m.metalness=.6;m.needsUpdate=true}
+  const ms=new THREE.Mesh(geo,m);ms.castShadow=ms.receiveShadow=true;return ms}
+function cpmDecal(W,root,from,dir,size){if(typeof kDecalM==='undefined'||!kDecalM)return;W.parent.updateMatrixWorld(true);const rc=new THREE.Raycaster(from,dir.clone().normalize());const h=rc.intersectObject(root,true)[0];if(!h||!h.face)return;
+  const n=h.face.normal.clone().transformDirection(h.object.matrixWorld),d=new THREE.Mesh(new THREE.PlaneGeometry(size,size*.5),kDecalM);d.position.copy(h.point).addScaledVector(n,.012);d.lookAt(h.point.clone().add(n));
+  W.parent.worldToLocal(d.position);d.quaternion.premultiply(W.parent.getWorldQuaternion(new THREE.Quaternion()).invert());W.parent.add(d);d.userData.cpm=1}
+function cpmLoad(){if(!THREE.GLTFLoader)return;
+  if(!CPM.plate.tried){CPM.plate.tried=true;new THREE.GLTFLoader().load(CPM.plate.url,g=>{try{const ms=cpmBake(g),p=ms.geometry.attributes.position;ms.geometry.computeBoundingBox();const b=ms.geometry.boundingBox,y0=b.min.y,h=b.max.y-y0;
+      let sx=0,sz=0,n=0;for(let i=0;i<p.count;i++)if(p.getY(i)<y0+h*.05){sx+=p.getX(i);sz+=p.getZ(i);n++}sx/=n||1;sz/=n||1;
+      const W=new THREE.Group(),I=new THREE.Group();I.position.set(-sx,-y0,-sz);I.add(ms);W.add(I);W.rotation.y=Math.PI/2;W.scale.setScalar(2.95/h/1.05);// handle (model -x) trails to +z like the coded one
+      compG.children.forEach(c=>c.visible=false);compG.add(W);CPM.plate.on=true;
+      cpmDecal(W,ms,compG.localToWorld(new THREE.Vector3(3,1.05,-.15)),new THREE.Vector3(-1,0,0),.62);cpmDecal(W,ms,compG.localToWorld(new THREE.Vector3(-3,1.05,-.15)),new THREE.Vector3(1,0,0),.62)
+    }catch(e){CPM.plate.err=String(e);console.warn('plate glb',e)}},undefined,e=>{CPM.plate.err=String(e&&e.message||e)})}
+  if(!CPM.roll.tried){CPM.roll.tried=true;new THREE.GLTFLoader().load(CPM.roll.url,g=>{try{const ms=cpmBake(g),geo=ms.geometry,p=geo.attributes.position;geo.computeBoundingBox();const b=geo.boundingBox,y0=b.min.y;
+      // find each drum: ground-contact verts cluster at the two axles (model +x = hood end)
+      const lo=[];for(let i=0;i<p.count;i++)if(p.getY(i)<y0+.008)lo.push(p.getX(i));const mid=(Math.min(...lo)+Math.max(...lo))/2,A=lo.filter(x=>x<mid),B=lo.filter(x=>x>=mid),avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+      const r=.118*(b.max.y-y0)/.824,ax=[avg(A),avg(B)],ay=y0+r,zw=.178*(b.max.z-b.min.z)/.404;
+      const idx=geo.index?geo.index.array:Array.from({length:p.count},(_,i)=>i),keep=[],dr=[[],[]];
+      const inD=(i,k)=>Math.hypot(p.getX(i)-ax[k],p.getY(i)-ay)<r*1.0&&Math.abs(p.getZ(i))<zw;
+      for(let t=0;t<idx.length;t+=3){const a=idx[t],c=idx[t+1],d=idx[t+2];let w=-1;for(let k=0;k<2;k++)if(inD(a,k)&&inD(c,k)&&inD(d,k))w=k;(w<0?keep:dr[w]).push(a,c,d)}
+      const sub=ix=>{const q=new THREE.BufferGeometry();for(const nm in geo.attributes)q.setAttribute(nm,geo.attributes[nm]);q.setIndex(ix);return q};
+      const body=new THREE.Mesh(sub(keep),ms.material);body.castShadow=body.receiveShadow=true;
+      const W=new THREE.Group(),I=new THREE.Group(),cx=(ax[0]+ax[1])/2;I.position.set(-cx,-y0,0);I.add(body);const md=[];
+      dr.forEach((ix,k)=>{const G=new THREE.Group();G.position.set(ax[k],ay,0);const m=new THREE.Mesh(sub(ix),ms.material);m.castShadow=m.receiveShadow=true;m.position.set(-ax[k],-ay,0);G.add(m);I.add(G);md.push(G)});
+      const k=3.6/(ax[1]-ax[0]);W.add(I);W.rotation.y=-Math.PI/2;W.scale.setScalar(k);// hood (model +x) forward to +z like the coded one
+      rollG.children.forEach(c=>c.visible=false);rollG.add(W);const u=rollG.userData;u.md=md;u.mR=r*k;CPM.roll.on=true;
+      cpmDecal(W,body,rollG.localToWorld(new THREE.Vector3(5,2.3,1.6)),new THREE.Vector3(-1,0,0),.95);cpmDecal(W,body,rollG.localToWorld(new THREE.Vector3(-5,2.3,1.6)),new THREE.Vector3(1,0,0),.95)
+    }catch(e){CPM.roll.err=String(e);console.warn('roller glb',e)}},undefined,e=>{CPM.roll.err=String(e&&e.message||e)})}}
 function rollerOK(){return !!LV&&!LV.wall&&!LV.steps.includes('slip')&&sqftOf(LV)>=180}
 function setCompTool(t,quiet){compTool=t==='roller'&&rollerOK()?'roller':'plate';$('cPlate').setAttribute('aria-pressed',String(compTool==='plate'));$('cRoller').setAttribute('aria-pressed',String(compTool==='roller'));
   if(!quiet)say(compTool==='roller'?'Roller for the open field. It can\'t get tight to the forms, so finish the edges with the plate.':'Plate packer gets right up against the edges.','info','ctool',0)}
@@ -11692,11 +11724,11 @@ function updatePrep(dt,t){updateMark(dt,t);updateBlankets(dt);updateCure();updat
   updateDump(dt);
   gravPile.visible=P&&k==='gravel'&&gravLeft>.01;if(gravPile.visible){const r=Math.max(2.2,Math.cbrt(RN*CELL_IN*CELL_IN/144*GTf()*1.1*gravLeft+.3)*1.05)*(.75+.25*EXS);gravPile.scale.set(r*1.3,r*.6,r);gravPile.userData.r=r}
   if(layerDirty&&performance.now()-layerT>90){layerT=performance.now();layerDirty=false;updateLayers()}
-  compG.visible=P&&k==='base'&&ptr.down&&compTool==='plate';{const rv=P&&k==='base'&&compTool==='roller';rollG.visible=rv;if(rv){const u=rollG.userData,tx=ptr.down?toolPos.x:rollG.position.x,tz=ptr.down?toolPos.z:rollG.position.z;if(!u.on){u.on=1;rollG.position.set(toolPos.x,0,toolPos.z);rollG.rotation.y=(RX1-RX0)>=(RY1-RY0)?Math.PI/2:0}
+  if(P&&(k==='gravel'||k==='base'))cpmLoad();compG.visible=P&&k==='base'&&ptr.down&&compTool==='plate';{const rv=P&&k==='base'&&compTool==='roller';rollG.visible=rv;if(rv){const u=rollG.userData,tx=ptr.down?toolPos.x:rollG.position.x,tz=ptr.down?toolPos.z:rollG.position.z;if(!u.on){u.on=1;rollG.position.set(toolPos.x,0,toolPos.z);rollG.rotation.y=(RX1-RX0)>=(RY1-RY0)?Math.PI/2:0}
     {const fw=new THREE.Vector3(Math.sin(rollG.rotation.y),0,Math.cos(rollG.rotation.y)),dx=tx-rollG.position.x,dz=tz-rollG.position.z,al=dx*fw.x+dz*fw.z,lx=dx-fw.x*al,lz=dz-fw.z*al,lk=Math.min(1,dt*3);
      const sp=Math.hypot(ptr.vx,ptr.vy);if(ptr.down&&sp>1.2){let tg=Math.atan2(-ptr.vx,-ptr.vy),d=Math.atan2(Math.sin(tg-rollG.rotation.y),Math.cos(tg-rollG.rotation.y));if(Math.abs(d)>Math.PI/2)d-=Math.sign(d)*Math.PI;rollG.rotation.y+=Math.max(-.5*dt,Math.min(.5*dt,d))}
      const nx=rollG.position.x+fw.x*al+lx*lk,nz=rollG.position.z+fw.z*al+lz*lk;rollG.position.set(nx,prepSurfY(nx,nz)+(ptr.down?Math.abs(Math.sin(t*.09))*.025:0),nz)}
-    const dd=rollG.position.distanceTo(u.last);if(dd<3){const fw=new THREE.Vector3(Math.sin(rollG.rotation.y),0,Math.cos(rollG.rotation.y)),sg=Math.sign(fw.dot(rollG.position.clone().sub(u.last))||1);u.drums.forEach(g=>g.rotation.x+=sg*dd/u.R)}u.last.copy(rollG.position)}else rollG.userData.on=0}if(!compG.visible)compG.userData.y0=0;if(compG.visible){compG.position.set(toolPos.x,prepSurfY(toolPos.x,toolPos.z)+Math.abs(Math.sin(t*.06))*.05,toolPos.z);{const sp=Math.hypot(ptr.vx,ptr.vy);if(!compG.userData.y0){compG.userData.y0=1;compG.rotation.y=Math.atan2(camDir.x,camDir.z)}if(sp>1.5)compG.rotation.y=lerpAng(compG.rotation.y,Math.atan2(-ptr.vx,-ptr.vy),1-Math.pow(.02,dt))}}
+    const dd=rollG.position.distanceTo(u.last);if(dd<3){const fw=new THREE.Vector3(Math.sin(rollG.rotation.y),0,Math.cos(rollG.rotation.y)),sg=Math.sign(fw.dot(rollG.position.clone().sub(u.last))||1);u.drums.forEach(g=>g.rotation.x+=sg*dd/u.R);if(u.md)u.md.forEach(g=>g.rotation.z-=sg*dd/u.mR)}u.last.copy(rollG.position)}else rollG.userData.on=0}if(!compG.visible)compG.userData.y0=0;if(compG.visible){compG.position.set(toolPos.x,prepSurfY(toolPos.x,toolPos.z)+Math.abs(Math.sin(t*.06))*.05,toolPos.z);{const sp=Math.hypot(ptr.vx,ptr.vy);if(!compG.userData.y0){compG.userData.y0=1;compG.rotation.y=Math.atan2(camDir.x,camDir.z)}if(sp>1.5)compG.rotation.y=lerpAng(compG.rotation.y,Math.atan2(-ptr.vx,-ptr.vy),1-Math.pow(.02,dt))}}
   boardGhost.visible=P&&k==='form'&&ptr.down&&!!formGhost;if(boardGhost.visible){boardGhost.position.set(formGhost[0],FY+.3,formGhost[1]);boardGhost.rotation.y=formGhost[2]}}
 
 /* ---------- weather events: rain (tarp it), wind and sun (sets faster) ---------- */
