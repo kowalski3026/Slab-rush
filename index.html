@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v325"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v326"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v326: results screen shows the top 3 point losses and your score vs your best -->
 <!-- v325: photo sites: pump and mixer park at the side of the pad, not behind it where the photo house is -->
 <!-- v324: excavator cab view drops the photo backdrop and shows the full 3D world (houses, trees, sky) again; backdrop returns when you leave the cab -->
 <!-- v323: worn photo-built 3D plate packer and ride-on roller (Tripo) replace the coded ones; roller drums roll; K decals raycast onto the side covers -->
@@ -760,6 +761,7 @@ a.btn{display:flex;align-items:center;justify-content:center;text-decoration:non
 .lbname .btn{min-height:44px;padding:0 16px}
 .ptsline{font-family:var(--f-mono);font-size:14px;color:var(--ink);background:rgba(242,178,58,.1);border:1px solid rgba(242,178,58,.4);border-radius:12px;padding:9px 12px;margin:0}
 .ptsline b{color:var(--amber)}
+.rloss{font-size:13px;line-height:1.45;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:9px 12px;margin:0}.rloss b{color:var(--amber)}.rloss .lo{color:#ff8a6a;font-family:var(--f-mono);white-space:nowrap}.rloss small{display:block;color:var(--muted);margin-top:3px}
 .scorehow{margin:0;font-size:13px;color:var(--muted)}
 #edCv{width:100%;height:auto;aspect-ratio:2/1;display:block;border-radius:12px;border:1px solid var(--glass-line);touch-action:none;cursor:crosshair}
 .edinfo{font-family:var(--f-mono);font-size:12.5px;color:var(--amber)}
@@ -1200,6 +1202,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
     </div>
     <div class="rgoals" id="rGoals" hidden></div>
     <p class="ptsline" id="rPtsLine" hidden></p>
+    <p class="rloss" id="rLoss" hidden></p>
     <div class="photos" id="rPhotos" hidden><figure><img id="phB" alt="Slab right after the pour"><figcaption>After the pour</figcaption></figure><figure><img id="phA" alt="The finished slab"><figcaption>Finished</figcaption></figure><figure hidden><img id="phY" alt="The slab a year later"><figcaption>1 year later</figcaption></figure></div>
     <div class="sharerow"><button class="btn primary" id="phShare" hidden>Share it</button><button class="btn" id="phSave" hidden>Save photo</button></div>
     <div class="sharerow"><button class="btn" id="rpOpen" hidden>▶ Watch replay</button><button class="btn" id="chalShare">Challenge a friend</button></div>
@@ -8633,6 +8636,10 @@ function finish(timedOut){try{govJobEnd()}catch(e){}
   $('rHead').textContent=(timedOut?'It set up before you finished · ':'Final walkthrough · ')+LV.name;
   $('rLetter').textContent=letter;$('rWord').textContent=word;{const el=$('rLetter');el.classList.remove('slam');void el.offsetWidth;el.classList.add('slam')}if(letter==='A'||letter==='B')setTimeout(()=>confetti(letter==='A'?220:120),250);
   {const tail=` / 100 · ${weather.label}`+(best>0?` · best ${Math.max(best,total)}`:''),el=$('rPts'),t0=performance.now();el.textContent='0'+tail;const tick=()=>{const k=Math.min(1,(performance.now()-t0)/900);el.textContent=Math.round(total*(1-Math.pow(1-k,3)))+tail;if(k<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)}
+  try{/* v326: where the points went, plus how you did against your best */
+    const el=$('rLoss'),L2=rows.map(x=>[x[0],(1-x[1])*x[3]/wsum*100,x[2]]);if(wk>.01)L2.push(['Weak spots',wk*60,'Leaves, rain or low spots weakened parts of the slab.']);
+    const top=L2.filter(x=>x[1]>=1.5).sort((a,b)=>b[1]-a[1]).slice(0,3),vs=best>0?(total>best?`<b>New best!</b> +${total-best} on your old ${best}.`:total===best?`Tied your best (${best}).`:`${best-total} short of your best (${best}).`):'';
+    if(top.length||vs){el.hidden=false;el.innerHTML=(top.length?`Where you lost points: `+top.map(x=>`${x[0]} <span class="lo">−${Math.round(x[1])}</span>`).join(' · ')+`<small>${top[0][0]}: ${top[0][2]}</small>`:'Clean run. No big losses.')+(vs?`<small>${vs}</small>`:'')}else el.hidden=true}catch(e){console.warn('loss',e)}
   $('rRows').innerHTML=rows.map(([n,s,note],ri)=>`<div class="row"><span class="n">${n}</span><span class="bar"><i data-w="${Math.round(s*100)}" style="width:0%;transition-delay:${ri*.09}s"></i></span><span class="v">${Math.round(s*100)}</span><span class="note">${note}</span></div>`).join('');
   const hasJ=S.joint!=null;
   const noJ=!hasJ&&S.stamp==null;
