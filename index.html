@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v326"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v327"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v327: photoreal dig and gravel: new seamless Higgsfield photos of fresh Ontario subsoil and Granular A (with normal maps), large-scale colour variation, neutral vertex tint -->
 <!-- v326: results screen shows the top 3 point losses and your score vs your best -->
 <!-- v325: photo sites: pump and mixer park at the side of the pad, not behind it where the photo house is -->
 <!-- v324: excavator cab view drops the photo backdrop and shows the full 3D world (houses, trees, sky) again; backdrop returns when you leave the cab -->
@@ -2096,12 +2097,12 @@ function makeStampTile(){const T=STAMPS[stampSel.pat].gen(),W=T.s.width,H=T.s.he
   cg.drawImage(T.s,0,0);tg.drawImage(T.m,0,0);tg.globalCompositeOperation='source-in';tg.fillStyle=rel;tg.fillRect(0,0,W,H);cg.drawImage(t,0,0);return{col:c,bump:T.b,span:STAMPS[stampSel.pat].span||[1,1]}}
 let STILE=makeStampTile();
 
-const TEXD={brick:'tex/brick.jpg',fence:'tex/fence.jpg',siding:'tex/siding.jpg',track:'tex/track.jpg',steel:'tex/steel.jpg',metal:'tex/metal.jpg',board:'tex/board.jpg',lawn:'tex/lawn.jpg',dirt:'tex/dirt.jpg',gravel:'tex/gravel2.jpg',asphalt:'tex/asphalt.jpg',oldconc:'tex/oldconc.jpg',ply:'tex/ply.jpg',roof:'tex/roof.jpg',mulch:'tex/mulch.jpg',conc:'tex/conc.jpg'};// v232: the photos live in tex/ now (they were base64 inside this file)
+const TEXD={brick:'tex/brick.jpg',fence:'tex/fence.jpg',siding:'tex/siding.jpg',track:'tex/track.jpg',steel:'tex/steel.jpg',metal:'tex/metal.jpg',board:'tex/board.jpg',lawn:'tex/lawn.jpg',dirt:'tex/dirt.jpg',dig:'tex/dig.jpg',grav3:'tex/grav3.jpg',gravel:'tex/gravel2.jpg',asphalt:'tex/asphalt.jpg',oldconc:'tex/oldconc.jpg',ply:'tex/ply.jpg',roof:'tex/roof.jpg',mulch:'tex/mulch.jpg',conc:'tex/conc.jpg'};// v232: the photos live in tex/ now (they were base64 inside this file)
 // photo textures (generated, made seamless) swap in over the procedural ones as soon as they decode
 const TEXI={};
 function texImg(k){if(!TEXI[k])TEXI[k]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=TEXD[k]}));return TEXI[k]}
 /* v152: PBR detail. Normal maps for the photo textures (tex/<key>_n.jpg), the scanned ambientCG asphalt (CC0), and scanned concrete pores on the slab. Loaded as separate files; anything that fails to load just stays as before */
-const PBRN={brick:.9,fence:.7,siding:.6,track:1,board:.4,lawn:.55,dirt:.9,gravel:1.1,oldconc:.6,ply:.3,roof:.8,mulch:1,conc:.5,asphalt:.9},PBRC={asphalt:'asphalt_c'},PBRI={};
+const PBRN={brick:.9,fence:.7,siding:.6,track:1,board:.4,lawn:.55,dirt:.9,dig:1.1,grav3:1.25,gravel:1.1,oldconc:.6,ply:.3,roof:.8,mulch:1,conc:.5,asphalt:.9},PBRC={asphalt:'asphalt_c'},PBRI={};
 const PBRF={gravel_n:'gravel2_n'};// v288: photo maps that were replaced keep their key but load a new file
 function pbrImg(f){if(!PBRI[f])PBRI[f]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='tex/'+(PBRF[f]||f)+'.jpg'}));return PBRI[f]}
 const PBRT={};
@@ -2772,7 +2773,8 @@ const stake=(x,z,rotY)=>{const k=new THREE.Mesh(new THREE.BoxGeometry(.15,.72,.1
   [.24,.06].forEach((y,i)=>{const nl=new THREE.Mesh(NAILG,EDGE.nailM);nl.position.set((i?.03:-.03),y,.065);k.add(nl)})};
 function flatShape(P,mat,y,H){const sh=new THREE.Shape();P.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));if(H){const hp=new THREE.Path();H.forEach((p,i)=>i?hp.lineTo(p[0],-p[1]):hp.moveTo(p[0],-p[1]));sh.holes.push(hp)}const g=new THREE.ShapeGeometry(sh);g.rotateX(-Math.PI/2);
   const uv=g.attributes.uv,ps=g.attributes.position;for(let i=0;i<ps.count;i++)uv.setXY(i,ps.getX(i)/6,ps.getZ(i)/6);const m=new THREE.Mesh(g,mat);m.position.y=y;m.receiveShadow=true;siteG.add(m);return m}
-const dirtRingM=layerM(new THREE.MeshStandardMaterial({map:(()=>{const t=dirtTex(1);t.repeat.set(1,1);return t})(),roughness:1}),4);
+function digPhotoTex(rep){const[c,g]=mk(4,4);g.fillStyle='#4b3b2d';g.fillRect(0,0,4,4);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;photoTex(t,'dig',rep);return t}
+const dirtRingM=layerM(new THREE.MeshStandardMaterial({map:digPhotoTex(2),roughness:.95}),4);/* v327: the dug-out spill ring is the same fresh subsoil as the pit */
 const gravelRingM=layerM(new THREE.MeshStandardMaterial({map:(()=>{const t=stoneTex(1,'#857d72');t.repeat.set(1,1);return t})(),roughness:1}),2);
 let formPieces=[],formStakes=[];
 const tagNew=(n0,ud)=>{for(let k=n0;k<siteG.children.length;k++)Object.assign(siteG.children[k].userData,ud)};
@@ -9993,17 +9995,17 @@ const gravTex=ctex(512,512,(g,w,h)=>{g.fillStyle='#5f5c58';g.fillRect(0,0,w,h);
     const v=78+Math.random()*92|0,warm=Math.random()<.22?16:Math.random()<.1?-10:0,col=`rgb(${v+warm},${v+(warm*.55|0)},${v-5-(warm>0?4:0)})`;
     wrapDraw(g,w,h,x,y,r+3,(X,Y)=>{g.fillStyle='rgba(22,20,17,.5)';stonePoly(g,X+1.4,Y+2,r,n,a0,sq);g.fillStyle=col;stonePoly(g,X,Y,r,n,a0,sq);
       g.fillStyle='rgba(255,255,255,.16)';stonePoly(g,X-r*.22,Y-r*.25,r*.5,n,a0,sq)})}},1,1);
-gravTex.anisotropy=8;photoTex(gravTex,'gravel',1);
+gravTex.anisotropy=8;photoTex(gravTex,'grav3',1);/* v327: Granular A photo (Higgsfield, seamless 1k) for the spread base, piles and spill ring */
 const gravM=new THREE.MeshStandardMaterial({map:gravTex,vertexColors:true,roughness:.95});gravM.polygonOffset=true;gravM.polygonOffsetFactor=-1;gravM.polygonOffsetUnits=-2;
-const gravPileM=new THREE.MeshStandardMaterial({map:photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(3,2);return t})(),'gravel',1),roughness:.95});
+const gravPileM=new THREE.MeshStandardMaterial({map:photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(3,2);return t})(),'grav3',1),roughness:.95});
 const pitTex=ctex(512,512,(g,w,h)=>{g.fillStyle='#5c4332';g.fillRect(0,0,w,h);
   for(let i=0;i<26;i++){const x=Math.random()*w,y=Math.random()*h,r=40+Math.random()*90;wrapDraw(g,w,h,x,y,r,(X,Y)=>{const gr=g.createRadialGradient(X,Y,0,X,Y,r);const c=Math.random()<.5?'60,42,28':'140,112,84';gr.addColorStop(0,`rgba(${c},.22)`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(X-r,Y-r,2*r,2*r)})}
   // bucket-tooth scrapes, five at a time
   for(let i=0;i<14;i++){const y0=Math.random()*h,x0=Math.random()*w,len=120+Math.random()*200,a=(Math.random()-.5)*.5;for(let t=0;t<5;t++){g.strokeStyle=`rgba(${Math.random()<.5?'40,28,18,.22':'170,140,105,.18'})`;g.lineWidth=1.5+Math.random();g.beginPath();const ox=x0+t*9;g.moveTo(ox,y0);g.lineTo(ox+Math.sin(a)*len,y0+Math.cos(a)*len);g.stroke()}}
   for(let i=0;i<16000;i++){g.fillStyle=Math.random()<.5?`rgba(35,24,15,${.12+Math.random()*.25})`:`rgba(175,145,110,${.1+Math.random()*.22})`;g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.5,1+Math.random()*1.5)}
   for(let i=0;i<260;i++){const x=Math.random()*w,y=Math.random()*h,r=1.5+Math.pow(Math.random(),2)*5;wrapDraw(g,w,h,x,y,r+2,(X,Y)=>{g.fillStyle='rgba(30,20,12,.4)';stonePoly(g,X+1,Y+1.4,r,6,1,.7);g.fillStyle=`rgb(${125+Math.random()*60|0},${115+Math.random()*50|0},${100+Math.random()*40|0})`;stonePoly(g,X,Y,r,6,1,.7)})}
-  for(let i=0;i<70;i++){const x=Math.random()*w,y=Math.random()*h,r=4+Math.random()*9;g.fillStyle='rgba(50,34,22,.35)';g.beginPath();g.ellipse(x,y,r,r*.6,Math.random()*3,0,6.283);g.fill();g.fillStyle='rgba(150,120,90,.3)';g.beginPath();g.ellipse(x-r*.25,y-r*.25,r*.6,r*.35,0,0,6.283);g.fill()}},1,1);photoTex(pitTex,'dirt',2.3);
-const pitMat=new THREE.MeshStandardMaterial({map:pitTex,vertexColors:true,roughness:1});
+  for(let i=0;i<70;i++){const x=Math.random()*w,y=Math.random()*h,r=4+Math.random()*9;g.fillStyle='rgba(50,34,22,.35)';g.beginPath();g.ellipse(x,y,r,r*.6,Math.random()*3,0,6.283);g.fill();g.fillStyle='rgba(150,120,90,.3)';g.beginPath();g.ellipse(x-r*.25,y-r*.25,r*.6,r*.35,0,0,6.283);g.fill()}},1,1);photoTex(pitTex,'dig',2.6);/* v327: freshly dug moist subsoil photo with bucket-tooth scrapes */
+const pitMat=new THREE.MeshStandardMaterial({map:pitTex,vertexColors:true,roughness:.93});macroVar(pitMat,.05,.17,.3,[1.18,1.08,.95]);macroVar(gravM,.06,.2,.2,[1.07,1.04,1.0]);
 const pitMesh=new THREE.Mesh(new THREE.BufferGeometry(),pitMat);pitMesh.receiveShadow=true;pitMesh.visible=false;scene.add(pitMesh);
 const lotGround=new THREE.Mesh(new THREE.BufferGeometry(),dirtM);lotGround.receiveShadow=true;lotGround.visible=false;scene.add(lotGround);
 // the prep zone: the pad itself, or a trench wider than the wall so there's room to work
@@ -10034,9 +10036,9 @@ function prepZone(){const off=LV.zoneOff!=null?LV.zoneOff:(LV.wall?2:LV.slip?1:0
   try{pitMesh.geometry.dispose();lotGround.geometry.dispose()}catch(e){}
   const pg=mk(pIn,-.4);{const uv=new Float32Array(n*2);for(let k=0;k<n;k++){uv[k*2]=pos[k*3]/7;uv[k*2+1]=-pos[k*3+2]/7}pg.setAttribute('uv',new THREE.BufferAttribute(uv,2))}
   pg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(n*3).fill(1),3));pitMesh.geometry=pg;lotGround.geometry=mk(pOut,-.3)}
-const pileDirtM=new THREE.MeshStandardMaterial({map:(()=>{const t=dirtTex(1);t.repeat.set(3,2);return t})(),roughness:1});
+const pileDirtM=new THREE.MeshStandardMaterial({map:photoTex((()=>{const t=pitTex.clone();t.needsUpdate=true;t.repeat.set(3,2);return t})(),'dig',1),roughness:.95});
 // the ring of spilled gravel and the base under the slab use the same stone, at the same scale
-gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'gravel',1);gravelRingM.needsUpdate=true;
+gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);[gravM,gravPileM,gravelRingM].forEach(m=>m.color.setHex(0xbdbab5));/* v327: the Granular A photo is shot bright; take it down to crushed stone grey under the game's sun */gravelRingM.needsUpdate=true;
 baseM.map=gravTex;baseM.needsUpdate=true;
 const wallCache={};
 function wallM(sf){if(wallCache[sf])return wallCache[sf];
@@ -10162,7 +10164,7 @@ function soilGeo(){const pg=pitMesh.geometry;if(!pg.attributes||!pg.attributes.p
   const p=pg.attributes.position,c=pg.attributes.color,n=p.count;
   for(let v=0;v<n;v++){const d=Math.min(1,bil(digD,pVU[v],pVV[v])),e=sstep(d),hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);
     p.setY(v,pitY(d)+(n2-.5)*.06*e*(1-e*.5));
-    const r=.5+.42*e+(n2-.5)*.07,g=.43+.4*e+(n2-.5)*.06,b=.37+.36*e+(n2-.5)*.05;c.setXYZ(v,r,g,b)}
+    const r=.66+.36*e+(n2-.5)*.08,g=.64+.35*e+(n2-.5)*.07,b=.62+.34*e+(n2-.5)*.06;c.setXYZ(v,r,g,b)}
   p.needsUpdate=true;c.needsUpdate=true;pg.computeVertexNormals();pg.computeBoundingSphere();layerDirty=true}
 function prepBrush(x0,y0,x1,y1,rft,fn){const W=rft*12/CELL_IN,dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1e-6,ux=dx/len,uy=dy/len;
   for(let cy=Math.max(0,Math.floor(Math.min(y0,y1)-W));cy<=Math.min(GH-1,Math.ceil(Math.max(y0,y1)+W));cy++)for(let cx=Math.max(0,Math.floor(Math.min(x0,x1)-W));cx<=Math.min(GW-1,Math.ceil(Math.max(x0,x1)+W));cx++){
