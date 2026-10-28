@@ -10038,7 +10038,7 @@ function prepZone(){const off=LV.zoneOff!=null?LV.zoneOff:(LV.wall?2:LV.slip?1:0
   pg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(n*3).fill(1),3));pitMesh.geometry=pg;lotGround.geometry=mk(pOut,-.3)}
 const pileDirtM=new THREE.MeshStandardMaterial({map:photoTex((()=>{const t=pitTex.clone();t.needsUpdate=true;t.repeat.set(3,2);return t})(),'dig',1),roughness:.95});
 // the ring of spilled gravel and the base under the slab use the same stone, at the same scale
-gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);gravelRingM.needsUpdate=true;
+gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);[gravM,gravPileM,gravelRingM].forEach(m=>m.color.setHex(0xbdbab5));/* v327: the Granular A photo is shot bright; take it down to crushed stone grey under the game's sun */gravelRingM.needsUpdate=true;
 baseM.map=gravTex;baseM.needsUpdate=true;
 const wallCache={};
 function wallM(sf){if(wallCache[sf])return wallCache[sf];
