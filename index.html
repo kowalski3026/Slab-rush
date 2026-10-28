@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v329"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v330"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v330: practice is one step (Finish stops the clock, Back to practice); gravel and dug dirt use no-repeat sampling so the photo never tiles in a grid -->
 <!-- v329: worn photo-built 3D broom head (pole stays) -->
 <!-- v328: worn photo-built 3D bull float head and steel hand trowel replace the coded ones (pole and hand stay) -->
 <!-- v327: photoreal dig and gravel: new seamless Higgsfield photos of fresh Ontario subsoil and Granular A (with normal maps), large-scale colour variation, neutral vertex tint -->
@@ -1157,7 +1158,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
 <div class="seg" id="prMode"><button data-m="drill" aria-pressed="true">⏱ Timed drill</button><button data-m="free" aria-pressed="false">Free practice</button></div>
 <div id="prList"></div><button class="btn" id="prClose">Back</button></div></div>
 <div class="overlay" id="drillDone" hidden><div class="card ddcard"><div class="label" id="ddName"></div><div class="ddmed" id="ddMed"></div><div class="ddtime" id="ddTime"></div><p class="scorehow" id="ddNote"></p>
-<div class="ddbtns"><button class="btn primary" id="ddRetry">↻ Again</button><button class="btn" id="ddNext">Next drill →</button></div><button class="btn" id="ddYard">Back to the yard</button></div></div>
+<button class="btn primary" id="ddYard">Back to practice</button><div class="ddbtns"><button class="btn" id="ddRetry">↻ Again</button><button class="btn" id="ddNext">Next drill →</button></div></div></div>
 <div id="drillHud" hidden><span class="dt" id="dhT">0:00.0</span><span class="dbar"><i id="dhBar"></i><b id="dhG"></b><b id="dhS"></b></span><span class="dp" id="dhP"></span></div>
 <div class="overlay" id="shop" hidden><div class="card"><div class="label">Equipment yard · Kowalski Concrete</div><p class="scorehow">Spend what you bank on Career jobs. Your gear goes to work on every Career job after that.</p><div class="cbar"><span>Bank <b id="shopBank"></b></span></div><div id="shopList"></div><button class="btn" id="shopClose">Back</button></div></div>
 <div class="overlay" id="quote" hidden>
@@ -8291,11 +8292,12 @@ wb.addEventListener('contextmenu',e=>e.preventDefault());
 $('sdesc').addEventListener('click',()=>$('sdesc').classList.toggle('open'));$('readout').addEventListener('click',()=>{const d=$('sdesc'),vis=d.classList.contains('open')||d.classList.contains('show');d.classList.remove('show');d.classList.toggle('open',!vis);setTimeout(resize,30)});
 $('back').addEventListener('click',()=>{if(!running||stage<=0)return;if(ptr.down)up();pouring=false;flags.endT=0;
   stage--;try{unwindPrep()}catch(e){console.warn('unwind',e)}setStageUI();showBanner();buzz(10);say('Back to '+STAGES[stage].name.toLowerCase()+(isPrep()&&placed<=0?'. That step starts over.':'. The clock keeps running.'),'info','back',0)});
-function nextLabel(){return stage<STAGES.length-1?STAGES[stage+1].name+' →':'Cure it ✓'}
+function nextLabel(){if(practice&&STAGES[stage]&&STAGES[stage].key===practice.st)return'Finish ✓';return stage<STAGES.length-1?STAGES[stage+1].name+' →':'Cure it ✓'}
 function nextDisarm(){clearTimeout(nextDisarm.t);nextArm=0;const b=$('next');if(b.classList.contains('arm')){b.classList.remove('arm');b.textContent=nextLabel()}}
 const GUARDK=new Set(['demo','soffit','sform','riser','sbar','vibe','tread','rebar','mark','dig','gravel','base','form','tube','pour','float','edge','trowel','broom','color','stamp','expose','power','slip','cure','shape']);
 $('next').addEventListener('click',e=>{
   if(!running)return;if(arrive){arriveEnd();return}
+  if(practice&&STAGES[stage]&&STAGES[stage].key===practice.st){practiceFinish();return}// v330: practice is one step: Finish stops the clock instead of playing on into the next step
   {// a stray tap shouldn't skip a step you've barely started
    const k=STAGES[stage].key,pr=GUARDK.has(k)?stageProg(k):null,now=performance.now();
    if(e&&(e.isTrusted||padNext)&&!practice&&pr!=null&&pr<.3&&!(k==='pour'&&SCR.multi)&&now-nextArm>2600){nextArm=now;const b=$('next');b.textContent='Only '+Math.round(pr*100)+'% · tap again';b.classList.add('arm');buzz(20);
@@ -8478,8 +8480,16 @@ function drillFinish(){const p=drill.p,t=drill.t,m=medalOf(p,t),b=drillBest(p.k)
   $('ddNote').innerHTML=(pb&&b?'New personal best! ':b?`Best ${fmtT(b.t)}. `:'')+(m<3?`Gold is under ${fmtT(p.gold)}`+(m<2?`, silver under ${fmtT(p.silver)}`:'')+'.':'Gold. Kowalski-grade.')+(bonus?` <b style="color:var(--amber)">+25 🪙 first gold</b>`:'');
   $('drillDone').hidden=false;if(m===3)setTimeout(()=>confetti(160),200);try{chime(2)}catch(e){}buzz([30,40,60]);shake(.15);try{renderGoals()}catch(e){}}
 function drillStop(){drill=null;$('drillHud').hidden=true}
-$('ddRetry').addEventListener('click',()=>{const p=drill&&drill.p;$('drillDone').hidden=true;if(p)startPractice(p)});
-$('ddNext').addEventListener('click',()=>{const p=drill&&drill.p,k=PRACTICE.indexOf(p),n=PRACTICE[(k+1)%PRACTICE.length];$('drillDone').hidden=true;startPractice(n)});
+// v330: Finish in practice. A drill that's (almost) done counts for the medal; stopped early you still get your time; free practice just shows the time
+function practiceFinish(){const p=practice;if(!p)return;
+  if(drill&&drill.go&&!drill.done){if(drillProg()>=Math.min(drill.p.tgt,.95)){drill.t=(performance.now()-drill.t0)/1000;drillFinish();return}
+    const t=(performance.now()-drill.t0)/1000,pr=drillProg();drill.done=true;running=false;ptr.down=false;$('drillHud').hidden=true;
+    $('ddName').textContent=p.n+' · '+p.goal;$('ddMed').textContent='⏱';$('ddTime').textContent=fmtT(t);$('ddNote').innerHTML=`Stopped at ${Math.floor(pr*100)}%. Finish the whole goal to earn a medal.`;$('drillDone').hidden=false;buzz(20);return}
+  if(drill&&!drill.go){drillStop();endPractice();$('intro').hidden=false;renderPractice();$('practice').hidden=false;return}
+  const t=(performance.now()-(p.t0||performance.now()))/1000;running=false;ptr.down=false;drillStop();
+  $('ddName').textContent=p.n+' · free practice';$('ddMed').textContent='✓';$('ddTime').textContent=fmtT(t);$('ddNote').innerHTML=`${Math.floor(stageProg(p.st)*100)}% done. Free practice isn't timed for medals.`;$('drillDone').hidden=false;buzz(20)}
+$('ddRetry').addEventListener('click',()=>{const p=(drill&&drill.p)||practice;$('drillDone').hidden=true;if(p)startPractice(p)});
+$('ddNext').addEventListener('click',()=>{const p=(drill&&drill.p)||practice,k=PRACTICE.indexOf(p),n=PRACTICE[(k+1)%PRACTICE.length];$('drillDone').hidden=true;startPractice(n)});
 $('ddYard').addEventListener('click',()=>{$('drillDone').hidden=true;drillStop();endPractice();$('intro').hidden=false;renderPractice();$('practice').hidden=false});
 function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){markN=markPts.length}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
   else if(k==='gravel'){for(let i=0;i<N;i++)if(PM[i])gravF[i]=1.1;gravLeft=0;geoDirty=layerDirty=true}else if(k==='base'){for(let i=0;i<N;i++)if(PM[i])compF[i]=1.1;layerDirty=true}
@@ -8506,7 +8516,8 @@ function startPractice(p){if(!practiceSave)practiceSave={prepOn,mode,cabOn,jobId
   say.mute=1;let guard=0;while(STAGES[stage]&&STAGES[stage].key!==p.st&&stage<STAGES.length-1&&guard++<20){const k=STAGES[stage].key;if(AUTOSET[k])set=Math.max(set,AUTOSET[k]);try{practiceAuto(k)}catch(e){console.warn('auto',k,e)}const st0=stage;$('next').click();if(stage===st0)$('next').click()}
   {const w=STAGES[stage].win;set=Math.max(set,w[0]+Math.min(.04,(w[1]-w[0])*.1))}surfDirty=geoDirty=true;say.mute=0;flags={...flags};
   setStageUI();if(p.buggy){try{bugMode(true)}catch(e){console.warn('buggy',e)}}
-  if(prMode==='drill'){drillStart(p);say(p.goal+'. Get ready…','info','prgo',0)}else{drillStop();say('Free practice: no clock, no score. Take your time, ↻ resets it, Next finishes.','info','prgo',0)}}
+  p.t0=performance.now();$('next').textContent=nextLabel();
+  if(prMode==='drill'){drillStart(p);say(p.goal+'. Get ready… Tap Finish when you\'re done.','info','prgo',0)}else{drillStop();say('Free practice: no clock, no score. Take your time, ↻ resets it, Finish ends it.','info','prgo',0)}}
 function endPractice(){drillStop();if(!practice)return;practice=null;if(practiceSave){prepOn=practiceSave.prepOn;mode=practiceSave.mode;cabOn=practiceSave.cabOn;jobIdx=practiceSave.jobIdx;practiceSave=null}
   try{localStorage.setItem('bts-cab',cabOn?'1':'0')}catch(e){}applyLevel(LEVELS[jobIdx]);reset();setStageUI();renderJobs()}
 
@@ -10055,7 +10066,20 @@ function prepZone(){const off=LV.zoneOff!=null?LV.zoneOff:(LV.wall?2:LV.slip?1:0
   pg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(n*3).fill(1),3));pitMesh.geometry=pg;lotGround.geometry=mk(pOut,-.3)}
 const pileDirtM=new THREE.MeshStandardMaterial({map:photoTex((()=>{const t=pitTex.clone();t.needsUpdate=true;t.repeat.set(3,2);return t})(),'dig',1),roughness:.95});
 // the ring of spilled gravel and the base under the slab use the same stone, at the same scale
-gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);[gravM,gravPileM,gravelRingM].forEach(m=>m.color.setHex(0xbdbab5));/* v327: the Granular A photo is shot bright; take it down to crushed stone grey under the game's sun */gravelRingM.needsUpdate=true;
+gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);[gravM,gravPileM,gravelRingM].forEach(m=>m.color.setHex(0xbdbab5));
+/* v330: no-repeat sampling. Each spot on the ground picks one of a few randomly offset copies of the photo from a slow noise field and blends
+   between them where the field changes, so the gravel and dug dirt never show the same tile twice in a grid. Offsets only (no rotation), so the
+   normal maps stay correct. Two lookups per map. */
+const NT_GLSL='float nt_h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float nt_n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(nt_h(i),nt_h(i+vec2(1,0)),f.x),mix(nt_h(i+vec2(0,1)),nt_h(i+vec2(1,1)),f.x),f.y);}'+
+ 'vec4 ntTex(sampler2D s,vec2 uv){float k=nt_n(uv*.55)*6.;float i=floor(k),f=fract(k);vec2 oa=sin(vec2(3.,7.)*i)*vec2(.71,.53)+vec2(i*.37,i*.61),ob=sin(vec2(3.,7.)*(i+1.))*vec2(.71,.53)+vec2((i+1.)*.37,(i+1.)*.61);'+
+ 'vec2 dx=dFdx(uv),dy=dFdy(uv);vec4 a=textureGrad(s,uv+oa,dx,dy),b=textureGrad(s,uv+ob,dx,dy);return mix(a,b,smoothstep(.25,.75,f-.12*dot(a.rgb-b.rgb,vec3(1.))));}';
+function noTile(m){if(!m||m.userData.noTile)return m;m.userData.noTile=1;const prev=m.onBeforeCompile,pk=m.customProgramCacheKey;
+  m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+NT_GLSL)
+      .replace('#include <map_fragment>',THREE.ShaderChunk.map_fragment.split('texture2D( map, vMapUv )').join('ntTex( map, vMapUv )'))
+      .replace('#include <normal_fragment_maps>',THREE.ShaderChunk.normal_fragment_maps.split('texture2D( normalMap, vNormalMapUv )').join('ntTex( normalMap, vNormalMapUv )'))};
+  m.customProgramCacheKey=function(){return(pk?pk.call(this):'')+'|nt'};m.needsUpdate=true;return m}
+[gravM,gravPileM,gravelRingM,pitMat,pileDirtM,dirtRingM].forEach(noTile);/* v327: the Granular A photo is shot bright; take it down to crushed stone grey under the game's sun */gravelRingM.needsUpdate=true;
 baseM.map=gravTex;baseM.needsUpdate=true;
 const wallCache={};
 function wallM(sf){if(wallCache[sf])return wallCache[sf];
