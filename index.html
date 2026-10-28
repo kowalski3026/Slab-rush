@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v331"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v332"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v332: photo sites park the excavator and piles at the pad sides (not on the photo truck); grey gravel; retry rebuilds the photo layer so the dug pit shows -->
 <!-- v331: gravel drill: more stone on the truck, finishes at 99% or 95% with an empty pile; gravel mixes two stone sizes in random patches, bigger stones, softer normal map -->
 <!-- v330: practice is one step (Finish stops the clock, Back to practice); gravel and dug dirt use no-repeat sampling so the photo never tiles in a grid -->
 <!-- v329: worn photo-built 3D broom head (pole stays) -->
@@ -8405,7 +8406,7 @@ function prepRow(SC){const sp=prepSpeed();if(!sp)return null;const q=prepQual(SC
 function prepCash(crew){const r=PREPT.res;if(!r||!PREPT.on)return 0;const k=Math.max(-.5,Math.min(1,(1-r.r)*2.5));return Math.round(crew*.15*(k>0?k*r.gate:k))}
 // v218: between jobs (job list, plan, results) no hand tools, screed, rake or concrete roll are left standing on the lawn
 function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
-function startJob(){
+function startJob(){try{if(typeof BKD!=='undefined'&&BKD.on){bkdOff();BKD.farDone=false}}catch(e){}/* v332: rebuild the photo layer every start/retry; its clip planes were left over from the last run and hid the dug pit behind the photo's driveway */
   stage=0;toolsOff();rk.used=false;rk.load=0;
   applyLevel(LEVELS[jobIdx]);try{bkdLoad(LV)}catch(e){}try{MUD.age.fill(99)}catch(e){}
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
@@ -10034,7 +10035,7 @@ const pitTex=ctex(512,512,(g,w,h)=>{g.fillStyle='#5c4332';g.fillRect(0,0,w,h);
   for(let i=0;i<16000;i++){g.fillStyle=Math.random()<.5?`rgba(35,24,15,${.12+Math.random()*.25})`:`rgba(175,145,110,${.1+Math.random()*.22})`;g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.5,1+Math.random()*1.5)}
   for(let i=0;i<260;i++){const x=Math.random()*w,y=Math.random()*h,r=1.5+Math.pow(Math.random(),2)*5;wrapDraw(g,w,h,x,y,r+2,(X,Y)=>{g.fillStyle='rgba(30,20,12,.4)';stonePoly(g,X+1,Y+1.4,r,6,1,.7);g.fillStyle=`rgb(${125+Math.random()*60|0},${115+Math.random()*50|0},${100+Math.random()*40|0})`;stonePoly(g,X,Y,r,6,1,.7)})}
   for(let i=0;i<70;i++){const x=Math.random()*w,y=Math.random()*h,r=4+Math.random()*9;g.fillStyle='rgba(50,34,22,.35)';g.beginPath();g.ellipse(x,y,r,r*.6,Math.random()*3,0,6.283);g.fill();g.fillStyle='rgba(150,120,90,.3)';g.beginPath();g.ellipse(x-r*.25,y-r*.25,r*.6,r*.35,0,0,6.283);g.fill()}},1,1);photoTex(pitTex,'dig',2.6);/* v327: freshly dug moist subsoil photo with bucket-tooth scrapes */
-const pitMat=new THREE.MeshStandardMaterial({map:pitTex,vertexColors:true,roughness:.93});macroVar(pitMat,.05,.17,.3,[1.18,1.08,.95]);macroVar(gravM,.06,.2,.2,[1.07,1.04,1.0]);
+const pitMat=new THREE.MeshStandardMaterial({map:pitTex,vertexColors:true,roughness:.93});macroVar(pitMat,.05,.17,.3,[1.18,1.08,.95]);macroVar(gravM,.06,.2,.2,[.98,1.0,1.04]);
 const pitMesh=new THREE.Mesh(new THREE.BufferGeometry(),pitMat);pitMesh.receiveShadow=true;pitMesh.visible=false;scene.add(pitMesh);
 const lotGround=new THREE.Mesh(new THREE.BufferGeometry(),dirtM);lotGround.receiveShadow=true;lotGround.visible=false;scene.add(lotGround);
 // the prep zone: the pad itself, or a trench wider than the wall so there's room to work
@@ -10067,7 +10068,7 @@ function prepZone(){const off=LV.zoneOff!=null?LV.zoneOff:(LV.wall?2:LV.slip?1:0
   pg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(n*3).fill(1),3));pitMesh.geometry=pg;lotGround.geometry=mk(pOut,-.3)}
 const pileDirtM=new THREE.MeshStandardMaterial({map:photoTex((()=>{const t=pitTex.clone();t.needsUpdate=true;t.repeat.set(3,2);return t})(),'dig',1),roughness:.95});
 // the ring of spilled gravel and the base under the slab use the same stone, at the same scale
-gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);[gravM,gravPileM,gravelRingM].forEach(m=>m.color.setHex(0xbdbab5));
+gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repeat.set(2,2);return t})(),'grav3',1);[gravM,gravPileM,gravelRingM].forEach(m=>m.color.setHex(0xb3b7bb));/* v332: cooler: Granular A reads grey, not tan */
 /* v330: no-repeat sampling. Each spot on the ground picks one of a few randomly offset copies of the photo from a slow noise field and blends
    between them where the field changes, so the gravel and dug dirt never show the same tile twice in a grid. Offsets only (no rotation), so the
    normal maps stay correct. Two lookups per map. */
@@ -10430,6 +10431,10 @@ function pileSpot(pref,r,avoid){const ok=(x,z)=>{if(!blkFree(x,z,r)||pointInPoly
   return ring(ok)||ring((x,z)=>blkFree(x,z,r*.8)&&!pointInPoly(x,z,SHAPE)&&nearestOnPoly(x,z)[2]>r*.6&&(!avoid||Math.hypot(x-avoid[0],z-avoid[1])>2*r))||pref}
 function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}const hw=RW/2,hd=RD/2,e=6.5*(.5+.5*EXS),c=[[RCX+hw+e,RCZ+hd*.3],[RCX,RCZ+hd+e],[RCX-hw-e,RCZ+hd*.3],[RCX+hw+e,RCZ-hd*.5],[RCX-hw-e,RCZ-hd*.5],[RCX,RCZ-hd-e],[RCX+hw+e+1.5,RCZ+hd+e+1.5]];
   const sees=(x,z)=>{const q=nearestOnPoly(x,z);for(let k=1;k<12;k++){const f=k/12,px=x+(q[0]-x)*f,pz=z+(q[1]-z)*f;if(!blkFree(px,pz,.4))return false}return true},okP=(x,z)=>exOk(x,z)&&sees(x,z);
+  /* v332: photo sites: the photo's own trucks and bushes sit toward the camera and the house sits behind the pad, so park at the pad's sides */
+  {const P=LV&&LV.paint;if(P&&P.cam&&P.look){let fx=P.look[0]-P.cam[0],fz=P.look[2]-P.cam[2];const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+    const sc=([x,z])=>{const vx=x-RCX,vz=z-RCZ,vl=Math.hypot(vx,vz)||1,bh=(vx*fx+vz*fz)/vl,lat=Math.abs(vx*(-fz)+vz*fx)/vl;return lat-Math.max(0,-bh)*1.6-Math.max(0,bh)*.9};
+    for(let k=0;k<16;k++){const an=k/16*Math.PI*2;c.push([RCX+Math.cos(an)*(hw+e),RCZ+Math.sin(an)*(hd+e)])}c.sort((a,b)=>sc(b)-sc(a));c.photo=1}}
   exPark=c.find(([x,z])=>okP(x,z));if(!exPark){for(const m of [1,1.25,1.5,1.8])for(let k=0;k<16&&!exPark;k++){const an=k/16*Math.PI*2,x=RCX+Math.cos(an)*(hw+e)*m,z=RCZ+Math.sin(an)*(hd+e)*m;if(okP(x,z))exPark=[x,z]}}
   // v131: never fall back into a building. Search the lot for the clear spot nearest the slab edge, street side first
   if(!exPark){let best=null,bs=1e9;const r=3.2*EXS,cl=3.7*(.55+.45*EXS);
@@ -10438,7 +10443,7 @@ function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}c
     exPark=best}
   exPark=exPark||c[0];exPos=[exPark[0],exPark[1]];exTY=exHY=Math.atan2(RCX-exPos[0],RCZ-exPos[1]);exT=null;exIdle=null;exA3=-2.2;exRest=true;
   const out=[exPark[0]-RCX,exPark[1]-RCZ],ol=Math.hypot(out[0],out[1])||1,sx=-out[1]/ol,sz=out[0]/ol;
-  const sp=[exPark[0]+sx*7*EXS+out[0]/ol*1.5,exPark[1]+sz*7*EXS+out[1]/ol*1.5],gp=[exPark[0]-sx*7*EXS+out[0]/ol*1.5,exPark[1]-sz*7*EXS+out[1]/ol*1.5];
+  const ph=!!c.photo,sp=ph?[exPark[0]+out[0]/ol*8*EXS+sx*3.5*EXS,exPark[1]+out[1]/ol*8*EXS+sz*3.5*EXS]:[exPark[0]+sx*7*EXS+out[0]/ol*1.5,exPark[1]+sz*7*EXS+out[1]/ol*1.5],gp=ph?[exPark[0]+out[0]/ol*8*EXS-sx*3.5*EXS,exPark[1]+out[1]/ol*8*EXS-sz*3.5*EXS]:[exPark[0]-sx*7*EXS+out[0]/ol*1.5,exPark[1]-sz*7*EXS+out[1]/ol*1.5];
   {const r=3.2*(.75+.25*EXS),s2=pileSpot(sp,r,null),g2=pileSpot(gp,r*1.25,s2);spoilPile.position.set(s2[0],-.3,s2[1]);gravPile.position.set(g2[0],-.3,g2[1])}
   if(!boomG.userData.decal){const kz=XC.L1*.46,ky=1.05,an=Math.atan2(ky,kz);[1,-1].forEach(sd=>{const d=new THREE.Mesh(new THREE.PlaneGeometry(2.55,.85),boomDecalM);d.position.set(sd*.32,ky/2,kz/2);d.rotation.set(-an*1,sd*Math.PI/2,0,'XYZ');boomG.add(d)});boomG.userData.decal=true}
   exPose(0,0,true);if(typeof dumpT!=='undefined')dumpT.userData.home=null}
