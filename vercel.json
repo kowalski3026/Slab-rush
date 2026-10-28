@@ -21,6 +21,14 @@
   ],
   "rewrites": [
     {
+      "source": "/models/bullfloat-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/491635e5-3120-4a2a-8c66-84b201d3f6bc.glb"
+    },
+    {
+      "source": "/models/trowel-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/992412bf-53d5-4a57-a966-88b14e24d155.glb"
+    },
+    {
       "source": "/tex/dig.jpg",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/8ced9e62-45cb-420d-92db-8d5bb0e916bc.jpg"
     },
