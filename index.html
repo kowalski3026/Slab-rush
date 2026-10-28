@@ -9736,7 +9736,7 @@ function mergeInto(root,list){const inv=new THREE.Matrix4().copy(root.matrixWorl
 const AO={hk:new WeakSet(),N:22,S:512,U:{aoMap:{value:null},aoBox:{value:new THREE.Vector4(-90,-90,180,180)},aoK:{value:0}},done:false};
 function aoHook(m){if(!m||AO.hk.has(m)||!(m.isMeshStandardMaterial||m.isMeshLambertMaterial||m.isMeshPhongMaterial))return;AO.hk.add(m);
   const ob=m.onBeforeCompile,ck=m.customProgramCacheKey;
-  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);Object.assign(sh.uniforms,AO.U);
+  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);Object.assign(sh.uniforms,AO.U);if(sh.vertexShader.indexOf('vAoW')>=0)return;/* v332: a photo-site clone of an AO material chains the original's patch and got hooked again: double declarations, the shader failed and the dug pit vanished on retry */
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vAoW;').replace('#include <project_vertex>','#include <project_vertex>\n{vec4 aoP=vec4(transformed,1.);\n#ifdef USE_INSTANCING\naoP=instanceMatrix*aoP;\n#endif\nvAoW=(modelMatrix*aoP).xyz;}');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vAoW;uniform sampler2D aoMap;uniform vec4 aoBox;uniform float aoK;')
       .replace('#include <aomap_fragment>','#include <aomap_fragment>\nif(aoK>0.){vec2 q=(vAoW.xz-aoBox.xy)/aoBox.zw;if(q.x>0.&&q.x<1.&&q.y>0.&&q.y<1.){float a=min(1.,texture2D(aoMap,q).r*1.04),hf=smoothstep(.2,5.,vAoW.y+.3),o=mix(1.,mix(a*a*(3.-2.*a),1.,hf),aoK);reflectedLight.indirectDiffuse*=o;reflectedLight.indirectSpecular*=mix(1.,o,.75);}}')};
