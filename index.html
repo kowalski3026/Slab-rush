@@ -10110,11 +10110,12 @@ const digMask=mkMask(),gravMask=mkMask();
 function fillMask(M,A,scale){const d=M.d;for(let i=0;i<N;i++){let v=0;if(PM[i])v=A[i];else{const x=i%GW,y=(i/GW)|0;let s=0,w=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=GW||yy>=GH)continue;const j=yy*GW+xx;if(PM[j]){s+=A[j];w++}}v=w?s/w:0}
   const b=Math.max(0,Math.min(255,v*scale*255|0));d[i*4]=d[i*4+1]=d[i*4+2]=b;d[i*4+3]=255}M.t.needsUpdate=true}
 // discard fragments by the mask: keep where the field is below (turf) or above (gravel) the cut
-function maskMat(m,M,keepBelow,cut){m.onBeforeCompile=sh=>{sh.uniforms.cutMap={value:M.t};
+function maskMat(m,M,keepBelow,cut){const prev=m.userData.maskPrev!==undefined?m.userData.maskPrev:(m.userData.maskPrev=m.onBeforeCompile||null),pk=m.userData.maskPk!==undefined?m.userData.maskPk:(m.userData.maskPk=m.customProgramCacheKey&&m.customProgramCacheKey!==THREE.Material.prototype.customProgramCacheKey?m.customProgramCacheKey:null);/* v331: chain the macro-variation / no-repeat patches instead of overwriting them */
+  m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);sh.uniforms.cutMap={value:M.t};
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec2 cuv;\nvarying vec2 vCuv;').replace('#include <begin_vertex>','#include <begin_vertex>\nvCuv=cuv;');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D cutMap;\nvarying vec2 vCuv;').replace('void main() {','void main() {\n float cutV=texture2D(cutMap,vCuv).r;\n if('+(keepBelow?'cutV>':'cutV<')+cut.toFixed(3)+')discard;')
     .replace('#include <map_fragment>','#include <map_fragment>\n'+(keepBelow?'diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.13,.09,.06),smoothstep('+(cut-.13).toFixed(3)+','+cut.toFixed(3)+',cutV));':'diffuseColor.rgb*=mix(1.,.8,smoothstep('+(cut+.25).toFixed(3)+','+cut.toFixed(3)+',cutV));'))};
-  m.customProgramCacheKey=()=>'mask'+(keepBelow?'b':'a')+cut;m.needsUpdate=true;return m}
+  m.customProgramCacheKey=function(){return(pk?pk.call(this):'')+'mask'+(keepBelow?'b':'a')+cut};m.needsUpdate=true;return m}
 function mkLayer(){const m=new THREE.Mesh(new THREE.BufferGeometry(),gravM);m.receiveShadow=true;m.visible=false;scene.add(m);m.userData={};return m}
 const turfL=mkLayer(),gravL=mkLayer();
 let turfMats={};
