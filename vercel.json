@@ -21,6 +21,22 @@
   ],
   "rewrites": [
     {
+      "source": "/tex/dig.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/8ced9e62-45cb-420d-92db-8d5bb0e916bc.jpg"
+    },
+    {
+      "source": "/tex/dig_n.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/9500b6fb-83a1-4509-9473-c3e4445148d2.jpg"
+    },
+    {
+      "source": "/tex/grav3.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/21b320aa-45e5-4560-817b-ff441f9e9c0e.jpg"
+    },
+    {
+      "source": "/tex/grav3_n.jpg",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/bc3e728c-8fd1-468d-bb60-9c3af6f84561.jpg"
+    },
+    {
       "source": "/models/plate-worn.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/dc6f2cc3-ee49-42d9-8a11-fc0ec496fc2c.glb"
     },
