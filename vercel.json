@@ -21,6 +21,10 @@
   ],
   "rewrites": [
     {
+      "source": "/models/broom-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/79a0d575-708f-4cb8-b852-a3966dd5fe20.glb"
+    },
+    {
       "source": "/models/bullfloat-worn.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/491635e5-3120-4a2a-8c66-84b201d3f6bc.glb"
     },
