@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v330"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v331"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v331: gravel drill: more stone on the truck, finishes at 99% or 95% with an empty pile; gravel mixes two stone sizes in random patches, bigger stones, softer normal map -->
 <!-- v330: practice is one step (Finish stops the clock, Back to practice); gravel and dug dirt use no-repeat sampling so the photo never tiles in a grid -->
 <!-- v329: worn photo-built 3D broom head (pole stays) -->
 <!-- v328: worn photo-built 3D bull float head and steel hand trowel replace the coded ones (pole and hand stay) -->
@@ -2105,7 +2106,7 @@ const TEXD={brick:'tex/brick.jpg',fence:'tex/fence.jpg',siding:'tex/siding.jpg',
 const TEXI={};
 function texImg(k){if(!TEXI[k])TEXI[k]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=TEXD[k]}));return TEXI[k]}
 /* v152: PBR detail. Normal maps for the photo textures (tex/<key>_n.jpg), the scanned ambientCG asphalt (CC0), and scanned concrete pores on the slab. Loaded as separate files; anything that fails to load just stays as before */
-const PBRN={brick:.9,fence:.7,siding:.6,track:1,board:.4,lawn:.55,dirt:.9,dig:1.1,grav3:1.25,gravel:1.1,oldconc:.6,ply:.3,roof:.8,mulch:1,conc:.5,asphalt:.9},PBRC={asphalt:'asphalt_c'},PBRI={};
+const PBRN={brick:.9,fence:.7,siding:.6,track:1,board:.4,lawn:.55,dirt:.9,dig:.8,grav3:.5,gravel:1.1,oldconc:.6,ply:.3,roof:.8,mulch:1,conc:.5,asphalt:.9},PBRC={asphalt:'asphalt_c'},PBRI={};
 const PBRF={gravel_n:'gravel2_n'};// v288: photo maps that were replaced keep their key but load a new file
 function pbrImg(f){if(!PBRI[f])PBRI[f]=BOOT.track(new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='tex/'+(PBRF[f]||f)+'.jpg'}));return PBRI[f]}
 const PBRT={};
@@ -8472,7 +8473,7 @@ function drillStart(p){drill={p,t0:0,t:0,go:false,done:false};const h=$('drillHu
 function drillTick(){if(!drill||!drill.go||drill.done)return;const p=drill.p;drill.t=(performance.now()-drill.t0)/1000;const pr=drillProg(),f=Math.min(1,pr/p.tgt);
   $('dhT').textContent=fmtT(drill.t);$('dhBar').style.width=(f*100).toFixed(1)+'%';$('dhP').textContent=Math.floor(pr*100+1e-6)+'%';
   $('dhT').style.color=drill.t<=p.gold?'#ffd77a':drill.t<=p.silver?'#e8e8e8':'#d9a066';
-  if(pr>=p.tgt-1e-6)drillFinish()}
+  if(pr>=p.tgt-.012||(p.st==='gravel'&&gravLeft<=0&&pr>=.95))drillFinish()}// v331: 99% shown is done; an empty pile at 95%+ is done too
 function drillFinish(){const p=drill.p,t=drill.t,m=medalOf(p,t),b=drillBest(p.k),pb=!b||t<b.t;drill.done=true;running=false;ptr.down=false;
   if(pb)store.set('bts-drill-'+p.k,{t,m:Math.max(m,b?b.m:0)});else if(m>b.m)store.set('bts-drill-'+p.k,{t:b.t,m});
   let bonus=0;if(m===3&&!(b&&b.m===3)){bonus=25;coinsAdd(25)}
@@ -10071,12 +10072,18 @@ gravelRingM.map=photoTex((()=>{const t=gravTex.clone();t.needsUpdate=true;t.repe
    between them where the field changes, so the gravel and dug dirt never show the same tile twice in a grid. Offsets only (no rotation), so the
    normal maps stay correct. Two lookups per map. */
 const NT_GLSL='float nt_h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float nt_n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(nt_h(i),nt_h(i+vec2(1,0)),f.x),mix(nt_h(i+vec2(0,1)),nt_h(i+vec2(1,1)),f.x),f.y);}'+
- 'vec4 ntTex(sampler2D s,vec2 uv){float k=nt_n(uv*.55)*6.;float i=floor(k),f=fract(k);vec2 oa=sin(vec2(3.,7.)*i)*vec2(.71,.53)+vec2(i*.37,i*.61),ob=sin(vec2(3.,7.)*(i+1.))*vec2(.71,.53)+vec2((i+1.)*.37,(i+1.)*.61);'+
- 'vec2 dx=dFdx(uv),dy=dFdy(uv);vec4 a=textureGrad(s,uv+oa,dx,dy),b=textureGrad(s,uv+ob,dx,dy);return mix(a,b,smoothstep(.25,.75,f-.12*dot(a.rgb-b.rgb,vec3(1.))));}';
+ /* v331: hex-tile sampling (Mikkelsen): the ground is cut into small hexes, each pulls from its own random spot in the photo, and the three nearest are blended with sharp weights. No grid, no repeat. Offsets only, so normal maps stay valid. */
+ 'vec2 nt_o(vec2 p){return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);}'+
+ 'vec4 ntTex(sampler2D s,vec2 uv){vec2 st=uv*3.2;vec2 sk=vec2(st.x,-.57735027*st.x+1.15470054*st.y);vec2 b=floor(sk);vec3 t=vec3(fract(sk),0.);t.z=1.-t.x-t.y;'+
+ 'float sg=step(0.,-t.z),s2=2.*sg-1.;vec3 w=vec3(-t.z*s2,sg-t.y*s2,sg-t.x*s2);vec2 v1=b+vec2(sg,sg),v2=b+vec2(sg,1.-sg),v3=b+vec2(1.-sg,sg);'+
+ 'vec2 dx=dFdx(uv),dy=dFdy(uv);vec4 c1=textureGrad(s,uv+nt_o(v1),dx,dy),c2=textureGrad(s,uv+nt_o(v2),dx,dy),c3=textureGrad(s,uv+nt_o(v3),dx,dy);'+
+ 'w=pow(max(w,0.),vec3(6.));w/=max(w.x+w.y+w.z,1e-4);return c1*w.x+c2*w.y+c3*w.z;}'+
+ /* coarser, turned copy in big random patches, so stone size and colour shift across the pad the way spread stone segregates */
+ 'vec4 ntTex2(sampler2D s,vec2 uv){vec4 a=ntTex(s,uv);vec2 u2=mat2(.8,-.6,.6,.8)*uv*.48+vec2(17.3,9.1);vec4 b=ntTex(s,u2);float m=smoothstep(.42,.72,nt_n(uv*.19+3.7));vec4 c=mix(a,b,m);float d=nt_n(uv*.33+11.);c.rgb*=.9+.2*d;return c;}';
 function noTile(m){if(!m||m.userData.noTile)return m;m.userData.noTile=1;const prev=m.onBeforeCompile,pk=m.customProgramCacheKey;
   m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+NT_GLSL)
-      .replace('#include <map_fragment>',THREE.ShaderChunk.map_fragment.split('texture2D( map, vMapUv )').join('ntTex( map, vMapUv )'))
+      .replace('#include <map_fragment>',THREE.ShaderChunk.map_fragment.split('texture2D( map, vMapUv )').join('ntTex2( map, vMapUv )'))
       .replace('#include <normal_fragment_maps>',THREE.ShaderChunk.normal_fragment_maps.split('texture2D( normalMap, vNormalMapUv )').join('ntTex( normalMap, vNormalMapUv )'))};
   m.customProgramCacheKey=function(){return(pk?pk.call(this):'')+'|nt'};m.needsUpdate=true;return m}
 [gravM,gravPileM,gravelRingM,pitMat,pileDirtM,dirtRingM].forEach(noTile);/* v327: the Granular A photo is shot bright; take it down to crushed stone grey under the game's sun */gravelRingM.needsUpdate=true;
@@ -10103,11 +10110,12 @@ const digMask=mkMask(),gravMask=mkMask();
 function fillMask(M,A,scale){const d=M.d;for(let i=0;i<N;i++){let v=0;if(PM[i])v=A[i];else{const x=i%GW,y=(i/GW)|0;let s=0,w=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=GW||yy>=GH)continue;const j=yy*GW+xx;if(PM[j]){s+=A[j];w++}}v=w?s/w:0}
   const b=Math.max(0,Math.min(255,v*scale*255|0));d[i*4]=d[i*4+1]=d[i*4+2]=b;d[i*4+3]=255}M.t.needsUpdate=true}
 // discard fragments by the mask: keep where the field is below (turf) or above (gravel) the cut
-function maskMat(m,M,keepBelow,cut){m.onBeforeCompile=sh=>{sh.uniforms.cutMap={value:M.t};
+function maskMat(m,M,keepBelow,cut){const prev=m.userData.maskPrev!==undefined?m.userData.maskPrev:(m.userData.maskPrev=m.onBeforeCompile||null),pk=m.userData.maskPk!==undefined?m.userData.maskPk:(m.userData.maskPk=m.customProgramCacheKey&&m.customProgramCacheKey!==THREE.Material.prototype.customProgramCacheKey?m.customProgramCacheKey:null);/* v331: chain the macro-variation / no-repeat patches instead of overwriting them */
+  m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);sh.uniforms.cutMap={value:M.t};
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec2 cuv;\nvarying vec2 vCuv;').replace('#include <begin_vertex>','#include <begin_vertex>\nvCuv=cuv;');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D cutMap;\nvarying vec2 vCuv;').replace('void main() {','void main() {\n float cutV=texture2D(cutMap,vCuv).r;\n if('+(keepBelow?'cutV>':'cutV<')+cut.toFixed(3)+')discard;')
     .replace('#include <map_fragment>','#include <map_fragment>\n'+(keepBelow?'diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.13,.09,.06),smoothstep('+(cut-.13).toFixed(3)+','+cut.toFixed(3)+',cutV));':'diffuseColor.rgb*=mix(1.,.8,smoothstep('+(cut+.25).toFixed(3)+','+cut.toFixed(3)+',cutV));'))};
-  m.customProgramCacheKey=()=>'mask'+(keepBelow?'b':'a')+cut;m.needsUpdate=true;return m}
+  m.customProgramCacheKey=function(){return(pk?pk.call(this):'')+'mask'+(keepBelow?'b':'a')+cut};m.needsUpdate=true;return m}
 function mkLayer(){const m=new THREE.Mesh(new THREE.BufferGeometry(),gravM);m.receiveShadow=true;m.visible=false;scene.add(m);m.userData={};return m}
 const turfL=mkLayer(),gravL=mkLayer();
 let turfMats={};
@@ -10121,7 +10129,7 @@ maskMat(gravM,gravMask,false,.3);
 function layerInit(){const pg=pitMesh.geometry,p=pg&&pg.attributes&&pg.attributes.position;if(!p||!p.array||!isPrep())return;const n=p.count,sf=SURF(),ty=TOPf();
   [turfL,gravL].forEach(L=>{const pos=new Float32Array(n*3),uv=new Float32Array(n*2),col=new Float32Array(n*3).fill(1);
     const cuv=new Float32Array(n*2);for(let k=0;k<n;k++){const x=p.array[k*3],z=p.array[k*3+2];pos[k*3]=x;pos[k*3+1]=ty;pos[k*3+2]=z;cuv[k*2]=pVU[k]/GW;cuv[k*2+1]=pVV[k]/GH;
-      if(L===gravL){uv[k*2]=x/3;uv[k*2+1]=-z/3}
+      if(L===gravL){uv[k*2]=x/4;uv[k*2+1]=-z/4}
       else if(sf==='lawn'||sf==='dirt'){uv[k*2]=(x+160)/320;uv[k*2+1]=(-z+160)/320}
       else{const s=sf==='asphalt'?3:6;uv[k*2]=x/s;uv[k*2+1]=-z/s}}
     try{L.geometry.dispose()}catch(e){}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setAttribute('cuv',new THREE.BufferAttribute(cuv,2));
@@ -10216,7 +10224,7 @@ function digSeg(x0,y0,x1,y1){let got=0;prepBrush(x0,y0,x1,y1,1.5*EXS*BUCKETS[exB
   if(got>0&&!flags.digSq&&digPct()>.96){flags.digSq=1;let add=0;for(let i=0;i<N;i++)if(PM[i]&&digD[i]<1){add+=1-digD[i];digD[i]=1}spoilVol+=add*(CELL_IN*CELL_IN/144)*(PORCH()?TOPf()-SUBY():-SUBY()-.3);say('Crew squared up the corners with shovels.','good','digsq',0)}exLoad=Math.min(1,exLoad+got*.02);geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(6)}}
 function gravSeg(x0,y0,x1,y1,wk){if(gravLeft<=0){say('That\'s the whole load. Spread what\'s down.','info','gEmpty',0);return}
   let got=0;prepBrush(x0,y0,x1,y1,1.6*EXS*BUCKETS[exBkt].w*(wk||1),(i,f)=>{const a=Math.min(.12*Math.min(1,f*(wk?1.4:1)),1.15-gravF[i]);if(a>0){gravF[i]+=a;got+=a}});
-  gravLeft=Math.max(0,gravLeft-got/(PZN*1.28));geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(5)}}
+  gravLeft=Math.max(0,gravLeft-got/(PZN*1.55));/* v331: a bit more stone on the truck: a careful spread with some spill used to run out at ~96% */geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(5)}}
 let compPassId=1,compDir=null;const compPass=new Uint32Array(N);
 function compactSeg(x0,y0,x1,y1){const ro=compTool==='roller',dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy);
   if(l>.15){const d=[dx/l,dy/l];if(compDir&&d[0]*compDir[0]+d[1]*compDir[1]<-.3)compPassId++;compDir=d}
