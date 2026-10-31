@@ -10408,7 +10408,7 @@ exG.add(exUnder,exHouse);exG.visible=false;scene.add(exG);
 const pileGeo=(()=>{const g=new THREE.BufferGeometry(),pos=[0,.94,0],uv=[.5,.5],idx=[],seg=48,rings=12;
   for(let j=1;j<=rings;j++){const t=j/rings;for(let i=0;i<=seg;i++){const a=i/seg*Math.PI*2,edge=1+.075*Math.sin(a*3+1.3)+.038*Math.sin(a*7)+.022*Math.sin(a*11+.7),rad=t*edge*(1+.018*Math.sin(a*5+j*.8)),x=Math.cos(a)*rad,z=Math.sin(a)*rad,y=(1-t)*(.88+.07*Math.sin(a*4+1.1)+.035*Math.sin(a*9+j*.45));pos.push(x,y,z);uv.push(.5+x*.5,.5+z*.5)}}
   for(let i=0;i<seg;i++)idx.push(0,2+i,1+i);
-  for(let j=0;j<rings-1;j++){const a=1+j*(seg+1),b=a+seg+1;for(let i=0;i<seg;i++){const p=a+i,q=p+1,r=b+i,s=r+1;idx.push(p,r,q,q,r,s)}}
+  for(let j=0;j<rings-1;j++){const a=1+j*(seg+1),b=a+seg+1;for(let i=0;i<seg;i++){const p=a+i,q=p+1,r=b+i,s=r+1;idx.push(p,q,r,q,s,r)}}
   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();return g})();
 const spoilPile=new THREE.Mesh(pileGeo,pileDirtM),gravPile=new THREE.Mesh(pileGeo,gravPileM);[spoilPile,gravPile].forEach(m=>{m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m)});
 // falling dirt and stone off the bucket
