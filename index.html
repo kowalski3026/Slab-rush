@@ -10405,10 +10405,11 @@ const rams=[mkRam(.2,2.6,XC.BX),mkRam(.17,2.4,XC.BX),mkRam(.14,2,XC.BX)];
 function ramSet(R,A,B){const dz=B[0]-A[0],dy=B[1]-A[1],L=Math.max(.3,Math.hypot(dz,dy)),a=Math.atan2(dy,dz),c=Math.cos(a),s=Math.sin(a),bl=Math.min(L*.7,R.bl),rl=Math.max(.2,L-bl*.8);
   R.b.position.set(R.x,A[1]+s*bl/2,A[0]+c*bl/2);R.b.rotation.x=-a;R.b.scale.z=bl;R.rd.position.set(R.x,B[1]-s*rl/2,B[0]-c*rl/2);R.rd.rotation.x=-a;R.rd.scale.z=rl}
 exG.add(exUnder,exHouse);exG.visible=false;scene.add(exG);
-const pileGeo=(()=>{const g=new THREE.BufferGeometry(),pos=[0,.94,0],uv=[.5,.5],idx=[],seg=48,rings=12;
-  for(let j=1;j<=rings;j++){const t=j/rings;for(let i=0;i<=seg;i++){const a=i/seg*Math.PI*2,edge=1+.075*Math.sin(a*3+1.3)+.038*Math.sin(a*7)+.022*Math.sin(a*11+.7),rad=t*edge*(1+.018*Math.sin(a*5+j*.8)),x=Math.cos(a)*rad,z=Math.sin(a)*rad,y=(1-t)*(.88+.07*Math.sin(a*4+1.1)+.035*Math.sin(a*9+j*.45));pos.push(x,y,z);uv.push(.5+x*.5,.5+z*.5)}}
-  for(let i=0;i<seg;i++)idx.push(0,2+i,1+i);
-  for(let j=0;j<rings-1;j++){const a=1+j*(seg+1),b=a+seg+1;for(let i=0;i<seg;i++){const p=a+i,q=p+1,r=b+i,s=r+1;idx.push(p,q,r,q,s,r)}}
+/* v335: low, broad stockpiles with a grounded base and irregular shoulders (not boulder-shaped). */
+const pileGeo=(()=>{const g=new THREE.BufferGeometry(),pos=[0,.46,0],uv=[.5,.5],idx=[],seg=64,rings=14;
+  for(let j=1;j<=rings;j++){const t=j/rings;for(let i=0;i<=seg;i++){const a=i/seg*Math.PI*2,edge=1+.055*Math.sin(a*3+1.3)+.028*Math.sin(a*7)+.016*Math.sin(a*11+.7),rad=t*edge*(1+.012*Math.sin(a*5+j*.8)),x=Math.cos(a)*rad,z=Math.sin(a)*rad,y=(1-t)*(.42+.035*Math.sin(a*4+1.1)+.018*Math.sin(a*9+j*.45));pos.push(x,y,z);uv.push(.5+x*.5,.5+z*.5)}}
+  for(let i=0;i<seg;i++)idx.push(0,1+i,2+i);
+  for(let j=0;j<rings-1;j++){const a=1+j*(seg+1),b=a+seg+1;for(let i=0;i<seg;i++){const p=a+i,q=p+1,r=b+i,u=r+1;idx.push(p,r,q,q,r,u)}}
   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();return g})();
 const spoilPile=new THREE.Mesh(pileGeo,pileDirtM),gravPile=new THREE.Mesh(pileGeo,gravPileM);[spoilPile,gravPile].forEach(m=>{m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m)});
 // falling dirt and stone off the bucket
@@ -10447,8 +10448,20 @@ function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}c
     exPark=best}
   exPark=exPark||c[0];exPos=[exPark[0],exPark[1]];exTY=exHY=Math.atan2(RCX-exPos[0],RCZ-exPos[1]);exT=null;exIdle=null;exA3=-2.2;exRest=true;
   const out=[exPark[0]-RCX,exPark[1]-RCZ],ol=Math.hypot(out[0],out[1])||1,sx=-out[1]/ol,sz=out[0]/ol;
-  const ph=!!c.photo,sp=ph?[exPark[0]+out[0]/ol*8*EXS+sx*3.5*EXS,exPark[1]+out[1]/ol*8*EXS+sz*3.5*EXS]:[exPark[0]+sx*7*EXS+out[0]/ol*1.5,exPark[1]+sz*7*EXS+out[1]/ol*1.5],gp=ph?[exPark[0]+out[0]/ol*8*EXS-sx*3.5*EXS,exPark[1]+out[1]/ol*8*EXS-sz*3.5*EXS]:[exPark[0]-sx*7*EXS+out[0]/ol*1.5,exPark[1]-sz*7*EXS+out[1]/ol*1.5];
-  {const r=3.2*(.75+.25*EXS),s2=pileSpot(sp,r,null),g2=pileSpot(gp,r*1.25,s2);spoilPile.position.set(s2[0],-.3,s2[1]);gravPile.position.set(g2[0],-.3,g2[1])}
+  const ph=!!c.photo;let sp,gp;
+  if(ph&&LV&&LV.paint&&LV.paint.cam&&LV.paint.look){
+    /* Photo jobs: the pickup is in the near/camera foreground. Put stockpiles beyond the far edge of the pad,
+       not in the foreground where they overlap the baked-in pickup. */
+    let fx=LV.paint.look[0]-LV.paint.cam[0],fz=LV.paint.look[2]-LV.paint.cam[2],fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+    const sideX=fz,sideZ=-fx,back=Math.max(RD/2+5,9)*EXS,side=4.2*EXS;
+    sp=[RCX+fx*back+sideX*side,RCZ+fz*back+sideZ*side];
+    gp=[RCX+fx*back-sideX*side,RCZ+fz*back-sideZ*side];
+  }else{
+    sp=[exPark[0]+sx*7*EXS+out[0]/ol*1.5,exPark[1]+sz*7*EXS+out[1]/ol*1.5];
+    gp=[exPark[0]-sx*7*EXS+out[0]/ol*1.5,exPark[1]-sz*7*EXS+out[1]/ol*1.5];
+  }
+  {const r=ph?2.4*(.75+.25*EXS):3.2*(.75+.25*EXS),s2=pileSpot(sp,r,null),g2=pileSpot(gp,r*1.15,s2);
+    spoilPile.position.set(s2[0],.015,s2[1]);gravPile.position.set(g2[0],.015,g2[1])}
   if(!boomG.userData.decal){const kz=XC.L1*.46,ky=1.05,an=Math.atan2(ky,kz);[1,-1].forEach(sd=>{const d=new THREE.Mesh(new THREE.PlaneGeometry(2.55,.85),boomDecalM);d.position.set(sd*.32,ky/2,kz/2);d.rotation.set(-an*1,sd*Math.PI/2,0,'XYZ');boomG.add(d)});boomG.userData.decal=true}
   exPose(0,0,true);if(typeof dumpT!=='undefined')dumpT.userData.home=null}
 // solve and lay out the arm for a bucket-tip target in world space
@@ -11790,9 +11803,9 @@ function cabCamera(){if(!cabOn||!cabAvail()||!exG.visible){cabUnhide();return fa
 
 function updatePrep(dt,t){updateMark(dt,t);updateBlankets(dt);updateCure();updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel');
   exG.visible=on;if(on&&exPark){if(cabOn)updateCab(dt,t,k);else updateExcavator(dt,t,k)}updateBits(dt);
-  spoilPile.visible=P&&spoilVol>1&&stage>=S.dig&&stage<=S.form;if(spoilPile.visible){const r=Math.cbrt(spoilVol)*.62;spoilPile.scale.set(r*1.3,r*.62,r)}
+  spoilPile.visible=P&&spoilVol>1&&stage>=S.dig&&stage<=S.form;if(spoilPile.visible){const r=Math.max(1.7,Math.cbrt(spoilVol)*.58);spoilPile.scale.set(r*1.45,r*.34,r*1.12)}
   updateDump(dt);
-  gravPile.visible=P&&k==='gravel'&&gravLeft>.01;if(gravPile.visible){const r=Math.max(2.2,Math.cbrt(RN*CELL_IN*CELL_IN/144*GTf()*1.1*gravLeft+.3)*1.05)*(.75+.25*EXS);gravPile.scale.set(r*1.3,r*.6,r);gravPile.userData.r=r}
+  gravPile.visible=P&&k==='gravel'&&gravLeft>.01;if(gravPile.visible){const r=Math.max(1.8,Math.cbrt(RN*CELL_IN*CELL_IN/144*GTf()*1.1*gravLeft+.3)*.92)*(.75+.25*EXS);gravPile.scale.set(r*1.45,r*.32,r*1.12);gravPile.userData.r=r}
   if(layerDirty&&performance.now()-layerT>90){layerT=performance.now();layerDirty=false;updateLayers()}
   if(P&&(k==='gravel'||k==='base'))cpmLoad();if(running)tlmLoad();compG.visible=P&&k==='base'&&ptr.down&&compTool==='plate';{const rv=P&&k==='base'&&compTool==='roller';rollG.visible=rv;if(rv){const u=rollG.userData,tx=ptr.down?toolPos.x:rollG.position.x,tz=ptr.down?toolPos.z:rollG.position.z;if(!u.on){u.on=1;rollG.position.set(toolPos.x,0,toolPos.z);rollG.rotation.y=(RX1-RX0)>=(RY1-RY0)?Math.PI/2:0}
     {const fw=new THREE.Vector3(Math.sin(rollG.rotation.y),0,Math.cos(rollG.rotation.y)),dx=tx-rollG.position.x,dz=tz-rollG.position.z,al=dx*fw.x+dz*fw.z,lx=dx-fw.x*al,lz=dz-fw.z*al,lk=Math.min(1,dt*3);
