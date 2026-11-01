@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v345"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v346"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v346: saw-cut step removed (the pad edge is against dirt, nothing to saw); stripped asphalt gets the same brown dirt colour as the dug pit -->
 <!-- v345: stripped asphalt shows the dirt pit surface (the pale new-slab mesh was showing through); soilMode now includes the strip step -->
 <!-- v344: old-asphalt driveway jobs get two new prep steps before the dig: Saw-cut (trace the edge with a walk-behind saw, not along butt-up ends) and Strip asphalt (excavator breaks the old asphalt up and loads it into the dump truck, which hauls it off) -->
 <!-- v343: third large turned texture pass breaks the faint repeat of the dig scrape lines -->
@@ -1321,8 +1322,7 @@ const DEFS={
    desc:'Broadcast the color hardener by dragging over the slab. Two even coats once the bleed water is gone, and it floats in on its own. Too early and it streaks. Too late and it won\'t wet out.'},
   stamp:{name:'Stamp',win:[.5,.9],soft:.1,
    desc:'Release is down. Drag along each row to lay the 2 ft mats and tamp them in. Too soft and they sink. Too hard and they barely print. Don\'t stamp the same spot twice.'},
-  saw:{name:'Saw-cut',win:[0,1],soft:1,desc:'Saw the old asphalt along the edges of the new pad so it breaks clean and the driveway you\'re keeping stays put. Trace the dotted line with your finger to run the saw all the way around. The clock doesn\'t start until the truck shows.'},
-  strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Break up the old asphalt inside the saw cut. Drag where you want the bucket: it peels the asphalt up in chunks and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
+  strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Break up the old asphalt. Drag where you want the bucket: it peels the asphalt up in chunks and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
   mark:{name:'Lay out',win:[0,1],soft:1,
    desc:'Lay it out. The dotted line shows where the pad goes. Trace it with your finger to spray orange marking paint all the way around, so you can see where to dig on the grass. The clock doesn\'t start until the truck shows.'},
   dig:{name:'Excavate',win:[0,1],soft:1,
@@ -2006,7 +2006,7 @@ function maskCountFor(L){if(L._rn)return L._rn;const P=typeof L.shape==='functio
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++)if(pointInPoly(((x+.5)/GW-.5)*20*k,((y+.5)/GH-.5)*10*k,P))n++;if(typeof L.shape!=='function')L._rn=n;return n}
 
 let tileOk=new Uint8Array(50),sunFlip=1,kDecalM=null,stowChute=false,prepOn=false;try{prepOn=localStorage.getItem('bts-prep')==='1'}catch(e){}
-const PREPK=new Set(['mark','dig','gravel','base','form','rebar','tube','sform','riser','sbar','demo','soffit','saw','strip']);
+const PREPK=new Set(['mark','dig','gravel','base','form','rebar','tube','sform','riser','sbar','demo','soffit','strip']);
 const ELV=()=>LV&&LV.elev||0;
 
 /* ---------- surface textures ---------- */
@@ -7035,7 +7035,7 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   else if(k==='shape')shapeSeg(p.x,p.y,p.x+.01,p.y);
   else if(k==='slip'){}
   else if(k==='cure')cureSeg(ptr.x,ptr.y,p.x,p.y);
-  else if(k==='mark'||k==='saw')markTrace(p,true);else if(k==='strip')stripSeg(p.x,p.y,p.x,p.y);else if(k==='dig')digSeg(p.x,p.y,p.x,p.y);else if(k==='gravel')gravSeg(p.x,p.y,p.x,p.y);else if(k==='base'){compPassId++;compDir=null;compactSeg(p.x,p.y,p.x,p.y)}else if(k==='form')formTrace(p.x,p.y);else if(k==='rebar')rebDown(p.wx,p.wz);
+  else if(k==='mark')markTrace(p,true);else if(k==='strip')stripSeg(p.x,p.y,p.x,p.y);else if(k==='dig')digSeg(p.x,p.y,p.x,p.y);else if(k==='gravel')gravSeg(p.x,p.y,p.x,p.y);else if(k==='base'){compPassId++;compDir=null;compactSeg(p.x,p.y,p.x,p.y)}else if(k==='form')formTrace(p.x,p.y);else if(k==='rebar')rebDown(p.wx,p.wz);
   if(!(RIDE.drive&&rideLive()))toolPos.set(wx(p.x),0,wz(p.y));
 });
 cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
@@ -7058,7 +7058,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='cure')cureSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='trowel')trowelSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='joint')jointMove(p);
-  else if(k==='mark'||k==='saw')markTrace(p);else if(k==='strip')stripSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='dig')digSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='gravel')gravSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='base')compactSeg(ptr.x,ptr.y,p.x,p.y);
+  else if(k==='mark')markTrace(p);else if(k==='strip')stripSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='dig')digSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='gravel')gravSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='base')compactSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='form'){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.6));for(let q=1;q<=n;q++)formTrace(ptr.x+dx*q/n,ptr.y+dy*q/n)}
   else if(k==='tube'){const ox=wx(ptr.x),oz=wz(ptr.y),n=Math.max(1,Math.ceil(Math.hypot(p.wx-ox,p.wz-oz)/.5));for(let q=1;q<=n;q++)tubeAt(ox+(p.wx-ox)*q/n,oz+(p.wz-oz)*q/n)}
   else if(k==='rebar')rebMove(p.wx,p.wz);
@@ -7093,7 +7093,7 @@ function applyLevel(L){
   STAGES=L.steps.map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:(L.win&&L.win[k])||DEFS[k].win,soft:DEFS[k].soft,desc:((L.desc&&L.desc[k])||DEFS[k].desc).replace(/\{W\}/g,L.wTxt).replace(/\{P\}/g,L.pTxt)}));
   S={};STAGES.forEach((s,i)=>S[s.key]=i);
   setLot(L.ls||1);
-  if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','saw','strip','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&((k!=='saw'&&k!=='strip')||/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id))&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt base':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
+  if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','strip','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&(k!=='strip'||/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id))&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt base':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
   if(prepOn&&L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
   try{brgSetup(L)}catch(e){console.warn('brg',e)}
   if(L.stair&&!prepOn){STAGES=STAGES.filter(x=>!['sform','riser','sbar'].includes(x.key));S={};STAGES.forEach((x,i)=>S[x.key]=i)}
@@ -8237,7 +8237,7 @@ function broomStats(){const P=panelLab(),sx=new Float32Array(P.n+1),sy=new Float
 let hudT=0;
 function stageProg(k){try{if(STR.on&&STRPROG[k])return STRPROG[k]();if(BRG.on&&BRGPROG[k])return BRGPROG[k]();switch(k){case'pour':return placed/NEED_M3;case'screed':return clamp01(1-(rms()-.15)/1.4);case'float':return avg(closed);case'edge':return avg(edged,band);
   case'trowel':return avg(trow,band,true);case'broom':return broomStats().cov;case'color':return avg(hard);case'stamp':{const st=stampStats();return st.tot?st.n/st.tot:0}
-  case'mark':case'saw':return markPct();case'strip':return stripPct();case'dig':return digPct();case'gravel':return gravPct();case'base':return compPct();case'form':return formPct();case'rebar':return rebProg();case'tube':return tubeCovPct();case'expose':return avg(expo);case'power':return avg(trow);
+  case'mark':return markPct();case'strip':return stripPct();case'dig':return digPct();case'gravel':return gravPct();case'base':return compPct();case'form':return formPct();case'rebar':return rebProg();case'tube':return tubeCovPct();case'expose':return avg(expo);case'power':return avg(trow);
   case'slip':return slipStats().cov;case'cure':return cureStats().cov;case'shape':return shapeStats().c;default:return 0}}catch(e){return 0}}
 const POPS=[[.25,'Good start'],[.5,'Halfway there'],[.75,'Almost there'],[.97,'Nailed it ✓']];let popStage=-1,popLvl=0,popT=0;
 function pop(txt,big){if(big&&/Nailed/.test(txt)){try{nailed()}catch(e){}return}const el=$('pop');if(!el)return;el.textContent=txt;el.classList.toggle('big',!!big);el.classList.remove('go');void el.offsetWidth;el.classList.add('go');chime(big?2:1)}
@@ -8269,7 +8269,6 @@ function hud(t){
   else if(k==='color')r=`Color coverage ${Math.round(avg(hard)*100)}% · two even coats · ${b>.05?'bleed water up':set>.78?'drying out':'good to go'}`;
   else if(k==='blanket'){let cv=0;for(let i=0;i<N;i++)if(inR[i]&&covered[i])cv++;r=`Covered ${Math.round(cv/RN*100)}% · ${set<.72?'still soft, thumb-test':'firm enough to cover'}`}
   else if(k==='stamp'){const st=stampStats();r=`Mats printed ${st.n} of ${st.tot}`+(st.dbl?` · ${st.dbl} double`:'')}
-  else if(k==='saw')r=`Cut ${Math.round(markPct()*100)}% of the edge · trace the dotted line`;
   else if(k==='strip')r=`Stripped ${Math.round(stripPct()*100)}% · spoil ${(spoilVol/27).toFixed(1)} yd³`;
   else if(k==='mark')r=`Painted ${Math.round(markPct()*100)}% of the outline · trace the dotted line`;
   else if(k==='rebar'){const ph=rebPh();r=ph==='bar'?`Bars ${REB.runs.filter(b=>b.on).length} of ${REB.runs.length} · sweep across the glowing lanes`+(rebLayer()?' · top layer':' · bottom layer'):`Ties ${rebTied()} of ${rebNeed()} · drag along the bars over the ${LV&&LV.bridge?'blue':'orange'} rings`}
@@ -8314,7 +8313,7 @@ $('back').addEventListener('click',()=>{if(!running||stage<=0)return;if(ptr.down
   stage--;try{unwindPrep()}catch(e){console.warn('unwind',e)}setStageUI();showBanner();buzz(10);say('Back to '+STAGES[stage].name.toLowerCase()+(isPrep()&&placed<=0?'. That step starts over.':'. The clock keeps running.'),'info','back',0)});
 function nextLabel(){if(practice&&STAGES[stage]&&STAGES[stage].key===practice.st)return'Finish ✓';return stage<STAGES.length-1?STAGES[stage+1].name+' →':'Cure it ✓'}
 function nextDisarm(){clearTimeout(nextDisarm.t);nextArm=0;const b=$('next');if(b.classList.contains('arm')){b.classList.remove('arm');b.textContent=nextLabel()}}
-const GUARDK=new Set(['demo','soffit','sform','riser','sbar','vibe','tread','rebar','mark','saw','strip','dig','gravel','base','form','tube','pour','float','edge','trowel','broom','color','stamp','expose','power','slip','cure','shape']);
+const GUARDK=new Set(['demo','soffit','sform','riser','sbar','vibe','tread','rebar','mark','strip','dig','gravel','base','form','tube','pour','float','edge','trowel','broom','color','stamp','expose','power','slip','cure','shape']);
 $('next').addEventListener('click',e=>{
   if(!running)return;if(arrive){arriveEnd();return}
   if(practice&&STAGES[stage]&&STAGES[stage].key===practice.st){practiceFinish();return}// v330: practice is one step: Finish stops the clock instead of playing on into the next step
@@ -8397,7 +8396,7 @@ function truckEtaUI(){const el=$('truckEta');if(!running){if(!el.hidden){el.hidd
 /* ---------- v220: prep stopwatch. Layout, dig, base and forms are timed against a par; beating par with clean work pays ---------- */
 const PREPT={t:0,st:{},par:{},on:false,best:0,
   reset(){this.t=0;this.st={};this.par={};this.on=false;const el=$('prepClk');if(el)el.hidden=true}};
-const PREPPAR={saw:[12,.3,0],strip:[20,0,.09],mark:[14,.32,0],dig:[28,0,.13],gravel:[18,0,.07],base:[14,0,.055],form:[16,.42,0],rebar:[24,0,.1],tube:[28,0,.11],sform:[30,0,0],riser:[30,0,0],sbar:[34,0,0],demo:[45,0,.05],soffit:[50,0,.05]};
+const PREPPAR={strip:[20,0,.09],mark:[14,.32,0],dig:[28,0,.13],gravel:[18,0,.07],base:[14,0,.055],form:[16,.42,0],rebar:[24,0,.1],tube:[28,0,.11],sform:[30,0,0],riser:[30,0,0],sbar:[34,0,0],demo:[45,0,.05],soffit:[50,0,.05]};
 function prepSq(){return RN*CELL_IN*CELL_IN/144}
 function prepPar(k){const p=PREPPAR[k];if(!p)return 0;let v=p[0]+p[1]*PER+p[2]*prepSq();if(k==='dig'&&cabOn)v*=1.7;return Math.round(Math.max(18,Math.min(260,v)))}
 const fmtPT=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -8435,7 +8434,7 @@ function startJob(){try{if(typeof BKD!=='undefined'&&BKD.on){bkdOff();BKD.farDon
   weather=WEATHER[wxKeyNow()];pickTOD();$('wxLabel').textContent=weather.label+(TOD.n?' · '+TOD.n:'');
   if(LV.steps.includes('stamp')){LV.color=STAMP_COLORS.find(c=>c.id===stampSel.color).c;STILE=makeStampTile()}try{pbrApply(scene)}catch(e){}try{buildEnv(todEnv(weather))}catch(e){window.__showErr('env: '+e.message)}try{gpsShape();gpsSync()}catch(e){console.warn('gps',e)}reset();setStageUI();
   runSeed=daily&&daily.L===LV?daily.seed:(1+Math.random()*1679000|0);coachSeen={};coachOpen=false;leavesClear();leafStains=0;cure.fill(0);cab.used=false;cab.init=false;cab.drive=null;planEvent(seeded(runSeed),!(daily&&daily.L===LV));planSite(seeded(runSeed+17));try{boardStart()}catch(e){console.warn('board',e)}BK.reset();pedsClear();blow=null;pourStep.pr=0;lateSetup();applyGearVis();photoB=photoA=null;REPLAY.length=0;burst=null;burstDone={};capEvery=1100;capT=0;
-  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='saw'?'Saw\'s fuelled up. Trace the dotted line and cut the asphalt clean.':STAGES[0].key==='strip'?'Excavator\'s warmed up. Break the old asphalt up and load it out.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{if(!TREE.ready)treeLoad()}catch(e){}try{adrJob()}catch(e){}try{govApply()}catch(e){}try{detailAll()}catch(e){console.warn('detail',e)}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
+  $('intro').hidden=true;running=true;showBanner();setTimeout(()=>{try{barkStage(STAGES[0].key)}catch(e){}},2600);arrive=null;if(STAGES[0].key==='pour')setTimeout(()=>{try{startArrive()}catch(e){}},250);clearTimeout(hintTimer);hintTimer=setTimeout(showHint,2200);say(STAGES[0].key==='demo'?'Hoe ram\'s on the deck. Drag over the old deck and break it off the girders.':STAGES[0].key==='strip'?'Excavator\'s warmed up. Break the old asphalt up and load it out.':STAGES[0].key==='mark'?'Trace the dotted line to paint the outline. That\'s where you dig.':STAGES[0].key==='dig'?'Excavator\'s warmed up. Dig it out to subgrade.':STAGES[0].key==='tube'?'Lay the heating loop first. The truck waits.':STAGES[0].key==='slip'?'Slipform\'s on the string and the truck\'s alongside. Slide the travel lever to start rolling.':'Drum\'s turning. Press on the slab to pour.','info','go',0);$('intro').scrollTop=0;try{if(!TREE.ready)treeLoad()}catch(e){}try{adrJob()}catch(e){}try{govApply()}catch(e){}try{detailAll()}catch(e){console.warn('detail',e)}try{lmRun()}catch(e){console.warn('lm',e)}PERF.progBase=0;PERF.progMid=0;warmSoon(true);
 }
 $('start').addEventListener('click',()=>{try{const L=LEVELS[jobIdx];if(L&&!practice){planOpen();return}plan.on=false;startJob()}catch(e){window.__showErr('start: '+e.message)}});
 let rsArm=0;
@@ -8512,7 +8511,7 @@ function practiceFinish(){const p=practice;if(!p)return;
 $('ddRetry').addEventListener('click',()=>{const p=(drill&&drill.p)||practice;$('drillDone').hidden=true;if(p)startPractice(p)});
 $('ddNext').addEventListener('click',()=>{const p=(drill&&drill.p)||practice,k=PRACTICE.indexOf(p),n=PRACTICE[(k+1)%PRACTICE.length];$('drillDone').hidden=true;startPractice(n)});
 $('ddYard').addEventListener('click',()=>{$('drillDone').hidden=true;drillStop();endPractice();$('intro').hidden=false;renderPractice();$('practice').hidden=false});
-function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'||k==='saw'){markN=markPts.length}else if(k==='strip'){for(let i=0;i<N;i++)if(PM[i])stripD[i]=1;spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
+function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){markN=markPts.length}else if(k==='strip'){for(let i=0;i<N;i++)if(PM[i])stripD[i]=1;spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
   else if(k==='gravel'){for(let i=0;i<N;i++)if(PM[i])gravF[i]=1.1;gravLeft=0;geoDirty=layerDirty=true}else if(k==='base'){for(let i=0;i<N;i++)if(PM[i])compF[i]=1.1;layerDirty=true}
   else if(k==='form'){formPieces.forEach(f=>{f.placed=true;f.m.visible=true})}
   else if(k==='rebar'){rebarAll();REBX.forEach((q,k2)=>{if(q.need&&!q.t){q.t=1;rebN++;rebM(rebTieIM,k2,q.x,-.135,q.z,Math.PI/2,0,Math.PI/4,1,1,1)}});rebMarks()}
@@ -8648,7 +8647,6 @@ function buildSC(){
     blanket:()=>{let cv=0;for(let i=0;i<N;i++)if(inR[i]&&covered[i])cv++;const c=cv/RN;
       return['Blankets',c*(.3+.7*q('blanket')),`${Math.round(c*100)}% covered. `+(c>=.97?'Snug for the night. ':'Bare spots will frost tonight. ')+tm('blanket')]},
     mark:()=>{const c=markPct();return['Lay out',c,`${Math.round(c*100)}% of the outline painted.`+(c<.95?' Gaps in the paint mean guessing where to dig.':' Clean layout.')]},
-    saw:()=>{const c=markPct();return['Saw-cut',c,`${Math.round(c*100)}% of the edge cut.`+(c<.95?' Uncut edges tear up the asphalt you\'re keeping.':' Clean cut.')]},
     strip:()=>{const c=stripPct();return['Strip asphalt',c,`${Math.round(c*100)}% of the old asphalt broken up and hauled off.`+(c<.97?' Asphalt left under the slab will crack it.':' Clean to the base.')]},
     dig:()=>{const c=digPct();return['Excavate',c,`${Math.round(c*100)}% dug to subgrade, ${(spoilVol/27).toFixed(1)} yd³ hauled.`+(c<.97?(PORCH()?' Old fill left under the slab will settle.':' Sod left under the slab will rot and settle.'):'')]},
     slip:()=>{const st=slipStats(),cx=curbXScore();return['Slipform',cx.k*st.cov*clamp01(1-st.voids*2.5)*Math.max(.5,1-st.stops*.06)*clamp01(1-st.spill*.6)*(.6+.4*q('slip')),cx.note+`${Math.round(st.cov*100)}% of the run slipformed`+(st.stops?`, ${st.stops} stop mark${st.stops>1?'s':''}`:', one smooth run')+(st.voids>.02?'. Torn where the hopper ran dry.':'. Hopper stayed fed.')+(st.spill>.3?' Mud spilled on the street.':'')]},
@@ -10181,48 +10179,37 @@ const sprayCan=new THREE.Group();{const cM=new THREE.MeshStandardMaterial({color
   const cap=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.08,10),wM);cap.position.y=.4;sprayCan.add(cap);sprayCan.rotation.x=Math.PI;
   const mist=new THREE.Mesh(new THREE.ConeGeometry(.22,.6,14,1,true),new THREE.MeshBasicMaterial({color:0xff7a2a,transparent:true,opacity:.35,depthWrite:false}));mist.position.y=-.6;sprayCan.add(mist);sprayCan.userData.mist=mist;
   sprayCan.visible=false;scene.add(sprayCan)}
-const sawTex=(()=>{const[c,g]=mk(128,32);g.clearRect(0,0,128,32);for(let i=0;i<500;i++){const x=Math.random()*128,y=16+(Math.random()+Math.random()-1)*9,r=Math.random()*1.4+.3;g.fillStyle=`rgba(226,222,212,${.25+Math.random()*.5})`;g.beginPath();g.arc(x,y,r,0,6.283);g.fill()}
-  g.fillStyle='rgba(8,8,10,.95)';g.fillRect(0,13,128,6);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t})();
-const sawLineM=new THREE.MeshBasicMaterial({map:sawTex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4});
-let sawYaw=0;
-const sawG=new THREE.Group();{const rM=new THREE.MeshStandardMaterial({color:0xd8412a,roughness:.45,metalness:.2}),kM=new THREE.MeshStandardMaterial({color:0x1b1b1d,roughness:.7}),sM=new THREE.MeshStandardMaterial({color:0xb9bcc0,roughness:.3,metalness:.7});
-  const body=new THREE.Mesh(new THREE.BoxGeometry(.55,.4,.7),rM);body.position.set(0,.55,0);sawG.add(body);
-  const hd=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,8),kM);hd.position.set(0,1,-.55);hd.rotation.x=-.9;sawG.add(hd);
-  [-1,1].forEach(sg=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.1,12),kM);w.rotation.z=Math.PI/2;w.position.set(sg*.3,.16,-.28);sawG.add(w)});
-  const piv=new THREE.Group();piv.position.set(.34,.34,.18);const bl=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.025,24),sM);bl.rotation.z=Math.PI/2;piv.add(bl);sawG.add(piv);sawG.userData.piv=piv;
-  sawG.scale.setScalar(1.6);sawG.visible=false;scene.add(sawG)}
 function markBuild(){[markIM,dotIM].forEach(m=>{if(m){scene.remove(m);m.geometry.dispose()}});markIM=dotIM=null;markPts=[];markN=0;markLast=null;
-  if(!isPrep()||(S.mark==null&&S.saw==null)||!zoneZ){markDone=new Uint8Array(0);return}
-  [zoneZ,S.saw!=null?null:zoneI].forEach(P=>{if(!P)return;for(let k=0;k<P.length;k++){if(S.saw!=null&&P.length===SHAPE.length&&NOFORM[k]&&NOFORM.some(v=>!v))continue;const a=P[k],b=P[(k+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz),n=Math.max(1,Math.ceil(L/.5));
+  if(!isPrep()||S.mark==null||!zoneZ){markDone=new Uint8Array(0);return}
+  [zoneZ,zoneI].forEach(P=>{if(!P)return;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz),n=Math.max(1,Math.ceil(L/.5));
     for(let j=0;j<n;j++){const t=(j+.5)/n;markPts.push({x:a[0]+dx*t,z:a[1]+dz*t,ang:Math.atan2(dz,dx)})}}});
   markDone=new Uint8Array(markPts.length);
-  const pg=new THREE.PlaneGeometry(.62,.26);pg.rotateX(-Math.PI/2);markIM=new THREE.InstancedMesh(pg,S.saw!=null?sawLineM:sprayM,markPts.length);
+  const pg=new THREE.PlaneGeometry(.62,.26);pg.rotateX(-Math.PI/2);markIM=new THREE.InstancedMesh(pg,sprayM,markPts.length);
   const dg=new THREE.CircleGeometry(.13,10);dg.rotateX(-Math.PI/2);dotIM=new THREE.InstancedMesh(dg,dotM,markPts.length);
   const o=new THREE.Object3D();markPts.forEach((p,i)=>{p.y=prepSurfY(p.x,p.z)+.05;o.position.set(p.x,p.y,p.z);o.rotation.set(0,-p.ang,0);o.scale.setScalar(i%2?0:1);o.updateMatrix();dotIM.setMatrixAt(i,o.matrix);o.scale.setScalar(0);o.updateMatrix();markIM.setMatrixAt(i,o.matrix)});
   markIM.userData.bold=false;markIM.frustumCulled=dotIM.frustumCulled=false;markIM.renderOrder=dotIM.renderOrder=4;scene.add(markIM,dotIM)}
 const markPct=()=>markPts.length?markN/markPts.length:1;
 function markTrace(p,fresh){if(!markIM)return;const cur=[p.wx,p.wz],from=fresh||!markLast?cur:markLast;markLast=cur;
-  const L=Math.hypot(cur[0]-from[0],cur[1]-from[1]),n=Math.max(1,Math.ceil(L/.3)),o=new THREE.Object3D();let hit=0;if(L>.04)sawYaw=Math.atan2(cur[0]-from[0],cur[1]-from[1]);
+  const L=Math.hypot(cur[0]-from[0],cur[1]-from[1]),n=Math.max(1,Math.ceil(L/.3)),o=new THREE.Object3D();let hit=0;
   for(let s=0;s<=n;s++){const x=from[0]+(cur[0]-from[0])*s/n,z=from[1]+(cur[1]-from[1])*s/n;
     markPts.forEach((q,i)=>{if(markDone[i])return;if((q.x-x)**2+(q.z-z)**2<1.3){markDone[i]=1;markN++;hit++;o.position.set(q.x,q.y+.002*(i%3),q.z);o.rotation.set(0,-q.ang+(Math.random()-.5)*.12,0);o.scale.set(1+Math.random()*.25,1,.8+Math.random()*.5);o.updateMatrix();markIM.setMatrixAt(i,o.matrix);
       o.scale.setScalar(0);o.updateMatrix();dotIM.setMatrixAt(i,o.matrix)}})}
   if(hit){markIM.instanceMatrix.needsUpdate=dotIM.instanceMatrix.needsUpdate=true;if(performance.now()-buzzT>60){buzzT=performance.now();buzz(5)}
-    if(markPct()>=.995&&!flags.markDone){flags.markDone=1;say(S.saw!=null?'Cut\'s all the way around. Hit Next and break the asphalt up.':'Outline\'s painted. Hit Next and dig it out to the paint.','good','markd',0);try{chime()}catch(e){}}}
+    if(markPct()>=.995&&!flags.markDone){flags.markDone=1;say('Outline\'s painted. Hit Next and dig it out to the paint.','good','markd',0);try{chime()}catch(e){}}}
   else if(fresh){let bd=1e9;markPts.forEach(q=>{const d=(q.x-cur[0])**2+(q.z-cur[1])**2;if(d<bd)bd=d});if(bd>9)say('Trace right on the dotted line.','info','markoff')}}
 function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key;
-  markIM.visible=P&&(S.mark!=null||S.saw!=null)&&stage<=(S.dig!=null?S.dig:S.gravel!=null?S.gravel:S.pour!=null?S.pour-1:99);// paint is gone once the hole's dug
-  dotIM.visible=running&&P&&(k==='mark'||k==='saw');
+  markIM.visible=P&&S.mark!=null&&stage<=(S.dig!=null?S.dig:S.gravel!=null?S.gravel:S.pour!=null?S.pour-1:99);// paint is gone once the hole's dug
+  dotIM.visible=running&&P&&k==='mark';
   {// once digging starts the paint gets wider and sits proud of the grass so it reads from the cab
-   const bold=markIM.visible&&k!=='mark'&&S.mark!=null;if(bold!==!!markIM.userData.bold){markIM.userData.bold=bold;const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),f=bold?2.4:1/2.4,dy=bold?.2:-.2;
+   const bold=markIM.visible&&k!=='mark';if(bold!==!!markIM.userData.bold){markIM.userData.bold=bold;const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),f=bold?2.4:1/2.4,dy=bold?.2:-.2;
      for(let i=0;i<markPts.length;i++){if(!markDone[i])continue;markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
-  const sw=k==='saw'&&ptr.down&&running;sawG.visible=sw;if(sw&&markLast){sawG.position.set(markLast[0],prepSurfY(markLast[0],markLast[1]),markLast[1]);sawG.rotation.y=sawYaw;sawG.userData.piv.rotation.x-=dt*40}
   const on=k==='mark'&&ptr.down&&running;sprayCan.visible=on;if(on&&markLast){sprayCan.position.set(markLast[0],prepSurfY(markLast[0],markLast[1])+1.1,markLast[1]);sprayCan.userData.mist.material.opacity=.25+Math.random()*.2}}
 
 function prepReset(){digD.fill(0);stripD.fill(0);compF.fill(0);gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>f.placed=!isPrep());
   pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});
   layerInit();slipReset();exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{markBuild()}catch(e){console.warn(e)}}
 // v97: going back a step in prep restarts that step and everything after it (forms come off, gravel goes back to the pile, and so on)
-function unwindPrep(){if(!isPrep()||placed>0)return;const k=STAGES[stage]&&STAGES[stage].key,ord=['mark','saw','strip','dig','gravel','base','form','rebar'],i=ord.indexOf(k);if(i<0)return;const from=n=>i<=ord.indexOf(n);
+function unwindPrep(){if(!isPrep()||placed>0)return;const k=STAGES[stage]&&STAGES[stage].key,ord=['mark','strip','dig','gravel','base','form','rebar'],i=ord.indexOf(k);if(i<0)return;const from=n=>i<=ord.indexOf(n);
   if(from('strip')&&S.strip!=null){stripD.fill(0);flags.stripSq=0;flags.hauled=0;spoilVol=0;exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
   if(from('dig')){digD.fill(0);spoilVol=0;pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;
     try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
@@ -10245,7 +10232,7 @@ function siteVis(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,dug=!P||s
 // the pit itself: the slab mesh, dropped to the dug depth and coloured from dark topsoil down to clay
 function soilGeo(){const pg=pitMesh.geometry;if(!pg.attributes||!pg.attributes.position||!pg.attributes.color)return;
   const p=pg.attributes.position,c=pg.attributes.color,n=p.count;
-  for(let v=0;v<n;v++){const d=Math.min(1,bil(digD,pVU[v],pVV[v])),e=sstep(d),ec=sstep(Math.max(d,S.strip!=null?bil(stripD,pVU[v],pVV[v])*.55:0)),hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);
+  for(let v=0;v<n;v++){const d=Math.min(1,bil(digD,pVU[v],pVV[v])),e=sstep(d),ec=Math.max(e,S.strip!=null?Math.min(1,bil(stripD,pVU[v],pVV[v])):0),hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);
     p.setY(v,pitY(d)+(n2-.5)*.06*e*(1-e*.5));
     const r=.66+.36*ec+(n2-.5)*.08,g=.64+.35*ec+(n2-.5)*.07,b=.62+.34*ec+(n2-.5)*.06;c.setXYZ(v,r,g,b)}
   p.needsUpdate=true;c.needsUpdate=true;pg.computeVertexNormals();pg.computeBoundingSphere();layerDirty=true}
