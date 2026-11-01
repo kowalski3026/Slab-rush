@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v340"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v341"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v341: no dirt band at butt-up ends (garage / sidewalk); dig zone and dirt ring only widen on formed sides -->
 <!-- v340: asphalt jobs keep the 3D asphalt layer visible on photo sites (it was hidden as lawn sod) -->
 <!-- v339: asphalt-driveway jobs show the old asphalt in 3D at the start of the dig (before photo lawn no longer wins) -->
 <!-- v338: photo-site piles never go on the street side of the pad (left of its edge) -->
@@ -1987,7 +1988,7 @@ function offsetPoly(P,d){const n=P.length,out=[];
     out.push([p[0]+bx*d/c,p[1]+bz*d/c])}
   return out}
 // v198: offset each edge on its own; edges poured against something (NOFORM) get dn instead of d
-function offsetPolyNF(P,d,dn){const n=P.length,out=[],sg=polyArea(P)<0?-1:1,nf=SHAPE===P?NOFORM:P.map(()=>0);
+function offsetPolyNF(P,d,dn,nfo){const n=P.length,out=[],sg=polyArea(P)<0?-1:1,nf=nfo||(SHAPE===P?NOFORM:P.map(()=>0));
   const nrm=i=>{const a=P[i],b=P[(i+1)%n],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[sg*dz/l,-sg*dx/l]};
   for(let i=0;i<n;i++){const j=(i-1+n)%n,n1=nrm(j),n2=nrm(i),d1=nf[j]?dn:d,d2=nf[i]?dn:d,det=n1[0]*n2[1]-n1[1]*n2[0];let ax,az;
     if(Math.abs(det)<.05){const dd=Math.max(d1,d2);ax=(n1[0]+n2[0])/2;az=(n1[1]+n2[1])/2;const l=Math.hypot(ax,az)||1;ax=ax/l*dd;az=az/l*dd}
@@ -3728,7 +3729,7 @@ function buildSite(){
     const uv=g.attributes.uv,ps=g.attributes.position;if(ps&&ps.getX)for(let i=0;i<ps.count;i++)uv.setXY(i,(ps.getX(i)+160)/320,(ps.getY(i)+160)/320);ground.geometry=g;lotGround.visible=true}
    else{ground.geometry=new THREE.PlaneGeometry(320,320);lotGround.visible=false}}
   const RB=PP?zoneZ:(LV.ringOuter||SHAPE),RH=PP?zoneZ:null;
-  if(!ELV()||LV.wall||LV.slip||PP){let n0=siteG.children.length;flatShape(PP?offsetPoly(RB,2):LV.ringOuter?offsetPoly(RB,1.3):offsetPolyNF(SHAPE,1.3,-.05),dirtRingM,-.297-EE,RH);tagNew(n0,{kind:'ring'});
+  if(!ELV()||LV.wall||LV.slip||PP){let n0=siteG.children.length;flatShape(PP?((!LV.ringOuter&&RB.length===SHAPE.length)?offsetPolyNF(RB,2,.02,NOFORM):offsetPoly(RB,2)):LV.ringOuter?offsetPoly(RB,1.3):offsetPolyNF(SHAPE,1.3,-.05),dirtRingM,-.297-EE,RH);tagNew(n0,{kind:'ring'});
     if(!PP){n0=siteG.children.length;flatShape(offsetPolyNF(SHAPE,.6,-.05),gravelRingM,-.288-EE,null);tagNew(n0,{kind:'gravel'})}}
   if(PP){const top=TOPf(),bot=SUBY()-.03;[[zoneZ,true],[zoneI,false]].forEach(([P,inward])=>{if(!P)return;
     for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.05)continue;let nx=-dz/L,nz=dx/L;const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
@@ -10051,7 +10052,7 @@ function zoneIn(x,z){return pointInPoly(x,z,zoneZ)&&!(zoneI&&pointInPoly(x,z,zon
 function zoneNear(x,z){let best=1e9,bx=x,bz=z;[zoneZ,zoneI].forEach(P=>{if(!P)return;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L2=dx*dx+dz*dz;if(L2<1e-8)continue;
   let t=((x-a[0])*dx+(z-a[1])*dz)/L2;t=Math.max(0,Math.min(1,t));const px=a[0]+dx*t,pz=a[1]+dz*t,d=(px-x)**2+(pz-z)**2;if(d<best){best=d;bx=px;bz=pz}}});return[bx,bz]}
 function prepZone(){const off=LV.zoneOff!=null?LV.zoneOff:(LV.wall?2:LV.slip?1:0);
-  if(LV.ringOuter){zoneZ=offsetPoly(LV.ringOuter,off);zoneI=offsetPoly(LV.ringInner,-off)}else{zoneZ=off?offsetPoly(SHAPE,off):SHAPE;zoneI=null}
+  if(LV.ringOuter){zoneZ=offsetPoly(LV.ringOuter,off);zoneI=offsetPoly(LV.ringInner,-off)}else{zoneZ=off?offsetPolyNF(SHAPE,off,0):SHAPE;zoneI=null}/* v341: butt ends (poured against garage / sidewalk) don't widen the dig */
   zoneZ=zoneZ.map(p=>[Math.max(-SLAB_W/2+.01,Math.min(SLAB_W/2-.01,p[0])),Math.max(-SLAB_D/2+.01,Math.min(SLAB_D/2-.01,p[1]))]);
   PZN=0;for(let i=0;i<N;i++){PZc[i]=zoneIn(wx(i%GW+.5),wz(((i/GW)|0)+.5))?1:0;PZN+=PZc[i]}PZN=Math.max(1,PZN);
   // vertex grid snapped onto the zone edge, split into the dug side and the yard side
