@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v344"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v345"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v345: stripped asphalt shows the dirt pit surface (the pale new-slab mesh was showing through); soilMode now includes the strip step -->
 <!-- v344: old-asphalt driveway jobs get two new prep steps before the dig: Saw-cut (trace the edge with a walk-behind saw, not along butt-up ends) and Strip asphalt (excavator breaks the old asphalt up and loads it into the dump truck, which hauls it off) -->
 <!-- v343: third large turned texture pass breaks the faint repeat of the dig scrape lines -->
 <!-- v342: photo mask stops at butt-up ends (no green strip at the sidewalk) -->
@@ -6907,7 +6908,7 @@ function toCell(e,raw){
   const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-off-r.top)/r.height)*2+1);
   ray.setFromCamera(ndc,camera);if(STR.on){const q=strPick();if(q)return q}
   // v211: in the dig/gravel/compact/form steps the finger lands on the hole's floor, not the old grass height, so far corners map to the cell you see
-  const pc=plane.constant;try{if(typeof soilMode==='function'&&soilMode())plane.constant=-((-.3+SUBY())/2)}catch(e){}const ok=ray.ray.intersectPlane(plane,hit);plane.constant=pc;if(!ok)return null;
+  const pc=plane.constant;try{if(typeof soilMode==='function'&&soilMode()&&!(STAGES[stage]&&STAGES[stage].key==='strip'))plane.constant=-((-.3+SUBY())/2)}catch(e){}const ok=ray.ray.intersectPlane(plane,hit);plane.constant=pc;if(!ok)return null;
   return{x:(hit.x+SLAB_W/2)/SLAB_W*GW,y:(hit.z+SLAB_D/2)/SLAB_D*GH,wx:hit.x,wz:hit.z};
 }
 const ptr={down:false,x:0,y:0,minx:0,maxx:0,miny:0,maxy:0,vx:0,vy:0,t:0};
@@ -10028,7 +10029,7 @@ const GTf=()=>PORCH()?LV.elev-DEPTH/12+.42:LV&&LV.wall?1:LV&&LV.elev&&!LV.slip?L
 const TOPf=()=>PORCH()?LV.elev-DEPTH/12+.045:LV&&(ASPH_JOBS.test(LV.id)||LV.id==='sidewalk'||LV.id==='curb')?-.282:-.297;       // top of what's there now
 const BASEY=()=>ELV()-DEPTH/12,SUBY=()=>ELV()-DEPTH/12-GTf();                              // top of compacted base, subgrade
 const isPrep=()=>S.dig!=null;
-const soilMode=()=>{const k=STAGES[stage]&&STAGES[stage].key;return isPrep()&&(k==='dig'||k==='gravel'||k==='base'||k==='form')};
+const soilMode=()=>{const k=STAGES[stage]&&STAGES[stage].key;return isPrep()&&(k==='strip'||k==='dig'||k==='gravel'||k==='base'||k==='form')};
 const sstep=d=>{d=Math.max(0,Math.min(1,d));return d*d*(3-2*d)};
 // sample a per-cell field at a fractional cell position, ignoring cells outside the pad
 function bil(A,u,v,M){M=M||PM;u-=.5;v-=.5;const x0=Math.floor(u),y0=Math.floor(v),fx=u-x0,fy=v-y0;let s=0,w=0;
@@ -10244,9 +10245,9 @@ function siteVis(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,dug=!P||s
 // the pit itself: the slab mesh, dropped to the dug depth and coloured from dark topsoil down to clay
 function soilGeo(){const pg=pitMesh.geometry;if(!pg.attributes||!pg.attributes.position||!pg.attributes.color)return;
   const p=pg.attributes.position,c=pg.attributes.color,n=p.count;
-  for(let v=0;v<n;v++){const d=Math.min(1,bil(digD,pVU[v],pVV[v])),e=sstep(d),hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);
+  for(let v=0;v<n;v++){const d=Math.min(1,bil(digD,pVU[v],pVV[v])),e=sstep(d),ec=sstep(Math.max(d,S.strip!=null?bil(stripD,pVU[v],pVV[v])*.55:0)),hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);
     p.setY(v,pitY(d)+(n2-.5)*.06*e*(1-e*.5));
-    const r=.66+.36*e+(n2-.5)*.08,g=.64+.35*e+(n2-.5)*.07,b=.62+.34*e+(n2-.5)*.06;c.setXYZ(v,r,g,b)}
+    const r=.66+.36*ec+(n2-.5)*.08,g=.64+.35*ec+(n2-.5)*.07,b=.62+.34*ec+(n2-.5)*.06;c.setXYZ(v,r,g,b)}
   p.needsUpdate=true;c.needsUpdate=true;pg.computeVertexNormals();pg.computeBoundingSphere();layerDirty=true}
 function prepBrush(x0,y0,x1,y1,rft,fn){const W=rft*12/CELL_IN,dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1e-6,ux=dx/len,uy=dy/len;
   for(let cy=Math.max(0,Math.floor(Math.min(y0,y1)-W));cy<=Math.min(GH-1,Math.ceil(Math.max(y0,y1)+W));cy++)for(let cx=Math.max(0,Math.floor(Math.min(x0,x1)-W));cx<=Math.min(GW-1,Math.ceil(Math.max(x0,x1)+W));cx++){
