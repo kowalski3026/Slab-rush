@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v347"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v348"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v348: hammer step removed. Asphalt is soft: the bucket alone crumbles and pops the leading edge as it scoops. -->
 <!-- v347: asphalt jobs get a Break up step (hammer on the excavator) before Strip. Real rubble slabs lift and tilt, the bucket scoops them into the truck, the truck hauls off loaded, dust + exhaust + camera rumble. -->
 <!-- v346: saw-cut step removed (the pad edge is against dirt, nothing to saw); stripped asphalt gets the same brown dirt colour as the dug pit -->
 <!-- v345: stripped asphalt shows the dirt pit surface (the pale new-slab mesh was showing through); soilMode now includes the strip step -->
@@ -1324,7 +1325,7 @@ const DEFS={
   stamp:{name:'Stamp',win:[.5,.9],soft:.1,
    desc:'Release is down. Drag along each row to lay the 2 ft mats and tamp them in. Too soft and they sink. Too hard and they barely print. Don\'t stamp the same spot twice.'},
   break:{name:'Break up',win:[0,1],soft:1,desc:'The hammer is on the excavator. Press and drag over the old asphalt: it cracks into slabs and the machine tracks along to keep up. Work every edge and corner. The bucket comes next.'},
-  strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Scoop up the broken slabs. Drag where you want the bucket: it picks the pieces up and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
+  strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Dig the bucket into the old asphalt. The leading edge crumbles and pops into slabs and the bucket scoops them up as it goes. Drag where you want it and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
   mark:{name:'Lay out',win:[0,1],soft:1,
    desc:'Lay it out. The dotted line shows where the pad goes. Trace it with your finger to spray orange marking paint all the way around, so you can see where to dig on the grass. The clock doesn\'t start until the truck shows.'},
   dig:{name:'Excavate',win:[0,1],soft:1,
@@ -7095,7 +7096,7 @@ function applyLevel(L){
   STAGES=L.steps.map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:(L.win&&L.win[k])||DEFS[k].win,soft:DEFS[k].soft,desc:((L.desc&&L.desc[k])||DEFS[k].desc).replace(/\{W\}/g,L.wTxt).replace(/\{P\}/g,L.pTxt)}));
   S={};STAGES.forEach((s,i)=>S[s.key]=i);
   setLot(L.ls||1);
-  if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','break','strip','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&((k!=='strip'&&k!=='break')||/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id))&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt base':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
+  if(prepOn&&!L.stair&&!L.bridge)STAGES=['mark','strip','dig','gravel','base','form','rebar'].filter(k=>!(L.slip&&k==='form')&&(k!=='strip'||/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id))&&(k!=='rebar'||!(L.wall||L.slip||L.elev||(L.free&&!L.tut)))&&(k!=='mark'||markable(L))).map(k=>({key:k,name:DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:DEFS[k].desc.replace('{SURF}',/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'old asphalt base':L.id==='sidewalk'?'old concrete':L.id==='porch'?'old porch slab and fill':'sod').replace('{GT}',L.wall?'12 in':(L.elev&&!L.slip)?'a load of stone fill':/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/.test(L.id)?'8 in':'6 in')})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i);
   if(prepOn&&L.bridge){STAGES=['demo','soffit','rebar'].map(k=>({key:k,name:(L.names&&L.names[k])||DEFS[k].name,win:DEFS[k].win,soft:DEFS[k].soft,desc:(L.desc&&L.desc[k])||DEFS[k].desc})).concat(STAGES);S={};STAGES.forEach((s,i)=>S[s.key]=i)}
   try{brgSetup(L)}catch(e){console.warn('brg',e)}
   if(L.stair&&!prepOn){STAGES=STAGES.filter(x=>!['sform','riser','sbar'].includes(x.key));S={};STAGES.forEach((x,i)=>S[x.key]=i)}
@@ -8206,7 +8207,6 @@ function coachShow(){const k=STAGES[stage]&&STAGES[stage].key,c=LV&&LV.tut&&runn
 $('coachOk').addEventListener('click',()=>{$('coach').hidden=true;coachOpen=false;showHint()});
 function setStageUI(){
   try{if(STAGES[stage]&&STAGES[stage].key==='dig'&&S.strip!=null&&!flags.hauled){flags.hauled=1;spoilVol=0;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;const u=dumpT.userData;if(u.load>u.cap*.05&&u.phase!=='out'){u.phase='out';u.t=0;u.hauling=1;try{backupBeep(1)}catch(e){}}else{u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}say('Truck\'s hauling the asphalt off to the recycler.','info','hauled',0)}}catch(e){}
-  try{if(STAGES[stage]&&STAGES[stage].key==='strip'&&S.break!=null&&practice&&breakPct()<.5){arBreakAll();geoDirty=layerDirty=true}}catch(e){}
   {const cy=Math.atan2(camDir.x,camDir.z);fYaw=bYaw=rkYaw=cy;steerReset()}
   {const pk=PREPK.has(STAGES[stage].key);const bws=!!(LV&&LV.bridge&&stage===S.screed);truck.visible=chute.visible=lumps.visible=splash.visible=!pk&&(stage<=S.pour||bws);bands.forEach(b=>b.visible=!pk&&stage<=S.pour);{const pu=usePump()&&!pk&&(stage<=S.pour||bws);pumpG.visible=pHose.visible=pu;if(usePump()){chute.visible=false;bands.forEach(b=>b.visible=false)}if(truck.userData.hide)truck.visible=false;$('tChute').lastChild.textContent=usePump()?'Pump':'Chute'}if(isPrep()&&(STAGES[stage].key==='dig'||STAGES[stage].key==='strip'||STAGES[stage].key==='break'))placeExcavator();siteVis();if(runCarry()){truck.visible=chute.visible=lumps.visible=splash.visible=true}}
   $('back').disabled=stage===0;setTimeout(coachShow,350);const s=STAGES[stage];$('sname').textContent=s.name;$('sdesc').textContent=s.desc;
@@ -8456,7 +8456,6 @@ const tIcon=k=>`<svg viewBox="0 0 48 48" aria-hidden="true">${TOOLICON[k]||''}</
 const PRACTICE=[
  {k:'cab',sec:'Machines',ic:'truck',n:'Load the truck',d:'Fill the dump truck from the cab',lv:'patio',st:'dig',prep:1,cab:1,goal:'Heap the truck box',tgt:1,gold:110,silver:180,prog:()=>Math.min(1,dumpT.userData.load/Math.max(1,dumpT.userData.cap*1.1))},
  {k:'dig',sec:'Machines',ic:'excav',n:'Dig to grade',d:'Strip the sod, dig to subgrade',lv:'drive1',st:'dig',prep:1,goal:'Dig 100% to subgrade',tgt:1,gold:45,silver:80},
- {k:'break',sec:'Machines',ic:'excav',n:'Break asphalt',d:'Hammer the old driveway into slabs',lv:'drive1',st:'break',prep:1,goal:'Break up 100% of the asphalt',tgt:1,gold:30,silver:55},
  {k:'strip',sec:'Machines',ic:'excav',n:'Strip asphalt',d:'Break up the old driveway, load it out',lv:'drive1',st:'strip',prep:1,goal:'Strip 100% of the asphalt',tgt:1,gold:40,silver:70},
  {k:'grav',sec:'Machines',ic:'gravel',n:'Spread the base',d:'Gravel out even, edge to edge',lv:'drive1',st:'gravel',prep:1,goal:'Spread it all',tgt:1,gold:40,silver:70},
  {k:'pack',sec:'Machines',ic:'pack',n:'Pack it',d:'Roller and plate, no soft spots',lv:'drive1',st:'base',prep:1,goal:'Compact 100%',tgt:1,gold:30,silver:55},
@@ -10217,8 +10216,7 @@ function prepReset(){digD.fill(0);stripD.fill(0);crackD.fill(0);try{arBuild()}ca
   layerInit();slipReset();exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{markBuild()}catch(e){console.warn(e)}}
 // v97: going back a step in prep restarts that step and everything after it (forms come off, gravel goes back to the pile, and so on)
 function unwindPrep(){if(!isPrep()||placed>0)return;const k=STAGES[stage]&&STAGES[stage].key,ord=['mark','break','strip','dig','gravel','base','form','rebar'],i=ord.indexOf(k);if(i<0)return;const from=n=>i<=ord.indexOf(n);
-  if(from('break')&&S.break!=null){crackD.fill(0);flags.brkSq=0;try{arBuild()}catch(e){console.warn(e)}}
-  if(from('strip')&&S.strip!=null){try{arReset()}catch(e){}stripD.fill(0);flags.stripSq=0;flags.hauled=0;spoilVol=0;exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
+  if(from('strip')&&S.strip!=null){crackD.fill(0);try{arBuild()}catch(e){console.warn(e)}stripD.fill(0);flags.stripSq=0;flags.hauled=0;spoilVol=0;exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
   if(from('dig')){digD.fill(0);spoilVol=0;pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;
     try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
   if(from('gravel')){gravF.fill(0);gravLeft=1}
@@ -10261,7 +10259,7 @@ function arBuild(){
   if(AR.im){scene.remove(AR.im);AR.im.dispose();AR.im=null}
   if(AR.gv){scene.remove(AR.gv);AR.gv.dispose();AR.gv=null}
   AR.ch=[];AR.cell=new Array(N).fill(null);AR.tot=0;AR.sc=0;AR.act=[];AR.vol=0;
-  if(!isPrep()||S.break==null)return;
+  if(!isPrep()||S.strip==null)return;
   const cs=SLAB_W/GW;let cnt=0;for(let i=0;i<N;i++)if(PM[i])cnt++;if(!cnt)return;
   const area=cnt*cs*cs,sp=Math.max(1.3,Math.sqrt(area/850)),K=sp/1.3;
   let seed=12345;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
@@ -10293,11 +10291,10 @@ function crackSeg(x0,y0,x1,y1){let fresh=0;
   geoDirty=true;layerDirty=true;if(fresh){shake(.03);if(performance.now()-buzzT>90){buzzT=performance.now();buzz(9)}}}
 function stripSeg(x0,y0,x1,y1){let got=0,pry=0;
   prepBrush(x0,y0,x1,y1,1.5*EXS*BUCKETS[exBkt].w,(i,f)=>{
-    if(crackD[i]<1){pry++;crackD[i]=Math.min(1,crackD[i]+.045*f);if(crackD[i]>=1)arBreak(i)}
-    const L=AR.cell&&AR.cell[i];if(L)for(const j of L)if(AR.ch[j].st===1){arScoop(j);got++}});
-  if(pry>3&&!flags.pryHint){flags.pryHint=1;say('Solid asphalt is slow with the bucket alone. Break it up with the hammer first.','info','pry',0)}
+    if(crackD[i]<1){crackD[i]=Math.min(1,crackD[i]+.4*f);if(crackD[i]>=1)arBreak(i)}
+    const L=AR.cell&&AR.cell[i];if(L)for(const j of L){const c=AR.ch[j];if(c.st===1&&c.a<=.08){arScoop(j);got++}}});
   if(AR.tot&&!flags.stripSq&&stripPct()>.96){flags.stripSq=1;const left=AR.tot-AR.sc;arScoopAll();spoilVol+=left*AR.vol;say('Crew pried up the last chunks by hand.','good','stripsq',0)}
-  geoDirty=true;layerDirty=true;if(got&&performance.now()-buzzT>90){buzzT=performance.now();buzz(7)}}
+  geoDirty=true;layerDirty=true;if(got){shake(.02);if(performance.now()-buzzT>90){buzzT=performance.now();buzz(7)}}}
 // ---- dust + exhaust puffs (pooled sprites) ----
 function arPuff(x,y,z,col,size,life,rise,o){if(!AR.pf)return;const p=AR.pool.find(q=>!q.on);if(!p)return;p.on=true;p.age=0;p.life=life;p.size=size;p.rise=rise;p.o=o;p.s.visible=true;p.s.position.set(x,y,z);p.s.material.color.setHex(col);p.s.material.opacity=0;p.s.scale.setScalar(size*.4);p.vx=(Math.random()-.5)*.5;p.vz=(Math.random()-.5)*.5}
 function arPuffInit(){const [c,g]=mk(64,64),gr=g.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.5,'rgba(255,255,255,.4)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
@@ -10312,9 +10309,9 @@ function arHamBuild(){const P=new THREE.Vector3(0,-.45,1.53),L=P.length(),g=new 
   g.userData.chs=chs;g.visible=false;bucketG.add(g);AR.ham=g}
 function arTick(dt,t,k,P){
   if(!AR.pf)arPuffInit();
-  const act=P&&S.break!=null&&(k==='break'||k==='strip')&&AR.tot>0;if(AR.im){AR.im.visible=act;AR.gv.visible=act}
+  const act=P&&S.strip!=null&&k==='strip'&&AR.tot>0;if(AR.im){AR.im.visible=act;AR.gv.visible=act}
   // hammer on, bucket off
-  const wantH=!!(P&&k==='break'&&S.break!=null);
+  const wantH=false;
   if(AR.hamOn!==wantH){if(!AR.ham)arHamBuild();AR.hamOn=wantH;const ld=bucketG.userData.load;bucketG.children.forEach(o=>{if(o!==ld&&o!==AR.ham)o.visible=!wantH});AR.ham.visible=wantH}
   if(AR.ham&&wantH){AR.ham.scale.x=1/(bucketG.scale.x||1);AR.ham.userData.chs.position.y=(ptr.down&&running)?Math.abs(Math.sin(t*.05))*.13:0}
   // hammering: time-based so holding still keeps breaking
