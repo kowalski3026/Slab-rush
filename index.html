@@ -10561,7 +10561,7 @@ function placeExcavator(){applyExSize();try{buildSiteBlk()}catch(e){siteBlk=[]}c
   const ph=!!c.photo,sp=ph?[exPark[0]+out[0]/ol*8*EXS+sx*3.5*EXS,exPark[1]+out[1]/ol*8*EXS+sz*3.5*EXS]:[exPark[0]+sx*7*EXS+out[0]/ol*1.5,exPark[1]+sz*7*EXS+out[1]/ol*1.5],gp=ph?[exPark[0]+out[0]/ol*8*EXS-sx*3.5*EXS,exPark[1]+out[1]/ol*8*EXS-sz*3.5*EXS]:[exPark[0]-sx*7*EXS+out[0]/ol*1.5,exPark[1]-sz*7*EXS+out[1]/ol*1.5];
   {const r=3.2*(.75+.25*EXS),s2=pileSpot(sp,r,null),g2=pileSpot(gp,r*1.25,s2);spoilPile.position.set(s2[0],-.3,s2[1]);gravPile.position.set(g2[0],-.3,g2[1])}
   if(!boomG.userData.decal){const kz=XC.L1*.46,ky=1.05,an=Math.atan2(ky,kz);[1,-1].forEach(sd=>{const d=new THREE.Mesh(new THREE.PlaneGeometry(2.55,.85),boomDecalM);d.position.set(sd*.32,ky/2,kz/2);d.rotation.set(-an*1,sd*Math.PI/2,0,'XYZ');boomG.add(d)});boomG.userData.decal=true}
-  exPose(0,0,true);if(typeof dumpT!=='undefined')dumpT.userData.home=null}
+  exPose(0,0,true);if(typeof dumpT!=='undefined'&&!dumpT.userData.hauling)dumpT.userData.home=null}
 // solve and lay out the arm for a bucket-tip target in world space
 function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=tx-exPos[0],dz=tz-exPos[1],r=Math.max((dx*fx+dz*fz)/EXS,Math.hypot(dx,dz)/EXS*.92),/* v229: reach by distance, not along the current heading: mid-swing the target sat behind the cab and the arm reached back over it, straight up */y=(ty-exY)/EXS-XC.HY;
   const s=XC.BR*2+.05,nn=-.45,tr=s*Math.cos(a3)-nn*Math.sin(a3),tyo=s*Math.sin(a3)+nn*Math.cos(a3);
@@ -11824,7 +11824,7 @@ function updateDump(dt){const k=STAGES[stage]&&STAGES[stage].key,on=isPrep()&&(k
   if(u.phase==='park'&&u.home.cx!=null&&dumpDig(u.home.cx,u.home.cz,u.home.ry,u)){const ld=u.load;dumpPlace();u.load=ld}
   const H=u.home,f=Math.min(1,u.load/u.cap);u.fill.visible=f>.01;u.fill.scale.y=Math.max(.01,Math.min(1,f/.8)*u.bh*.95);u.fill.position.y=u.by+u.fill.scale.y/2;
   u.heap.visible=f>.8;u.heap.scale.y=Math.max(.01,(f-.8)/.35*1.8);
-  let off=0;if(u.phase==='in'){u.t=Math.max(0,u.t-dt*.35);off=u.t*26;if(u.t<=0)u.phase='park'}else if(u.phase==='out'){u.t+=dt*.3;off=-u.t*40;if(u.t>=1.2){u.phase='in';u.t=1;u.load=0;u.hauling=0}}
+  let off=0;if(u.phase==='in'){u.t=Math.max(0,u.t-dt*.35);off=u.t*26;if(u.t<=0)u.phase='park'}else if(u.phase==='out'){u.t+=dt*.3;off=-u.t*40;if(u.t>=1.2){u.phase='in';u.t=1;u.load=0;u.hauling=0;u.home=null}}
   dumpT.position.set(H.x+Math.sin(H.ry)*off,-.3,H.z+Math.cos(H.ry)*off);dumpT.rotation.y=H.ry}
 function updateCab(dt,t,k){const grav=k==='gravel',L=cab.js[0],R=cab.js[1],cap=cabCap(),rk=RPMS[cabRpm].k;
   if(!cab.init){cab.init=true;exHY=Math.atan2(RCX-exPos[0],RCZ-exPos[1]);exPose(0,t);cab.a1=-boomG.rotation.x;cab.a2=-stickG.rotation.x;cab.a3=-bucketG.rotation.x;if(cab.a1>.9)cab.a1=.6}
