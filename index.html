@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v333"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v334"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v334: piles are a smooth parabolic dome; excavator boom foot moved onto the photo body front (1.5 not 2.05) -->
 <!-- v333: spoil/gravel piles use polar equidistant UVs (no apex smear), finer lumpier mesh -->
 <!-- v332: photo sites park the excavator and piles at the pad sides (not on the photo truck); grey gravel; retry rebuilds the photo layer so the dug pit shows -->
 <!-- v331: gravel drill: more stone on the truck, finishes at 99% or 95% with an empty pile; gravel mixes two stone sizes in random patches, bigger stones, softer normal map -->
@@ -10404,12 +10405,14 @@ const rams=[mkRam(.2,2.6,XC.BX),mkRam(.17,2.4,XC.BX),mkRam(.14,2,XC.BX)];
 function ramSet(R,A,B){const dz=B[0]-A[0],dy=B[1]-A[1],L=Math.max(.3,Math.hypot(dz,dy)),a=Math.atan2(dy,dz),c=Math.cos(a),s=Math.sin(a),bl=Math.min(L*.7,R.bl),rl=Math.max(.2,L-bl*.8);
   R.b.position.set(R.x,A[1]+s*bl/2,A[0]+c*bl/2);R.b.rotation.x=-a;R.b.scale.z=bl;R.rd.position.set(R.x,B[1]-s*rl/2,B[0]-c*rl/2);R.rd.rotation.x=-a;R.rd.scale.z=rl}
 exG.add(exUnder,exHouse);exG.visible=false;scene.add(exG);
-const pileGeo=(()=>{const g=new THREE.SphereGeometry(1,48,20,0,Math.PI*2,0,Math.PI/2),p=g.attributes&&g.attributes.position,uv=g.attributes&&g.attributes.uv;
-  /* v333: piles were smeared because sphere UVs pinch at the apex (radial stretch). Polar equidistant UVs (distance from apex = arc length) keep stone size even from peak to toe; lumpier cone-ish silhouette like a real dumped pile */
-  if(p&&p.count&&p.getX)for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),a=Math.atan2(z,x),ph=Math.acos(Math.min(1,Math.max(0,y)));
-    const n=1+.08*Math.sin(a*3+1.3)+.05*Math.sin(a*7)+.03*Math.sin(a*13+.4)+.04*Math.sin(y*9+a*2),cone=Math.pow(Math.max(0,y),.82)*.12+y*.0;
-    p.setXYZ&&p.setXYZ(i,x*n*(1+.06*y),(y*(.95+.1*Math.sin(a*5))-cone*.0)*(1-.1*y*y),z*n*(1+.06*y));
-    if(uv&&uv.setXY){const k=.55;uv.setXY(i,.5+Math.cos(a)*ph*k*(2/3),.5+Math.sin(a)*ph*k)}}
+const pileGeo=(()=>{/* v334: a dumped pile is a smooth dome: parabola profile, one apex vertex (no pinwheel), outline wobble only, never a dent */
+  const NR=26,NS=64,pos=[0,1,0],uvs=[.5,.5],idx=[];
+  for(let i=1;i<=NR;i++){const r=i/NR;for(let j=0;j<NS;j++){const a=j/NS*Math.PI*2,w=1+.05*Math.sin(a*2+.7)+.035*Math.sin(a*3+2.1)+.02*Math.sin(a*5+.3),rr=Math.min(1,r*w),h=Math.max(0,1-rr*rr)*(1+.015*Math.sin(a*4+r*3));
+    const x=rr*Math.cos(a),z=rr*Math.sin(a);pos.push(x,h,z);uvs.push(.5+x*.5*(2/3),.5+z*.5)}}
+  const V=(i,j)=>1+(i-1)*NS+(j%NS);
+  for(let j=0;j<NS;j++)idx.push(0,V(1,j+1),V(1,j));
+  for(let i=1;i<NR;i++)for(let j=0;j<NS;j++){const a=V(i,j),b=V(i,j+1),c=V(i+1,j),d=V(i+1,j+1);idx.push(a,b,c,b,d,c)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.setIndex(idx);
   try{g.computeVertexNormals()}catch(e){}return g})();
 const spoilPile=new THREE.Mesh(pileGeo,pileDirtM),gravPile=new THREE.Mesh(pileGeo,gravPileM);[spoilPile,gravPile].forEach(m=>{m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m)});
 // falling dirt and stone off the bucket
@@ -10465,7 +10468,7 @@ function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=t
   const P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)];
   boomG.position.set(XC.BX,P0[1],P0[0]);boomG.rotation.x=-a1;stickG.position.set(XC.BX,E[1],E[0]);stickG.rotation.x=-a2;bucketG.position.set(XC.BX,P[1],P[0]);bucketG.rotation.x=-a3;
   const at=(O,a,s2,n2)=>[O[0]+s2*Math.cos(a)-n2*Math.sin(a),O[1]+s2*Math.sin(a)+n2*Math.cos(a)];
-  ramSet(rams[0],[2.55,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
+  ramSet(rams[0],[P0[0]+.5,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
   const tip=at(P,a3,s,nn);return[exPos[0]+(fx*tip[0]+Math.cos(hy)*XC.BX)*EXS,exY+(XC.HY+tip[1])*EXS,exPos[1]+(fz*tip[0]-Math.sin(hy)*XC.BX)*EXS]}
 function exPose(dt,t,snap){exG.position.set(exPos[0],exY=exGround(),exPos[1]);exUnder.rotation.y=exTY;exHouse.rotation.y=exHY;
   if(!exT){const f=[Math.sin(exHY),Math.cos(exHY)];exT=[exPos[0]+f[0]*7.5*EXS,.6,exPos[1]+f[1]*7.5*EXS]}
@@ -11181,7 +11184,7 @@ function exPLoad(){if(EXP.tried||!THREE.GLTFLoader)return;EXP.tried=true;new THR
     const keep=new Set([boomG,stickG,bucketG,exOp]);rams.forEach(r=>{keep.add(r.b);keep.add(r.rd)});
     exHouse.children.forEach(o=>{if(keep.has(o))return;if(o.isMesh&&o.material===kDecalM&&kDecalM){o.position.set(0,(-.09-yb)*k-XC.HY,-(hx-cx)*k-.04);return}EXP.procH.push(o)});
     EXP.procU=exUnder.children.slice();exHouse.add(EXP.wh);exUnder.add(EXP.wu);EXP.on=false}catch(e){EXP.err=String(e);console.warn('excavator glb',e)}},undefined,e=>{EXP.err=String(e&&e.message||e);console.warn('excavator glb',e)})}
-function exPTick(){if(!exG.visible&&!EXP.wh)return;exPLoad();if(!EXP.wh)return;const use=!(cabOn&&cabPov==='cab');if(use===EXP.on)return;EXP.on=use;
+function exPTick(){if(!exG.visible&&!EXP.wh)return;exPLoad();if(!EXP.wh)return;const use=!(cabOn&&cabPov==='cab');if(use===EXP.on)return;EXP.on=use;XC.P0[0]=use?1.5:2.05;/* v334: photo body's front face is at z~1.73; the coded foot at 2.05 hung 0.3 in front of it */
   EXP.wh.visible=EXP.wu.visible=use;EXP.procH.forEach(o=>o.visible=!use);EXP.procU.forEach(o=>o.visible=!use)}
 // v95: an operator sits in the excavator cab, hands on the levers (hidden when the camera is the cab itself)
 const exOp=makeWorker(0xf26a1b,0xf2b23a);{const u=exOp.userData;exHouse.add(exOp);exOp.visible=true;exOp.scale.setScalar(.78);exOp.position.set(1.15,-.28,.12);
@@ -11600,7 +11603,7 @@ function surfAt(X,Z,grav){const i=cellAt(X,Z);if(i<0||i>=N||!PM[i])return -.3;re
 function exFK(a1,a2,a3){const P0=XC.P0,L1=XC.L1,L2=XC.L2,E=[P0[0]+L1*Math.cos(a1),P0[1]+L1*Math.sin(a1)],P=[E[0]+L2*Math.cos(a2),E[1]+L2*Math.sin(a2)];
   boomG.position.set(XC.BX,P0[1],P0[0]);boomG.rotation.x=-a1;stickG.position.set(XC.BX,E[1],E[0]);stickG.rotation.x=-a2;bucketG.position.set(XC.BX,P[1],P[0]);bucketG.rotation.x=-a3;
   const at=(O,a,s2,n2)=>[O[0]+s2*Math.cos(a)-n2*Math.sin(a),O[1]+s2*Math.sin(a)+n2*Math.cos(a)];
-  ramSet(rams[0],[2.55,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
+  ramSet(rams[0],[P0[0]+.5,.5],at(P0,a1,XC.R0[0],XC.R0[1]));ramSet(rams[1],at(P0,a1,XC.R1[0],XC.R1[1]),at(E,a2,-.75,.62));ramSet(rams[2],at(E,a2,.35,.5),at(P,a3,-.1,.55));
   const s=XC.BR*2+.05,tip=at(P,a3,s,-.45),hy=exHY;return[exPos[0]+(Math.sin(hy)*tip[0]+Math.cos(hy)*XC.BX)*EXS,exY+(XC.HY+tip[1])*EXS,exPos[1]+(Math.cos(hy)*tip[0]-Math.sin(hy)*XC.BX)*EXS]}
 // points along the boom and stick in world space (for the ground check)
 let exLift=0,exUpT=0;
