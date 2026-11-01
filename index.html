@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v348"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v349"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v349: wet daylight glare toned down (glare .8->.3, env sky reflection 1.1->.45, clearcoat 1->.7, broad lobe halved) so fresh concrete stays grey and textured. -->
 <!-- v348: hammer step removed. Asphalt is soft: the bucket alone crumbles and pops the leading edge as it scoops. -->
 <!-- v347: asphalt jobs get a Break up step (hammer on the excavator) before Strip. Real rubble slabs lift and tilt, the bucket scoops them into the truck, the truck hauls off loaded, dust + exhaust + camera rumble. -->
 <!-- v346: saw-cut step removed (the pad edge is against dirt, nothing to saw); stripped asphalt gets the same brown dirt colour as the dug pit -->
@@ -2632,7 +2633,7 @@ function todEnv(w){if(!TOD.sky&&!TOD.cn)return w;const c=Object.assign({},w);['s
    out because the game's own sun does direct light and shadows, sky normalised to mean 1). It is turned every frame so the
    bright side of the sky sits behind the game's sun. Night and battery saver keep the painted env (and the work-light shine). */
 /* daytime wet sheen: clearcoat strength, extra sky reflection while wet, glossier film (night keeps its own numbers) */
-const WETD={cc:1,env:1.1,r:.03,rmin:.035,glare:.8};
+const WETD={cc:.7,env:.45,r:.03,rmin:.05,glare:.3};
 const SKYU={day:.6001,morning:.5991,golden:.6001,overcast:.6001},SKY={key:null,want:null,az:0,cache:{},k:.4,hk:.6};
 function skyKey(w){if(!renderer||safeGfx||w.night)return null;const b=w.base||w;if(TOD.arc)return skyHour(DAY.h);
   return TOD===TODS.golden?'golden':TOD===TODS.morning?'morning':(TOD===TODS.overcast||b===WEATHER.cold)?'overcast':'day'}
@@ -4228,7 +4229,7 @@ if(gGlK>0.){vec3 vd=normalize(vViewPosition),nn=normalize(normal),rv=reflect(-vd
  // v244: the real scene in the wet slab (planar reflection, rendered small every other frame while it's wet)
  if(gRK>0.){vec4 rp=gRM*vec4(vRW,1.);vec2 ru=rp.xy/max(rp.w,1e-4);vec3 wn=normalize((vec4(nn,0.)*viewMatrix).xyz);ru+=wn.xz*.035;
   if(ru.x>0.&&ru.x<1.&&ru.y>0.&&ru.y<1.){vec3 rc=texture2D(gRT,ru).rgb;float ek=smoothstep(0.,.04,min(min(ru.x,1.-ru.x),min(ru.y,1.-ru.y)));rs=mix(rs,rc,gRK*ek);}}
- outgoingLight+=gGlK*material.clearcoat*(rs*fr*(.45+hz*.75)+gGlCol*(pow(sp,90.)*1.2+pow(sp,900.)*5.));}
+ outgoingLight+=gGlK*material.clearcoat*(rs*fr*(.45+hz*.75)+gGlCol*(pow(sp,90.)*.6+pow(sp,900.)*3.));}
 #endif
 #include <opaque_fragment>`);
   if(!SLABD.on&&!GPS.on)return;
