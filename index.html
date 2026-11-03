@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v351"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v352"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v352: stylized-real test on the Lakeside pool deck: no photo backdrop; real 3D yard with one look (bevelled travertine coping, water you see into with tile, caustics and ripples, teak loungers, umbrella, planters, hedge, mulch bed, board-on-board cedar fence, mowing stripes, calmer grade, no sprite tufts). -->
 <!-- v351: the pit walls only show from Excavate on, so the lawn is not sunken during Lay out. -->
 <!-- v350: photo-backdrop jobs: the dirt pit mesh no longer shows through the photo lawn during Lay out (it only appears once you dig). -->
 <!-- v349: wet daylight glare toned down (glare .8->.3, env sky reflection 1.1->.45, clearcoat 1->.7, broad lobe halved) so fresh concrete stays grey and textured. -->
@@ -1404,9 +1405,13 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2]},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',look:'sr',paintOff:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2]},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
-   scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
+   scene:()=>{srPool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6],['ac',-21]]);
+     srLounger(18,-9,0);srLounger(22.4,-9,0);srTable(20.2,-11.2);srUmbrella(26,-10.5);srPlanter(7.4,-18.4,.75);srPlanter(14.6,-18.4,.75);shrub(-8,-9,1.2);
+     srBed(-19.5,21,4.8,7,5);shadeTree(-19.5,21,1.05);srHedge(28,-19.4,36.5,-16.6,3.2);shadeTree(46,-6,1);lawn()},
+   post:()=>{const b=SHAPE.reduce((a,p)=>[Math.min(a[0],p[0]),Math.min(a[1],p[1]),Math.max(a[2],p[0]),Math.max(a[3],p[1])],[1e9,1e9,-1e9,-1e9]),L=lotBox||[-30,-20,60,32];
+     srStripes(L[0]-2,-15.5,Math.min(L[2],60),L[3]+1.5,[b[0]-7,b[1]-7,b[2]+7,b[3]+7])},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
    slab:'Pool deck, {A} sq ft, 4 in thick',finish:''},
   {id:'shed',name:'Shed Pad',tag:'10 × 12 ft · steel trowel',shape:rectPoly(-2.08,-5,10,5),steps:['pour','screed','float','edge','trowel','joint'],
@@ -2355,8 +2360,8 @@ function postInit(){if(POST.ok!==null)return POST.ok;POST.ok=false;
       fragmentShader:'uniform sampler2D t;uniform float th;varying vec2 vUv;void main(){vec3 c=min(texture2D(t,vUv).rgb,vec3(8.));float l=dot(c,vec3(.2126,.7152,.0722));gl_FragColor=vec4(c*(max(0.,l-th)/max(l,.001))*.5,1.);}'});
     POST.blur=new THREE.ShaderMaterial({uniforms:{t:{value:null},d:{value:new THREE.Vector2()}},vertexShader:vs,depthTest:false,depthWrite:false,
       fragmentShader:'uniform sampler2D t;uniform vec2 d;varying vec2 vUv;void main(){vec3 c=texture2D(t,vUv).rgb*.227;c+=(texture2D(t,vUv+d*1.385).rgb+texture2D(t,vUv-d*1.385).rgb)*.316;c+=(texture2D(t,vUv+d*3.231).rgb+texture2D(t,vUv-d*3.231).rgb)*.07;gl_FragColor=vec4(c,1.);}'});
-    POST.fin=new THREE.ShaderMaterial({uniforms:{shK:{value:0},px:{value:new THREE.Vector2()},gr:{value:null},grK:{value:0},grC:{value:new THREE.Color(1,.85,.6)},t:{value:null},bl:{value:null},ao:{value:null},aoK:{value:0},ex:{value:1},bs:{value:.2},vg:{value:GFX==='fx'?.12:.2},asp:{value:1}},vertexShader:vs,depthTest:false,depthWrite:false,
-      fragmentShader:`uniform sampler2D t,bl,ao,gr;uniform float ex,bs,vg,asp,aoK,grK,shK;uniform vec3 grC;uniform vec2 px;varying vec2 vUv;
+    POST.fin=new THREE.ShaderMaterial({uniforms:{shK:{value:0},px:{value:new THREE.Vector2()},gr:{value:null},grK:{value:0},grC:{value:new THREE.Color(1,.85,.6)},t:{value:null},bl:{value:null},ao:{value:null},aoK:{value:0},ex:{value:1},bs:{value:.2},vg:{value:GFX==='fx'?.12:.2},asp:{value:1},gS:{value:1.04},gW:{value:0},gL:{value:0}},vertexShader:vs,depthTest:false,depthWrite:false,
+      fragmentShader:`uniform sampler2D t,bl,ao,gr;uniform float ex,bs,vg,asp,aoK,grK,shK,gS,gW,gL;uniform vec3 grC;uniform vec2 px;varying vec2 vUv;
 vec3 rrt(vec3 v){vec3 a=v*(v+.0245786)-.000090537;vec3 b=v*(.983729*v+.4329510)+.238081;return a/b;}
 vec3 aces(vec3 c){const mat3 i=mat3(.59719,.07600,.02840,.35458,.90834,.13383,.04823,.01566,.83777);const mat3 o=mat3(1.60475,-.10208,-.00327,-.53108,1.10813,-.07276,-.07367,-.00605,1.07602);c*=ex/.6;c=i*c;c=rrt(c);c=o*c;return clamp(c,0.,1.);}
 vec3 srgb(vec3 c){return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
@@ -2366,8 +2371,8 @@ void main(){vec3 c=texture2D(t,vUv).rgb;
   vec3 mn=min(c,min(min(a,b),min(d,e))),mx=max(c,max(max(a,b),max(d,e)));vec3 amp=sqrt(clamp(min(mn,2.-mx)/max(mx,1e-3),0.,1.));vec3 w=-amp*shK*.2;
   c=clamp((c+(a+b+d+e)*w)/(1.+4.*w),0.,64.);}
  if(aoK>0.)c*=mix(1.,texture2D(ao,vUv).r,aoK);c+=texture2D(bl,vUv).rgb*bs;if(grK>0.)c+=texture2D(gr,vUv).r*grC*grK;c=aces(c);
- float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,1.04);c*=mix(vec3(.995,1.,1.01),vec3(1.02,1.,.975),smoothstep(.15,.8,l));
- c=srgb(c);c=mix(c,c*c*(3.-2.*c),.12);
+ float l=dot(c,vec3(.2126,.7152,.0722));c=mix(vec3(l),c,gS);c*=vec3(1.+gW,1.+gW*.25,1.-gW);c*=mix(vec3(.995,1.,1.01),vec3(1.02,1.,.975),smoothstep(.15,.8,l));
+ c=srgb(c);c=mix(c,c*c*(3.-2.*c),.12);c=c*(1.-gL)+gL;
  vec2 q=(vUv-.5)*vec2(asp,1.);c*=1.-vg*smoothstep(.35,1.05,length(q)*1.1);
  gl_FragColor=vec4(c,1.);}`});
     if(POST.aoOn){const vp=`uniform sampler2D dT;uniform mat4 pInv;
@@ -2493,7 +2498,7 @@ function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
     if(GRASS.mesh&&GRASS.mesh.parent){const ac=renderer.autoClear,su=renderer.shadowMap.autoUpdate,bg=scene.background,m=camera.layers.mask;
       try{renderer.autoClear=false;renderer.shadowMap.autoUpdate=false;scene.background=null;camera.layers.set(1);renderer.setRenderTarget(POST.main);renderer.render(scene,camera)}
       finally{camera.layers.mask=m;renderer.autoClear=ac;renderer.shadowMap.autoUpdate=su;scene.background=bg}}
-    f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;{const r=renderer.getPixelRatio()/(window.devicePixelRatio||1);f.shK.value=Math.max(0,Math.min(1,(.9-r)/.45));f.px.value.set(1/POST.w,1/POST.h)}pass(POST.fin,null)}
+    f.t.value=POST.main.texture;f.bl.value=POST.a.texture;f.ex.value=renderer.toneMappingExposure;f.gS.value=SRK.gS;f.gW.value=SRK.gW;f.gL.value=SRK.gL;{const r=renderer.getPixelRatio()/(window.devicePixelRatio||1);f.shK.value=Math.max(0,Math.min(1,(.9-r)/.45));f.px.value.set(1/POST.w,1/POST.h)}pass(POST.fin,null)}
   catch(e){console.warn('post failed',e);POST.on=false;renderer.setRenderTarget(null);renderer.toneMapping=TONE;renderer.render(scene,camera)}}
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();glLost=true;glLostT=performance.now();},false);
 cv.addEventListener('webglcontextrestored',()=>{glLost=false;$('glMsg')&&($('glMsg').hidden=true);try{slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;resize()}catch(_){}
@@ -3562,7 +3567,7 @@ const BRGAUTO={demo:()=>{BRG.ch.forEach((c,i)=>{c.gone=1;c.hp=0;c.t=1;brgChunk(i
 // the 400 running under it with traffic, parapets along both sides, rails for the deck finisher.
 
 // v277: lawn dressing seen from far: grass tufts, clover/dandelion flecks and stones scattered over the whole lot
-function lawnDetail(){if(!lawnOn||(LV&&LV.bridge))return;const rnd=(a,b)=>a+Math.random()*(b-a),tmp=new THREE.Object3D(),cx=typeof RCX!=='undefined'?RCX:0,cz=typeof RCZ!=='undefined'?RCZ:0,R=safeGfx?55:95,N=safeGfx?500:1500;
+function lawnDetail(){if(!lawnOn||(LV&&(LV.bridge||LV.look==='sr')))return;const rnd=(a,b)=>a+Math.random()*(b-a),tmp=new THREE.Object3D(),cx=typeof RCX!=='undefined'?RCX:0,cz=typeof RCZ!=='undefined'?RCZ:0,R=safeGfx?55:95,N=safeGfx?500:1500;
   const ok=(x,z)=>!(typeof pointInPoly==='function'&&(pointInPoly(x,z,SHAPE)||nearestOnPoly(x,z)[2]<5))&&!obst.some(o=>!(o[2]-o[0]>250&&o[3]-o[1]>250)&&x>o[0]-1.2&&x<o[2]+1.2&&z>o[1]-1.2&&z<o[3]+1.2);
   if(!lawnDetail.t){const gt=ctex(128,128,(g,w,h)=>{g.clearRect(0,0,w,h);for(let i=0;i<54;i++){const x=rnd(8,w-8),bh=rnd(40,120),lean=rnd(-20,20);g.strokeStyle=`hsl(${rnd(70,100)},${rnd(35,60)}%,${rnd(20,44)}%)`;g.lineWidth=rnd(1.3,3);g.beginPath();g.moveTo(x,h);g.quadraticCurveTo(x+lean*.4,h-bh*.6,x+lean,h-bh);g.stroke()}});gt.wrapS=gt.wrapT=THREE.ClampToEdgeWrapping;lawnDetail.t=gt;
     const fl=ctex(64,64,(g,w,h)=>{g.clearRect(0,0,w,h);for(let i=0;i<7;i++){const x=rnd(8,56),y=rnd(10,50);g.fillStyle=['#f4d02a','#f6f3e8','#d8b020','#e8e4d2'][i%4];g.beginPath();g.arc(x,y,rnd(2,4),0,6.3);g.fill();g.strokeStyle='#4d7a2a';g.lineWidth=1.5;g.beginPath();g.moveTo(x,y);g.lineTo(x,64);g.stroke()}});fl.wrapS=fl.wrapT=THREE.ClampToEdgeWrapping;lawnDetail.f=fl}
@@ -4021,6 +4026,126 @@ function hotTub(x,z){addOb(x-4.5,z-4.5,x+4.5,z+4.5);box(7.4,.5,7.4,new THREE.Mes
   box(7,3,7,new THREE.MeshStandardMaterial({color:0x5b4636,roughness:.7}),x,1.7,z);box(7.2,.35,7.2,new THREE.MeshStandardMaterial({color:0x6b6d70,roughness:.6}),x,3.35,z)}
 function chair(x,z,ry){addOb(x-3.5,z-3.5,x+3.5,z+3.5);const m=new THREE.MeshStandardMaterial({color:0xf0f0ee,roughness:.5});const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry||0;sceneG.add(g);
   box(2.2,.15,6,m,0,.9,0,0,g);const b=box(2.2,.15,2.4,m,0,1.6,-2.6,0,g);b.rotation.x=.9;[[-1,-2.6],[1,-2.6],[-1,2.6],[1,2.6]].forEach(([lx,lz])=>box(.15,1,.15,m,lx,.35,lz,0,g))}
+/* ---------- v352 stylized-real kit (test job: Lakeside pool deck). Real materials and real light on simple, chunky shapes with soft bevelled edges, all in one look. ---------- */
+const SRK={geo:{},U:{pT:{value:0}},gS:1.04,gW:0,gL:0};
+function srRR(s,x0,y0,x1,y1,r){r=Math.min(r,(x1-x0)/2-.001,(y1-y0)/2-.001);s.moveTo(x0+r,y0);s.lineTo(x1-r,y0);s.quadraticCurveTo(x1,y0,x1,y0+r);s.lineTo(x1,y1-r);s.quadraticCurveTo(x1,y1,x1-r,y1);s.lineTo(x0+r,y1);s.quadraticCurveTo(x0,y1,x0,y1-r);s.lineTo(x0,y0+r);s.quadraticCurveTo(x0,y0,x0+r,y0);return s}
+// extrude a footprint drawn in (x, -z) up the Y axis, bottom at y0, height h, edges rounded by bv
+function srExt(shape,h,bv,y0){bv=Math.min(bv,h*.45);const g=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.001,h-2*bv),bevelEnabled:bv>0,bevelThickness:bv,bevelSize:bv*.9,bevelOffset:-bv*.9,bevelSegments:3,curveSegments:8});g.rotateX(-Math.PI/2);g.translate(0,(y0||0)+bv,0);g.computeVertexNormals();return g}
+// rounded box centred on the origin (w along x, h along y, d along z)
+function srBox(w,h,d,r,bv){const k=[w,h,d,r,bv].map(v=>v.toFixed(2)).join();if(SRK.geo[k])return SRK.geo[k];const g=srExt(srRR(new THREE.Shape(),-w/2,-d/2,w/2,d/2,r),h,bv==null?Math.min(.08,h*.3):bv,-h/2);return SRK.geo[k]=g}
+function srMesh(g,m,x,y,z,ry,parent){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;o.castShadow=o.receiveShadow=true;(parent||sceneG).add(o);return o}
+function srTex(w,h,draw,rx,ry){const t=ctex(w,h,draw,rx||1,ry||1);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
+const SRM={};
+function srMats(){if(SRM.ok)return SRM;SRM.ok=1;
+  // warm travertine-look coping: soft blotches and a few pits, no busy noise
+  const cop=srTex(256,256,(g,w,h)=>{g.fillStyle='#d9ccb2';g.fillRect(0,0,w,h);for(let i=0;i<60;i++){const x=Math.random()*w,y=Math.random()*h,r=10+Math.random()*40,gr=g.createRadialGradient(x,y,0,x,y,r);const c=Math.random()<.5?'200,184,156':'232,222,202';gr.addColorStop(0,`rgba(${c},.35)`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r)}
+    for(let i=0;i<70;i++){g.fillStyle=`rgba(150,132,104,${.25+Math.random()*.3})`;g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,1+Math.random()*3,.6+Math.random()*1.2,Math.random()*3,0,6.3);g.fill()}
+    g.strokeStyle='rgba(170,152,120,.6)';g.lineWidth=2;for(let x=0;x<=w;x+=128){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke()}},.5,.5);
+  SRM.cop=new THREE.MeshStandardMaterial({map:cop,roughness:.72});
+  // wood with the grain running up the board (v), one texture width per foot
+  const wood=(base,ry)=>srTex(64,256,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);for(let i=0;i<46;i++){const x=Math.random()*w;g.strokeStyle=`rgba(${Math.random()<.55?'70,42,20':'225,190,140'},${.08+Math.random()*.2})`;g.lineWidth=.6+Math.random()*2;g.beginPath();g.moveTo(x,0);for(let y=0;y<=h;y+=16)g.lineTo(x+Math.sin(y*.03+i)*1.6,y);g.stroke()}
+    for(let i=0;i<3;i++){const x=Math.random()*w,y=Math.random()*h;g.fillStyle='rgba(60,36,18,.35)';g.beginPath();g.ellipse(x,y,2.5,5,0,0,6.3);g.fill()}},1,ry||1);
+  SRM.teak=new THREE.MeshStandardMaterial({color:0xffffff,map:wood('#8f6440',1/3),roughness:.55});
+  SRM.cush=new THREE.MeshStandardMaterial({color:0xece6d8,roughness:.95});
+  SRM.navy=new THREE.MeshStandardMaterial({color:0x2c3e55,roughness:.92});
+  SRM.steel=new THREE.MeshStandardMaterial({color:0xe2e6ea,metalness:1,roughness:.18});
+  SRM.dark=new THREE.MeshStandardMaterial({color:0x2e3236,roughness:.55,metalness:.2});
+  SRM.pot=new THREE.MeshStandardMaterial({color:0x5a5651,roughness:.8});
+  SRM.canvas=new THREE.MeshStandardMaterial({color:0xe9dcc0,roughness:.95,side:THREE.DoubleSide});
+  SRM.cedar=new THREE.MeshStandardMaterial({color:0xffffff,map:wood('#b98058',1/6),roughness:.85});
+  SRM.gate=new THREE.MeshStandardMaterial({color:0xf2d8c0,map:SRM.cedar.map,roughness:.85});
+  SRM.post=new THREE.MeshStandardMaterial({color:0xe8d2bc,map:wood('#a87048',1/6),roughness:.85});
+  SRM.box=new THREE.MeshStandardMaterial({color:0x3f6a32,map:leafTex,roughness:.9});
+  return SRM}
+/* pool: bullnose coping ring in one piece, and water you can see into. The basin is not built: the water shader traces each view ray
+   through a box under the surface (tile band at the waterline, plaster walls, a floor that drops to the deep end, moving caustics,
+   water soaking up red then green with distance) and bends it through the ripples. */
+function srPool(x0,z0,x1,z1){addOb(x0-2,z0-2,x1+2,z1+2);const M=srMats(),W=x1-x0,D=z1-z0;
+  const sh=srRR(new THREE.Shape(),x0-1.15,-(z1+1.15),x1+1.15,-(z0-1.15),.45);sh.holes.push(srRR(new THREE.Path(),x0,-z1,x1,-z0,.35));
+  srMesh(srExt(sh,.33,.07,-.3),M.cop,0,0,0);
+  const U={pB:{value:new THREE.Vector4(x0,z0,x1,z1)},pDep:{value:new THREE.Vector2(3.4,7.5)},pY:{value:-.26},pT:SRK.U.pT};
+  const m=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.04,metalness:0,envMapIntensity:.9});
+  m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,U);
+    sh.vertexShader='varying vec3 vSrW;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvSrW=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader=`varying vec3 vSrW;uniform vec4 pB;uniform vec2 pDep;uniform float pY,pT;
+float srH(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+float srCa(vec2 p,float t){vec2 q=p;float c=0.;for(int i=0;i<3;i++){float f=float(i);q=q*1.55+vec2(sin(q.y*.9+t*.75+f*1.7),cos(q.x*.85-t*.65+f*2.3));c+=1./(1.+7.*abs(sin(q.x)*sin(q.y)));}return c/3.;}
+vec2 srG(vec2 p,float t){vec2 g=vec2(0.);vec2 d;
+ d=vec2(.96,.28);g+=d*cos(dot(p,d)*1.7+t*1.3)*.05;d=vec2(-.42,.91);g+=d*cos(dot(p,d)*2.3-t*1.1)*.04;
+ d=vec2(.7,-.71);g+=d*cos(dot(p,d)*4.1+t*2.2)*.025;d=vec2(-.95,-.3);g+=d*cos(dot(p,d)*6.3-t*2.9)*.018;d=vec2(.2,.98);g+=d*cos(dot(p,d)*9.7+t*3.6)*.01;return g;}
+vec3 srIn(vec3 ro,vec3 rd){float fx=clamp((ro.x-pB.x)/(pB.z-pB.x),0.,1.);
+ float tx=((rd.x>0.?pB.z:pB.x)-ro.x)/(abs(rd.x)>1e-4?rd.x:1e-4),tz=((rd.z>0.?pB.w:pB.y)-ro.z)/(abs(rd.z)>1e-4?rd.z:1e-4);
+ float dy=max(-rd.y,1e-3),dep=mix(pDep.x,pDep.y,smoothstep(.45,.8,fx)),tf=dep/dy;vec3 h0=ro+rd*tf;
+ dep=mix(pDep.x,pDep.y,smoothstep(.45,.8,(h0.x-pB.x)/(pB.z-pB.x)));tf=dep/dy;
+ float t=min(tf,min(tx,tz));vec3 h=ro+rd*t;float d=ro.y-h.y;vec3 c;float ao=1.;
+ if(t>=tf-1e-4){vec2 e=min(h.xz-pB.xy,pB.zw-h.xz);ao=.55+.45*smoothstep(0.,2.2,min(e.x,e.y));c=vec3(.66,.84,.9);
+   float st=(h.x-pB.x);if(st<4.2)c=mix(c,vec3(.93,.97,.98),step(fract(st/1.4),.08)*.8);}
+ else{vec2 w=t>=tx-1e-4?vec2(h.z,d):vec2(h.x,d);ao=.7+.3*smoothstep(0.,1.5,dep-d);
+   if(d<.62){vec2 cell=floor(w/vec2(.5,.31)),g=fract(w/vec2(.5,.31));float gl=step(.07,g.x)*step(.09,g.y);c=mix(vec3(.62,.66,.68),mix(vec3(.10,.27,.46),vec3(.15,.36,.56),srH(cell)),gl);}
+   else c=vec3(.64,.82,.89);}
+ float cs=srCa(h.xz*.6+rd.xz*.0,pT);c+=vec3(.85,1.,1.)*pow(cs,2.4)*.45*smoothstep(.2,1.5,d);
+ c*=ao;c*=exp(-t*vec3(.34,.085,.05));return c;}
+`+sh.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+ vec2 srg=srG(vSrW.xz,pT);vec3 srNW=normalize(vec3(-srg.x,1.,-srg.y));vec3 srV=normalize(vSrW-cameraPosition);
+ vec3 srR=refract(srV,srNW,.75);diffuseColor.rgb=srIn(vec3(vSrW.x,pY,vSrW.z),srR);
+ float srFr=pow(1.-max(dot(-srV,srNW),0.),4.);diffuseColor.rgb*=1.-srFr*.6;`).replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n normal=normalize((viewMatrix*vec4(srNW,0.)).xyz);')};
+  m.customProgramCacheKey=()=>'srpool1';
+  const g=new THREE.PlaneGeometry(W+.2,D+.2);g.rotateX(-Math.PI/2);const wm=new THREE.Mesh(g,m);wm.position.set((x0+x1)/2,-.26,(z0+z1)/2);wm.receiveShadow=true;sceneG.add(wm);
+  wm.onBeforeRender=()=>{SRK.U.pT.value=performance.now()/1000%1000};
+  // stainless ladder at the deep end, anchored in the deck and arching over the coping
+  [0,1.7].forEach(o=>{const x=x1-3.4+o,c=new THREE.CatmullRomCurve3([new THREE.Vector3(x,.05,z1+2.1),new THREE.Vector3(x,1.9,z1+1.7),new THREE.Vector3(x,2.35,z1+.6),new THREE.Vector3(x,1.6,z1-.35),new THREE.Vector3(x,-.27,z1-.55)]);
+    srMesh(new THREE.TubeGeometry(c,24,.075,8,false),M.steel,0,0,0)});
+}
+function srLounger(x,z,ry,ck){const M=srMats(),cush=M[ck||'cush'],g=new THREE.Group();g.position.set(x,-.3,z);g.rotation.y=ry||0;sceneG.add(g);addOb(x-2,z-3.6,x+2,z+3.6);
+  srMesh(srBox(2.3,.22,6.4,.12,.05),M.teak,0,1.05,.3,0,g);[[-1,-2.6],[1,-2.6],[-1,3.2],[1,3.2]].forEach(([a,b])=>srMesh(srBox(.22,.95,.22,.06,.04),M.teak,a,.5,b,0,g));
+  srMesh(srBox(2.1,.32,4.1,.18,.1),cush,0,1.32,1.4,0,g);srMesh(srBox(2.1,.3,2.4,.18,.1),cush,0,1.95,-1.5,0,g).rotation.x=.85;
+  srMesh(srBox(2.3,.18,2.5,.1,.05),M.teak,0,1.79,-1.68,0,g).rotation.x=.85;srMesh(srBox(1.9,.3,.7,.15,.1),M.navy,0,2.68,-1.88,0,g).rotation.x=.85;return g}
+function srUmbrella(x,z){const M=srMats(),g=new THREE.Group();g.position.set(x,-.3,z);sceneG.add(g);addOb(x-1,z-1,x+1,z+1);
+  srMesh(new THREE.CylinderGeometry(.9,1,.35,24),M.dark,0,.18,0,0,g);srMesh(new THREE.CylinderGeometry(.07,.07,8.4,10),M.teak,0,4.3,0,0,g);
+  const can=srMesh(new THREE.ConeGeometry(5,1.5,8,1,true),M.canvas,0,8.1,0,Math.PI/8,g);can.receiveShadow=false;
+  const val=srMesh(new THREE.CylinderGeometry(5,5,.45,8,1,true),M.canvas,0,7.15,0,Math.PI/8,g);val.receiveShadow=false;
+  srMesh(new THREE.SphereGeometry(.16,10,8),M.teak,0,8.95,0,0,g);return g}
+function srTable(x,z){const M=srMats();srMesh(new THREE.CylinderGeometry(.85,.85,.12,28),M.teak,x,1.6,z);srMesh(new THREE.CylinderGeometry(.09,.09,1.6,8),M.dark,x,.8,z);srMesh(new THREE.CylinderGeometry(.6,.7,.12,20),M.dark,x,-.24,z);addOb(x-1,z-1,x+1,z+1)}
+function srPlanter(x,z,s){const M=srMats();s=s||1;srMesh(new THREE.CylinderGeometry(1.05*s,.75*s,1.9*s,20),M.pot,x,.95*s-.3,z);srMesh(new THREE.CylinderGeometry(.98*s,.98*s,.05,20),mulchM,x,1.8*s-.3,z);
+  const b=srMesh(leafGeo(1),M.box,x,2.55*s-.3,z);b.scale.setScalar(1.05*s);addOb(x-1.2*s,z-1.2*s,x+1.2*s,z+1.2*s)}
+// clipped boxwood hedge: a soft-edged block with a leafy texture
+function srHedge(x0,z0,x1,z1,h){const M=srMats(),w=x1-x0,d=z1-z0,gm=srBox(w,h,d,Math.min(w,d)*.45,.35),m=M.box.clone();m.map=leafTex.clone();m.map.wrapS=m.map.wrapT=THREE.RepeatWrapping;m.map.repeat.set(.6,.6);m.map.needsUpdate=true;srMesh(gm,m,(x0+x1)/2,h/2-.3,(z0+z1)/2);addOb(x0,z0,x1,z1)}
+// curved garden bed: mulch, a steel edge, shrubs
+function srBed(cx,cz,rx,rz,n){const pts=[];for(let i=0;i<40;i++){const a=i/40*6.283,r=1+.12*Math.sin(a*3+1)+.06*Math.sin(a*5);pts.push(new THREE.Vector2(cx+Math.cos(a)*rx*r,-(cz+Math.sin(a)*rz*r)))}
+  const s=new THREE.Shape(pts),g=new THREE.ShapeGeometry(s,2);g.rotateX(-Math.PI/2);const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)/4,uv.getY(i)/4);
+  const mm=mulchM.clone();if(mm.map){mm.map=mm.map.clone();mm.map.wrapS=mm.map.wrapT=THREE.RepeatWrapping;mm.map.repeat.set(1,1);mm.map.needsUpdate=true}const b=new THREE.Mesh(g,mm);b.position.y=-.27;b.receiveShadow=true;sceneG.add(b);
+  const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p.x,-.24,-p.y)),true);srMesh(new THREE.TubeGeometry(c,80,.05,4,true),srMats().dark,0,0,0);
+  addOb(cx-rx,cz-rz,cx+rx,cz+rz);for(let i=0;i<n;i++){const a=i/n*6.283+.4,r=i%2?.45:.05;shrub(cx+Math.cos(a)*rx*r,cz+Math.sin(a)*rz*r,.9+Math.random()*.4)}}
+/* cedar privacy fence, board-on-board on posts with caps. It opens up (a pair of gate leaves swung out) wherever a parked machine or
+   truck sits across its line, so it is built after the trucks are placed. */
+function srFence(ax,az,bx,bz,out,gate){const M=srMats(),H=6,L=Math.hypot(bx-ax,bz-az),ux=(bx-ax)/L,uz=(bz-az)/L,ry=Math.atan2(-uz,ux),nx=-uz,nz=ux;
+  const blk=s=>{const x=ax+ux*s,z=az+uz*s;return obst.some(o=>!o.gnd&&!o.fence&&o[2]-o[0]<45&&o[3]-o[1]<45&&x>o[0]-1.5&&x<o[2]+1.5&&z>o[1]-1.5&&z<o[3]+1.5)};
+  const bw=.46,n=Math.floor(L/bw),open=[];for(let i=0;i<n;i++){const s=(i+.5)*bw;open.push(blk(s)||!!(gate&&s>gate[0]&&s<gate[1]))}
+  const bg=srBox(.5,H,.07,.02,.015),im=new THREE.InstancedMesh(bg,M.cedar,n),d=new THREE.Object3D(),col=new THREE.Color();let k=0;
+  for(let i=0;i<n;i++){if(open[i])continue;const s=(i+.5)*bw,o=(i%2?.05:-.05);d.position.set(ax+ux*s+nx*o,H/2-.2,az+uz*s+nz*o);d.rotation.set(0,ry,0);d.updateMatrix();im.setMatrixAt(k,d.matrix);
+    const v=.82+Math.random()*.22;col.setRGB(v*1.02,v*.86,v*.72);im.setColorAt(k,col);k++}
+  im.count=k;im.castShadow=im.receiveShadow=true;sceneG.add(im);
+  // posts, caps and the top rail run in the closed stretches only
+  let s0=null;const runs=[];for(let i=0;i<=n;i++){const c=i<n&&!open[i];if(c&&s0==null)s0=i;if(!c&&s0!=null){runs.push([s0*bw,i*bw]);s0=null}}
+  for(const [a,b] of runs){const len=b-a,cx=ax+ux*(a+b)/2,cz=az+uz*(a+b)/2;srMesh(srBox(len,.18,.42,.05,.04),M.post,cx,H-.1,cz,ry);
+    const np=Math.max(1,Math.round(len/8));for(let p=0;p<=np;p++){const s=a+len*p/np,x=ax+ux*s,z=az+uz*s;srMesh(srBox(.42,H+.2,.42,.06,.05),M.post,x,H/2-.3,z,ry);srMesh(srBox(.6,.14,.6,.08,.05),M.post,x,H-.1+.2,z,ry)}}
+  // gate leaves, swung open to the outside, at each opening wide enough for a truck
+  for(let r=0;r<runs.length-1;r++){const g0=runs[r][1],g1=runs[r+1][0];if(g1-g0<6||g1-g0>24)continue;const lw=Math.min(6,(g1-g0)/2);
+    [[g0,1],[g1,-1]].forEach(([s,dir])=>{const hx=ax+ux*s,hz=az+uz*s,a=ry+dir*(Math.PI/2+.25)*(out||1),gg=new THREE.Group();gg.position.set(hx,0,hz);gg.rotation.y=a;sceneG.add(gg);
+      for(let b=0;b<Math.floor(lw/bw);b++)srMesh(bg,M.gate,dir*(b+.5)*bw,H/2-.25,0,0,gg);srMesh(srBox(lw,.25,.12,.04,.03),M.post,dir*lw/2,1,.08,0,gg);srMesh(srBox(lw,.25,.12,.04,.03),M.post,dir*lw/2,H-1,.08,0,gg)})}
+  addOb(Math.min(ax,bx)-.3,Math.min(az,bz)-.3,Math.max(ax,bx)+.3,Math.max(az,bz)+.3);obst[obst.length-1].fence=1}
+/* mowed lawn: soft light and dark bands, faded out at the edges, with a hole round the work so it never covers the dig or the pour */
+function srStripes(x0,z0,x1,z1,hole){const s=new THREE.Shape();s.moveTo(x0,-z0);s.lineTo(x1,-z0);s.lineTo(x1,-z1);s.lineTo(x0,-z1);s.lineTo(x0,-z0);
+  if(hole){const h=new THREE.Path();srRR(h,hole[0],-hole[3],hole[2],-hole[1],3);s.holes.push(h)}
+  const g=new THREE.ShapeGeometry(s,4);g.rotateX(-Math.PI/2);const p=g.attributes.position,uv=g.attributes.uv,u1=new Float32Array(p.count*2);
+  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);uv.setXY(i,x/7,z/7);u1[i*2]=(x-x0)/(x1-x0);u1[i*2+1]=(z-z0)/(z1-z0)}g.setAttribute('uv1',new THREE.BufferAttribute(u1,2));
+  const st=srTex(64,8,(c,w,h)=>{for(let x=0;x<w;x++){const v=Math.cos(x/w*6.2832),k=Math.sign(v)*Math.pow(Math.abs(v),.6);c.fillStyle=k>0?`rgba(200,232,140,${(k*.13).toFixed(3)})`:`rgba(24,56,14,${(-k*.15).toFixed(3)})`;c.fillRect(x,0,1,h)}});
+  const fa=ctex(128,128,(c,w,h)=>{c.fillStyle='#000';c.fillRect(0,0,w,h);const gr=c.createRadialGradient(w/2,h/2,w*.18,w/2,h/2,w*.52);gr.addColorStop(0,'#fff');gr.addColorStop(1,'#000');c.fillStyle=gr;c.fillRect(0,0,w,h)});fa.channel=1;
+  const m=new THREE.MeshStandardMaterial({map:st,alphaMap:fa,transparent:true,depthWrite:false,roughness:1,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const o=new THREE.Mesh(g,m);o.position.y=-.296;o.receiveShadow=true;o.renderOrder=-5;o.raycast=()=>{};sceneG.add(o);return o}
+// per-job colour grade (Sharp/FX finishing filter and the plain tone curve), back to the house look on every other job
+function srLook(L){const sr=L&&L.look==='sr';SRK.gS=sr?.97:1.04;SRK.gW=sr?.03:0;SRK.gL=sr?.018:0;
+  const want=sr?{sat:1.06,con:.2,warm:.09,lift:.015}:{sat:1.2,con:.25,warm:.06,lift:0};if(want.sat!==GRADE.sat||want.lift!==GRADE.lift)setGrade(want)}
 const lineM=layerM(new THREE.MeshStandardMaterial({color:0xd9b23a,roughness:.8}),1);
 function street(x){addOb(x-31,-60,x+5.6,60);obst[obst.length-1].gnd=1;flatP(30,200,asphaltM,x-15,-.29,0,6);box(.6,.5,200,foundM,x,-.1,0);flatP(5,200,oldConcM,x+2.9,-.293,0,5);flatP(.35,200,lineM,x-15,-.284,0);setTrees(x);
   const pm=new THREE.MeshStandardMaterial({color:0x2a2a2a,roughness:.6});box(.25,3.8,.25,pm,x+1.4,1.6,-9);box(1,1,1.8,new THREE.MeshStandardMaterial({color:0x1d3b5a,roughness:.5,metalness:.3}),x+1.4,3.6,-9)}
@@ -7111,7 +7236,7 @@ function applyLevel(L){
   TXN=Math.ceil(RW/2-.01);TZN=Math.ceil(RD/2-.01);stampQ=new Float32Array(TXN*TZN);stampHits=new Uint8Array(TXN*TZN);
   {const cnt=new Uint8Array(TXN*TZN);for(let i=0;i<N;i++){if(!inR[i])continue;const ti=Math.floor((wx(i%GW+.5)-wx(RX0))/2),tj=Math.floor((wz(((i/GW)|0)+.5)-wz(RY0))/2);if(ti>=0&&tj>=0&&ti<TXN&&tj<TZN)cnt[tj*TXN+ti]++}
    tileOk=cnt.map(c=>c>=1?1:0)}
-  buildSite();drawEdgeAO();clearScene();houseLog=[];lotBox=null;if(L.scene)L.scene();placeTruck.L=L;placeTruck(L.truck);placePump();try{sceneExtras()}catch(e){}try{terrTrees()}catch(e){}try{lawnDetail()}catch(e){console.warn('lawnDetail',e)}try{aniso(sceneG);aniso(ground)}catch(e){}try{terrApply()}catch(e){console.warn('terr',e)}try{grassBuild()}catch(e){console.warn('grass',e)}sunFlip=L.sunFlip?-1:1;
+  buildSite();drawEdgeAO();clearScene();houseLog=[];lotBox=null;if(L.scene)L.scene();placeTruck.L=L;placeTruck(L.truck);placePump();try{sceneExtras()}catch(e){}try{if(L.post)L.post()}catch(e){console.warn('post',e)}try{srLook(L)}catch(e){console.warn('srLook',e)}try{terrTrees()}catch(e){}try{lawnDetail()}catch(e){console.warn('lawnDetail',e)}try{aniso(sceneG);aniso(ground)}catch(e){}try{terrApply()}catch(e){console.warn('terr',e)}try{grassBuild()}catch(e){console.warn('grass',e)}sunFlip=L.sunFlip?-1:1;
   const fz=wz(RY1)+.32;tape.position.set(0,.035+ELV(),fz);slab.position.y=siteG.position.y=ELV();plane.constant=-(.04+ELV());tapeCase.position.set(SLAB_W/2+.45,.1,fz);
   board.scale.z=RD+1.6;guide.scale.z=RD;guide.position.z=RCZ;scrSetup();
 }
@@ -9700,7 +9825,7 @@ function lampPost(x,z){const m=new THREE.MeshStandardMaterial({color:0x2d3033,ro
 // far houses don't cast shadows: nobody sees them, and each one is dozens of meshes
 function farHouse(cx,cz,len,dir,opts){const items=[['door',-len*.18],['win',-len*.38],['win',len*.12],['win',len*.36],['light',-len*.18+3.6]];
   if(Math.random()<.6)items.push(['garage',len*.2,9]);const g=house(cx,cz,len,dir,items,Object.assign({chimney:Math.random()<.4?len*.3:undefined},opts||{}));g.traverse(o=>{if(o.isMesh)o.castShadow=false});return g}
-function fenceRun(ax,az,bx,bz){fence(ax,az,bx,bz,5.6)}
+function fenceRun(ax,az,bx,bz){if(LV&&LV.look==='sr')return srFence(ax,az,bx,bz,1);fence(ax,az,bx,bz,5.6)}
 function neighbourhood(){
   const skipIds=/^(downtown|night|sidewalk|curb|retain|foundation|garage|warehouse|lane|coastpatio|marina|gastown|ruelle|vieuxqc|cabane|binpad|shopapron|acreage|wharf|lighthouse|ntwalk|jellybean|plexsteps|cottage|firehall|bridge|seawall|atpatio|prwalk|rkwalk|prshop|ntgarage|qcgarage|qcwalk|qcnight|prgarage|elevator|ferry|atwalk|ntfloor2)$/;if(skipIds.test(LV.id)||LV.tut||safeGfx||!lawnOn||!houseLog.length)return;
   const H=houseLog[0],rnd=(a,b)=>a+Math.random()*(b-a),len0=H.len;
