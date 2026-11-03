@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v351"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v353"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v353: screed passes: the Bid-Well, power screed and laser screed strike the slab dead flat in one pass; the straightedge gets close on pass one and finishes on pass two (a stiffening mix still skips). -->
 <!-- v351: the pit walls only show from Excavate on, so the lawn is not sunken during Lay out. -->
 <!-- v350: photo-backdrop jobs: the dirt pit mesh no longer shows through the photo lawn during Lay out (it only appears once you dig). -->
 <!-- v349: wet daylight glare toned down (glare .8->.3, env sky reflection 1.1->.45, clearcoat 1->.7, broad lobe halved) so fresh concrete stays grey and textured. -->
@@ -3476,6 +3477,7 @@ function bwEff(){return set<.5?.96:Math.max(.15,.96-(set-.5)*3)}
 // one column under the Bid-Well: augers cut the high spots and roll the excess ahead, the drum fills the lows and closes the top
 function bwCol(c){if(c<RX0||c>=RX1)return;const eff=bwEff();let moved=0;
   for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(!inR[i])continue;const v=h[i];
+    if(set<.5&&has(i)){/* v353: the Bid-Well finishes the deck in one pass */const t=(Math.random()-.5)*.004;h[i]=t;moved+=Math.abs(v-t);if(typeof struck!=='undefined')struck[i]=1;closed[i]=Math.min(1,closed[i]+.6);continue}
     if(v>0){const t=v*eff;h[i]-=t;carry[r]+=t;moved+=t}else if(v<0){const f=Math.min(carry[r],-v*eff);h[i]+=f;carry[r]-=f;moved+=f}
     if(has(i)){h[i]+=(Math.random()-.5)*.01;closed[i]=Math.min(1,closed[i]+.6*eff)}}
   const nc=new Float32Array(GH);for(let r=RY0;r<RY1;r++){const a=carry[Math.max(RY0,r-1)],b=carry[Math.min(RY1-1,r+1)];nc[r]=carry[r]*.5+a*.25+b*.25}carry=nc;
@@ -6614,7 +6616,7 @@ function msNext(c){const n=SCR.S.length,nm=c.t==='s'?msStripName(c.i):msBayName(
   return `${nm}'s struck. `+(sReady.length?`Tap ${sReady[0]+1} for ${msStripName(sReady[0])}.`:sLeft.length?`${msStripName(sLeft[0])} isn't placed yet: ← to pour it.`:bReady.length?`Tap ${String.fromCharCode(65+bReady[0])} to pull ${msBayName(bReady[0])}.`:bOpen.length?`Hit ← and fill ${msBayName(bOpen[0])} between the strips.`:'')}
 function processRow(r,eff){
   let moved=0;const [C0,C1]=scrCols();
-  for(let c=C0;c<C1;c++){const i=r*GW+c,v=h[i];if(!inR[i])continue;struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,1,0,.6*eff);
+  for(let c=C0;c<C1;c++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,1,0,.6*eff);if(v>0)carryC[c]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,1,0,.6*eff);
     if(v>0){const t=v*eff;h[i]-=t;carryC[c]+=t;moved+=t}
     else if(v<0){const f=Math.min(carryC[c],-v*eff);h[i]+=f;carryC[c]-=f;moved+=f}
     if(has(i))h[i]+=(Math.random()-.5)*(gear('laser')?.004:.02)}
@@ -6638,10 +6640,15 @@ function screedMoveY(y0,y1){
   boardY=y1;surfDirty=geoDirty=true;scrAdvance();
   if(set>(gear('laser')?.54:gear('pscreed')?.44:.34))say('Mix is stiffening. The straightedge is skipping over it.','bad','stiffS');
 }
+// v353: how many passes each screed needs while the mix is still workable. Power and laser screeds strike it dead flat in one pass;
+// the straightedge gets it close on the first pass and finishes it on the second. A stiffening mix still skips like before.
+function scrFresh(){return set<(gear('laser')?.5:gear('pscreed')?.4:.3)}
+function scrFull(i){return scrFresh()&&(gear('laser')||gear('pscreed')||struck[i]>=.4)}
+function scrLevel(i){const v=h[i],t=(Math.random()-.5)*(gear('laser')?.004:gear('pscreed')?.006:.01);h[i]=t;struck[i]=1;rkA[i]=0;return Math.abs(v-t)}
 function screedEff(){const lim=gear('laser')?.5:gear('pscreed')?.4:.3,b=gear('laser')?.99:gear('pscreed')?.96:.92;return set<lim?b:Math.max(.1,b-(set-lim)*3)}
 function processCol(c,eff){
   let moved=0;const [LA,LB]=scrRows();
-  for(let r=LA;r<LB;r++){const i=r*GW+c,v=h[i];if(!inR[i])continue;struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,0,1,.6*eff);
+  for(let r=LA;r<LB;r++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,0,1,.6*eff);if(v>0)carry[r]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,0,1,.6*eff);
     if(v>0){const t=v*eff;h[i]-=t;carry[r]+=t;moved+=t}
     else if(v<0){const f=Math.min(carry[r],-v*eff);h[i]+=f;carry[r]-=f;moved+=f}
     if(has(i))h[i]+=(Math.random()-.5)*(gear('laser')?.004:.02)}
