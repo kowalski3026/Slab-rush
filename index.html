@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v354"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v355"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -142,6 +142,7 @@ body #paintShop,body #shop{z-index:40}
 
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
+<!-- v355: rumble. Heavy machines now shake the screen and buzz the phone while they work (chute pour, pump, excavator, plate packer, roller, stinger, power trowel/screed, Bid-Well, slip form). One haptics dispatcher (hap) with priorities so rumble never cuts off a hit. New Rumble button next to sound turns the screen rumble and vibration off. -->
 <!-- v354: photo jobs: the mixer parks where each photo has room and a way in (street backed up to the driveway, up the gravel drive, open lawn clear of houses, porta-potties and pickups), picked by hand per job in TRUCK_AT and applied after the yard is built. -->
 <!-- v353b: preview links open every region and job (live site unchanged). -->
 <!-- v353: screed passes: the Bid-Well, power screed and laser screed strike the slab dead flat in one pass; the straightedge gets close on pass one and finishes on pass two (a stiffening mix still skips). -->
@@ -1005,6 +1006,7 @@ body.menu #zoomCtl{opacity:0!important;pointer-events:none}
       <button class="iconbtn" id="padBtn" aria-label="Controller on or off" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.4 1.8L15 13H9l-1.6 1.8A3 3 0 0 1 2 13v-1a4 4 0 0 1 4-4z"/><path d="M7 10.5v3M5.5 12h3"/><circle cx="16.5" cy="11" r=".6" fill="currentColor"/><circle cx="18" cy="12.6" r=".6" fill="currentColor"/></svg></button>
       <button class="iconbtn" id="musicBtn" aria-label="Music on or off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="wave" d="M2 2l20 20" style="display:none"/></svg></button>
       <button class="iconbtn" id="soundBtn" aria-label="Sound on or off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="wave" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
+      <button class="iconbtn" id="hapBtn" aria-label="Rumble and vibration on or off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="16" rx="2"/><path class="wave" d="M4.5 8v8M19.5 8v8M2 10.5v3M22 10.5v3"/></svg></button>
       <button class="iconbtn" id="topTab" aria-label="Hide the top panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
     </div>
     <div class="glass meterbox" aria-label="Set clock">
@@ -1905,7 +1907,9 @@ let surfDirty=true, geoDirty=true, toolSpeed=0, sawPhase=0;
 const TEXK=['map','roughnessMap','bumpMap','normalMap','alphaMap','clearcoatMap','metalnessMap','emissiveMap'];
 function freeDeep(o){o.traverse(c=>{if(c.geometry&&c.geometry.dispose)c.geometry.dispose();const ms=c.material?(Array.isArray(c.material)?c.material:[c.material]):[];
   ms.forEach(m=>{if(!m||!m.dispose)return;if(m.userData&&m.userData.keep)return;TEXK.forEach(k=>{const t=m[k];if(t&&t.dispose&&!(t.userData&&t.userData.keep))t.dispose()});m.dispose()})})}
-function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
+const HAP={on:(()=>{try{return localStorage.getItem('bts-hap')!=='0'}catch(e){return true}})(),until:0,pri:0};
+function hap(p,pri){if(!HAP.on||!navigator.vibrate)return;const n=performance.now(),pr=pri||0;if(n<HAP.until&&pr<HAP.pri)return;HAP.pri=pr;HAP.until=n+(Array.isArray(p)?p.reduce((a,b)=>a+b,0):p);try{navigator.vibrate(p)}catch(e){}}
+function buzz(ms){hap(ms,2)}
 let buzzT=0;
 function winQ(s,st){const[a,b]=st.win;if(s<a)return clamp01(1-(a-s)/st.soft);if(s>b)return clamp01(1-(s-b)/st.soft);return 1}
 function wetness(s){return s<.28?1:s<.5?1-(s-.28)/.22:0}
@@ -5554,7 +5558,7 @@ function exSfxLoad(){if(!AC||au.exLoading)return;au.exLoading=1;const out={};
     return new Promise((res,rej)=>AC.decodeAudioData(a.buffer,res,rej)).then(buf=>{out[k]=buf})}))
   .then(()=>{au.exb=out;const mk=k=>{const b=out[k],s=AC.createBufferSource();s.buffer=b;s.loop=true;s.loopStart=.06;s.loopEnd=Math.max(.5,b.duration-.06);const g=AC.createGain();g.gain.value=0;s.connect(g);g.connect(au.master);s.start(0,.06+Math.random()*b.duration*.5);return{s,g}};
     au.exl={idle:mk('idle'),high:mk('high'),hyd:mk('hyd')}}).catch(()=>{au.exLoading=0})}
-function exSfxStart(){if(!au.exb||!soundOn||!AC)return;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=au.exb.start;g.gain.value=.95;s.connect(g);g.connect(au.master);s.start();au.exStartT=AC.currentTime}catch(e){}}
+function exSfxStart(){hap([70,40,120],2);shake(.05);if(!au.exb||!soundOn||!AC)return;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=au.exb.start;g.gain.value=.95;s.connect(g);g.connect(au.master);s.start();au.exStartT=AC.currentTime}catch(e){}}
 const FREQ={slip:140,shape:600,dig:110,gravel:95,base:75,form:900,tube:320,expose:6500,power:140,blanket:220,pour:420,screed:650,float:480,edge:2300,trowel:2900,joint:1900,broom:5200,color:3800,stamp:300},GAIN={slip:.45,shape:.25,dig:.5,gravel:.45,base:.55,form:.06,tube:.05,expose:.3,power:.5,blanket:.1,pour:.38,screed:.4,float:.28,edge:.22,trowel:.26,joint:.2,broom:.32,color:.12,stamp:0};
 function updAudio(){
   if(!AC)return;const t=AC.currentTime,on=soundOn&&running?1:0,k=STAGES[stage].key,sp=Math.min(1,toolSpeed/10);
@@ -5579,6 +5583,7 @@ function updAudio(){
 }
 function backupBeep(n){shake(.06);if(!AC||!soundOn)return;try{const t=AC.currentTime;for(let i=0;i<(n||6);i++){const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=1080;const a=t+i*.8;g.gain.setValueAtTime(.0001,a);g.gain.exponentialRampToValueAtTime(.07,a+.02);g.gain.setValueAtTime(.07,a+.38);g.gain.exponentialRampToValueAtTime(.0001,a+.42);o.connect(g);g.connect(au.master);o.start(a);o.stop(a+.45)}}catch(e){}}
 $('soundBtn').addEventListener('click',()=>{soundOn=!soundOn;$('soundBtn').classList.toggle('off',!soundOn);initAudio();if(AC&&AC.state==='suspended')AC.resume()});
+$('hapBtn').classList.toggle('off',!HAP.on);$('hapBtn').addEventListener('click',()=>{HAP.on=!HAP.on;HAP.until=0;HAP.pri=0;try{localStorage.setItem('bts-hap',HAP.on?'1':'0')}catch(e){}$('hapBtn').classList.toggle('off',!HAP.on);if(HAP.on){hap([30,40,30],2);shake(.06)}else{RUM.cam=RUM.h=0;try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}}});
 
 /* ---------- music ---------- */
 const MUSIC={job:[["highwayfever", "Highway Fever", "HoliznaCC0"], ["punk", "Punk", "HoliznaCC0"], ["snowboardrock", "Snowboard Rock", "Loyalty Freak Music"], ["ghostsurfrock", "Ghost Surf Rock", "Loyalty Freak Music"], ["secretagentrock", "Secret Agent Rock", "John Bartmann"], ["megametal", "MEGA METAL", "Loyalty Freak Music"], ["cityblues", "City Blues", "HoliznaCC0"], ["whitetrashblues", "White Trash Blues", "HoliznaCC0"], ["ayankeessouthern", "A Yankees Southern Blues", "HoliznaCC0"], ["westernshowdown", "Western ShowDown", "HoliznaCC0"], ["swinginrichards", "Swingin' Richards", "HoliznaCC0"], ["bohemiangroove", "Bohemian Groove", "HoliznaCC0"], ["brokenhustle", "Broken Hustle", "HoliznaCC0"], ["endlessgrind", "Endless Grind", "HoliznaCC0"], ["jams", "Jams", "HoliznaCC0"], ["bouncygypsybeats", "Bouncy Gypsy Beats", "John Bartmann"], ["funk", "Make Funk", "HoliznaCC0"]],
@@ -5637,12 +5642,32 @@ const spark=(()=>{const n=60,pos=new Float32Array(n*3),col=new Float32Array(n*3)
   const m=new THREE.PointsMaterial({size:.3,map:new THREE.CanvasTexture(c),vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});
   const P=new THREE.Points(g,m);P.frustumCulled=false;P.renderOrder=6;scene.add(P);return{P,pos,col,life:new Float32Array(n),k:0,n}})();
 const HAPT={screed:[14,150],float:[6,190],edge:[5,120],trowel:[9,95],power:[14,60],broom:[4,75],joint:[8,95],color:[3,140],expose:[5,120],rake:[10,160],dig:[12,170],gravel:[10,170],base:[9,70],cure:[3,160],blanket:[6,200]};
-function feelTick(t,dt){const S2=spark;let live=false;
+/* v355: machine rumble: screen shake + phone vibration that follow whichever heavy machine is working */
+const RUM={cam:0,h:0,hz:6,t:0,err:0};
+function rumbleTarget(){
+  const k=STAGES[stage]&&STAGES[stage].key,d=!!ptr.down,cabK=(typeof cabOn!=='undefined'&&cabOn)?.3:1;let c=0,h=0,hz=6;
+  const add=(cc,hh,z)=>{if(cc>c)c=cc;if(hh>h){h=hh;hz=z}};
+  if(pouring&&truck.visible)add(.05,.55,3);
+  if(pouring&&pumpG.visible)add(.06,.6,2.5);
+  if(exG.visible){const cw=typeof cabOn!=='undefined'&&cabOn&&typeof cab!=='undefined'&&cabAvail(),cm=cw?Math.min(1,cab.mov||0):1;if(cw?cm>.1:d)add((.04+.04*cm)*cabK,.35+.3*cm,5)}
+  if(compG.visible&&d&&toolSpeed>.5)add(.13,.9,12);
+  if(rollG.visible&&d&&toolSpeed>.5)add(.08,.65,6);
+  if(k==='vibe'&&d)add(.05,.85,14);
+  if(k==='power'&&d&&toolSpeed>1)add(.05,.7,10);
+  if(typeof sl!=='undefined'&&k==='slip'&&sl.v>.1)add(.06,.55,6);
+  if(typeof BW!=='undefined'&&BW.auto&&!BW.done&&k==='screed')add(.045,.5,7);
+  return[c,h,hz]}
+function rumbleTick(t,dt){
+  let c=0,h=0,hz=RUM.hz;
+  if(running&&HAP.on){try{[c,h,hz]=rumbleTarget()}catch(e){if(!RUM.err++)console.warn('rumble',e)}}
+  const f=1-Math.exp(-dt*7);RUM.cam+=(c-RUM.cam)*f;RUM.h+=(h-RUM.h)*f;if(h>0)RUM.hz=hz;if(RUM.cam<.004)RUM.cam=0;
+  if(HAP.on&&RUM.h>.08){const per=1000/Math.min(14,RUM.hz);if(t-RUM.t>per){RUM.t=t;hap(Math.max(4,Math.round(Math.min(per*.6,5+24*RUM.h))),1)}}}
+function feelTick(t,dt){try{rumbleTick(t,dt)}catch(e){}const S2=spark;let live=false;
   for(let i=0;i<S2.n;i++){if(S2.life[i]<=0)continue;S2.life[i]-=dt*1.6;const L=Math.max(0,S2.life[i]),f=Math.sin(L*Math.PI);S2.col[i*3]=S2.col[i*3+1]=S2.col[i*3+2]=f;S2.pos[i*3+1]+=dt*.12;live=true}
   if(running&&ptr.down){const k=STAGES[stage]&&STAGES[stage].key;
     if(k==='power'&&toolSpeed>1.5&&set>.75&&t-sparkT>90){sparkT=t;const i=S2.k=(S2.k+1)%S2.n,r=2.2;
       S2.pos[i*3]=toolPos.x+(Math.random()-.5)*2*r;S2.pos[i*3+1]=ELV()+.08;S2.pos[i*3+2]=toolPos.z+(Math.random()-.5)*2*r;S2.life[i]=1;live=true}
-    const kk=k==='pour'&&pourTool==='rake'?'rake':k,hp=HAPT[kk];if(hp&&toolSpeed>1&&t-hapT>hp[1]){hapT=t;try{navigator.vibrate&&navigator.vibrate(hp[0])}catch(e){}}}
+    const kk=k==='pour'&&pourTool==='rake'?'rake':k,hp=HAPT[kk];if(hp&&toolSpeed>1&&t-hapT>hp[1]){hapT=t;hap(hp[0],1)}}
   if(live){S2.P.geometry.attributes.position.needsUpdate=true;S2.P.geometry.attributes.color.needsUpdate=true}S2.P.visible=live}
 
 /* ---------- progression: stars, ranks, daily + weekly goals, paint rewards ---------- */
@@ -7048,7 +7073,7 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   if(k==='pour'&&SCR.on&&SCR.multi&&!SCR.pourTold){SCR.pourTold=true;say('Big floor: pour it in sections. Place a strip along an amber band, hit Next and strike it while it\'s fresh, then ← back to Pour for the next one. Bays go in last, between struck strips.','info','scrPour',0)}
   if(k==='pour'&&SCR.on&&!SCR.pourTold){SCR.pourTold=true;say('Wide pour. Place a strip down the middle first (amber band), then fill one side. You can strike the strip and that side, then come back and pour the other.','info','scrPour',0)}
   if(k==='pour'&&pourTool!=='rake'&&placeMode()){if(RUN.empty)say('Truck\'s empty. Rake it out or hit Next.','info','empty2');else runTap(p.wx,p.wz)}
-  else if(k==='pour'){if(pourTool==='rake'){rk.x=p.x;rk.y=p.y;rk.load=0;rk.used=true}else if(stowChute){say('Drum\'s empty. Switch to the rake or hit Next.','info','empty2')}else{pourAim(p);pourStep.hold=true;pouring=true;buzz(12)}}
+  else if(k==='pour'){if(pourTool==='rake'){rk.x=p.x;rk.y=p.y;rk.load=0;rk.used=true}else if(stowChute){say('Drum\'s empty. Switch to the rake or hit Next.','info','empty2')}else{pourAim(p);pourStep.hold=true;pouring=true;buzz([25,30,45]);shake(.04)}}
   else if(k==='screed'&&LV.bridge){BW.tx=Math.max(RX0-3,Math.min(RX1+3,p.x))}
   else if(k==='demo')brgHammer(p.wx,p.wz,p.wx,p.wz);
   else if(k==='soffit')brgSoffitAt(p.wx,p.wz);
@@ -8027,7 +8052,7 @@ function updateMats(dt){
 }
 function stampStats(){let n=0,q=0,dbl=0,tot=0;for(let i=0;i<stampHits.length;i++){if(!tileOk[i])continue;tot++;if(stampHits[i]){n++;q+=stampQ[i]}if(stampHits[i]>1)dbl++}
   return{n,tot,cov:tot?n/tot:0,q:n?q/n:0,dbl}}
-function thump(){shake(.1);if(!AC||!soundOn)return;try{const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(42,t+.16);
+function thump(){shake(.1);if(performance.now()>HAP.until)hap(22,2);if(!AC||!soundOn)return;try{const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(42,t+.16);
   g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g);g.connect(au.master);o.start(t);o.stop(t+.22)}catch(e){}}
 
 /* ---------- insulated blankets (Beat the Freeze) ---------- */
@@ -9117,7 +9142,7 @@ function step(t,dt){
   if(!cabCamera()&&cab.fov!=null){camera.fov=cab.fov;camera.near=.5;camera.updateProjectionMatrix();cab.fov=null}
   try{bugCamera(dt)}catch(e){console.warn('bugcam',e)}
   try{rideCamera(dt)}catch(e){console.warn('ridecam',e)}
-  if(shakeA>.004){camera.position.x+=(Math.random()-.5)*shakeA;camera.position.y+=(Math.random()-.5)*shakeA*.7;camera.position.z+=(Math.random()-.5)*shakeA;shakeA*=Math.pow(.004,dt)}else shakeA=0;
+  {const sa=Math.max(shakeA,RUM.cam);if(sa>.004){camera.position.x+=(Math.random()-.5)*sa;camera.position.y+=(Math.random()-.5)*sa*.7;camera.position.z+=(Math.random()-.5)*sa}if(shakeA>.004)shakeA*=Math.pow(.004,dt);else shakeA=0}
   try{bkdTick()}catch(e){console.warn('bkd',e)}
   feelTick(t,dt);try{drillTick()}catch(e){}
   drawFrame();bootDone();
