@@ -143,7 +143,7 @@ body #paintShop,body #shop{z-index:40}
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v357: 1-year-later photo: the slab sits flush with the lawn instead of floating above the dug dirt. -->
-<!-- v358: Ontario tags reordered (art untouched): Training Yard first, then sites run down the map in order; each job unlocks after a C on the one above it. -->
+<!-- v358: Ontario map: art and tags untouched, sites numbered 1-11 (Training Yard first, then down the map, cottage country last); opens at Training Yard; each job unlocks after a C on the one above it. -->
 <!-- v356: photo jobs load straight into the photo view. A dark curtain covers the canvas from the moment the job starts until the photo backdrop is on and drawn (5 s failsafe, and it lifts for the excavator cab), and the camera starts at its working spot instead of drifting or swooping in over the 3D world. -->
 <!-- v355: rumble. Heavy machines now shake the screen and buzz the phone while they work (chute pour, pump, excavator, plate packer, roller, stinger, power trowel/screed, Bid-Well, slip form). One haptics dispatcher (hap) with priorities so rumble never cuts off a hit. New Rumble button next to sound turns the screen rumble and vibration off. -->
 <!-- v354: photo jobs: the mixer parks where each photo has room and a way in (street backed up to the driveway, up the gravel drive, open lawn clear of houses, porta-potties and pickups), picked by hand per job in TRUCK_AT and applied after the yard is built. -->
@@ -12543,10 +12543,10 @@ try{(function(){
   // v257: every region has its own world. img = panels top to bottom; pins = [panel, x%, y% within panel, name, sub, job ids]
   const CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/',P=f=>CDN+f;
   const WORLDS={
-    on:{ext:1456/2688,img:[P('hf_20261022_173913_516d1fda-e9ca-4fb8-b0ad-c00e1efe0d95.png'),P('hf_20261022_151448_4d612458-c97b-4a8d-9fcc-2ac800fc2fea.png'),P('hf_20261022_151447_f276235d-727c-4bb8-9599-55e796286c13.png')],pins:[
-      [0,62,40,'Training Yard','Start here',['tutorial','custom']],[0,32,63,'Backyards','Patios & pads',['patio','shed','court','hottub']],[0,68,87,'Front Yards','Walks, porches & steps',['walk','curvewalk','porch','stairs','exposed']],
-      [1,30,10,'Driveways','Pour & finish',['drive1','drive2','drivewalk','stampdrive','freeze','garage']],[1,66,32,'Main Street','Sidewalks',['sidewalk','downtown']],[1,34,56,'New Build','Curbs, walls & foundations',['curb','retain','foundation']],[1,64,82,'Industrial Park','Big floors',['firehall','warehouse']],
-      [2,38,10,'Lakeside','Pools & decks',['stamp']],[2,64,30,'Muskoka','Cottage country',['cottage','cottsteps']],[2,36,52,'Heated Drives','Snowmelt',['heated']],[2,60,81,'Hwy 400','Night work',['night','bridge']]]},
+    on:{seq:[3,4,5,6,7,8,9,10,0,1,2],ext:1456/2688,img:[P('hf_20261022_173913_516d1fda-e9ca-4fb8-b0ad-c00e1efe0d95.png'),P('hf_20261022_151448_4d612458-c97b-4a8d-9fcc-2ac800fc2fea.png'),P('hf_20261022_151447_f276235d-727c-4bb8-9599-55e796286c13.png')],pins:[
+      [0,62,40,'Muskoka','Cottage country',['cottage','cottsteps']],[0,32,63,'Lakeside','Pools & decks',['stamp']],[0,68,87,'Heated Drives','Snowmelt',['heated']],
+      [1,30,10,'Training Yard','Start here',['tutorial','custom']],[1,66,32,'Backyards','Patios & pads',['patio','shed','court','hottub']],[1,34,56,'Front Yards','Walks, porches & steps',['walk','curvewalk','porch','stairs','exposed']],[1,64,82,'Driveways','Pour & finish',['drive1','drive2','drivewalk','stampdrive','freeze','garage']],
+      [2,38,10,'Main Street','Sidewalks',['sidewalk','downtown']],[2,64,30,'New Build','Curbs, walls & foundations',['curb','retain','foundation']],[2,36,52,'Industrial Park','Big floors',['firehall','warehouse']],[2,60,81,'Hwy 400','Night work',['night','bridge']]]},
     qc:{ext:1456/2688,img:[P('hf_20261022_173920_f52bc2b1-a114-4d96-9b56-003826e3950e.png'),P('hf_20261022_154959_9403a0c3-2c7b-41b8-8117-5f77e45586aa.png')],pins:[
       [0,40,22,'Vieux-Québec','Plaza & stone steps',['vieuxqc','qcsteps2']],[0,68,42,'Cabane à sucre','In the maples',['cabane']],[0,36,70,'Laval & Rive-Sud','Drives & garden paths',['qcdrive','qcdrive2','qcexposed']],
       [1,40,22,'Plateau','Plexes & lanes',['plexsteps','qcgarage','ruelle']],[1,62,48,'Rue Saint-Denis','Busy sidewalk',['qcwalk']],[1,36,68,'Sherbrooke','Backyard patio',['qcpatio']],[1,60,88,'Dépanneur','Night floor',['qcnight']]]},
@@ -12562,7 +12562,7 @@ try{(function(){
       [1,56,22,'Northern Store','−5°C',['ntwalk']],[1,36,46,'Cabins','Frozen steps',['ntsteps','ntsteps2']],[1,62,70,'Dawson City','Under blankets',['ntwalk2','ntpatio2','ntpatio']]]}};
   const hasW=r=>WORLDS[r]&&WORLDS[r].img.length;
   // v358: unlock follows the map top to bottom: each job needs a C on the one before it (training is always open)
-  try{const wp={};Object.keys(WORLDS).forEach(r=>{let prev=null;WORLDS[r].pins.slice().sort((x,y)=>x[0]-y[0]||x[2]-y[2]).forEach(z=>z[5].forEach(id=>{const L=LEVELS.find(l=>l.id===id);if(!L||L.tut||L.free)return;wp[id]=prev;prev=id}))});window.WPREV=wp}catch(e){}
+  try{const wp={};Object.keys(WORLDS).forEach(r=>{let prev=null;(WORLDS[r].seq?WORLDS[r].seq.map(k=>WORLDS[r].pins[k]):WORLDS[r].pins.slice().sort((x,y)=>x[0]-y[0]||x[2]-y[2])).forEach(z=>z[5].forEach(id=>{const L=LEVELS.find(l=>l.id===id);if(!L||L.tut||L.free)return;wp[id]=prev;prev=id}))});window.WPREV=wp}catch(e){}
   const W=$('world'),sheet=$('wsheet'),dim=$('wdim');let reg='on';
   const idx=id=>LEVELS.findIndex(L=>L.id===id);
   const OPT=u=>'/_vercel/image?url='+encodeURIComponent(u)+'&w=828&q=72';
@@ -12572,7 +12572,7 @@ try{(function(){
     map.querySelectorAll('.wpin').forEach(p=>p.remove());const pans=map.querySelectorAll('.wpan'),ex0=Wd.ext||0;const R=regById(reg);$('wTwist').textContent=(regOk(reg)?'':'🔒 '+regNeedTxt(R)+' · ')+(R.twist||R.sub||'');
     Wd.pins.forEach((z0,k)=>{if(z0[0]>=n)return;const z=[z0[1],(z0[0]===0&&ex0)?(ex0+z0[2]/100)/(1+ex0)*100:z0[2],z0[3],z0[4],z0[5]];const js=z[4].map(idx).filter(i=>i>=0);if(!js.length)return;const done=js.filter(i=>bestOf(LEVELS[i].id)>=65).length;
       const b=document.createElement('button');b.className='wpin'+(done===js.length?' done':'');b.style.left=z[0]+'%';b.style.top=z[1]+'%';b.style.setProperty('--rc',REG_COL[reg]||'#ff8a12');b.dataset.k=k;
-      b.innerHTML=`<b>${z[2]}<small>${done}/${js.length} jobs</small></b><i></i>`;b.addEventListener('click',()=>{buzz(8);openZone(k)});(pans[z0[0]]||map).appendChild(b)})}
+      const sq=Wd.seq?Wd.seq.indexOf(k)+1:0;b.innerHTML=`<b>${sq?sq+' · ':''}${z[2]}<small>${done}/${js.length} jobs</small></b><i></i>`;b.addEventListener('click',()=>{buzz(8);openZone(k)});(pans[z0[0]]||map).appendChild(b)})}
   function regs(){$('wReg').innerHTML=REGIONS.map(r=>{const ok=regOk(r.id);return `<button data-r="${r.id}" class="${ok?'':'lk'}" aria-pressed="${r.id===reg}">${ok?'':'🔒 '}${r.name}</button>`}).join('');
     $('wReg').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const r=b.dataset.r;buzz(6);
       if(hasW(r)){reg=r;regs();pins();$('wScroll').scrollTop=0;return}renderJobs.rv=r;renderJobs.view=null;renderJobs();more(true,'j')
@@ -12611,6 +12611,8 @@ try{(function(){
     if(window.ResizeObserver)new ResizeObserver(fit).observe(hd);addEventListener('resize',fit);fit();setTimeout(fit,400);
     const _s=sync;sync=function(){_s();requestAnimationFrame(fit)}}catch(e){}
   sync();
+  // v358: open the Ontario map at the first site in the sequence (Training Yard), not at the far end
+  try{const sc=$('wScroll'),go=()=>{const Wd=WORLDS.on;if(reg!=='on'||sc.scrollTop>5)return;const p=$('wMap').querySelector('.wpin[data-k="'+Wd.seq[0]+'"]');if(!p)return;const hd=document.querySelector('#world .wtop'),top=p.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop;sc.scrollTop=Math.max(0,top-((hd&&hd.offsetHeight)||0)-8)};[300,900,1800].forEach(t=>setTimeout(go,t))}catch(e){}
 })()}catch(e){console.warn('world',e)}
 try{BOOT.at(.5,'Loading')}catch(e){}
 if(/[?&]dev\b/.test(location.search))window.__SR=c=>eval(c);
