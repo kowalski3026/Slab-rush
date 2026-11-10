@@ -8949,15 +8949,15 @@ const LP_MAP=`#ifdef USE_MAP
   float vg=ax.g*ax.g*lpA.x;
   if(vg>.004){float gu=.5+.5*sin(lpT*.33+dot(wp,lpCw.xy)*.045);gu=.35+.65*gu*gu;
    vec2 s=vec2(sin(lpT*1.7+wp.x*.41+wp.y*.27)+.6*sin(lpT*2.9+wp.y*.73-wp.x*.31),.55*sin(lpT*2.2+wp.x*.57+wp.y*.39)+.3*sin(lpT*3.7-wp.x*.9));
-   lpUv+=s*vg*gu*.0011;}
+   lpUv+=s*vg*gu*.0014;}
   lpWt=ax.b*lpA.y;
   if(lpWt>.02){float fd=1./(1.+lpDs*.01);vec2 q=wp*.3;float n1=lpN(q+lpT*vec2(.42,.27)),n2=lpN(q*2.3-lpT*vec2(.35,.5)+7.);
    lpUv+=(vec2(n1,n2)-.5)*lpWt*fd*.007;
    vec2 vd=normalize(wp-cameraPosition.xz+1e-4);float tw=.3+.7*smoothstep(-.3,.85,dot(vd,lpSun));
-   float sp=lpN(wp*1.9+lpT*vec2(.9,-.6))*lpN(wp*1.1-lpT*vec2(.5,.7)+3.);lpGl=smoothstep(.5,.72,sp)*lpWt*fd*tw;lpSh=(n1+n2-1.)*lpWt*fd;}
+   float sp=lpN(wp*4.6+lpT*vec2(1.3,-.9))*lpN(wp*2.9-lpT*vec2(.8,1.1)+3.);lpGl=smoothstep(.56,.8,sp)*lpWt*fd*tw;lpSh=(n1+n2-1.)*lpWt*fd;}
  }
  vec4 sampledDiffuseColor=texture2D(map,lpUv);
- if(lpK>0.){sampledDiffuseColor.rgb=sampledDiffuseColor.rgb*(1.+lpSh*.16)+vec3(1.,.96,.88)*lpGl*.55;
+ if(lpK>0.){sampledDiffuseColor.rgb=sampledDiffuseColor.rgb*(1.+lpSh*.14)+vec3(1.,.96,.88)*lpGl*.4;
   if(lpCs.x>=0.&&lpA.z>0.){float ff=lpCs.x-dot(vLpW.xz-lpCw.zw,lpCw.xy)/lpCs.y;float e=clamp(min(ff*4.,(1.-ff)*4.),0.,1.);e=e*e*(3.-2.*e)*lpCs.z*lpA.z;
    float l=dot(sampledDiffuseColor.rgb,vec3(.2126,.7152,.0722));e*=(1.-smoothstep(450.,1200.,lpDs))*smoothstep(.015,.3,l);
    sampledDiffuseColor.rgb*=mix(vec3(1.),vec3(.7,.76,.85),e);}
@@ -9013,13 +9013,14 @@ addEventListener('deviceorientation',e=>{if(e.gamma==null||e.beta==null)return;c
   const tx=Math.max(-1,Math.min(1,(g-LP.g0)/13)),ty=Math.max(-1,Math.min(1,(b-LP.b0)/13));
   if(Math.abs(tx-LP.tx)+Math.abs(ty-LP.ty)>.02&&typeof IDLE!=='undefined')IDLE.t=performance.now();LP.tx=tx;LP.ty=ty},{passive:true});
 /* v360: every photo has its own light. PFX[job or job-vN] = [sun compass angle in degrees (0 = +x, 90 = +z), sun height in degrees, shadow
-   strength 0..1, then the r,g,b tint of that photo's sunlight]. The angle and height were read off each photo's own shadows; the strength and
-   tint are measured from the photo. A null angle keeps the game's sun and only uses the strength and tint. No entry = the old one-size grade. */
-const PFX={"stamp":[275,24,.5]};
+   strength 0..1]. The angle and height were read by eye off each photo's own shadows (247 = the sun the photos were mostly made with), so the
+   3D truck, forms and tools throw their shadows the same way as the photo's house and trees. The strength follows how hard the photo's light
+   is: strong on a sunny yard, faint and extra soft under an overcast sky. Night photos have no entry and keep the game's own lights. */
+const PFX={"patio":[247,33,.4],"walk":[247,33,.4],"sidewalk":[247,33,.35],"downtown":[247,33,.4],"porch":[247,33,.25],"stairs":[247,33,.4],"drive1":[247,33,.3],"stamp":[247,22,.5],"stamp-v1":[247,22,.5],"stamp-v2":[247,22,.4],"stamp-v3":[247,22,.45],"shed":[247,33,.4],"court":[247,33,.35],"garage":[247,33,.25],"warehouse":[247,40,.25],"drive2":[247,33,.3],"heated":[247,14,.45],"drivewalk":[247,33,.3],"freeze":[247,40,.2],"curb":[247,33,.25],"foundation":[247,40,.2],"cottage":[247,33,.3],"firehall":[247,33,.4],"bcsteps":[247,40,.2],"lane":[247,45,.15],"coastpatio":[247,33,.3],"marina":[247,40,.2],"gastown":[247,40,.2],"ruelle":[247,33,.4],"vieuxqc":[247,33,.3],"shopapron":[247,33,.25],"acreage":[247,33,.35],"windpatio":[247,33,.35],"seawall":[247,33,.3],"bcdrive":[247,45,.15],"bcstamp":[247,33,.3],"qcdrive":[247,15,.45],"bcsteps2":[247,40,.2],"bcdrive2":[247,45,.15],"qcsteps2":[247,40,.2],"qcdrive2":[247,33,.3],"qcwalk":[247,35,.25],"qcexposed":[247,33,.3],"qcnight":[247,33,.35],"prgarage":[247,33,.35],"elevator":[247,33,.45],"custom":[247,40,.2],"tutorial":[347,35,.35],"curvewalk":[314,20,.5],"exposed":[305,30,.4],"hottub":[322,35,.4],"stampdrive":[307,35,.4],"retain":[275,35,.4],"plexsteps":[306,30,.5],"cabane":[270,35,.45],"binpad":[53,35,.4],"qcpatio":[299,35,.45],"qcgarage":[306,35,.45],"prshop":[354,35,.45],"prwalk":[355,35,.3],"prsteps":[311,35,.5],"cottsteps":[305,40,.4],"prsteps2":[319,35,.45],"prdrive2":[324,30,.45],"prcurve":[337,35,.4]};
 function pfxApply(){const p=PFX[lpKey()]||null;BKD.sunV=null;
-  if(BKD.shM)BKD.shM.opacity=p&&p[2]?p[2]:.34;
-  if(p&&p[0]!=null){const az=p[0]*Math.PI/180,el=p[1]*Math.PI/180;BKD.sunV=(BKD.sunV0||(BKD.sunV0=new THREE.Vector3())).set(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).multiplyScalar(27);try{SHD.force=1}catch(e){}}
-  if(p&&p[3]!=null)BKG.warm.setRGB(p[3],p[4],p[5]);else BKG.warm.setRGB(1,.88,.72)}
+  if(BKD.shM)BKD.shM.opacity=p?p[2]:.34;
+  try{SHF.r0=p?(p[2]<=.2?3:p[2]<=.3?2:1):1;SHF.lw=0}catch(e){}
+  if(p&&p[0]!=null){const az=p[0]*Math.PI/180,el=p[1]*Math.PI/180;BKD.sunV=(BKD.sunV0||(BKD.sunV0=new THREE.Vector3())).set(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).multiplyScalar(27);try{SHD.force=1}catch(e){}}}
 function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
   BKD.PV=C.fov*Math.PI/360;BKD.PH=Math.atan(Math.tan(BKD.PV)*C.asp);
   const D=300,h=2*D*Math.tan(BKD.PV),w=h*C.asp;
@@ -9042,7 +9043,7 @@ function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(
   BKD.cop.visible=true}
 function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);{const ys=C.imgPrep||null;if(ys&&BKD.yrSrc!==ys){BKD.yrSrc=ys;const o=BKD.yrTex;BKD.yrTex=null;if(o)o.dispose();new THREE.TextureLoader().load(ys,t=>{t.colorSpace=THREE.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;if(BKD.yrSrc===ys)BKD.yrTex=t;else t.dispose()})}}if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});try{pfxApply()}catch(e){console.warn('pfx',e)}BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){BKD.sunV=null;try{LP.off.set(0,0,0)}catch(e){}try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){BKD.sunV=null;try{LP.off.set(0,0,0);SHF.r0=1;SHF.lw=0}catch(e){}try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
    v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
