@@ -2485,7 +2485,7 @@ const SHD={n:0},FOG0={n:0,f:0,cf:0};
 // v237: zoomed out past 100%, push the fog and the far clip back by the extra camera distance so the slab doesn't go hazy
 function zoomFog(){const F=scene.fog;if(!F||!FOG0.f)return;const z=ZOOM[view]||1,ex=z>1?camera.position.distanceTo(lookC)*(1-1/z):0;
   F.near=FOG0.n+ex;F.far=FOG0.f+ex;const cf=Math.max(FOG0.cf||420,F.far+80);if(Math.abs(camera.far-cf)>1){camera.far=cf;camera.updateProjectionMatrix()}}
-function drawFrame(){if(!renderer)return;try{lmTick();zoomFog()}catch(e){}
+function drawFrame(){if(!renderer)return;/* v360: while the curtain is up waiting for a job's photo nothing is drawn, so the hidden 3D yard never reaches the GPU */if(running&&LV&&LV.paint&&loadCurtain.on&&!BKD.on&&!(typeof cabOn!=='undefined'&&cabOn))return;try{lmTick();zoomFog()}catch(e){}
   // v235: at 60 fps the shadow map (a second render of everything that casts) updates at 30 Hz; the sun hardly moves and moving tools lag one frame at most
   if((!FPSCAP||(SHD.every||1)>1)&&renderer.shadowMap.enabled){renderer.shadowMap.autoUpdate=false;if((SHD.n++%(SHD.every||2))===0||SHD.force){renderer.shadowMap.needsUpdate=true;SHD.force=0;try{shFit()}catch(e){}}}else{renderer.shadowMap.autoUpdate=true;try{shFit()}catch(e){}}
   if(glLost||lowQ||!postInit()||!POST.on){if(renderer.toneMapping!==TONE)renderer.toneMapping=TONE;renderer.render(scene,camera);return}
@@ -8936,7 +8936,7 @@ function bkdViewTick(){const C=LV&&LV.paint,on=!!(C&&C.views&&BKD.on);{const e=$
    and glints toward the sun, and passing cloud shade (the same one that dims the 3D sun) sweeps across the photo.
    Jobs without a helper picture (or if it fails to load) keep the flat card and none of this runs. */
 const LP={on:(()=>{try{return localStorage.getItem('bts-live')!=='0'}catch(e){return true}})(),ZF:1500,NX:72,NY:96,SK:.16,aux:{},geo:null,gk:null,live:false,par:1,
-  keys:new Set(["stamp","stamp-v1","stamp-v2","stamp-v3"]),noPar:new Set(['bridge']),
+  keys:new Set(["tutorial","patio","walk","sidewalk","downtown","curvewalk","porch","stairs","drive1","exposed","stamp","stamp-v1","stamp-v2","stamp-v3","shed","court","hottub","garage","night","warehouse","drive2","heated","drivewalk","stampdrive","freeze","curb","retain","foundation","cottage","firehall","bridge","bcsteps","lane","coastpatio","marina","gastown","plexsteps","ruelle","cabane","vieuxqc","binpad","shopapron","acreage","windpatio","seawall","bcdrive","bcstamp","qcdrive","qcpatio","qcgarage","prshop","prwalk","prsteps","cottsteps","bcsteps2","bcdrive2","qcsteps2","qcdrive2","qcwalk","qcexposed","qcnight","prsteps2","prdrive2","prgarage","prcurve","elevator","custom"]),noPar:new Set(['bridge']),
   U:{lpAux:{value:null},lpT:{value:0},lpK:{value:0},lpSun:{value:new THREE.Vector2(1,0)},lpCs:{value:new THREE.Vector4(-1,300,1,0)},lpCw:{value:new THREE.Vector4(.8,.6,0,0)},lpA:{value:new THREE.Vector3(1,1,1)}},
   off:new THREE.Vector3(),ox:0,oy:0,tx:0,ty:0,g0:null,b0:null,hover:.38,tiltK:1.05,tl:0,a:new THREE.Vector3(),b:new THREE.Vector3(),
   rm:(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})()};
@@ -8971,7 +8971,8 @@ function lpPatch(m){m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,LP.U);
 function lpKey(L,vi){L=L||LV;vi=vi==null?(BKD.vi|0):vi;return L?L.id+(vi?'-v'+vi:''):''}
 function lpLoad(k){if(!LP.on||!LP.keys.has(k)||LP.aux[k])return;const e=LP.aux[k]={d:null,t:null,w:0,h:0},im=new Image();
   im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0);
-      const px=g.getImageData(0,0,c.width,c.height).data,d=new Uint8Array(c.width*c.height);for(let i=0;i<d.length;i++)d[i]=px[i*4];
+      const px=g.getImageData(0,0,c.width,c.height).data,w=c.width,h=c.height,r0=new Uint8Array(w*h),d=new Uint8Array(w*h);for(let i=0;i<r0.length;i++)r0[i]=px[i*4];
+      {const m=[0,0,0,0,0,0,0,0,0];for(let y=0;y<h;y++)for(let x=0;x<w;x++){let n=0;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){const xx=x+a<0?0:x+a>=w?w-1:x+a,yy=y+b<0?0:y+b>=h?h-1:y+b;m[n++]=r0[yy*w+xx]}m.sort((p,q)=>p-q);d[y*w+x]=m[4]}}// 3x3 median: no one-pixel spikes
       const t=new THREE.Texture(im);t.colorSpace=THREE.NoColorSpace;t.generateMipmaps=false;t.minFilter=t.magFilter=THREE.LinearFilter;t.needsUpdate=true;
       e.d=d;e.w=c.width;e.h=c.height;e.t=t;
       if(BKD.on&&BKD.L===LV&&lpKey()===k)bkdBuild(bkdC(LV))}catch(err){console.warn('live photo: helper',err);delete LP.aux[k];LP.keys.delete(k)}};
@@ -8985,8 +8986,9 @@ function lpGeo(C,A){const NX=LP.NX,NY=LP.NY,W=A.w,H=A.h,d=A.d,tv=Math.tan(C.fov*
   const nx=NX+3,ny=NY+3,pos=new Float32Array(nx*ny*3),uv=new Float32Array(nx*ny*2),zs=new Float32Array(nx*ny);
   for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const gi=i-1,gj=j-1,uu=gi<0?-SK:gi>NX?1+SK:gi/NX,vv=gj<0?-SK:gj>NY?1+SK:gj/NY,cu=Math.min(1,Math.max(0,uu)),cw=Math.min(1,Math.max(0,vv));
     const a=(2*uu-1)*th,b=(2*vv-1)*tv,dx=f.x+r.x*a+u.x*b,dy=f.y+r.y*a+u.y*b,dz=f.z+r.z*a+u.z*b;
-    const zr=dy<-1e-4?Math.min(-P.y/dy,ZF):ZF;let q=smp(cu,cw);if(q>.99)q=1;const z=Math.max(.02,q)*zr,k=j*nx+i;
-    pos[k*3]=P.x+dx*z;pos[k*3+1]=P.y+dy*z;pos[k*3+2]=P.z+dz*z;uv[k*2]=cu;uv[k*2+1]=cw;zs[k]=z}
+    const zr=dy<-1e-4?Math.min(-P.y/dy,ZF):ZF;let q=smp(cu,cw);if(q>.99)q=1;const k=j*nx+i;zs[k]=Math.max(6,q*zr);uv[k*2]=cu;uv[k*2+1]=cw;pos[k*3]=dx;pos[k*3+1]=dy;pos[k*3+2]=dz}
+  // going up a column of the photo things get farther, never much nearer: a hill or tower on the skyline can't stand closer than the ground in front of it
+  for(let i=0;i<nx;i++){let rm=0;for(let j=0;j<ny;j++){const k=j*nx+i;let z=zs[k];if(z<.7*rm)z=zs[k]=.7*rm;if(z>rm)rm=z;pos[k*3]=P.x+pos[k*3]*z;pos[k*3+1]=P.y+pos[k*3+1]*z;pos[k*3+2]=P.z+pos[k*3+2]*z}}
   const nq=(nx-1)*(ny-1),ord=new Uint32Array(nq),qz=new Float32Array(nq);
   for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const k=j*(nx-1)+i,a=j*nx+i;ord[k]=k;qz[k]=Math.max(zs[a],zs[a+1],zs[a+nx],zs[a+nx+1])}
   const o2=Array.from(ord).sort((p,q)=>qz[q]-qz[p]),idx=new Uint16Array(nq*6);
