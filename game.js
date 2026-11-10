@@ -887,7 +887,8 @@ function ktxInto(t,c){t.isCompressedTexture=true;t.mipmaps=c.mipmaps;t.image={wi
    until then those materials keep their plain-colour stand-in, exactly as they did while the photos were still downloading. */
 const LZT={keys:new Set(['dig','grav3']),on:false,go:null};LZT.p=new Promise(r=>{LZT.go=()=>{if(!LZT.on){LZT.on=true;r()}}});
 function lzT(k){return LZT.keys.has(k)?LZT.p:Promise.resolve()}
-function lzTick(){if(LZT.on||!running||!LV)return;if(!LV.paint||isPrep()||practice||(!BKD.on&&!loadCurtain.on))LZT.go()}
+function lzTick(){if(LZT.on||!running||!LV)return;if(LZT.L!==LV){LZT.L=LV;LZT.t=performance.now()}
+  if(!LV.paint||isPrep()||practice||(!BKD.on&&!loadCurtain.on&&performance.now()-LZT.t>15000))LZT.go()}// last case: the yard photo never came, so the 3D yard is what is on screen
 const PSRC={},PDAT={};
 function ptData(k){if(PDAT[k])return PDAT[k];const d=PDAT[k]={v:null};
   d.p=lzT(k).then(()=>ktxGet(PBRC[k]||k)).then(c=>c?{c}:(PBRC[k]&&!(typeof safeGfx!=='undefined'&&safeGfx)?pbrImg(PBRC[k]).then(im=>im||texImg(k)):texImg(k)).then(im=>im?{im}:null)).then(v=>(d.v=v)).catch(()=>null);return d}
@@ -7749,7 +7750,8 @@ function lpApply(C){const q=BKD.quad,k=lpKey(),A=LP.on&&LP.aux[k]&&LP.aux[k].d?L
 function lpTick(){const n=performance.now(),dt=Math.min(.1,(n-(LP.tl||n))/1000),U=LP.U;LP.tl=n;U.lpT.value=(n*.001)%7200;
   if(!LP.live){LP.off.set(0,0,0);return}
   const a=LP.rm?0:LP.par,hx=Math.sin(n*.00023)*.6+Math.sin(n*.00051+1.3)*.4,hy=Math.sin(n*.00019+2.1)*.6+Math.sin(n*.00043)*.4,k=Math.min(1,dt*5);
-  LP.ox+=((LP.hover*hx-LP.tiltK*LP.tx)*a-LP.ox)*k;LP.oy+=((LP.hover*.6*hy-LP.tiltK*.6*LP.ty)*a-LP.oy)*k;
+  /* the yard holds still under a finger: no drift while a tool is being worked, then it eases back into the hover */const hold=!!(ptr&&ptr.down),kk=hold?0:k*(LP.rel=Math.min(1,(LP.rel||0)+dt*.8));if(hold)LP.rel=0;
+  LP.ox+=((LP.hover*hx-LP.tiltK*LP.tx)*a-LP.ox)*kk;LP.oy+=((LP.hover*.6*hy-LP.tiltK*.6*LP.ty)*a-LP.oy)*kk;
   LP.off.copy(LP.a.set(1,0,0).applyQuaternion(BKD.Q)).multiplyScalar(LP.ox).addScaledVector(LP.b.set(0,1,0).applyQuaternion(BKD.Q),LP.oy);
   const sp=sun.position;if(sp.x||sp.z)U.lpSun.value.set(sp.x,sp.z).normalize();
   if(typeof CSH!=='undefined'&&CSH.dur>0)U.lpCs.value.set(CSH.d/CSH.dur,CSH.dur*42,Math.min(1,(CSH.depth||.4)/.55),0);else U.lpCs.value.x=-1;
