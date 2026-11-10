@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v359"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
+<!doctype html><html><head><meta charset=utf8><meta name="sr-ver" content="v360"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.season{display:grid;gap:1px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(224,112,40,.25),rgba(224,112,40,.06));border:1px solid rgba(224,112,40,.5);margin-top:8px}.season b{font:400 14px var(--f-game);color:#ffcf8a}.season span{font-size:12px;color:var(--muted)}
 .xbox{margin-top:8px;border:1px solid var(--glass-line);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03)}.xbox summary{cursor:pointer;font:700 13px var(--f-label);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);display:flex;justify-content:space-between}.xbox summary em{font-style:normal;color:var(--amber)}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.bdg{display:grid;gap:1px;padding:7px;border-radius:8px;background:rgba(255,255,255,.04);opacity:.55}.bdg.on{opacity:1;background:rgba(255,171,31,.12)}.bdg b{font-size:12.5px}.bdg span{font-size:11px;color:var(--muted)}.bdg em{font-style:normal;font-size:11px;color:var(--amber)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.pgrid figure{margin:0;display:grid;gap:2px}.pgrid img{width:100%;border-radius:6px;display:block}.pgrid figcaption{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}.pgrid figcaption b{color:var(--amber)}
@@ -143,6 +143,7 @@ body #paintShop,body #shop{z-index:40}
 <!-- v196: generated, rigged town inspector (white hard hat, hi-vis vest, clipboard) replaces the block figure; leans in, points along the grade, writes on the clipboard. The foreman works: walks the outside of the forms to a spot away from the camera, turns to the pour, then rakes, bull floats, brooms or kneels to edge and hand trowel, driven by IK on his skeleton over the idle/walk clips; smoother walking (turn first, ease in and out, stride matched to speed); less plastic skin. -->
 <!-- v197: joint chalk lines are bolder: wide powder halo, solid bright-blue core, speckled edge, scaled to the surface canvas. -->
 <!-- v357: 1-year-later photo: the slab sits flush with the lawn instead of floating above the dug dirt. -->
+<!-- v360: live photo + lighter, faster photo jobs. The yard photo now has depth: the drone hovers and the phone can be tilted and near things slide over far ones, leaves sway, water ripples and glints, cloud shade sweeps across photo and 3D together. The 3D sun stands where each photo's sun is, with shadow strength and light colour taken from the photo. Photo jobs no longer build the hidden 3D yard's shaders and textures; pool deck photos load at 2048 instead of full size; the service worker (an empty file since v335) is back with a long-lived cache for models, photos and textures; 60 fps mode drops to 30 while nothing is happening. -->
 <!-- v359: map opens at the top again (no auto-scroll to Training). -->
 <!-- v358: Ontario map: art and tags untouched, sites numbered 1-11 (Training Yard first, then down the map, cottage country last); opens at Training Yard; each job unlocks after a C on the one above it. -->
 <!-- v356: photo jobs load straight into the photo view. A dark curtain covers the canvas from the moment the job starts until the photo backdrop is on and drawn (5 s failsafe, and it lifts for the excavator cab), and the camera starts at its working spot instead of drifting or swooping in over the 3D world. -->
@@ -1887,6 +1888,10 @@ const PAINTS={};
 // the photos live on the Higgsfield CDN as large PNGs; Vercel's image service hands the phone a 2048 px webp of each (and caches it)
 const PAINT_CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/',PAINT_F={"tutorial":["hf_20261026_194423_9deb7dd4-405d-48ba-ad4b-6c08c996d039","hf_20261026_194900_2bbc3d91-f29f-40fb-9ab4-a7821ed0ca5f"],"stairs":["hf_20261026_194421_40b2e427-f9c1-4041-aca0-a979ec9a9a72","hf_20261026_194859_3c9551ea-9ee6-489f-bde2-575d8a799856"],"cottsteps":["hf_20261026_194422_a588f3c8-6fc4-4a5e-9ce3-5b470cf6fa44","hf_20261026_194859_ef29172a-827f-4f87-8c21-2eeba5507054"],"curb":["hf_20261027_001525_0738adfd-530f-4925-b77f-8abc25f670c6","hf_20261026_194945_1c4616d0-7d46-4a27-8aa7-74670073d7af"],"retain":["hf_20261026_194836_e0631964-a417-4c51-adcb-d4b98706ec9b","hf_20261026_194945_eea7a5c5-e3f1-4366-bd74-f977d4250bfc"],"foundation":["hf_20261026_194423_80156cd5-654f-40b8-bb38-1a4382b3d61c","hf_20261026_194900_703bd10a-8702-485f-a704-8ac9840dd80c"],"custom":["hf_20261026_194423_0e947c32-36ac-478e-9cf0-5153f83f9f3b","hf_20261026_194423_0e947c32-36ac-478e-9cf0-5153f83f9f3b"],"garage":["hf_20261026_194423_4226e0e5-cef6-4b9d-93fd-5d2b676046d8","hf_20261026_194859_e532c64c-0401-40d4-847b-985bbd4f56c2"],"night":["hf_20261026_194422_fcae5ab3-e9c9-4c2f-b895-85944b2a8ad1","hf_20261026_194900_8351b08e-a860-407d-b4e3-d81dc2af0346"],"warehouse":["hf_20261026_194422_50eabfa0-c0fb-4025-a2bd-090df8def1b3","hf_20261026_194900_e5bc8a19-743a-4408-aac2-f4820a80e74d"],"bridge":["hf_20261027_001525_04c01b78-af40-4175-a6f2-b7e305a0f2d0","hf_20261026_194859_6843f20d-28a8-4cec-a61f-c5489afabbc4"],"patio":["hf_20261026_180955_740663d5-fcde-4598-ac2d-de735e402751","hf_20261026_181100_3067002d-bb22-4da5-a740-73b7cba50a9a"],"cottage":["hf_20261026_180955_0f66992f-b2e4-431b-b9eb-9478202e0cfe","hf_20261026_181101_648efce6-3189-4f8c-a505-b4d4120dd310"],"curvewalk":["hf_20261026_182214_82a12a1c-8d4d-4df4-9cf8-d873b3665552","hf_20261026_182411_37878d2a-cece-48f3-af68-0c3c992ad39e"],"downtown":["hf_20261026_182214_cd0b43e7-1ae6-4611-b345-43548ea78e19","hf_20261026_182410_a4dabd61-b3e2-4386-9295-f3bd63a7a819"],"drive1":["hf_20261026_182215_a90a6426-11b4-4fd7-8f99-c90832e8fb22","hf_20261026_182412_f25de860-4627-44cb-b15e-f20606cebc30"],"exposed":["hf_20261026_182214_588fda9f-40ba-4772-94c2-dcd69fc96408","hf_20261026_182411_039e1908-9272-4d3f-a674-f676f3084591"],"porch":["hf_20261026_182215_36d30154-806c-405a-a8fc-3104f7bbc994","hf_20261026_182412_ed5bd6d4-557c-44e5-9ef6-4bcae136e7b0"],"shed":["hf_20261026_182215_55436715-4f0b-4fcb-a529-737291a342c3","hf_20261026_182410_0c0ca151-fe74-43fb-bb72-b70e4bec2205"],"sidewalk":["hf_20261026_182216_eda0ac82-327c-4186-9c67-1bb426901b29","hf_20261026_182411_97cc1153-a615-4581-864b-de3d1a131866"],"walk":["hf_20261026_182213_7b725540-a047-4586-9a90-7199b4bc5fd0","hf_20261026_182411_64100c2f-4abe-4569-95c4-b94223b087aa"],"court":["hf_20261026_183255_5cd4293c-206d-4312-b451-230fed570eee","hf_20261026_183437_cc40ddca-60d5-4f11-9a14-149a2007e7fb"],"drive2":["hf_20261026_183254_35375bdf-0039-45c3-8184-7f99899a8e7d","hf_20261026_183438_9c1f47fd-ba77-4294-ab9a-2934611bfd6b"],"drivewalk":["hf_20261026_183253_e0dabb34-4bd6-4a3c-991a-1563d5974764","hf_20261026_183438_a3895fd0-fca0-48d4-a1b0-a6c8dde560b0"],"firehall":["hf_20261026_183253_d5acba68-5a80-4305-8085-b389741f9576","hf_20261026_183437_4dab82de-06ab-43c5-9ad9-c7643019cc75"],"freeze":["hf_20261026_183253_864af201-316b-4d96-a25b-55c87d76815c","hf_20261026_183437_c20e9659-fd22-48e1-883d-9ce3b9b7df75"],"heated":["hf_20261026_183254_786c9c05-82a5-4196-bea0-8447b867688a","hf_20261026_183437_c4271a46-716a-492c-9a52-179683fb6ba7"],"hottub":["hf_20261026_203638_a22c78bb-8ddc-46aa-a815-5da73fc4ce98","hf_20261026_203748_427c2ce8-335c-4dbb-bf33-da59dee27b4d"],"stampdrive":["hf_20261026_183252_a9597e46-a50b-499d-adc2-431a349ad223","hf_20261026_183436_a27ea47a-e05c-4a40-8079-dee36911307f"],"bcsteps":["hf_20261027_103512_974cc926-91f9-47a2-bc9e-e3c8aa7ca4d1","hf_20261027_103650_220b5077-f7e7-4262-bc6d-e8db12c38378"],"lane":["hf_20261027_103513_24fd73ae-2dd4-402d-aa8a-c7f549d4e2fb","hf_20261027_103757_154874af-55d4-4311-8aad-02e816cc0588"],"coastpatio":["hf_20261027_103640_0e32444b-3ece-49fa-8806-8752dd4ee02e","hf_20261027_103756_e4721a76-47ad-4a1d-8cc9-27e78625dd78"],"marina":["hf_20261027_103640_f08c54bc-00fb-41f8-b498-d56e47b1f9d1","hf_20261027_103756_efe7bb73-0240-4aa8-905e-f8644457b750"],"gastown":["hf_20261027_104305_5094404d-66df-411d-995e-19ba5b028f8c","hf_20261027_104424_8fa59bee-2312-4c37-a2b5-205bd7f9fc52"],"seawall":["hf_20261027_104304_bfa48a9b-b36c-4fa8-814f-1319e4ce6e92","hf_20261027_104425_8a1dfbfc-50aa-4fec-8e3a-9d9f623fff32"],"bcdrive":["hf_20261027_104303_fb190527-3a13-43b4-bfed-1f3df7f18077","hf_20261027_104424_14648c66-fe0d-4d8e-99b2-5b1670d31589"],"bcstamp":["hf_20261027_104332_aaaa0633-1c05-46de-b9ac-c8b36d287b95","hf_20261027_104554_772eb590-c9b5-4c42-9ad8-043e15efb1c2"],"bcsteps2":["hf_20261027_104304_52945754-4c51-4c1a-9d47-56d4f01e5365","hf_20261027_104510_f69e64ae-e5aa-4588-9328-a228f3f74339"],"bcdrive2":["hf_20261027_104304_5f5e53af-6cb8-4996-a43d-adcaa346e6d3","hf_20261027_104424_3fc3d5ac-38d1-4a87-8164-98652ac29d22"],"plexsteps":["hf_20261027_104815_cf57365e-17a2-4b57-bb93-402be14f2ca4","hf_20261027_104924_9b1ee691-77c0-4d7d-8d79-6f28de413cf1"],"ruelle":["hf_20261027_104815_dc9dd34f-214e-4f35-a805-f41de00d12a5","hf_20261027_104924_1cd3739d-b33e-4aa4-8d17-3e94c30bd1dd"],"cabane":["hf_20261027_110055_108bf3ba-0cfd-4ba8-9c52-ee01b45d010f","hf_20261027_110200_31c682c9-1bad-40f1-80be-4366210c6860"],"vieuxqc":["hf_20261027_104905_6d26cfa2-824d-4417-baa7-6206a437f108","hf_20261027_105151_08175037-7ac8-4ada-9cf0-79feb75edda1"],"qcdrive":["hf_20261027_105144_04ceb9ab-b7b7-488c-b113-17c806e27d00","hf_20261027_105236_a81b8c70-9e50-4929-a7de-9928415e57ad"],"qcpatio":["hf_20261027_105145_81f1d55c-44f6-4152-83b5-c2c312d0c95b","hf_20261027_105237_8a020084-3364-44c8-8fc9-44f5d761ce31"],"qcgarage":["hf_20261027_105145_29941ef2-7087-4d27-a3bd-1eba9c5c65d5","hf_20261027_105237_60c94292-0009-4916-8f75-50cdee5d7ceb"],"qcsteps2":["hf_20261027_105801_2268014f-6224-48a1-9acc-7e591f7b541a","hf_20261027_105936_bb71830e-7261-4ab6-abe0-558a37fc5f7e"],"qcdrive2":["hf_20261027_105801_59c0ef80-8ea3-4248-b92f-d69686fba455","hf_20261027_105934_f2c1ff8d-685c-4eac-8042-d4046750df21"],"qcwalk":["hf_20261027_105800_2f74af43-93b7-4184-af27-cb496480af7e","hf_20261027_105935_f46a9c33-4e10-4641-95d6-9253f9954c4a"],"qcexposed":["hf_20261027_105802_874bb35e-a971-4723-83fb-3f497a56b49b","hf_20261027_105935_51885360-cee9-480e-a7d5-dcc596fdd9e8"],"qcnight":["hf_20261027_105801_9da90e44-8dc2-492e-b759-ae2a277bd3c0","hf_20261027_105936_952ddcf3-d495-47a3-8fd4-a835c2e13385"],"binpad":["hf_20261027_110912_17ca2c0f-8cfc-45a9-a2ba-5e8dc0b1115a","hf_20261027_111036_1dfeeb66-7635-49b9-b508-be4ed3da89b9"],"shopapron":["hf_20261027_111005_313ed443-087c-465f-b847-91fc51df1153","hf_20261027_111306_a790a531-f499-43f4-96b7-9ad981ad3071"],"acreage":["hf_20261027_111028_66bd84ca-7e0a-423d-9c22-e506cd9832b8","hf_20261027_111114_dc7583d5-793c-4492-9d4e-52ca944bbd58"],"windpatio":["hf_20261027_110913_2ba384bc-c33b-4721-b34e-de56fd8abb5d","hf_20261027_111057_29a7c96d-a55f-4ab5-9100-1cf6d0c4c61c"],"prshop":["hf_20261027_111254_6980945d-dfab-4052-bd14-38f3dd7065e3","hf_20261027_111353_b5777c00-541e-402e-b563-e0ffb92b1d97"],"prwalk":["hf_20261027_111254_f8daf48e-af55-4444-a124-f051e3f06a07","hf_20261027_111352_5146afcc-d90e-4e3a-853b-8fa019b95b95"],"prsteps":["hf_20261027_111254_ebe7a48b-a430-46ab-baab-50651d8d7629","hf_20261027_111554_317cb768-6f0a-43f2-a6de-10d30d11e0a9"],"prsteps2":["hf_20261027_111619_650548e3-cc81-4adc-9e82-fd142842c3f7","hf_20261027_111828_7f4eb66e-17d8-4bf2-9d1e-79dc3cbafff7"],"prdrive2":["hf_20261027_111544_41600472-6759-44de-a4ce-e1c9e829bc33","hf_20261027_111638_dae1f6fa-98c5-4928-8800-af67dea34581"],"prgarage":["hf_20261027_111543_64000be6-c493-4327-83ec-f7585b9debbb","hf_20261027_111637_2529721f-fa03-4662-8fec-5b51568f8ab8"],"prcurve":["hf_20261027_111804_e1ff4660-3f13-47d6-b082-587170a2fdb7","hf_20261027_111906_502814e8-3a02-4fd8-bb9b-f290b21f1c0e"],"elevator":["hf_20261027_111803_4fc6db51-a8f7-46cf-837e-0fe30f2c200a","hf_20261027_111906_7550edbb-2c99-49e8-8353-97e810658eb6"]};
 function paintUrl(f){return '/_vercel/image?url='+encodeURIComponent(PAINT_CDN+f+'.png')+'&w=2048&q=78'}
+{const M={'paint/pooldeck.webp':'2570ef3f-2319-47ed-8754-e7bcf1ca47c9','paint/pooldeck-before.webp':'198f3f1b-40b2-44e0-ad22-8daa4854e2d0','paint/pooldeck-v1.webp':'c00be00c-63a7-4f8a-b80b-b80fc15b9f80','paint/pooldeck-v1-before.webp':'4251984e-a103-4805-99e0-8b13de39743c','paint/pooldeck-v2.webp':'fe664581-87e8-4705-8d90-50899ad6485f','paint/pooldeck-v2-before.webp':'0bbdd52f-88b0-4c9c-8559-85d5428bdcf2','paint/pooldeck-v3.webp':'29b2c132-2d75-4cf0-a72e-9aa0bc617e54','paint/pooldeck-v3-before.webp':'5b9a8898-58d0-4e37-980b-567859af7eeb'},
+  fx=o=>{['img','imgPrep'].forEach(k=>{if(o&&M[o[k]])o[k]='/_vercel/image?url='+encodeURIComponent('https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/'+M[o[k]]+'.webp')+'&w=2048&q=78'})};
+  /* v360: the pool deck photos were sent full size (3000x4018, about 61 MB on the GPU each); they now come through the image optimizer at 2048 like every other job */
+  try{const L=LEVELS.find(l=>l.id==='stamp');if(L&&L.paint){fx(L.paint);(L.paint.views||[]).forEach(fx)}}catch(e){}}
 function addPaints(o){for(const id in o){const L=LEVELS.find(l=>l.id===id),F=PAINT_F[id];if(L&&!L.paint&&F)L.paint=Object.assign({fov:70,asp:.75,img:paintUrl(F[0]),imgPrep:paintUrl(F[1])},o[id])}}
 // Ontario (home region)
 addPaints({"court":{cam:[-36.5,30.9,39.2],look:[9.3,0,-10]},"hottub":{cam:[-12.4,20,29.9],look:[9.2,0,-7.9]},"drive2":{cam:[-32.2,39.4,60.1],look:[8.2,0,-15.3]},"heated":{cam:[-32.1,23.7,25.7],look:[8.2,0,-6.5]},"drivewalk":{cam:[-37.2,39.4,58],look:[9.4,0,-13.7]},"stampdrive":{cam:[-24.1,35.2,55.3],look:[6.5,0,-14.9]},"freeze":{cam:[-16.2,23.7,37.3],look:[4.1,0,-10]},"firehall":{cam:[-40,49.5,75.8],look:[10.2,0,-19.3]},"patio":{cam:[-24.3,22.5,30.5],look:[6.2,0,-7.7]},"cottage":{cam:[2,22.5,38.9],look:[-0.5,0,-9.9]},"walk":{cam:[-18,22.5,33.7],look:[4.6,0,-9.6]},"sidewalk":{cam:[-42.6,33.7,41.3],look:[10.8,0,-8.9]},"downtown":{cam:[-17.9,33.7,55.3],look:[4.5,0,-14.4]},"curvewalk":{cam:[-14.1,22.5,36.3],look:[3.6,0,-9.2]},"porch":{cam:[2.4,20,32.5],look:[-0.6,0,-10.9]},"drive1":{cam:[-17.1,35.2,58.5],look:[4.8,0,-14.9]},"exposed":{cam:[-8.3,22.5,38.1],look:[2.1,0,-9.7]},"shed":{cam:[-7,20,32.9],look:[6.7,0,-8.3]}});
@@ -8812,8 +8817,15 @@ function govApply(){const L=GOV.lv;if(!renderer)return;
   SHD.every=L>=5?4:L>=3?3:FPSCAP?1:2}
 function govStep(t){if(GOV.lv>=GOV.max||t<GOV.hold)return;GOV.lv++;GOV.hold=t+3000;GOV.bad=1;govApply();adrHold(1500);try{localStorage.setItem(GOV.key,GOV.lv)}catch(e){}}
 function govJobEnd(){try{if(!GOV.bad&&GOV.good>40000&&GOV.lv>0)localStorage.setItem(GOV.key,GOV.lv-1)}catch(e){}GOV.good=0;GOV.bad=0}
+/* v360: idle throttle. In 60 fps mode, when nobody has touched the screen for a few seconds and nothing on the job is driving, pouring or
+   swooping, the picture is drawn at 30 instead of 60 until the next touch: half the GPU work while you read a tip or wait on the slab. */
+const IDLE={t:0,on:false};
+['pointerdown','pointermove','pointerup','wheel','keydown','touchstart','touchmove'].forEach(k=>addEventListener(k,()=>{IDLE.t=performance.now()},{capture:true,passive:true}));
+function idleNow(){let on=false;
+  try{on=!FPSCAP&&running&&!document.hidden&&performance.now()-IDLE.t>2500&&!ptr.down&&!pouring&&!arrive&&!(swoopT>0)&&!(typeof cabOn!=='undefined'&&cabOn)&&!(RUM.h>.02)&&!(drill&&drill.go)&&!(typeof rainIM!=='undefined'&&rainIM.visible)&&camPos.distanceToSquared(camTarget)<.01}catch(e){on=false}
+  if(on!==IDLE.on){IDLE.on=on;try{adrHold(1200)}catch(e){}}return on}
 function adrTick(t,iv){
-  if(!ADR.on||!running||document.hidden||glLost||t<ADR.hold||iv>400)return;
+  if(!ADR.on||!running||document.hidden||glLost||t<ADR.hold||iv>400||IDLE.on)return;
   const bud=FPSCAP?33.4:16.7;PERF.ema=PERF.ema*.9+Math.min(iv,120)*.1;
   if(PERF.ema>bud*1.22){ADR.over+=iv;ADR.under=0}else{ADR.over=Math.max(0,ADR.over-iv*.5);ADR.under=PERF.ema<bud*1.07?ADR.under+iv:0}
   if(PERF.ema<bud*1.05)GOV.good+=iv;
@@ -8867,12 +8879,17 @@ ${GFX}${GOV.lv?' -'+GOV.names.slice(1,GOV.lv+1).join(','):''} ktx${typeof KTX!==
 /* compile every material in the scene (hidden tools, trucks, tarps included) and pre-upload their textures,
    so a step change or a tool coming out doesn't stall the frame while the phone builds a shader */
 const WARMQ=[];let warmT=0;
+/* v360: a photo job that is poured from the fixed drone spot never shows the 3D yard (houses, trees, sky, lawn): the photo is the yard. Its
+   shaders and textures used to be built and sent to the GPU anyway on every job start. They are now left alone unless the job has a dig
+   (the excavator cab view shows the 3D yard), so the job starts sooner and holds far less graphics memory. If the photo fails to load the
+   yard still draws; it just builds on first sight instead of ahead of time. */
+function warmSkip(){try{if(!LV||!LV.paint||isPrep())return null;const s=new Set([sky,clouds,sunGlow,moonM,sceneG,REGG].filter(Boolean));treeIMs.forEach(o=>s.add(o));scene.children.forEach(o=>{if(o.userData&&o.userData.lm)s.add(o)});return s}catch(e){return null}}
 function warmUp(full){if(!renderer||!scene||!camera||glLost)return;const t0=performance.now(),rt=renderer.getRenderTarget(),tm=renderer.toneMapping;
   try{if(!lowQ&&postInit()&&POST.on){postSize();renderer.toneMapping=THREE.NoToneMapping;renderer.setRenderTarget(POST.main)}
-    const p=renderer.compileAsync(scene,camera);
+    const sk=warmSkip();let p;if(sk){const ps=[];scene.children.forEach(o=>{if(!sk.has(o))ps.push(renderer.compileAsync(o,camera,scene))});p=Promise.all(ps)}else p=renderer.compileAsync(scene,camera);
     p.then(()=>{PERF.progBase=renderer.info.programs?renderer.info.programs.length:0}).catch(()=>{})}
   catch(e){console.warn('warm',e)}finally{renderer.setRenderTarget(rt);renderer.toneMapping=tm}
-  if(full){const seen=new Set();WARMQ.length=0;scene.traverse(o=>{const ms=o.material;if(!ms)return;(Array.isArray(ms)?ms:[ms]).forEach(m=>{if(!m)return;for(const k in m){const v=m[k];if(v&&v.isTexture&&!v.isRenderTargetTexture&&!seen.has(v)){seen.add(v);WARMQ.push(v)}}})})}
+  if(full){const seen=new Set(),sk=warmSkip();WARMQ.length=0;(sk?scene.children.filter(o=>!sk.has(o)):[scene]).forEach(r=>r.traverse(o=>{const ms=o.material;if(!ms)return;(Array.isArray(ms)?ms:[ms]).forEach(m=>{if(!m)return;for(const k in m){const v=m[k];if(v&&v.isTexture&&!v.isRenderTargetTexture&&!seen.has(v)){seen.add(v);WARMQ.push(v)}}})}))}
   PERF.warm=performance.now()-t0;PERF.progBase=renderer.info.programs?renderer.info.programs.length:0;adrHold(2500)}
 function warmSoon(full){clearTimeout(warmT);warmT=setTimeout(()=>{try{warmUp(full)}catch(e){}},60)}
 function warmTick(){if(!WARMQ.length||!renderer)return;const t0=performance.now();
@@ -8896,11 +8913,11 @@ function bkdTex(src,cb){const c=BKD.cache||(BKD.cache={});let e=c[src];if(e&&e.t
   e=c[src]={t:null,cb:cb?[cb]:[]};new THREE.TextureLoader().load(src,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;
     e.t=t;const f=e.cb;e.cb=[];f.forEach(g=>g(t))},undefined,()=>{console.warn('paint: could not load',src);delete c[src]})}
 function bkdDrop(t){const c=BKD.cache||{};for(const k in c)if(c[k].t===t){delete c[k];t.dispose()}}
-function bkdLoad(L){const C=L&&L.paint;if(!C)return;if(!BKD.load||BKD.load.L!==L){BKD.vi=0;BKD.want=null;BKD.yb=0}const V=bkdC(L),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;if(BKD.load&&BKD.load.L===L&&BKD.load.src===src)return;BKD.load={L,src,ok:false};// a full job (dig first) uses the 'before' painting: lawn where the pad goes
+function bkdLoad(L){const C=L&&L.paint;if(!C)return;if(!BKD.load||BKD.load.L!==L){BKD.vi=0;BKD.want=null;BKD.yb=0}try{lpLoad(lpKey(L))}catch(e){}const V=bkdC(L),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;if(BKD.load&&BKD.load.L===L&&BKD.load.src===src)return;BKD.load={L,src,ok:false};// a full job (dig first) uses the 'before' painting: lawn where the pad goes
   bkdTex(src,t=>{if(BKD.load&&BKD.load.L===L&&BKD.load.src===src){const old=BKD.tex;BKD.tex=t;BKD.load.ok=true;BKD.L=null;if(old&&old!==t)bkdDrop(old)}})}
 function bkdFade(){let d=BKD.fd;if(!d){d=BKD.fd=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#0b0a08;opacity:0;pointer-events:none;z-index:0';cv.parentNode.insertBefore(d,cv.nextSibling)}
   d.style.transition='none';d.style.opacity='.9';void d.offsetWidth;d.style.transition='opacity .38s ease-out';requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.opacity='0'}))}
-function bkdGo(k,yb){const C=LV&&LV.paint;if(!C||!C.views||!BKD.load)return;const V=Object.assign({},C,C.views[k]),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;BKD.want=k;
+function bkdGo(k,yb){const C=LV&&LV.paint;if(!C||!C.views||!BKD.load)return;try{lpLoad(lpKey(LV,k))}catch(e){}const V=Object.assign({},C,C.views[k]),src=isPrep()&&V.imgPrep?V.imgPrep:V.img;BKD.want=k;
   bkdTex(src,t=>{if(BKD.want!==k||!BKD.load||BKD.load.L!==LV)return;bkdFade();const old=BKD.tex;BKD.vi=k;BKD.want=null;BKD.yb=yb;PAN.yaw=yb;BKD.cool=performance.now()+650;
     BKD.load={L:LV,src,ok:true};BKD.tex=t;BKD.L=null;if(old&&old!==t)bkdDrop(old);
     // warm the browser cache for the two neighbouring sides so the next turn is quick
@@ -8911,12 +8928,102 @@ function bkdViewTick(){const C=LV&&LV.paint,on=!!(C&&C.views&&BKD.on);{const e=$
   if(PAN.yaw===0&&BKD.yb){bkdGo(0,0);return}// zoom reset: back to the first side
   const d=-(PAN.yaw-(BKD.yb||0));if(Math.abs(d)<.3)return;// about a 17 degree twist turns to the next side
   bkdTurn(d>0?1:-1)}
+/* ---------- v360: live photo ----------
+   Each yard photo has a small helper picture (tex/aux/<job>.png, 192x256, made once offline from the photo): red = how far away each pixel is,
+   as a fraction of the distance to the flat ground (or the far distance) behind it, so 255 means "on the ground"; green = trees and shrubs;
+   blue = water. With it the photo is drawn on a relief sheet instead of a flat card: the drone can hover and the phone can be tilted, and near
+   things slide over far things while the 3D work, which stands on the same ground plane, stays locked to the yard. Leaves sway, water ripples
+   and glints toward the sun, and passing cloud shade (the same one that dims the 3D sun) sweeps across the photo.
+   Jobs without a helper picture (or if it fails to load) keep the flat card and none of this runs. */
+const LP={on:(()=>{try{return localStorage.getItem('bts-live')!=='0'}catch(e){return true}})(),ZF:1500,NX:72,NY:96,SK:.16,aux:{},geo:null,gk:null,live:false,par:1,
+  keys:new Set(["stamp","stamp-v1","stamp-v2","stamp-v3"]),noPar:new Set(['bridge']),
+  U:{lpAux:{value:null},lpT:{value:0},lpK:{value:0},lpSun:{value:new THREE.Vector2(1,0)},lpCs:{value:new THREE.Vector4(-1,300,1,0)},lpCw:{value:new THREE.Vector4(.8,.6,0,0)},lpA:{value:new THREE.Vector3(1,1,1)}},
+  off:new THREE.Vector3(),ox:0,oy:0,tx:0,ty:0,g0:null,b0:null,hover:.38,tiltK:1.05,tl:0,a:new THREE.Vector3(),b:new THREE.Vector3(),
+  rm:(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})()};
+const LP_GLSL=`varying vec3 vLpW;uniform sampler2D lpAux;uniform float lpT,lpK;uniform vec2 lpSun;uniform vec4 lpCs,lpCw;uniform vec3 lpA;
+float lpH(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float lpN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lpH(i),lpH(i+vec2(1.,0.)),f.x),mix(lpH(i+vec2(0.,1.)),lpH(i+vec2(1.,1.)),f.x),f.y);}`;
+const LP_MAP=`#ifdef USE_MAP
+ vec2 lpUv=vMapUv;float lpGl=0.,lpWt=0.,lpSh=0.,lpDs=length(vLpW-cameraPosition);
+ if(lpK>0.){vec3 ax=texture2D(lpAux,vMapUv).rgb;vec2 wp=vLpW.xz;
+  float vg=ax.g*ax.g*lpA.x;
+  if(vg>.004){float gu=.5+.5*sin(lpT*.33+dot(wp,lpCw.xy)*.045);gu=.35+.65*gu*gu;
+   vec2 s=vec2(sin(lpT*1.7+wp.x*.41+wp.y*.27)+.6*sin(lpT*2.9+wp.y*.73-wp.x*.31),.55*sin(lpT*2.2+wp.x*.57+wp.y*.39)+.3*sin(lpT*3.7-wp.x*.9));
+   lpUv+=s*vg*gu*.0011;}
+  lpWt=ax.b*lpA.y;
+  if(lpWt>.02){float fd=1./(1.+lpDs*.01);vec2 q=wp*.3;float n1=lpN(q+lpT*vec2(.42,.27)),n2=lpN(q*2.3-lpT*vec2(.35,.5)+7.);
+   lpUv+=(vec2(n1,n2)-.5)*lpWt*fd*.007;
+   vec2 vd=normalize(wp-cameraPosition.xz+1e-4);float tw=.3+.7*smoothstep(-.3,.85,dot(vd,lpSun));
+   float sp=lpN(wp*1.9+lpT*vec2(.9,-.6))*lpN(wp*1.1-lpT*vec2(.5,.7)+3.);lpGl=smoothstep(.5,.72,sp)*lpWt*fd*tw;lpSh=(n1+n2-1.)*lpWt*fd;}
+ }
+ vec4 sampledDiffuseColor=texture2D(map,lpUv);
+ if(lpK>0.){sampledDiffuseColor.rgb=sampledDiffuseColor.rgb*(1.+lpSh*.16)+vec3(1.,.96,.88)*lpGl*.55;
+  if(lpCs.x>=0.&&lpA.z>0.){float ff=lpCs.x-dot(vLpW.xz-lpCw.zw,lpCw.xy)/lpCs.y;float e=clamp(min(ff*4.,(1.-ff)*4.),0.,1.);e=e*e*(3.-2.*e)*lpCs.z*lpA.z;
+   float l=dot(sampledDiffuseColor.rgb,vec3(.2126,.7152,.0722));e*=(1.-smoothstep(450.,1200.,lpDs))*smoothstep(.015,.3,l);
+   sampledDiffuseColor.rgb*=mix(vec3(1.),vec3(.7,.76,.85),e);}
+ }
+ diffuseColor*=sampledDiffuseColor;
+#endif`;
+function lpPatch(m){m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,LP.U);
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vLpW;').replace('#include <project_vertex>','#include <project_vertex>\nvLpW=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+LP_GLSL).replace('#include <map_fragment>',LP_MAP)};
+  m.customProgramCacheKey=()=>'lp1'}
+function lpKey(L,vi){L=L||LV;vi=vi==null?(BKD.vi|0):vi;return L?L.id+(vi?'-v'+vi:''):''}
+function lpLoad(k){if(!LP.on||!LP.keys.has(k)||LP.aux[k])return;const e=LP.aux[k]={d:null,t:null,w:0,h:0},im=new Image();
+  im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0);
+      const px=g.getImageData(0,0,c.width,c.height).data,d=new Uint8Array(c.width*c.height);for(let i=0;i<d.length;i++)d[i]=px[i*4];
+      const t=new THREE.Texture(im);t.colorSpace=THREE.NoColorSpace;t.generateMipmaps=false;t.minFilter=t.magFilter=THREE.LinearFilter;t.needsUpdate=true;
+      e.d=d;e.w=c.width;e.h=c.height;e.t=t;
+      if(BKD.on&&BKD.L===LV&&lpKey()===k)bkdBuild(bkdC(LV))}catch(err){console.warn('live photo: helper',err);delete LP.aux[k];LP.keys.delete(k)}};
+  im.onerror=()=>{delete LP.aux[k];LP.keys.delete(k)};im.src='tex/aux/'+k+'.png'}
+/* the relief sheet: a grid over the photo, every corner pushed out along its own line of sight to the distance the helper picture gives.
+   Squares are drawn far-to-near (the sheet has no depth test, the 3D work always draws over it) and a stretched rim hides the photo's edge. */
+function lpGeo(C,A){const NX=LP.NX,NY=LP.NY,W=A.w,H=A.h,d=A.d,tv=Math.tan(C.fov*Math.PI/360),th=tv*C.asp,P=BKD.P,ZF=LP.ZF,SK=LP.SK;
+  const f=new THREE.Vector3(0,0,-1).applyQuaternion(BKD.Q),r=new THREE.Vector3(1,0,0).applyQuaternion(BKD.Q),u=new THREE.Vector3(0,1,0).applyQuaternion(BKD.Q);
+  const smp=(uu,vv)=>{let x=uu*W-.5,y=(1-vv)*H-.5;x=x<0?0:x>W-1?W-1:x;y=y<0?0:y>H-1?H-1:y;const x0=x|0,y0=y|0,x1=Math.min(W-1,x0+1),y1=Math.min(H-1,y0+1),fx=x-x0,fy=y-y0;
+    return((d[y0*W+x0]*(1-fx)+d[y0*W+x1]*fx)*(1-fy)+(d[y1*W+x0]*(1-fx)+d[y1*W+x1]*fx)*fy)/255};
+  const nx=NX+3,ny=NY+3,pos=new Float32Array(nx*ny*3),uv=new Float32Array(nx*ny*2),zs=new Float32Array(nx*ny);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const gi=i-1,gj=j-1,uu=gi<0?-SK:gi>NX?1+SK:gi/NX,vv=gj<0?-SK:gj>NY?1+SK:gj/NY,cu=Math.min(1,Math.max(0,uu)),cw=Math.min(1,Math.max(0,vv));
+    const a=(2*uu-1)*th,b=(2*vv-1)*tv,dx=f.x+r.x*a+u.x*b,dy=f.y+r.y*a+u.y*b,dz=f.z+r.z*a+u.z*b;
+    const zr=dy<-1e-4?Math.min(-P.y/dy,ZF):ZF;let q=smp(cu,cw);if(q>.99)q=1;const z=Math.max(.02,q)*zr,k=j*nx+i;
+    pos[k*3]=P.x+dx*z;pos[k*3+1]=P.y+dy*z;pos[k*3+2]=P.z+dz*z;uv[k*2]=cu;uv[k*2+1]=cw;zs[k]=z}
+  const nq=(nx-1)*(ny-1),ord=new Uint32Array(nq),qz=new Float32Array(nq);
+  for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const k=j*(nx-1)+i,a=j*nx+i;ord[k]=k;qz[k]=Math.max(zs[a],zs[a+1],zs[a+nx],zs[a+nx+1])}
+  const o2=Array.from(ord).sort((p,q)=>qz[q]-qz[p]),idx=new Uint16Array(nq*6);
+  o2.forEach((k,n)=>{const j=(k/(nx-1))|0,i=k-j*(nx-1),a=j*nx+i,b=a+1,c=a+nx,e=c+1;idx.set([a,b,c,b,e,c],n*6)});
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setIndex(new THREE.BufferAttribute(idx,1));return g}
+function lpApply(C){const q=BKD.quad,k=lpKey(),A=LP.on&&LP.aux[k]&&LP.aux[k].d?LP.aux[k]:null;
+  if(!A){if(BKD.flatG&&q.geometry!==BKD.flatG)q.geometry=BKD.flatG;LP.live=false;LP.U.lpK.value=0;LP.off.set(0,0,0);lpLoad(k);return}
+  if(LP.gk!==k||!LP.geo){if(LP.geo)LP.geo.dispose();LP.geo=lpGeo(C,A);LP.gk=k}
+  q.geometry=LP.geo;q.position.set(0,0,0);q.quaternion.identity();q.scale.set(1,1,1);q.updateMatrixWorld(true);
+  LP.U.lpAux.value=A.t;LP.U.lpK.value=1;LP.live=true;LP.par=LP.noPar.has(LV.id)||(LV.elev||0)>6?0:1}
+function lpTick(){const n=performance.now(),dt=Math.min(.1,(n-(LP.tl||n))/1000),U=LP.U;LP.tl=n;U.lpT.value=(n*.001)%7200;
+  if(!LP.live){LP.off.set(0,0,0);return}
+  const a=LP.rm?0:LP.par,hx=Math.sin(n*.00023)*.6+Math.sin(n*.00051+1.3)*.4,hy=Math.sin(n*.00019+2.1)*.6+Math.sin(n*.00043)*.4,k=Math.min(1,dt*5);
+  LP.ox+=((LP.hover*hx-LP.tiltK*LP.tx)*a-LP.ox)*k;LP.oy+=((LP.hover*.6*hy-LP.tiltK*.6*LP.ty)*a-LP.oy)*k;
+  LP.off.copy(LP.a.set(1,0,0).applyQuaternion(BKD.Q)).multiplyScalar(LP.ox).addScaledVector(LP.b.set(0,1,0).applyQuaternion(BKD.Q),LP.oy);
+  const sp=sun.position;if(sp.x||sp.z)U.lpSun.value.set(sp.x,sp.z).normalize();
+  if(typeof CSH!=='undefined'&&CSH.dur>0)U.lpCs.value.set(CSH.d/CSH.dur,CSH.dur*42,Math.min(1,(CSH.depth||.4)/.55),0);else U.lpCs.value.x=-1;
+  U.lpCw.value.z=RCX;U.lpCw.value.w=RCZ;U.lpA.value.set(weather&&weather.night?.5:1,1,weather&&weather.night?0:1)}
+/* phone tilt: the yard shifts a little as the phone leans, like looking through a window. It re-centres itself on however the phone is being held. */
+addEventListener('deviceorientation',e=>{if(e.gamma==null||e.beta==null)return;const g=e.gamma,b=e.beta;if(LP.g0==null){LP.g0=g;LP.b0=b}
+  if(Math.abs(g-LP.g0)>40||Math.abs(b-LP.b0)>40){LP.g0=g;LP.b0=b}LP.g0+=(g-LP.g0)*.006;LP.b0+=(b-LP.b0)*.006;
+  const tx=Math.max(-1,Math.min(1,(g-LP.g0)/13)),ty=Math.max(-1,Math.min(1,(b-LP.b0)/13));
+  if(Math.abs(tx-LP.tx)+Math.abs(ty-LP.ty)>.02&&typeof IDLE!=='undefined')IDLE.t=performance.now();LP.tx=tx;LP.ty=ty},{passive:true});
+/* v360: every photo has its own light. PFX[job or job-vN] = [sun compass angle in degrees (0 = +x, 90 = +z), sun height in degrees, shadow
+   strength 0..1, then the r,g,b tint of that photo's sunlight]. The angle and height were read off each photo's own shadows; the strength and
+   tint are measured from the photo. A null angle keeps the game's sun and only uses the strength and tint. No entry = the old one-size grade. */
+const PFX={"stamp":[275,24,.5]};
+function pfxApply(){const p=PFX[lpKey()]||null;BKD.sunV=null;
+  if(BKD.shM)BKD.shM.opacity=p&&p[2]?p[2]:.34;
+  if(p&&p[0]!=null){const az=p[0]*Math.PI/180,el=p[1]*Math.PI/180;BKD.sunV=(BKD.sunV0||(BKD.sunV0=new THREE.Vector3())).set(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).multiplyScalar(27);try{SHD.force=1}catch(e){}}
+  if(p&&p[3]!=null)BKG.warm.setRGB(p[3],p[4],p[5]);else BKG.warm.setRGB(1,.88,.72)}
 function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
   BKD.PV=C.fov*Math.PI/360;BKD.PH=Math.atan(Math.tan(BKD.PV)*C.asp);
   const D=300,h=2*D*Math.tan(BKD.PV),w=h*C.asp;
   if(!BKD.quad){BKD.quad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({depthWrite:false,depthTest:false,fog:false,toneMapped:false}));
-    BKD.quad.renderOrder=-1000;BKD.quad.frustumCulled=false;BKD.quad.layers.set(4);BKD.quad.raycast=()=>{};scene.add(BKD.quad)}
-  const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true}
+    BKD.quad.renderOrder=-1000;BKD.quad.frustumCulled=false;BKD.quad.layers.set(4);BKD.quad.raycast=()=>{};scene.add(BKD.quad);BKD.flatG=BKD.quad.geometry;BKD.quad.material.side=THREE.DoubleSide;try{lpPatch(BKD.quad.material)}catch(e){console.warn('live photo',e)}}
+  const q=BKD.quad;q.material.map=BKD.tex;q.material.needsUpdate=true;q.scale.set(w,h,1);q.quaternion.copy(BKD.Q);q.position.copy(BKD.P).add(BKD.v.set(0,0,-D).applyQuaternion(BKD.Q));q.visible=true;try{lpApply(C)}catch(e){console.warn('live photo',e);LP.live=false;LP.U.lpK.value=0}}
 /* v290: the concrete runs right up to the pool. The coping is a thin 3D strip (keep-out rect, from its edge to ~1.2 ft in) textured with the
    photo itself through the painting's camera: it lines up with the painted stone at any zoom, wet mud stops against it, and the chute and
    tools still pass in front of it. */
@@ -8932,8 +9039,8 @@ function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(
     m.renderOrder=3;m.raycast=()=>{};m.userData.L=BKD.L;scene.add(m);BKD.cop=m}
   BKD.cop.visible=true}
 function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);{const ys=C.imgPrep||null;if(ys&&BKD.yrSrc!==ys){BKD.yrSrc=ys;const o=BKD.yrTex;BKD.yrTex=null;if(o)o.dispose();new THREE.TextureLoader().load(ys,t=>{t.colorSpace=THREE.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;if(BKD.yrSrc===ys)BKD.yrTex=t;else t.dispose()})}}if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
-  if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+  if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});try{pfxApply()}catch(e){console.warn('pfx',e)}BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
+function bkdOff(){BKD.sunV=null;try{LP.off.set(0,0,0)}catch(e){}try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
    v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
@@ -9083,22 +9190,22 @@ function bkdTick(){try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.
   // where the game wanted to look this frame, and how much of the ground it wanted to see there
   const c=camera,f=BKD.f.set(0,0,-1).applyQuaternion(c.quaternion);let L;
   if(f.y<-.04){const k=(ELV()-c.position.y)/f.y;L=BKD.v.copy(c.position).addScaledVector(f,k)}else L=BKD.v.copy(lookC);
-  const dG=Math.max(1,c.position.distanceTo(L)),dP=Math.max(1,BKD.P.distanceTo(L));bkdAim(L,dP/dG)}
+  const dG=Math.max(1,c.position.distanceTo(L)),dP=Math.max(1,BKD.P.distanceTo(L));try{lpTick()}catch(e){}bkdAim(L,dP/dG,true)}
 // point the real camera from the painting's spot at ground point L with lens zoom z, kept inside the painting
-function bkdAim(L,z){const c=camera;
+function bkdAim(L,z,par){const c=camera;
   const t0=Math.tan(c.fov*Math.PI/360),asp=c.aspect,mg=.035;
   // never show past the edge of the painting: limit how wide the lens can open, then how far it can turn
   const zMin=Math.max(t0/Math.tan(BKD.PV-mg),t0*asp/Math.tan(BKD.PH-mg));if(z<zMin)z=zMin;
   const hv=Math.atan(t0/z),hh=Math.atan(t0*asp/z);
-  BKD.Qi.copy(BKD.Q).invert();const d=BKD.f.copy(L.sub(BKD.P)).applyQuaternion(BKD.Qi);
+  BKD.Qi.copy(BKD.Q).invert();const d=BKD.f.copy(L.sub(BKD.P)),dl=Math.max(1,d.length());d.applyQuaternion(BKD.Qi);
   let yaw=Math.atan2(d.x,-d.z),pit=Math.atan2(d.y,Math.hypot(d.x,d.z));const ly=Math.max(0,BKD.PH-hh-mg),lp=Math.max(0,BKD.PV-hv-mg);
   yaw=Math.max(-ly,Math.min(ly,yaw));pit=Math.max(-lp,Math.min(lp,pit));
   d.set(Math.sin(yaw)*Math.cos(pit),Math.sin(pit),-Math.cos(yaw)*Math.cos(pit)).applyQuaternion(BKD.Q);
-  c.position.copy(BKD.P);c.lookAt(BKD.v.copy(BKD.P).add(d));
+  c.position.copy(BKD.P);if(par&&LP.live&&LP.par){/* v360: the drone drifts and leans about the spot it is looking at, so the work stays centred while near and far slide */c.position.add(LP.off);c.lookAt(BKD.v.copy(BKD.P).addScaledVector(d,dl))}else c.lookAt(BKD.v.copy(BKD.P).add(d));
   if(Math.abs(c.zoom-z)>1e-4){c.zoom=z;c.updateProjectionMatrix()}}
 function frame(t){
   requestAnimationFrame(frame);
-  {const cap=FPSCAP?31:IS_AND?15:0;if(cap){if(t-(frame.lt||0)<cap)return;frame.lt=t}}
+  {const cap=FPSCAP||idleNow()?31:IS_AND?15:0;if(cap){if(t-(frame.lt||0)<cap)return;frame.lt=t}}
   if(renderer)renderer.info.reset();const j0=performance.now();
   try{frame0(t)}finally{try{warmTick();perfFrame(t,performance.now()-j0,document.body.classList.contains('menu'));psecEnd(t-(frame.pe||t));frame.pe=t}catch(e){}}}
 function frame0(t){
@@ -9139,7 +9246,7 @@ function step(t,dt){
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
   updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);
-   sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
+   sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(BKD.on&&BKD.sunV&&!weather.night)sun.position.copy(BKD.sunV);/* v360: on a photo site the 3D sun stands where that photo's sun is */if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
   camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;camera.lookAt(lookC);
   try{panHideTick(t)}catch(e){}
