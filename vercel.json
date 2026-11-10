@@ -210,6 +210,46 @@
     {
       "source": "/tex/cpack.webp",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/6235f75d-8b47-4151-81dc-3173436f6431.webp"
+    },
+    {
+      "source": "/models/k/mixer-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/152903d0-4579-4c96-9597-b2253c7223af.glb"
+    },
+    {
+      "source": "/models/k/excavator-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/92258eb4-a8e5-424c-b017-2d59d65cb707.glb"
+    },
+    {
+      "source": "/models/k/pump-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/8c6a6929-8b55-4077-83d3-b0141d613f8a.glb"
+    },
+    {
+      "source": "/models/k/slipform-photo.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/c5d26993-6aa9-4c53-b27b-e71f255c3701.glb"
+    },
+    {
+      "source": "/models/k/bidwell-photo2.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/ab0e8449-9d90-4418-b7db-45d6ec151d8f.glb"
+    },
+    {
+      "source": "/models/k/plate-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/250518ed-01b6-4053-b5fe-fa2c57a938d1.glb"
+    },
+    {
+      "source": "/models/k/roller-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/60f0c105-e5a2-478e-b64d-1a754d27f1c8.glb"
+    },
+    {
+      "source": "/models/k/broom-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/32a27aa3-4e61-4f8a-b423-7eb045f4fec3.glb"
+    },
+    {
+      "source": "/models/k/bullfloat-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/44499ec3-0022-49cc-b828-fdb7379569a0.glb"
+    },
+    {
+      "source": "/models/k/trowel-worn.glb",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/c5cf58c6-2279-4a45-896a-77e850f74513.glb"
     }
   ],
   "images": {
