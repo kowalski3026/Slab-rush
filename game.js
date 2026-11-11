@@ -7784,7 +7784,7 @@ function lpApply(C){const q=BKD.quad,k=lpKey(),A=LP.on&&LP.aux[k]&&LP.aux[k].d?L
      same phone-tilt window effect: the camera swings a little round the spot it is looking at, so near things slide over far ones for real.
      Held still while a finger is on the screen, eased back after; off with reduced motion. Photo jobs keep their own (lpTick). */
   function lp3d(dt,t){const v=LP.v3||(LP.v3={x:0,y:0,rel:1,f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3()});
-    const photo=typeof BKD!=='undefined'&&BKD.on;if(photo||LP.rm||!running&&!menuOpen){v.x*=.9;v.y*=.9;if(photo)return}
+    const photo=typeof BKD!=='undefined'&&BKD.on;if(photo||LP.rm||!running){v.x*=.9;v.y*=.9;if(photo)return}
     const hx=Math.sin(t*.00023)*.6+Math.sin(t*.00051+1.3)*.4,hy=Math.sin(t*.00019+2.1)*.6+Math.sin(t*.00043)*.4,hold=!!(ptr&&ptr.down);
     v.rel=hold?0:Math.min(1,v.rel+dt*.8);const kk=hold?0:Math.min(1,dt*5)*v.rel;
     v.x+=((LP.hover*hx-LP.tiltK*LP.tx)-v.x)*kk;v.y+=((LP.hover*.6*hy-LP.tiltK*.6*LP.ty)-v.y)*kk;
