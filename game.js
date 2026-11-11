@@ -3062,7 +3062,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
     vec4 cc=texture2D(cPk,vec2(p.x*-.669-p.y*.743,p.x*.743-p.y*.669)*.16+.29);float dk=clamp(fq*2.2,0.,1.);
     rw=1.+(rw-1.)*(1.+dk*.9)+(cc.r*2.-1.)*(.25+.35*dk);float a1=clamp(1.6-fq*22.,0.,1.),a2=clamp(1.6-fq*55.,0.,1.);
     // relief straight from the photo: the lit tops of stone and lumps read as high
-    vec2 te=vec2(1.5/1024.,0.);float mh=ck.r;vec2 ng=-vec2(texture2D(cPk,pr+te.xy).r-mh,texture2D(cPk,pr+te.yx).r-mh)*7.*(.75+.5*dk)*(.4+.6*a2);
+    vec2 te=vec2(1.5/1024.,0.),tm=te*1.8;float mh=texture2D(cPk,pr-tm.xy*.5-tm.yx*.5).r;vec2 ng=-vec2(texture2D(cPk,pr+tm.xy*.5-tm.yx*.5).r-mh,texture2D(cPk,pr-tm.xy*.5+tm.yx*.5).r-mh)*2.6*(.75+.5*dk)*(.4+.6*a2);
     float lo=gVN(p*.31+2.2)*.6+gVN(p*1.13+7.7)*.4,rough=rw;
     if(scr>.01){vec2 s1u=p*.36+.13,s2u=vec2(p.x*.81-p.y*.59,p.x*.59+p.y*.81)*.31+.47;float sm=smoothstep(.3,.7,gVN(p*.41+3.9));
      float g1=texture2D(cPk,s1u).g,sG=mix(g1,texture2D(cPk,s2u).g,sm);
@@ -3070,7 +3070,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
      // drag: fines pulled into short irregular streaks along the board's path
      float dr=(gVN(vec2(qa*14.+gVN(vec2(qb*.4,qa*2.))*3.,qb*.9))-.5)*a2*.7+(gVN(vec2(qa*4.3,qb*.3+4.))-.5)*.5;
      float fg=1.+(sG-.5)*1.5+dr*.16+(lo-.5)*.14;rough=mix(rw,fg,scr);
-     vec2 sn=-vec2(texture2D(cPk,s1u+te.xy).g-g1,texture2D(cPk,s1u+te.yx).g-g1)*5.*(.4+.6*a2);ng=mix(ng,sn,scr);}
+     vec2 sn=-vec2(texture2D(cPk,s1u+te.xy).g-g1,texture2D(cPk,s1u+te.yx).g-g1)*3.*(.4+.6*a2);ng=mix(ng,sn,scr);}
     // bull floated: closed creamy paste, a soft blotchy mottle plus the fine pinholes and sand from the photo
     float fm=1.+(gVN(p*.47+3.3)-.5)*.07+(gVN(p*1.9+8.1)-.5)*.04;
     if(cl>.01){float fB=mix(texture2D(cPk,p*.3+.61).b,texture2D(cPk,vec2(p.x*.26-p.y*.97,p.x*.97+p.y*.26)*.27+.2).b,smoothstep(.3,.7,gVN(p*.37+6.1)));fm+=(fB-.5)*.75*(.5+.5*a1);}
