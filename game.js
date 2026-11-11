@@ -83,11 +83,11 @@ const DEFS={
    desc:'Frost tonight. Once the finish is firm enough not to mark, drag along the slab to roll out each insulated blanket. Each one unrolls the full length in its own row, overlapping the last. Cover every row.'}
 };
 const LEVELS=[
-  {id:'tutorial',name:'Training Pad',tag:'4 × 8 ft · learn the ropes',free:true,tut:true,shape:rectPoly(-4,-2,4,2),steps:['pour','screed','float','edge','broom'],
-   wTxt:'4 ft',pTxt:'8 ft',maxPanel:8.5,minPanel:3,sunFlip:true,
+  {id:'tutorial',name:'Training Pad',tag:'6 × 10 ft · learn the ropes',free:true,tut:true,shape:rectPoly(-5,-3,5,3),steps:['pour','screed','float','edge','broom'],
+   wTxt:'6 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3,sunFlip:true,
    scene:()=>{house(0,-6.6,40,0,[['slider',0],['win',-9],['win',9],['bed',13,6]]);shrub(-7,-4.6,1);lawn()},
-   lede:'Start here. A little 4 × 8 ft pad with the clock slowed right down. A coach walks you through every tool, one step at a time. Not ranked, so take your time.',
-   slab:'4 × 8 ft practice pad, 4 in thick',finish:'Broom'},
+   lede:'Start here. A little 6 × 10 ft pad with the clock slowed right down. A coach walks you through every tool, one step at a time. Not ranked, so take your time.',
+   slab:'6 × 10 ft practice pad, 4 in thick',finish:'Broom'},
   {id:'patio',name:'Backyard Patio',tag:'10 × 20 ft · broom',shape:rectPoly(-10,-5,10,5,2.5,[2,3]),steps:['pour','screed','float','edge','trowel','joint','broom'],
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,sunFlip:true,
    scene:()=>{house(0,-6.6,50,0,[['slider',0],['win',-9],['win',9],['spout',-13.5],['ac',-17],['bed',14,6],['light',4.2],['win',19]]);shrub(-12.5,-4.6,1.1);lawn()},
@@ -619,7 +619,7 @@ function paintUrl(f){return '/_vercel/image?url='+encodeURIComponent(PAINT_CDN+f
 function addPaints(o){for(const id in o){const L=LEVELS.find(l=>l.id===id),F=PAINT_F[id];if(L&&!L.paint&&F)L.paint=Object.assign({fov:70,asp:.75,img:paintUrl(F[0]),imgPrep:paintUrl(F[1])},o[id])}}
 // Ontario (home region)
 addPaints({"court":{cam:[-36.5,30.9,39.2],look:[9.3,0,-10]},"hottub":{cam:[-12.4,20,29.9],look:[9.2,0,-7.9]},"drive2":{cam:[-32.2,39.4,60.1],look:[8.2,0,-15.3]},"heated":{cam:[-32.1,23.7,25.7],look:[8.2,0,-6.5]},"drivewalk":{cam:[-37.2,39.4,58],look:[9.4,0,-13.7]},"stampdrive":{cam:[-24.1,35.2,55.3],look:[6.5,0,-14.9]},"freeze":{cam:[-16.2,23.7,37.3],look:[4.1,0,-10]},"firehall":{cam:[-40,49.5,75.8],look:[10.2,0,-19.3]},"patio":{cam:[-24.3,22.5,30.5],look:[6.2,0,-7.7]},"cottage":{cam:[2,22.5,38.9],look:[-0.5,0,-9.9]},"walk":{cam:[-18,22.5,33.7],look:[4.6,0,-9.6]},"sidewalk":{cam:[-42.6,33.7,41.3],look:[10.8,0,-8.9]},"downtown":{cam:[-17.9,33.7,55.3],look:[4.5,0,-14.4]},"curvewalk":{cam:[-14.1,22.5,36.3],look:[3.6,0,-9.2]},"porch":{cam:[2.4,20,32.5],look:[-0.6,0,-10.9]},"drive1":{cam:[-17.1,35.2,58.5],look:[4.8,0,-14.9]},"exposed":{cam:[-8.3,22.5,38.1],look:[2.1,0,-9.7]},"shed":{cam:[-7,20,32.9],look:[6.7,0,-8.3]}});
-addPaints({"tutorial":{cam:[-22.9,20,26],look:[5.8,0,-6.6],apron:[-6.1,-4.15,6.3,3.75]},"stairs":{cam:[-23.7,20,25.4],look:[5.8,0,-6.4]},"cottsteps":{cam:[-8.2,20,33.8],look:[1.2,0,-8.6]},"curb":{cam:[-203.4,129.4,-87.7],look:[51.7,0,30.1]},"retain":{cam:[-11.2,32.3,53.3],look:[2.9,0,-15.5]},"foundation":{cam:[-13.4,39.4,66.9],look:[3.4,0,-17]},"custom":{cam:[-31,20.2,16.4],look:[7.6,0,-4.2]},"garage":{cam:[-39.9,24.4,13.9],look:[10.1,0,-3.5]},"night":{cam:[-53.8,31.9,12.3],look:[13.7,0,-3.1]},"warehouse":{cam:[-181.9,107.8,42.2],look:[46.2,0,-10.7]},"bridge":{cam:[-91.4,74,-19.8],look:[23.2,20,5]}});
+addPaints({"tutorial":{cam:[-22.9,20,26],look:[5.8,0,-6.6],base:1},"stairs":{cam:[-23.7,20,25.4],look:[5.8,0,-6.4]},"cottsteps":{cam:[-8.2,20,33.8],look:[1.2,0,-8.6]},"curb":{cam:[-203.4,129.4,-87.7],look:[51.7,0,30.1]},"retain":{cam:[-11.2,32.3,53.3],look:[2.9,0,-15.5]},"foundation":{cam:[-13.4,39.4,66.9],look:[3.4,0,-17]},"custom":{cam:[-31,20.2,16.4],look:[7.6,0,-4.2]},"garage":{cam:[-39.9,24.4,13.9],look:[10.1,0,-3.5]},"night":{cam:[-53.8,31.9,12.3],look:[13.7,0,-3.1]},"warehouse":{cam:[-181.9,107.8,42.2],look:[46.2,0,-10.7]},"bridge":{cam:[-91.4,74,-19.8],look:[23.2,20,5]}});
 addPaints({"binpad":{cam:[-28.6,20.6,21.5],look:[7.3,0,-5.5]},"shopapron":{cam:[-43.5,33.7,39.4],look:[10.6,0,-10]},"acreage":{cam:[-46.4,35.2,38.3],look:[12.2,0,-11]},"windpatio":{cam:[-26.7,22.5,28.4],look:[6.8,0,-7.2]},"prshop":{cam:[-31.1,24.4,28.5],look:[7.9,0,-7.2]},"prwalk":{cam:[-44.4,33.7,40.5],look:[11.3,0,-7.2]},"prsteps":{cam:[-16,20,30.8],look:[3.9,0,-7.8]},"prsteps2":{cam:[-16,20,31.1],look:[3.2,0,-7.9]},"prdrive2":{cam:[-26.6,23.7,31],look:[6.8,0,-8.2]},"prgarage":{cam:[-20.9,24.4,36.7],look:[5.3,0,-9.3]},"prcurve":{cam:[-27.3,22.5,27.8],look:[6.9,0,-7.1]},"elevator":{cam:[-70.8,49.5,48.3],look:[18,0,-12.3]}});// v321 Prairies
 addPaints({"plexsteps":{cam:[-21,20,28],look:[4.5,0,-7.1]},"ruelle":{cam:[-44.1,33.7,39.9],look:[11.2,0,-8.2]},"cabane":{cam:[0.3,22.5,39],look:[-0.1,0,-9.9]},"vieuxqc":{cam:[-26.8,22.5,28.3],look:[6.8,0,-7.2]},"qcdrive":{cam:[-51.9,35.2,30.6],look:[13.6,0,-9]},"qcpatio":{cam:[-4.3,22.5,38.7],look:[1.1,0,-9.8]},"qcgarage":{cam:[-25.8,30,45.1],look:[6.6,0,-11.5]},"qcsteps2":{cam:[-15.1,20,31.3],look:[3.6,0,-7.9]},"qcdrive2":{cam:[-46.6,35.2,39],look:[12.3,0,-9.9]},"qcwalk":{cam:[-45,33.7,38.5],look:[11.4,0,-8.2]},"qcexposed":{cam:[-27.4,22.5,27.7],look:[7,0,-7]},"qcnight":{cam:[-31,24.4,28.7],look:[7.9,0,-7.3]}});// v320 QC
 addPaints({"bcsteps":{cam:[-21.9,20,27.5],look:[4.5,0,-7]},"lane":{cam:[-20.3,24.7,37.8],look:[5.2,0,-9.6]},"coastpatio":{cam:[-13.8,20,31.6],look:[3.5,0,-8.3]},"marina":{cam:[-28.4,24.7,32.1],look:[7.2,0,-8.2]},"gastown":{cam:[-17.8,33.7,56.9],look:[4.5,0,-12.9]},"seawall":{cam:[-23,22.5,31.5],look:[5.8,0,-8]},"bcdrive":{cam:[-52.9,35.2,30.6],look:[13.8,0,-6.9]},"bcstamp":{cam:[-27.2,22.5,27.9],look:[6.9,0,-7.1]},"bcsteps2":{cam:[-14.8,20,31.2],look:[4.2,0,-7.9]},"bcdrive2":{cam:[-27.8,23.7,30.3],look:[7.1,0,-7.7]}});// v319 BC
@@ -8124,17 +8124,14 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
    const L=BKD.lid;L.visible=ly!=null&&pitMesh.visible;if(L.visible){L.geometry=pitMesh.geometry;pitMesh.updateMatrixWorld();L.matrix.copy(pitMesh.matrixWorld);L.matrixWorld.copy(pitMesh.matrixWorld)}}}
 function loadCurtain(on){let d=loadCurtain.d;if(!d){d=loadCurtain.d=document.createElement('div');d.style.cssText='position:absolute;inset:0;background:#0b0a08;opacity:0;pointer-events:none;z-index:0';cv.parentNode.insertBefore(d,cv.nextSibling)}
   clearTimeout(loadCurtain.t);if(on){d.style.transition='none';d.style.opacity='1';loadCurtain.on=true;loadCurtain.n=0;loadCurtain.t=setTimeout(()=>loadCurtain(false),5000)}else if(loadCurtain.on){loadCurtain.on=false;d.style.transition='opacity .3s ease-out';d.style.opacity='0'}}
-// v367: some yard photos have their own form boards painted around the pad; a feathered 3D gravel apron covers them
+// v367: the training pad's photo has a smaller form set inside the real one; a 3D gravel bed under the pour hides it until the mud covers it
 const APR={m:null,L:null};
-function aprTick(){const C=BKD.on&&LV&&LV.paint&&LV.paint.apron;if(!C){if(APR.m)APR.m.visible=false;return}
-  if(!APR.m||APR.L!==LV){if(APR.m){scene.remove(APR.m);APR.m.geometry.dispose();APR.m.material.alphaMap&&APR.m.material.alphaMap.dispose();APR.m.material.dispose()}
-    const [x0,z0,x1,z1]=C,W=x1-x0,D=z1-z0,S=256,cv=document.createElement('canvas');cv.width=S;cv.height=Math.round(S*D/W);const g=cv.getContext('2d'),sx=S/W,sz=cv.height/D,f=.35;
-    g.fillStyle='#000';g.fillRect(0,0,cv.width,cv.height);g.filter='blur('+Math.round(f*sx*.6)+'px)';g.fillStyle='#fff';g.fillRect(f*sx,f*sz,(W-2*f)*sx,(D-2*f)*sz);g.filter='none';
-    g.fillStyle='#000';g.beginPath();SHAPE.forEach((q,i)=>{const u=(q[0]-x0)*sx,v=(q[1]-z0)*sz;i?g.lineTo(u,v):g.moveTo(u,v)});g.closePath();g.fill();
-    const am=new THREE.CanvasTexture(cv);const tx=new THREE.TextureLoader().load('tex/gravel.jpg');tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(W/2.2,D/2.2);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
-    const gm=new THREE.PlaneGeometry(W,D);gm.rotateX(-Math.PI/2);
-    const m=new THREE.Mesh(gm,new THREE.MeshStandardMaterial({map:tx,alphaMap:am,transparent:true,depthWrite:false,color:0xd9d2c6,roughness:.95,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));
-    m.position.set((x0+x1)/2,ELV()+.004,(z0+z1)/2);m.receiveShadow=true;m.renderOrder=-1;m.userData.live=true;scene.add(m);APR.m=m;APR.L=LV}
+function aprTick(){const C=BKD.on&&LV&&LV.paint&&LV.paint.base;if(!C){if(APR.m)APR.m.visible=false;return}
+  if(!APR.m||APR.L!==LV){if(APR.m){scene.remove(APR.m);APR.m.geometry.dispose();APR.m.material.dispose()}
+    const tx=new THREE.TextureLoader().load('tex/gravel.jpg');tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.45,.45);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
+    const sh=new THREE.Shape(SHAPE.map(q=>new THREE.Vector2(q[0],-q[1]))),gm=new THREE.ShapeGeometry(sh);gm.rotateX(-Math.PI/2);
+    const m=new THREE.Mesh(gm,new THREE.MeshStandardMaterial({map:tx,color:0xd9d2c6,roughness:.95}));
+    m.position.y=ELV()-DEPTH/12+.012;m.receiveShadow=true;m.userData.live=true;scene.add(m);APR.m=m;APR.L=LV}
   APR.m.visible=true}
 function bkdTick(){try{aprTick()}catch(e){}try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible));/* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
   if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
