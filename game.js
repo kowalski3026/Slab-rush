@@ -3141,7 +3141,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.7-fw*.85,0.,1.);
    ${CPH.on?`// v363: real broom marks from Kris's photo, laid along the pull; each 2 ft broom width is its own pass (own offset)
    float bn=floor(c/1.9);vec2 bu=vec2(al/1.25+gH1(vec2(bn,1.))*7.,c/1.25+gH1(vec2(bn,2.))*3.);float bA=texture2D(cPk,bu).a,bAc=texture2D(cPk,bu+vec2(0.,1.5/1024.)).a;
-   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.18)*.8*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*14.*bc*pull*aa;}}}`:`
+   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.18)*.8*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*6.*bc*pull*aa;}}}`:`
    float st=sin(c*300.+sin(al*2.7+c*35.)*1.6)*.6+sin(c*610.+sin(al*4.9)*2.3)*.4;float pull=.6+.4*sin(al*.9+gH1(floor(vec2(c*3.,0.)))*6.);
    gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}`}
  // steel trowel: overlapping fan-shaped swipes, each a set of fine burnished arcs
@@ -3170,11 +3170,12 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
 }
 diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
+     .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n{const vec3 Lw=vec3(.299,.587,.114);float l=dot(reflectedLight.indirectDiffuse,Lw);reflectedLight.indirectDiffuse=mix(vec3(l),reflectedLight.indirectDiffuse,.3)*1.15;float l2=dot(reflectedLight.indirectSpecular,Lw);reflectedLight.indirectSpecular=mix(vec3(l2),reflectedLight.indirectSpecular,.3);}')
      .replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight );\n\t\t#if UNROLLED_LOOP_INDEX == 0\n\t\tdirectLight.color*=gSunK;\n\t\t#endif'))
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl364';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl367';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
