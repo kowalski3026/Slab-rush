@@ -7779,7 +7779,18 @@ function lpApply(C){const q=BKD.quad,k=lpKey(),A=LP.on&&LP.aux[k]&&LP.aux[k].d?L
   if(!A){if(BKD.flatG&&q.geometry!==BKD.flatG)q.geometry=BKD.flatG;LP.live=false;LP.U.lpK.value=0;LP.off.set(0,0,0);lpLoad(k);return}
   if(LP.gk!==k||!LP.geo){if(LP.geo)LP.geo.dispose();LP.geo=lpGeo(C,A);LP.gk=k}
   q.geometry=LP.geo;q.position.set(0,0,0);q.quaternion.identity();q.scale.set(1,1,1);q.updateMatrixWorld(true);
-  LP.U.lpAux.value=A.t;LP.U.lpK.value=1;LP.live=true;LP.par=LP.noPar.has(LV.id)||(LV.elev||0)>6?0:1}
+  LP.U.lpAux.value=A.t;LP.U.lpK.value=1;LP.live=true;LP.par=LP.noPar.has(LV.id)||(LV.elev||0)>6?.45:1}/* v362: raised decks used to get no tilt at all; they now get a gentler one, because the photo's depth is read off the ground and a deck in the air drifts a little against it at full strength */
+  /* v362: the live-photo feel on every job. Jobs drawn all in 3D (no yard photo, or before it arrives) get the same slow drone hover and the
+     same phone-tilt window effect: the camera swings a little round the spot it is looking at, so near things slide over far ones for real.
+     Held still while a finger is on the screen, eased back after; off with reduced motion. Photo jobs keep their own (lpTick). */
+  function lp3d(dt,t){const v=LP.v3||(LP.v3={x:0,y:0,rel:1,f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3()});
+    const photo=typeof BKD!=='undefined'&&BKD.on;if(photo||LP.rm||!running&&!menuOpen){v.x*=.9;v.y*=.9;if(photo)return}
+    const hx=Math.sin(t*.00023)*.6+Math.sin(t*.00051+1.3)*.4,hy=Math.sin(t*.00019+2.1)*.6+Math.sin(t*.00043)*.4,hold=!!(ptr&&ptr.down);
+    v.rel=hold?0:Math.min(1,v.rel+dt*.8);const kk=hold?0:Math.min(1,dt*5)*v.rel;
+    v.x+=((LP.hover*hx-LP.tiltK*LP.tx)-v.x)*kk;v.y+=((LP.hover*.6*hy-LP.tiltK*.6*LP.ty)-v.y)*kk;
+    const f=v.f.copy(lookC).sub(camera.position),d=f.length();if(d<1)return;f.divideScalar(d);
+    const r=v.r.crossVectors(f,UP);if(r.lengthSq()<1e-6)r.set(1,0,0);r.normalize();const u=v.u.crossVectors(r,f).normalize(),m=d*.022;
+    camera.position.addScaledVector(r,v.x*m).addScaledVector(u,v.y*m)}
 function lpTick(){const n=performance.now(),dt=Math.min(.1,(n-(LP.tl||n))/1000),U=LP.U;LP.tl=n;U.lpT.value=(n*.001)%7200;
   if(!LP.live){LP.off.set(0,0,0);return}
   const a=LP.rm?0:LP.par,hx=Math.sin(n*.00023)*.6+Math.sin(n*.00051+1.3)*.4,hy=Math.sin(n*.00019+2.1)*.6+Math.sin(n*.00043)*.4,k=Math.min(1,dt*5);
@@ -8037,7 +8048,7 @@ function step(t,dt){
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);
    sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(BKD.on&&BKD.sunV&&!weather.night)sun.position.copy(BKD.sunV);/* v360: on a photo site the 3D sun stands where that photo's sun is */if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
-  camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;camera.lookAt(lookC);
+  camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;try{lp3d(dt,t)}catch(e){}camera.lookAt(lookC);
   try{panHideTick(t)}catch(e){}
   try{if(cab.fov==null&&BUG.fov==null&&RIDE.fov==null){let nn=.5;if(!(typeof BKD!=='undefined'&&BKD.on)&&(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05)){const d=camPos.distanceTo(lookC),h=Math.max(.5,camera.position.y-ELV()),f=camera.fov*Math.PI/360,el=Math.asin(Math.min(1,h/Math.max(d,.1)));nn=Math.max(.5,Math.min(d*.45,.85*h/Math.sin(Math.min(1.5,el+f*1.3))*Math.cos(f)))}{/* v248: pull the near plane IN at once (zooming in left it stuck far out and cut a hole in the ground); push it out gently */let nw=nn<camera.near?nn:camera.near+(nn-camera.near)*Math.min(1,dt*2.5);if(Math.abs(nw-nn)<.03)nw=nn;if(Math.abs(nw-camera.near)>.01){camera.near=nw;camera.updateProjectionMatrix()}}}}catch(e){} // cut branches/fences right at the lens without opening a hole in the ground // v166: orbited/slid views hide houses and sheds standing between the lens and the slab
   if(arrive&&running){try{arriveStep(dt,t)}catch(e){console.warn('arrive',e);arrive=null}}
