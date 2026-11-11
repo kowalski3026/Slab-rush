@@ -7643,7 +7643,8 @@ function payTick(dt){PAY.t+=dt;PAY.tm.value=PAY.t;const t=PAY.t,hasCut=PAY.cuts.
     if(hasCut){const ck=clamp01((t-T1-.6)/2.6);if(ck>0){if(PAY.ph<3){PAY.ph=3;payLbl('Saw cutting','Joints cut once it can take the saw.')}PAY.cuts.forEach((j,m)=>{const M=j.o==='x'?GH:GW;for(let q=0;q<M;q++){const v=jValid(j.o,j.p,q)?clamp01(ck*M*1.15-q):0;j.cells[q]=v}});surfDirty=true}}}
   if(t>=T2){if(PAY.ph<4){PAY.ph=4;payLbl('Forms off','');try{buzz(12)}catch(e){}}payForms(clamp01((t-T2)/1.1))}
   if(t>=T3)payEnd()}
-function payForms(k){if(!PAY.hid.length&&k>0){siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|splat)$/.test(o.userData.kind||'')||o.userData.strForm||(o.isMesh&&(o.material===woodM||o.material===stakeM||o.material===wPlyM))))PAY.hid.push([o,o.position.y])});if(!PAY.hid.length)PAY.hid.push([null,0])}
+const PAYV=new THREE.Vector3();function payNear(o){o.getWorldPosition(PAYV);return Math.abs(PAYV.x)<SLAB_W/2+2.5&&Math.abs(PAYV.z)<SLAB_D/2+2.5&&PAYV.y<ELV()+1.5}
+function payForms(k){if(!PAY.hid.length&&k>0){siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|splat)$/.test(o.userData.kind||'')||o.userData.strForm||(o.isMesh&&(o.material===woodM||o.material===stakeM||o.material===wPlyM)&&payNear(o))))PAY.hid.push([o,o.position.y])});if(!PAY.hid.length)PAY.hid.push([null,0])}
   PAY.hid.forEach(([o,y])=>{if(!o)return;o.position.y=y+k*k*1.6;o.visible=k<1})}
 function payEnd(){if(!PAY.on)return;PAY.on=false;PAY.wm.value=0;PAY.wat.fill(0);if(PAY.el){PAY.el.remove();PAY.el=null}MKS.dirty=1;surfDirty=true;
   try{updateSurface();slabTex.needsUpdate=true}catch(e){}finish0(PAY.timedOut)}
