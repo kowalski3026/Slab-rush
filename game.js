@@ -3162,9 +3162,9 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
   // finished over bleed water: a weak floury skin that shows as it dries, pale and dusty
   float dk=MK.g*mi*max(smoothstep(.55,1.,sl),gCure);if(dk>.02){float sp=gVN(p*31.)*.6+gVN(p*7.3+2.)*.4;gCol*=1.+dk*(.22+(sp-.5)*.45);gRgh+=.45*dk;gTl*=1.-.6*dk;}
   if(gWM>.5){float w=MK.a*mi;if(w>.01){float wt=smoothstep(.01,.15,w);gCol*=1.-.32*wt;gPool=max(gPool,smoothstep(.2,.7,w));gShn=max(gShn,wt);
-    gTl+=vec2(sin(p.x*7.+p.y*3.+gTm*5.),sin(p.y*8.-p.x*2.-gTm*4.3))*.05*wt;}}
+    gTl*=1.-.85*wt;float ra=clamp(1.5-fwidth(p.x)*10.,0.,1.);gTl+=(vec2(gVN(p*2.3+vec2(gTm*.9,gTm*.4)),gVN(p*2.3+vec2(5.2-gTm*.5,gTm*.8)))-.5)*.08*wt*ra;}}
   else{float sh=MK.a*mi;if(sh>.01){gRgh-=.45*sh;gCol*=1.-.08*sh;gShn=max(gShn,sh*.85);}}
-  if(gCure>0.){gCol*=1.+.17*gCure*mi;gRgh+=.18*gCure*mi;}
+  if(gCure>0.){gCol*=1.+.26*gCure*mi;gRgh+=.18*gCure*mi;}
  }
 }
 diffuseColor.rgb*=gCol;`)
@@ -6978,7 +6978,7 @@ function updateTools(dt,t){
   }
   updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{updateXT(dt)}catch(e){}
   blob.visible=false;
-  if(!ptr.down){if(k==='joint'&&jArmed&&jArmed.o===jMode){const run=jRun(jMode,jArmed.p,jArmed.at!=null?jArmed.at:(jMode==='x'?(RY0+RY1)/2:(RX0+RX1)/2));if(run){guide.visible=true;guide.material.opacity=.95;
+  if(!ptr.down){TFEEL.suck*=.8;TFEEL.chat*=.8;if(k==='joint'&&jArmed&&jArmed.o===jMode){const run=jRun(jMode,jArmed.p,jArmed.at!=null?jArmed.at:(jMode==='x'?(RY0+RY1)/2:(RX0+RX1)/2));if(run){guide.visible=true;guide.material.opacity=.95;
       if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false}}return}
   {const bs={float:[4.3,1],edge:[.7,.9],trowel:[1.7,.9],joint:[.7,.9],broom:[3.1,.9],power:[3.4,3.4],expose:[2.2,1.4]}[k];
    if(bs){blob.visible=true;blob.position.set(toolPos.x,Math.max(0,surfY(toolPos.x,toolPos.z))+.012,toolPos.z);blob.scale.set(bs[0],bs[1],1);blob.rotation.z=k==='trowel'?-trYaw:k==='float'?-fYaw:0;if(k==='joint')blob.position.copy(grooverG.position).setY(blob.position.y)}}
@@ -7643,7 +7643,7 @@ function payTick(dt){PAY.t+=dt;PAY.tm.value=PAY.t;const t=PAY.t,hasCut=PAY.cuts.
     if(hasCut){const ck=clamp01((t-T1-.6)/2.6);if(ck>0){if(PAY.ph<3){PAY.ph=3;payLbl('Saw cutting','Joints cut once it can take the saw.')}PAY.cuts.forEach((j,m)=>{const M=j.o==='x'?GH:GW;for(let q=0;q<M;q++){const v=jValid(j.o,j.p,q)?clamp01(ck*M*1.15-q):0;j.cells[q]=v}});surfDirty=true}}}
   if(t>=T2){if(PAY.ph<4){PAY.ph=4;payLbl('Forms off','');try{buzz(12)}catch(e){}}payForms(clamp01((t-T2)/1.1))}
   if(t>=T3)payEnd()}
-function payForms(k){if(!PAY.hid.length&&k>0){siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|splat)$/.test(o.userData.kind||'')||o.userData.strForm))PAY.hid.push([o,o.position.y])});if(!PAY.hid.length)PAY.hid.push([null,0])}
+function payForms(k){if(!PAY.hid.length&&k>0){siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|splat)$/.test(o.userData.kind||'')||o.userData.strForm||(o.isMesh&&(o.material===woodM||o.material===stakeM||o.material===wPlyM))))PAY.hid.push([o,o.position.y])});if(!PAY.hid.length)PAY.hid.push([null,0])}
   PAY.hid.forEach(([o,y])=>{if(!o)return;o.position.y=y+k*k*1.6;o.visible=k<1})}
 function payEnd(){if(!PAY.on)return;PAY.on=false;PAY.wm.value=0;PAY.wat.fill(0);if(PAY.el){PAY.el.remove();PAY.el=null}MKS.dirty=1;surfDirty=true;
   try{updateSurface();slabTex.needsUpdate=true}catch(e){}finish0(PAY.timedOut)}
