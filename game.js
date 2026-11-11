@@ -759,7 +759,7 @@ const ELV=()=>LV&&LV.elev||0;
 const mk=(w,hh)=>{const c=document.createElement('canvas');c.width=w;c.height=hh;return[c,c.getContext('2d')]};
 const [surf,sx]=mk(TW,TH), [roughC,rx]=mk(TW,TH), [small,smx]=mk(GW,GH), [tmp,tmx]=mk(TW,TH);
 const dryOff=new Float32Array(N);
-const [screedC,scx]=mk(TW,TH),[floatC,fcx]=mk(TW,TH),[ccC,ccx]=mk(256,128);
+const [screedC,scx]=mk(TW,TH),[floatC,fcx]=mk(TW,TH),[floatB,fbx]=mk(TW,TH),[ccC,ccx]=mk(256,128);
 const [broomC,bctx]=mk(TW,TH), [broomR,brx]=mk(TW,TH), [trowC,tcx]=mk(TW,TH), [trowR,trx]=mk(TW,TH);
 const simg=smx.createImageData(GW,GH);
 const [edgeAOC,eag]=mk(TW,TH);
@@ -999,7 +999,7 @@ function updateSurface(){
   const rip=set<.5?1:Math.max(.25,1-(set-.5)*3);
   maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
   maskDraw(bpx,i=>(1-Math.min(1,closed[i]))*.95,rough);
-  bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
+  bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
   if(!GPS.on)maskDraw(bpx,i=>band[i]?Math.min(1,edged[i])*.9:0,'rgb(132,132,132)');
   if(!GPS.on)for(const j of joints){const [lo,hi]=jRange(j),c=j.p*CPX;for(let k=lo;k<hi;k++){const d=Math.min(1,j.cells[k]);if(d>0){bpx.fillStyle=`rgba(20,20,20,${d})`;j.o==='x'?bpx.fillRect(c-3,k*CPX,6,CPX+.6):bpx.fillRect(k*CPX,c-3,CPX+.6,6)}}}
 }
@@ -4091,6 +4091,19 @@ function placePump(){pJ=null;pYaw=null;pumpG.position.set(truck.position.x,-.28,
 const handleM=new THREE.MeshStandardMaterial({color:0xd8d4cc,roughness:.35,metalness:.75});
 const bristleM=new THREE.MeshStandardMaterial({color:0x3a3632,roughness:.95});
 const concM=new THREE.MeshStandardMaterial({color:0x7c776e,roughness:.45});
+/* v365: the surcharge roll ahead of the screed is one smooth ribbon of mud: steep face against the board, a long gentle tail out front,
+   its size following how much each stretch of the board is carrying, with a slow ripple flowing along it as the board saws */
+const SROLL=(()=>{const L=Math.max(GW,GH),C=12,g=new THREE.BufferGeometry(),pos=new Float32Array(L*C*3),idx=[];
+  for(let i=0;i<L-1;i++)for(let j=0;j<C-1;j++){const a=i*C+j,b=a+1,c=a+C,d=c+1;idx.push(a,c,b,b,c,d)}
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x77726a,roughness:.38}));m.castShadow=m.receiveShadow=true;m.frustumCulled=false;m.visible=false;
+  try{scene.add(m)}catch(e){}return{m,g,pos,L,C,cs:new Float32Array(L)}})();
+function srollSet(n,pt,dx,dz,carr,t){const R=SROLL,Pp=R.pos,C=R.C,base=ELV()-.012;
+  for(let i=0;i<n;i++){let a=0,w=0;for(let k=-3;k<=3;k++){const j=i+k;if(j<0||j>=n)continue;const ww=4-Math.abs(k);a+=Math.min(Math.max(carr[j]||0,0),4)*ww;w+=ww}R.cs[i]=w?a/w:0}
+  for(let i=0;i<R.L;i++){const ii=Math.min(i,n-1),q=pt(ii),c=R.cs[ii],wd=.2+c*.16,hg=c*.06*(1+.12*Math.sin(ii*.7-t*2.1)+.05*Math.sin(ii*1.9+t*3.3));
+    for(let j=0;j<C;j++){const u=j/(C-1),off=.06+u*wd,pr=Math.pow(Math.sin(Math.PI*Math.pow(u,.6)),1.3),rip=1+.05*Math.sin(u*9.-t*4.+ii*.45),o=(i*C+j)*3;
+      Pp[o]=q[0]+dx*off;Pp[o+1]=c>.03?base+hg*pr*rip:base-.04;Pp[o+2]=q[1]+dz*off}}
+  R.g.attributes.position.needsUpdate=true;R.g.computeVertexNormals();R.g.computeBoundingSphere()}
 const corkM=new THREE.MeshStandardMaterial({color:0xb3261e,roughness:.55});
 const gloveM=new THREE.MeshStandardMaterial({color:0xd9a02a,roughness:.85});
 const sleeveM=new THREE.MeshStandardMaterial({color:0x232427,roughness:.95});
@@ -4561,7 +4574,7 @@ function reset(){setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()
    for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x,e=Math.max(0,cellDist[i]-1);dryOff[i]=((nz[i]-mn)/(mxv-mn||1)-.5)*.08+(e<1?.05:e<3?.025:0)}}
   for(let k=0;k<3;k++)for(let y=0;y<GH;y++)for(let x=1;x<GW-1;x++){const i=y*GW+x;mott[i]=(mott[i-1]+mott[i]*2+mott[i+1])/4}
   joints=[];curJ=null;jDrag=null;jArmed=null;set=0;chalk=[];stowChute=false;stage=0;acc=STAGES.map(()=>({w:0,q:0}));boardX=-2;lastCol=null;flags={};placed=0;wasted=0;placedAtLeave=0;pouring=false;
-  [bctx,brx,tcx,trx,fcx,scx,stb,stx].forEach(c=>c.clearRect(0,0,TW,TH));clearBlankets();stc.fillStyle='#fff';stc.fillRect(0,0,TW,TH);
+  [bctx,brx,tcx,trx,fcx,fbx,scx,stb,stx].forEach(c=>c.clearRect(0,0,TW,TH));clearBlankets();stc.fillStyle='#fff';stc.fillRect(0,0,TW,TH);
   stampHits.fill(0);stampQ.fill(0);stampDrag=new Set();mats.forEach(o=>{o.t=-1;o.applied=true;o.m.visible=false});
   rk.used=false;rk.load=0;rk.lpx=rk.lpz=1e9;expo.fill(0);tubeReset();prepReset();if(typeof planEvent==='function'&&ev){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true}setJMode('x');setPourTool('chute',true);
   truck.visible=chute.visible=lumps.visible=splash.visible=true;bands.forEach(b=>b.visible=true);try{spatClear()}catch(e){}
@@ -5448,7 +5461,7 @@ function msNext(c){const n=SCR.S.length,nm=c.t==='s'?msStripName(c.i):msBayName(
   return `${nm}'s struck. `+(sReady.length?`Tap ${sReady[0]+1} for ${msStripName(sReady[0])}.`:sLeft.length?`${msStripName(sLeft[0])} isn't placed yet: ← to pour it.`:bReady.length?`Tap ${String.fromCharCode(65+bReady[0])} to pull ${msBayName(bReady[0])}.`:bOpen.length?`Hit ← and fill ${msBayName(bOpen[0])} between the strips.`:'')}
 function processRow(r,eff){
   let moved=0;const [C0,C1]=scrCols();
-  for(let c=C0;c<C1;c++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,1,0,.6*eff);if(v>0)carryC[c]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);PST[i]=Math.max(PST[i],.55*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,1,0,.6*eff);
+  for(let c=C0;c<C1;c++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,1,0,.6*eff);if(v>0)carryC[c]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,1,0,.6*eff);
     if(v>0){const t=v*eff;h[i]-=t;carryC[c]+=t;moved+=t}
     else if(v<0){const f=Math.min(carryC[c],-v*eff);h[i]+=f;carryC[c]-=f;moved+=f}
     if(has(i))h[i]+=(Math.random()-.5)*(gear('laser')?.004:.02)}
@@ -5480,7 +5493,7 @@ function scrLevel(i){const v=h[i],t=(Math.random()-.5)*(gear('laser')?.004:gear(
 function screedEff(){const lim=gear('laser')?.5:gear('pscreed')?.4:.3,b=gear('laser')?.99:gear('pscreed')?.96:.92;return set<lim?b:Math.max(.1,b-(set-lim)*3)}
 function processCol(c,eff){
   let moved=0;const [LA,LB]=scrRows();
-  for(let r=LA;r<LB;r++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,0,1,.6*eff);if(v>0)carry[r]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);PST[i]=Math.max(PST[i],.55*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,0,1,.6*eff);
+  for(let r=LA;r<LB;r++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,0,1,.6*eff);if(v>0)carry[r]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,0,1,.6*eff);
     if(v>0){const t=v*eff;h[i]-=t;carry[r]+=t;moved+=t}
     else if(v<0){const f=Math.min(carry[r],-v*eff);h[i]+=f;carry[r]-=f;moved+=f}
     if(has(i))h[i]+=(Math.random()-.5)*(gear('laser')?.004:.02)}
@@ -5522,7 +5535,7 @@ function floatSweep0(x0,y0,x1,y1){
     for(let cx=Math.max(RX0,Math.floor(px-HL-1));cx<=Math.min(RX1-1,Math.ceil(px+HL+1));cx++){
       const ox=cx+.5-px,oy=cy+.5-py,al=Math.abs(ox*ux+oy*uy),pe=Math.abs(ox*nx+oy*ny);if(al>HW||pe>HL)continue;
       const i=cy*GW+cx;if(!has(i))continue;const f=clamp01((HL-pe)/1.4);
-      const add=Math.min(.09*f*eff*TK.float(),Math.max(0,1-closed[i]));closed[i]+=add;work+=add;if(add>.004)PST[i]=Math.max(PST[i],Math.min(1,.45+add*5)*f);
+      const add=Math.min(.09*f*eff*TK.float(),Math.max(0,1-closed[i]));closed[i]+=add;work+=add;
       const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;
       h[i]+=(avg-h[i])*.3*f*eff;if(TRD.on)h[i]-=h[i]*.14*f*eff;
       if(b>.12){weak[i]=Math.min(1,weak[i]+.018*f*b);DUST[i]=Math.min(1,DUST[i]+.06*f*b)}}}
@@ -5534,6 +5547,10 @@ function floatSweep0(x0,y0,x1,y1){
     for(let k=0;k<=ns;k++){const X=P0x+(P1x-P0x)*k/ns,Y=P0y+(P1y-P0y)*k/ns;c.moveTo(X+nx*w+ux*hwp,Y+ny*w+uy*hwp);c.lineTo(X-nx*w+ux*hwp,Y-ny*w+uy*hwp);c.lineTo(X-nx*w-ux*hwp,Y-ny*w-uy*hwp);c.lineTo(X+nx*w-ux*hwp,Y+ny*w-uy*hwp);c.closePath()}
     c.fill('nonzero');c.restore()};
   [scx,fcx].forEach(c=>{sweep(c,hl*.96,.16*eff);sweep(c,hl*.72,.2*eff)});
+  // v365: each pass leaves faint soft ridges where the ends of the plate ran (relief only, same colour), the new pass smoothing out the old ones under it
+  sweep(fbx,hl*.9,.3*eff);if(eff>.4){fbx.lineCap='round';[-1,1].forEach(sd=>{const ox=nx*hl*sd*.93,oy=ny*hl*sd*.93;
+    [[7,.05],[3.2,.08]].forEach(([w,a])=>{fbx.strokeStyle=`rgba(255,255,255,${a*eff})`;fbx.lineWidth=w;fbx.beginPath();fbx.moveTo(P0x+ox,P0y+oy);fbx.lineTo(P1x+ox,P1y+oy);fbx.stroke()});
+    fbx.strokeStyle=`rgba(0,0,0,${.05*eff})`;fbx.lineWidth=2.4;fbx.beginPath();fbx.moveTo(P0x+ox*1.035,P0y+oy*1.035);fbx.lineTo(P1x+ox*1.035,P1y+oy*1.035);fbx.stroke()})}
   if(eff<.6||b>.12){const a=b>.12?.1:.15*(1-eff);fcx.lineCap='round';
     [-1,1].forEach(sd=>{fcx.strokeStyle=`rgba(40,38,34,${a})`;fcx.lineWidth=2;fcx.beginPath();fcx.moveTo(P0x+nx*hl*sd*.95,P0y+ny*hl*sd*.95);fcx.lineTo(P1x+nx*hl*sd*.95,P1y+ny*hl*sd*.95);fcx.stroke()})}
   if(b>.12)say('Bleed water is up. Floating now works water into the top.','bad','floatBleed');
@@ -5581,7 +5598,7 @@ function trowelSeg0(x0,y0,x1,y1){
   acc[S.trowel].w+=work;acc[S.trowel].q+=work*winQ(set,STAGES[S.trowel]);
   const P0x=x0*CPX,P0y=y0*CPX,P1x=x1*CPX,P1y=y1*CPX,hw=W*CPX;
   const cap=(c,w,style,op)=>{c.save();if(op)c.globalCompositeOperation=op;c.strokeStyle=style;c.lineCap='round';c.lineWidth=w;c.beginPath();c.moveTo(P0x,P0y);c.lineTo(P1x,P1y);c.stroke();c.restore()};
-  {const wm=LV.wall?3:1;[fcx,scx,tcx].forEach(c=>{cap(c,hw*2,`rgba(0,0,0,${Math.min(1,.2*eff*wm)})`,'destination-out');cap(c,hw*1.4,`rgba(0,0,0,${Math.min(1,.26*eff*wm)})`,'destination-out')})}
+  {const wm=LV.wall?3:1;[fcx,fbx,scx,tcx].forEach(c=>{cap(c,hw*2,`rgba(0,0,0,${Math.min(1,.2*eff*wm)})`,'destination-out');cap(c,hw*1.4,`rgba(0,0,0,${Math.min(1,.26*eff*wm)})`,'destination-out')})}
   if(!early&&!late&&set<.7){cap(bctx,hw*1.6,`rgba(0,0,0,${.12*eff})`,'destination-out');cap(brx,hw*1.6,`rgba(0,0,0,${.12*eff})`,'destination-out')}
   if(late)cap(tcx,hw*1.6,`rgba(20,20,22,${.05*eff+.03})`);else cap(tcx,hw*1.7,`rgba(58,60,62,${.012*eff})`);
   cap(trx,hw*1.8,`rgba(0,0,0,${(LV.hardTrowel&&set>.75?.12:.06)*eff})`);
@@ -6951,7 +6968,7 @@ const tarpHid={v:true};
 function updateTools(dt,t){
   const k=curK();try{regTick(t)}catch(e){}{const tv=!tarpMesh.visible;if(tarpHid.v!==tv){tarpHid.v=tv;[sceneG,siteG].forEach(g=>g.children.forEach(o=>{if(o.userData.underTarp)o.visible=tv}));leaves.forEach(l=>{if(l.m&&!l.gone)l.m.visible=tv})}else if(!tv)leaves.forEach(l=>{if(l.m)l.m.visible=false})}try{if(LV.bridge)bridgeTick(dt)}catch(e){}
   rideTick(dt,t);
-  screedG.visible=mound.visible=running&&k==='screed';if(LV&&LV.bridge)screedG.visible=false;{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
+  screedG.visible=mound.visible=running&&k==='screed';if(!screedG.visible||LV&&LV.bridge)SROLL.m.visible=false;mound.visible=false;if(LV&&LV.bridge)screedG.visible=false;{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
   if(SCR.on&&SCR.multi){stripBand.visible=false;const pr=running&&k==='pour'&&(placed>0||SCR.pourTold),sc=running&&k==='screed',pulse=.16+.06*Math.sin(performance.now()*.004);
     msBands.children.forEach((m,i)=>{let ab=null,op=.14;if(pr&&i<SCR.S.length&&msStripFill(i)<.85){const t=SCR.S[i];ab=[t.a,t.b];op=pulse}else if(sc&&i===0){ab=SCR.lanes[SCR.lane];op=SCR.ph===0?.16:.07}
       m.visible=!!ab;if(ab){m.position.set(RCX,ELV()+.06,(wz(ab[0])+wz(ab[1]))/2);m.scale.set(RW,Math.abs(wz(ab[1])-wz(ab[0])),1);m.material.opacity=op}})}else msBands.children.forEach(m=>m.visible=false);
@@ -6974,7 +6991,8 @@ function updateTools(dt,t){
     for(let r=0;r<mound.count;r++){const c=r<GH?Math.min(carry[r],4):0,w=c*.14;
       dummy.position.set(X+lastDir*(.12+w*.6),.03+ELV(),wz(Math.min(r,GH-1)+.5));dummy.rotation.set(0,0,-lastDir*X*2.4+r*1.3);dummy.scale.set(Math.max(.001,w),Math.max(.001,c*.06),c>.05?.27:.001);
       dummy.updateMatrix();mound.setMatrixAt(r,dummy.matrix)}}
-    dummy.rotation.set(0,0,0);mound.instanceMatrix.needsUpdate=true;
+    dummy.rotation.set(0,0,0);mound.instanceMatrix.needsUpdate=true;mound.visible=false;
+    {const tt=performance.now()*.001;if(scrStrip()){const Z=wz(Math.max(0,boardY));srollSet(GW,c=>[wx(c+.5),Z],0,lastDirY,carryC,tt)}else srollSet(GH,r=>[wx(boardX),wz(r+.5)],lastDir,0,carry,tt);SROLL.m.visible=screedG.visible}
   }
   updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{updateXT(dt)}catch(e){}
   blob.visible=false;
@@ -7620,7 +7638,7 @@ function payStart(timedOut){PAY.on=true;PAY.t=0;PAY.ph=0;PAY.timedOut=timedOut;P
   if(S.joint==null&&S.stamp!=null){const mp=(LV.maxPanel||10)/(SLAB_W/GW),mz=(LV.maxPanel||10)/(SLAB_D/GH),nx=Math.max(0,Math.ceil((RX1-RX0)/mp)-1),nz=Math.max(0,Math.ceil((RY1-RY0)/mz)-1);
     for(let m=1;m<=nx;m++)PAY.cuts.push({o:'x',p:Math.round(RX0+(RX1-RX0)*m/(nx+1)),cells:new Array(48).fill(0),set:.9,saw:1});
     for(let m=1;m<=nz;m++)PAY.cuts.push({o:'z',p:Math.round(RY0+(RY1-RY0)*m/(nz+1)),cells:new Array(48).fill(0),set:.9,saw:1})}
-  PAY.wm.value=1;payLbl('Hose test','Water runs across it. Every low you left holds a puddle.');try{buzz(30)}catch(e){}surfDirty=true}
+  PAY.cuts=[];PAY.wm.value=1;payLbl('Hose test','Water runs across it. Every low you left holds a puddle.');try{buzz(30)}catch(e){}surfDirty=true}
 function paySim(dt){const W=PAY.wat,F=PAY.fl,cf=SLAB_W/GW,pitch=.125*cf*(PAY.src?-1:1);// 1/8 in per ft fall away from the hose
   const sub=6,k=.22;for(let s=0;s<sub;s++){
     if(PAY.t<2.8){const c0=PAY.src?RX1-3:RX0;for(let y=RY0;y<RY1;y++)for(let x=c0;x<c0+3;x++){const i=y*GW+x;if(inR[i])W[i]+=1.6*dt/sub}}
@@ -7634,14 +7652,10 @@ function payMeasure(){const W=PAY.wat,cf=(SLAB_W/GW)*(SLAB_D/GH),seen=new Uint8A
   const ft=cells*cf,sc=clamp01(1-cells/Math.max(1,RN*.07));
   const note=n?`${n} birdbath${n>1?'s':''}, about ${ft<1?'1':Math.round(ft)} sq ft holding water.`:'Shed it clean. No birdbaths.';
   PAY.row=['Hose test',sc,note,.1];payLbl('Hose test',note);try{say(n?`Hose test: ${note} That's where you left it low.`:'Hose test: shed it clean, not one birdbath.',n?'bad':'good','payHose',0)}catch(e){};if(!n)try{chime()}catch(e){}}
-function payTick(dt){PAY.t+=dt;PAY.tm.value=PAY.t;const t=PAY.t,hasCut=PAY.cuts.length>0,T1=7.2,T2=T1+(hasCut?4.6:3.4),T3=T2+1.4;
-  if(PAY.skip){PAY.skip=false;if(t<6.2){for(let i=0;i<260;i++){PAY.t=Math.min(PAY.t+.025,6.19);paySim(.025)}}if(!PAY.meas){PAY.meas=true;payMeasure()}PAY.t=T3;payForms(1);PAY.cuts.forEach(j=>j.cells.fill(1));PAY.cure.value=1;PAY.wat.fill(0);PAY.wm.value=0;surfDirty=true;payEnd();return}
+function payTick(dt){PAY.t+=dt;PAY.tm.value=PAY.t;const t=PAY.t,T3=8.6;
+  if(PAY.skip){PAY.skip=false;if(t<6.2){for(let i=0;i<260;i++){PAY.t=Math.min(PAY.t+.025,6.19);paySim(.025)}}if(!PAY.meas){PAY.meas=true;payMeasure()}PAY.t=T3;payEnd();return}
   if(t<6.2)paySim(dt);
   if(t>=6.2&&!PAY.meas){PAY.meas=true;payMeasure()}
-  if(t>=T1){if(PAY.ph<2){PAY.ph=2;payLbl('Curing','A week in a few seconds.')}
-    const k=clamp01((t-T1)/(T2-T1-.4));PAY.cure.value=k*k*(3-2*k);for(let i=0;i<N;i++)PAY.wat[i]*=Math.exp(-dt*1.6);
-    if(hasCut){const ck=clamp01((t-T1-.6)/2.6);if(ck>0){if(PAY.ph<3){PAY.ph=3;payLbl('Saw cutting','Joints cut once it can take the saw.')}PAY.cuts.forEach((j,m)=>{const M=j.o==='x'?GH:GW;for(let q=0;q<M;q++){const v=jValid(j.o,j.p,q)?clamp01(ck*M*1.15-q):0;j.cells[q]=v}});surfDirty=true}}}
-  if(t>=T2){if(PAY.ph<4){PAY.ph=4;payLbl('Forms off','');try{buzz(12)}catch(e){}}payForms(clamp01((t-T2)/1.1))}
   if(t>=T3)payEnd()}
 const PAYV=new THREE.Vector3();function payNear(o){o.getWorldPosition(PAYV);return Math.abs(PAYV.x)<SLAB_W/2+2.5&&Math.abs(PAYV.z)<SLAB_D/2+2.5&&PAYV.y<ELV()+1.5}
 function payForms(k){if(!PAY.hid.length&&k>0){siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|splat)$/.test(o.userData.kind||'')||o.userData.strForm||(o.isMesh&&(o.material===woodM||o.material===stakeM||o.material===wPlyM)&&payNear(o))))PAY.hid.push([o,o.position.y])});if(!PAY.hid.length)PAY.hid.push([null,0])}
