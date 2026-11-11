@@ -2052,7 +2052,7 @@ function northStore(x,z){const G=new THREE.Group();G.userData.bld=1;G.position.s
 
 // v174 bridge deck, the way it's really done: break the old deck off the girders, hang the soffit forms between the girders
 // and on the overhang brackets, tie the mat, then pump it and let the Bid-Well strike off and finish the whole deck. No gravel, no broom.
-const BRG={on:false,ch:[],pan:[],chIM:null,bot:null,ext:null,ex:null,bw:null,car:null,spin:[],dust:[],tip:new THREE.Vector3(),tgt:new THREE.Vector3(),broke:0,clk:0};
+const BRG={on:false,ch:[],pan:[],rb:[],rbIM:null,act:[],sc:0,mode:'ram',swT:0,scT:0,sq:0,chIM:null,bot:null,ext:null,ex:null,bw:null,car:null,spin:[],dust:[],tip:new THREE.Vector3(),tgt:new THREE.Vector3(),broke:0,clk:0};
 const BW={x:-4,tx:-4,dir:1,last:null,feed:false,cz:0,cd:1,mv:false,run:0};
 const BRG_GIRD=[-10.8,-7.2,-3.6,0,3.6,7.2,10.8],BRG_RAIL=14.2;
 function brgSetup(L){BRG.on=!!(L&&L.bridge);if(!BRG.on)return;BW.x=BW.tx=RX1+4.2;BW.dir=1;BW.last=null;BW.feed=false;BW.cz=0;BW.cd=1;BW.run=0;BRG.broke=0;
@@ -2060,11 +2060,21 @@ function brgSetup(L){BRG.on=!!(L&&L.bridge);if(!BRG.on)return;BW.x=BW.tx=RX1+4.2
     BARKS.soffit=['Snug those panels to the flanges or she\'ll leak.','Brackets every four feet on the overhang.'];
     BARKS.screed=['Keep a roll of mud ahead of those augers!','Nice and steady, let the drum do the work.','Pump, stay ahead of the machine!']}catch(e){}}
 // the work done in this job lives in siteG (deck-top relative, y 0 = finished grade)
-function brgBuild(){const g=siteG,yb=-DEPTH/12;BRG.ch=[];BRG.pan=[];
+function brgBuild(){const g=siteG,yb=-DEPTH/12;BRG.ch=[];BRG.pan=[];BRG.rb=[];BRG.act=[];BRG.sc=0;
   // old deck, cut into 2 ft chunks so it breaks up where the hammer works
   {const cs=[];for(let x=-24;x<24;x+=2)for(let z=-12;z<12;z+=2)cs.push({x:x+1,z:z+1,hp:1,gone:0,t:-1,rx:(Math.random()-.5)*.05,rz:(Math.random()-.5)*.05,c:.78+Math.random()*.2});
    const m=oldConcM.clone();m.color=new THREE.Color(0xd0ccc4);const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1.98,.74,1.98),m,cs.length);im.castShadow=im.receiveShadow=true;im.userData.kind='brgold';g.add(im);BRG.chIM=im;BRG.ch=cs;
-   const col=new THREE.Color();cs.forEach((c,i)=>{brgChunk(i);im.setColorAt(i,col.setScalar(c.c))});im.instanceColor.needsUpdate=true}
+   const col=new THREE.Color();cs.forEach((c,i)=>{brgChunk(i);im.setColorAt(i,col.setScalar(c.c))});im.instanceColor.needsUpdate=true
+   /* v361: the old deck breaks up like the asphalt does. Each 2 ft chunk the hoe ram knocks loose becomes two rough light-grey slabs that pop
+      up and lie on the girders; then the bucket goes on and loads them out (they fly into the bucket). Same idea as AR (asphalt rubble). */
+   let sd=777;const rnd=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296};
+   const sh=new THREE.Shape();for(let j=0;j<7;j++){const a=j/7*6.2832+(rnd()-.5)*.5,r=.66*(.78+rnd()*.3);j?sh.lineTo(Math.cos(a)*r,Math.sin(a)*r):sh.moveTo(Math.cos(a)*r,Math.sin(a)*r)}
+   const rg=new THREE.ExtrudeGeometry(sh,{depth:.42,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:1,curveSegments:1});rg.rotateX(-Math.PI/2);rg.translate(0,-.26,0);
+   const ruv=rg.attributes.uv;for(let q=0;q<ruv.count;q++)ruv.setXY(q,ruv.getX(q)*1.6,ruv.getY(q)*1.6);
+   const rt=new THREE.MeshStandardMaterial({map:oldConcM.map,color:0xdcd9d2,roughness:.95}),rs=new THREE.MeshStandardMaterial({map:oldConcM.map,color:0xcac6be,roughness:1});
+   const rim=new THREE.InstancedMesh(rg,[rt,rs],cs.length*2);rim.castShadow=rim.receiveShadow=true;rim.frustumCulled=false;rim.userData.kind='brgrub';g.add(rim);BRG.rbIM=rim;
+   cs.forEach((c,i)=>{for(let q=0;q<2;q++){const a=rnd()*6.283;BRG.rb.push({ch:i,x:c.x+(q?.5:-.5)+(rnd()-.5)*.3,z:c.z+(rnd()-.5)*.8,y:0,rot:a,tx:0,tz:0,s:.85+rnd()*.3,st:0,a:0});
+     rim.setColorAt(i*2+q,col.setScalar(.9+rnd()*.1))}});rim.instanceColor.needsUpdate=true;BRG.rb.forEach((r,j)=>brgRbPut(j,0,0,0,0))}
   // soffit: 3/4 HDO ply between the girder flanges on 4x4 runners, and the overhang on steel brackets with a walkway and the screed rail
   const ply=wPlyM.clone();ply.color=new THREE.Color(0xa0622c);ply.emissive=new THREE.Color(0x3c1e08);/* v314: HDO form ply reads orange-brown under the night lights, so the grey mud stands out on it */const _p=0,tim=new THREE.MeshStandardMaterial({color:0xb08a5c,map:wood,roughness:.9}),stl=new THREE.MeshStandardMaterial({color:0x5b6168,roughness:.5,metalness:.6}),
     rail=new THREE.MeshStandardMaterial({color:0xc9ccd0,roughness:.3,metalness:.8}),gM=new THREE.MeshBasicMaterial({color:0xff8a1a,transparent:true,opacity:.36,depthWrite:false});
@@ -2093,20 +2103,27 @@ function brgBuild(){const g=siteG,yb=-DEPTH/12;BRG.ch=[];BRG.pan=[];
    rs.forEach((r,i)=>{d.position.set(r[0],yb+.2+(r[3]?0:.055),r[1]);d.rotation.set(r[3]?0:Math.PI/2,0,r[3]?Math.PI/2:0);d.scale.set(1,r[2],1);d.updateMatrix();im.setMatrixAt(i,d.matrix)});im.castShadow=true;im.userData.kind='brgbot';g.add(im);BRG.bot=im}
   brgReset()}
 // back to the start of the job (also on ↻): old deck back on, forms down unless the job skips that part
-function brgReset(){if(!BRG.on)return;BRG.ch.forEach((c,i)=>{const g=S.demo==null;c.gone=g?1:0;c.hp=g?0:1;c.t=g?1:-1;brgChunk(i)});BRG.pan.forEach(p=>p.placed=S.soffit==null?1:0);
+function brgReset(){if(!BRG.on)return;BRG.ch.forEach((c,i)=>{const g=S.demo==null;c.gone=g?1:0;c.hp=g?0:1;c.t=g?1:-1;brgChunk(i)});
+  {const g=S.demo==null;BRG.act=[];BRG.sq=0;BRG.mode='ram';BRG.swT=0;BRG.sc=g?BRG.rb.length:0;BRG.rb.forEach((r,j)=>{r.st=g?3:0;brgRbPut(j,0,0,0,0)});if(BRG.rbIM)BRG.rbIM.instanceMatrix.needsUpdate=true;if(BRG.exK){BRG.exK.visible=false;BRG.exRam.visible=BRG.exChisel.visible=true}}BRG.pan.forEach(p=>p.placed=S.soffit==null?1:0);
   BW.s=1;BW.x=BW.tx=RX1+4.2;BW.dir=-1;BW.last=null;BW.feed=false;BW.auto=false;BW.done=false;BW.hand=false;BW.cz=0;BW.cd=1;BW.run=0;BRG.broke=0;BRG.tip.set(0,0,0);try{brgGoBtn().hidden=true}catch(e){}if(BRG.bw)BRG.bw.position.x=wx(BW.x);
   if(S.rebar==null){try{rebarAll();REBX.forEach((q,k2)=>{if(q.need&&!q.t){q.t=1;rebN++;rebM(rebTieIM,k2,q.x,-.135,q.z,Math.PI/2,0,Math.PI/4,1,1,1)}});rebMarks()}catch(e){}}
   brgVis()}
+function brgRbPut(j,x,y,z,s){const r=BRG.rb[j],o=BRG._o||(BRG._o=new THREE.Object3D());if(!BRG.rbIM)return;if(s<=.001)o.scale.set(0,0,0);else{o.position.set(x,y,z);o.rotation.set(r.tx,r.rot,r.tz,'YXZ');o.scale.set(r.s*s,r.s*s,r.s*s)}o.updateMatrix();BRG.rbIM.setMatrixAt(j,o.matrix);BRG.rbDirty=true}
+function brgBreak(i,quiet){const c=BRG.ch[i];if(c.gone)return;c.hp=0;c.gone=1;c.t=1;brgChunk(i);const E=LV.elev;
+  for(let q=0;q<2;q++){const j=i*2+q,r=BRG.rb[j];if(!r||r.st)continue;r.st=1;r.tx=(Math.random()-.5)*.5;r.tz=(Math.random()-.5)*.5;r.y=-.48+(Math.abs(r.tx)+Math.abs(r.tz))*.3+(Math.random()<.25?.18:0);r.a=quiet?0:.3;brgRbPut(j,r.x,r.y,r.z,1);if(!quiet)BRG.act.push(j)}
+  if(!quiet){brgPuff(c.x,E+.6,c.z);try{if(Math.random()<.6)spawnBits(c.x,E+.3,c.z,1,.5)}catch(e){}}}
+function brgScoop(j){const r=BRG.rb[j];if(r.st!==1)return;r.st=2;r.a=.42;r.x0=r.x;r.y0=r.y;r.z0=r.z;BRG.act.push(j);BRG.sc++;if(Math.random()<.5)brgPuff(r.x,LV.elev+.4,r.z)}
+function brgRbAll(st){BRG.ch.forEach((c,i)=>{if(!c.gone){c.hp=0;c.gone=1;c.t=1;brgChunk(i)}});BRG.rb.forEach((r,j)=>{if(st===3){if(r.st<2)BRG.sc++;r.st=3;brgRbPut(j,0,0,0,0)}else if(r.st===0){r.st=1;r.tx=(Math.random()-.5)*.5;r.tz=(Math.random()-.5)*.5;r.y=-.48;brgRbPut(j,r.x,r.y,r.z,1)}});BRG.act=[];if(st===3)BRG.sc=BRG.rb.length}
 function brgChunk(i){const c=BRG.ch[i],im=BRG.chIM;if(!im)return;let y=-.37,s=1,ry=0;
   if(c.gone){if(c.t>=0&&c.t<1){y-=c.t*c.t*3;s=1-c.t*.6;ry=c.t*1.4}else s=0}
   else if(c.hp<1){y-=(1-c.hp)*.12;ry=(1-c.hp)*.25}
   rebM(im,i,c.x,y,c.z,c.rx*(1+(1-c.hp)*6),ry,c.rz*(1+(1-c.hp)*6),s||1e-4,s||1e-4,s||1e-4)}
 const brgPct=a=>a.length?a.filter(p=>p.placed).length/a.length:1;
-const brgDemoPct=()=>BRG.ch.length?BRG.ch.filter(c=>c.gone).length/BRG.ch.length:1;
-function brgChunkLeft(xa,xb,za,zb){return BRG.ch.some(c=>!c.gone&&c.x+1>xa+.2&&c.x-1<xb-.2&&c.z+1>za+.2&&c.z-1<zb-.2)}
+const brgDemoPct=()=>BRG.rb.length?Math.min(1,BRG.sc/BRG.rb.length):BRG.ch.length?BRG.ch.filter(c=>c.gone).length/BRG.ch.length:1;// v361: done = broken AND loaded out
+function brgChunkLeft(xa,xb,za,zb){return BRG.ch.some(c=>!c.gone&&c.x+1>xa+.2&&c.x-1<xb-.2&&c.z+1>za+.2&&c.z-1<zb-.2)||BRG.rb.some(r=>r.st===1&&r.x>xa&&r.x<xb&&r.z>za&&r.z<zb)}
 function brgHammer(x0,z0,x1,z1){if(!BRG.on||!running)return;const E=LV.elev,L=Math.hypot(x1-x0,z1-z0),n=Math.max(1,Math.ceil(L/.7));let br=0;
   BRG.ch.forEach((c,i)=>{if(c.gone)return;let best=9;for(let s=0;s<=n;s++){const x=x0+(x1-x0)*s/n,z=z0+(z1-z0)*s/n;best=Math.min(best,Math.hypot(c.x-x,c.z-z))}if(best>1.7)return;
-    c.hp-=.55*(1.2-best/2);if(c.hp<=0){c.hp=0;c.gone=1;c.t=0;br++;brgPuff(c.x,E+.6,c.z)}brgChunk(i)});
+    if(BRG.mode==='bkt')return;c.hp-=.55*(1.2-best/2);if(c.hp<=0){brgBreak(i);br++}else brgChunk(i)});
   if(br){BRG.broke+=br;buzz(14);if(BRG.broke%8<br)try{bark(pick(BARKS.demo),2600)}catch(e){}}}
 function brgSoffitAt(X,Z){let n=0,blk=0;BRG.pan.forEach(p=>{if(p.placed||X<p.xa-.3||X>p.xb+.3||Z<p.za-.4||Z>p.zb+.4)return;
     p.placed=1;n++});
@@ -2114,7 +2131,7 @@ function brgSoffitAt(X,Z){let n=0,blk=0;BRG.pan.forEach(p=>{if(p.placed||X<p.xa-
   else if(blk)say('Old deck\'s still sitting there. Break it out first.','bad','sofBlk')}
 function brgLeak(X,Z){if(!BRG.on)return false;if(S.soffit==null)return false;return BRG.pan.some(p=>!p.placed&&X>=p.xa&&X<=p.xb&&Z>=p.za&&Z<=p.zb)}
 function brgVis(){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,si=S.soffit,di=S.demo;
-  const oldOn=di!=null&&stage<=di;if(BRG.chIM)BRG.chIM.visible=oldOn;
+  const oldOn=di!=null&&stage<=di;if(BRG.chIM)BRG.chIM.visible=oldOn;if(BRG.rbIM)BRG.rbIM.visible=oldOn;
   const sofLive=k==='soffit',sofDone=si==null||stage>si,showPans=!(di!=null&&stage<=di);
   BRG.pan.forEach(p=>{p.m.visible=showPans&&!!p.placed;p.gh.visible=sofLive&&!p.placed});
   if(BRG.ext)BRG.ext.visible=sofDone||BRG.pan.filter(p=>p.ov).every(p=>p.placed);
@@ -2197,7 +2214,8 @@ function brgDress(){const E=LV.elev,wt=bwTex(),yl=new THREE.MeshStandardMaterial
    const cab=bx(3,3,2.6,yl,1.2,4,-1.6,U);bx(2.9,2.2,2.62,gl,1.3,4.3,-1.6,U);bx(.6,.6,.4,lamp,2.6,5.2,-.7,U);
    const B=new THREE.Group();B.position.set(2,2.4,.9);U.add(B);BRG.exB=B;bx(10,1,.9,yl,5,0,0,B);
    const S2=new THREE.Group();S2.position.set(10,0,0);B.add(S2);BRG.exS=S2;bx(7.4,.8,.8,yl,3.7,0,0,S2);
-   const R=new THREE.Group();R.position.set(7.4,0,0);S2.add(R);BRG.exR=R;bx(1,3.2,1,dk,0,-1.6,0,R);const ch=cyl(.2,1.4,st,0,-3.8,0,R);BRG.exChisel=ch}
+   const R=new THREE.Group();R.position.set(7.4,0,0);S2.add(R);BRG.exR=R;BRG.exRam=bx(1,3.2,1,dk,0,-1.6,0,R);const ch=cyl(.2,1.4,st,0,-3.8,0,R);BRG.exChisel=ch;
+   /* v361: a digging bucket on the same pin, swapped in to load the broken deck out */const K=new THREE.Group();K.visible=false;R.add(K);BRG.exK=K;bx(.9,1.6,.9,dk,0,-.8,0,K);bx(2.2,1.5,2.1,yl,.2,-2.6,0,K);bx(2.0,1.2,1.9,dk,.45,-2.75,0,K);for(let q=-.8;q<=.81;q+=.4)bx(.5,.18,.2,st,1.35,-3.35,q,K)}
   // tall light towers down on the shoulders either side of the bridge, heads up above the deck, aimed at the pour
   BRG.lights=[];const tw=[[-29,-20,-10,-3],[29,20,10,3],[29,-20,12,-4],[-29,20,-12,4]].slice(0,safeGfx?2:4);
   tw.forEach(([x,z,tx,tz])=>{const T=new THREE.Group();T.position.set(x,-.3,z);REGG.add(T);bx(5,1.8,2.4,yl,0,1.3,0,T);bx(5.2,.3,2.6,dk,0,.35,0,T);[-1,1].forEach(s=>cyl(.75,.45,dk,s*1.4,.75,.6,T,'x'));
@@ -2233,12 +2251,27 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
   if(k==='demo'&&BRG.ex){const tg=BRG.tgt;if(ptr.down&&running){tg.set(wx(ptr.x),E,wz(ptr.y))}else if(!BRG.tip.lengthSq())tg.set(-20,E,0);
     const d=new THREE.Vector3().subVectors(tg,BRG.tip);d.y=0;const L=d.length(),mx=Math.max(40,L*8)*dt;if(L>mx)d.multiplyScalar(mx/L);BRG.tip.add(d);BRG.tip.y=E;
     BRG.hit=ptr.down&&running;
-    if(BRG.hit){let br=0;BRG.ch.forEach((c,i)=>{if(c.gone)return;const q=Math.hypot(c.x-BRG.tip.x,c.z-BRG.tip.z);if(q>2.3)return;c.hp-=dt*4.5*(1.2-q/2.6);
-        if(c.hp<=0){c.hp=0;c.gone=1;c.t=0;br++;brgPuff(c.x,E+.6,c.z)}brgChunk(i)});
-      if(br){BRG.broke+=br;buzz(14);if(BRG.broke%6===0)try{bark(pick(BARKS.demo),2600)}catch(e){}}
+    /* v361: the machine works whatever is under it: solid deck gets the hoe ram, loose slabs get the bucket. The swap waits a moment so it
+       doesn't flicker on the edge between broken and solid. */
+    {const tx=BRG.tip.x,tz=BRG.tip.z,solid=BRG.ch.some(c=>!c.gone&&Math.hypot(c.x-tx,c.z-tz)<2.3),loose=BRG.rb.some(r=>r.st===1&&r.a<=.02&&Math.hypot(r.x-tx,r.z-tz)<2.2);
+      const want=solid?'ram':loose?'bkt':BRG.mode;BRG.swT+=dt;if(want!==BRG.mode&&BRG.swT>.45){BRG.mode=want;BRG.swT=0;if(BRG.exK){BRG.exK.visible=want==='bkt';BRG.exRam.visible=BRG.exChisel.visible=want!=='bkt'}
+        if(want==='bkt')say('Bucket\'s on. Load the broken deck out.','info','brgBkt',0)}}
+    if(BRG.hit&&BRG.mode==='ram'){let br=0;BRG.ch.forEach((c,i)=>{if(c.gone)return;const q=Math.hypot(c.x-BRG.tip.x,c.z-BRG.tip.z);if(q>2.3)return;c.hp-=dt*4.5*(1.2-q/2.6);
+        if(c.hp<=0){brgBreak(i);br++}else brgChunk(i)});
+      if(br){BRG.broke+=br;buzz(14);shake(.03);if(BRG.broke%6===0)try{bark(pick(BARKS.demo),2600)}catch(e){}}
       BRG.clk+=dt;if(BRG.clk>.11){BRG.clk=0;rebClick(220+Math.random()*80);if(Math.random()<.3)brgPuff(BRG.tip.x,E+.4,BRG.tip.z)}}
+    if(BRG.hit&&BRG.mode==='bkt'){BRG.scT-=dt;if(BRG.scT<=0){BRG.scT=.08;let got=0;BRG.rb.forEach((r,j)=>{if(got<3&&r.st===1&&r.a<=.02&&Math.hypot(r.x-BRG.tip.x,r.z-BRG.tip.z)<2.2){brgScoop(j);got++}});
+        if(got){shake(.02);buzz(7);if(Math.random()<.35)try{thump()}catch(e){}}}}
+    if(!BRG.sq&&BRG.rb.length&&brgDemoPct()>.96){BRG.sq=1;brgRbAll(3);if(BRG.rbIM)BRG.rbIM.instanceMatrix.needsUpdate=true;say('Crew cleaned the last bits off the flanges by hand. Old deck\'s trucked off to the crusher.','good','brgSq',0)}
     brgExPose(dt)}
   BRG.ch.forEach((c,i)=>{if(c.gone&&c.t>=0&&c.t<1){c.t=Math.min(1,c.t+dt*1.8);brgChunk(i)}});
+  // v361 rubble: pop up when broken, fly into the bucket when loaded
+  if(BRG.act.length&&BRG.rbIM){const w=BRG._w||(BRG._w=new THREE.Vector3());if(BRG.exK){BRG.exK.updateWorldMatrix(true,false);BRG.exK.localToWorld(w.set(.3,-2.4,0));siteG.updateWorldMatrix(true,false);siteG.worldToLocal(w)}
+    const keep=[];for(const j of BRG.act){const r=BRG.rb[j];r.a-=dt;
+      if(r.st===1){const p=Math.max(0,r.a/.3);brgRbPut(j,r.x,r.y+p*p*.5,r.z,1);if(r.a>0)keep.push(j)}
+      else if(r.st===2){const e=1-Math.max(0,r.a)/.42,e2=e*e;if(r.a>0){brgRbPut(j,r.x0+(w.x-r.x0)*e2,r.y0+(w.y-r.y0)*e2+Math.sin(e*Math.PI)*1.2,r.z0+(w.z-r.z0)*e2,1-e*.85);keep.push(j)}else{r.st=3;brgRbPut(j,0,0,0,0)}}}
+    BRG.act=keep}
+  if(BRG.rbDirty&&BRG.rbIM){BRG.rbIM.instanceMatrix.needsUpdate=true;BRG.rbDirty=false}
   BRG.dust.forEach(d=>{if(d.t>=1)return;d.t=Math.min(1,d.t+dt*1.1);d.s.scale.setScalar(1.5+d.t*4.5);d.s.material.opacity=.55*(1-d.t);d.s.position.y+=dt*1.2;if(d.t>=1)d.s.visible=false});
   // Bid-Well: parked past the far end. Once there's 15 ft of mud in front of it, Start Bid-Well and it runs on its own right behind the pour,
   // all the way down the span, only holding up when there isn't mud ahead of the augers. On the Bid-Well step you can also drive it by hand.
@@ -2282,7 +2315,7 @@ function brgGoBtn(){let b=document.getElementById('bwGo');if(b)return b;b=docume
   ($('evBtn').parentNode||document.body).appendChild(b);return b}
 // HUD, progress, scoring, auto for the drills/tests
 function brgHud(k){if(!BRG.on)return null;
-  if(k==='demo')return`Old deck broken out ${Math.round(brgDemoPct()*100)}% · drag the hammer over the deck, right down to the girders`;
+  if(k==='demo')return`Old deck out ${Math.round(brgDemoPct()*100)}% · ${BRG.mode==='bkt'?'bucket: drag over the broken slabs to load them out':'hoe ram: drag over the deck to break it off the girders'}`;
   if(k==='soffit'){const b=BRG.pan.filter(p=>!p.ov),o=BRG.pan.filter(p=>p.ov);return`Soffit panels ${b.filter(p=>p.placed).length}/${b.length} · overhang ${o.filter(p=>p.placed).length}/${o.length} · drag over the orange bays`}
   if(k==='pour'&&(BW.auto||BW.done)){const ft=Math.max(0,Math.min(48,(BW.s<0?BW.x-RX0:RX1-BW.x)*CELL_IN/12));return`Placed ${placed.toFixed(1)} of ${NEED_M3.toFixed(1)} m³ · Bid-Well ${BW.done?'finished the span':Math.round(ft)+' of 48 ft'+(BW.wait?' · WAITING ON MUD':' · rolling')}`}
   if(k==='pour'&&!BW.auto){const a=brgAheadFt();if(a<15)return`Placed ${placed.toFixed(1)} of ${NEED_M3.toFixed(1)} m³ · start at the Bid-Well end · ${Math.round(a)} of 15 ft ahead of the machine`}
@@ -2295,11 +2328,11 @@ function brgNextSay(k){if(!BRG.on)return;
   if(k==='screed'&&BW.done)say('Bid-Well\'s done the span. Drag along it for a touch-up pass, or hit Next to cure.','info','nBwD',0);else if(k==='screed')say('Hold and drag along the span. The Bid-Well walks the rails, the carriage runs across, augers cut it down and the drum finishes it. The pump keeps mud ahead of it.','info','nBw',0)}
 const BRGPROG={demo:()=>brgDemoPct(),soffit:()=>brgPct(BRG.pan),screed:()=>{let s=0,n=0;for(let i=0;i<N;i++)if(inR[i]){n++;s+=Math.min(1,closed[i])}return clamp01(1-(rms()-.15)/1.4)*.6+(n?s/n:0)*.4}};
 function brgSC(q,tm){if(!BRG.on)return{};return{
-  demo:()=>{const c=brgDemoPct();return['Tear out',c,`${Math.round(c*100)}% of the old deck broken off the girders.`+(c<.97?' Old concrete left on the flanges means a bad bond to the new deck.':' Flanges clean, studs exposed.')]},
+  demo:()=>{const c=brgDemoPct();return['Tear out',c,`${Math.round(c*100)}% of the old deck broken off the girders and loaded out.`+(c<.97?' Old concrete left on the flanges means a bad bond to the new deck.':' Flanges clean, studs exposed.')]},
   soffit:()=>{const c=brgPct(BRG.pan);return['Soffit forms',c,`${BRG.pan.filter(p=>p.placed).length} of ${BRG.pan.length} panels hung.`+(c<1?' Concrete fell through onto the 400.':' Tight to every flange.')]},
   screed:()=>{const r=rms();let s=0,n=0;for(let i=0;i<N;i++)if(inR[i]){n++;s+=Math.min(1,closed[i])}const f=n?s/n:0,lv=clamp01(1-(r-.1)/.55);
     return['Bid-Well',(lv*.7+f*.3)*(.7+.3*q('screed')),`±${r.toFixed(2)} in off grade, ${Math.round(f*100)}% finished by the drum. `+(r<.15?'Rideable as poured.':r<.35?'Some grinding for smoothness.':'That ride will fail the profile check.')]}}}
-const BRGAUTO={demo:()=>{BRG.ch.forEach((c,i)=>{c.gone=1;c.hp=0;c.t=1;brgChunk(i)});brgVis()},soffit:()=>{BRG.pan.forEach(p=>p.placed=1);brgVis()},
+const BRGAUTO={demo:()=>{brgRbAll(3);brgVis()},soffit:()=>{BRG.pan.forEach(p=>p.placed=1);brgVis()},
   screed:()=>{for(let i=0;i<N;i++)if(inR[i]){h[i]=TG[i]+.02+(Math.random()-.5)*.04;closed[i]=1}BW.x=RX1+4.2;geoDirty=surfDirty=true}};
 
 /* ---------- v172 Ontario pack: the 400 bridge deck, a Muskoka cottage pad, a fire hall apron ---------- */
