@@ -3160,7 +3160,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float fur=smoothstep(.35,.95,sin(ph))*smoothstep(.25,.7,gVN(vec2(c*2.,al*.9)+1.7)),cr=smoothstep(.7,.9,gVN(p*13.+3.1))*clamp(1.6-fwidth(p.x)*40.,0.,1.);
    gCol*=1.-(.3*fur*aa+.1)*tk+.14*cr*tk;gRgh+=.25*tk;gTl+=pr*cos(ph)*1.2*tk*aa*fur+(vec2(gVN(p*13.+.05),gVN(p*13.+7.))-.5)*cr*tk*2.5;}
   // finished over bleed water: a weak floury skin that shows as it dries, pale and dusty
-  float dk=MK.g*mi*max(smoothstep(.55,1.,sl),gCure);if(dk>.02){float sp=gVN(p*31.)*.6+gVN(p*7.3+2.)*.4;gCol*=1.+dk*(.13+(sp-.5)*.35);gRgh+=.4*dk;gTl*=1.-.5*dk;}
+  float dk=MK.g*mi*max(smoothstep(.55,1.,sl),gCure);if(dk>.02){float sp=gVN(p*31.)*.6+gVN(p*7.3+2.)*.4;gCol*=1.+dk*(.22+(sp-.5)*.45);gRgh+=.45*dk;gTl*=1.-.6*dk;}
   if(gWM>.5){float w=MK.a*mi;if(w>.01){float wt=smoothstep(.01,.15,w);gCol*=1.-.32*wt;gPool=max(gPool,smoothstep(.2,.7,w));gShn=max(gShn,wt);
     gTl+=vec2(sin(p.x*7.+p.y*3.+gTm*5.),sin(p.y*8.-p.x*2.-gTm*4.3))*.05*wt;}}
   else{float sh=MK.a*mi;if(sh>.01){gRgh-=.45*sh;gCol*=1.-.08*sh;gShn=max(gShn,sh*.85);}}
@@ -3171,7 +3171,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
      .replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight );\n\t\t#if UNROLLED_LOOP_INDEX == 0\n\t\tdirectLight.color*=gSunK;\n\t\t#endif'))
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
-     .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*.9)*(1.-.92*gCure);\n#endif')}
+     .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   sh.fragmentShader=F};
 slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl364';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
