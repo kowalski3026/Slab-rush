@@ -3198,6 +3198,17 @@ function sampleH(u,v){ // bilinear on cell centers, using only cells inside the 
   t(x0,y0,(1-tx)*(1-ty));t(x0+1,y0,tx*(1-ty));t(x0,y0+1,(1-tx)*ty);t(x0+1,y0+1,tx*ty);
   return ws>1e-4?sm/ws:-DEPTH-1;
 }
+// v367: the mud the screed carries is a wave in the slab itself, right in front of the board: same concrete, stops at the forms
+const WV={on:false,cs:new Float32Array(64)};
+function scrWave(P,n){if(!WV.on||STR.on||(LV&&LV.bridge))return;const st=scrStrip(),src=st?carryC:carry,M=st?GW:GH,cs=WV.cs;
+  for(let i=0;i<M;i++){let a=0,w=0;for(let k=-3;k<=3;k++){const j=i+k;if(j<0||j>=M)continue;const ww=4-Math.abs(k);a+=Math.min(Math.max(src[j]||0,0),4)*ww;w+=ww}cs[i]=w?a/w:0}
+  const b=st?boardY:boardX,dir=st?lastDirY:lastDir,cell=st?SLAB_D/GH:SLAB_W/GW;
+  for(let k=0;k<n;k++){if(!vMode[k])continue;const u=vU[k],v=vV[k],ci=Math.min(GW-1,Math.max(0,Math.floor(u))),cj=Math.min(GH-1,Math.max(0,Math.floor(v)));if(!inR[cj*GW+ci])continue;
+    const al=st?u:v,d=((st?v:u)-b)*dir*cell-.07;if(d<=0||d>1.4)continue;
+    const f=Math.min(M-1,Math.max(0,al-.5)),i0=Math.floor(f),i1=Math.min(M-1,i0+1),c=cs[i0]+(cs[i1]-cs[i0])*(f-i0);if(c<.03)continue;
+    const w=.24+c*.18,t=d/w;if(t>=1)continue;
+    const pr=Math.pow(Math.min(1,t/.2),.6)*Math.pow(1-t,1.7)/.68,rip=1+.08*Math.sin(al*.85+b*2.1)+.04*Math.sin(al*2.3-b*3.7);
+    P[k*3+1]+=c*.06*pr*rip*(vMode[k]===2?.55:1)}}
 function updateGeo(){
   if(typeof soilMode==='function'&&soilMode()){soilGeo();return}
   if(STR.on){strGeo();return}
@@ -3207,6 +3218,7 @@ function updateGeo(){
       for(let q=0;q<4;q++){const cx=x0+(q&1),cy=y0+(q>>1);if(cx<0||cy<0||cx>=GW||cy>=GH)continue;const i=cy*GW+cx;if(!inR[i])continue;const ww=((q&1)?tx:1-tx)*((q>>1)?ty:1-ty);if(ww<=0)continue;sm+=h[i]*ww;ws+=ww}
       v=ws>1e-4?sm/ws:sampleH2(u,w);if(v<D1)v=HOLD?D1:D0}
     P[k*3+1]=v>=0?v*E:v/12}
+  try{scrWave(P,n)}catch(e){}
   p.needsUpdate=true;
   const NA=slabGeo.attributes.normal.array,RW=VX+1;
   for(let iy=0;iy<=VY;iy++)for(let ix=0;ix<=VX;ix++){const k=iy*RW+ix,l=ix>0?k-1:k,r=ix<VX?k+1:k,u=iy>0?k-RW:k,d=iy<VY?k+RW:k;
@@ -6977,7 +6989,7 @@ const tarpHid={v:true};
 function updateTools(dt,t){
   const k=curK();try{regTick(t)}catch(e){}{const tv=!tarpMesh.visible;if(tarpHid.v!==tv){tarpHid.v=tv;[sceneG,siteG].forEach(g=>g.children.forEach(o=>{if(o.userData.underTarp)o.visible=tv}));leaves.forEach(l=>{if(l.m&&!l.gone)l.m.visible=tv})}else if(!tv)leaves.forEach(l=>{if(l.m)l.m.visible=false})}try{if(LV.bridge)bridgeTick(dt)}catch(e){}
   rideTick(dt,t);
-  screedG.visible=mound.visible=running&&k==='screed';if(!screedG.visible||LV&&LV.bridge)SROLL.m.visible=false;mound.visible=false;if(LV&&LV.bridge)screedG.visible=false;{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
+  screedG.visible=mound.visible=running&&k==='screed';{const wv=running&&k==='screed';if(WV.on!==wv){WV.on=wv;geoDirty=true}}if(!screedG.visible||LV&&LV.bridge)SROLL.m.visible=false;mound.visible=false;if(LV&&LV.bridge)screedG.visible=false;{const cs=!lowQ&&(k==='pour'||k==='screed');if(slab.castShadow!==cs){slab.castShadow=cs;slab.material.needsUpdate=true}}
   if(SCR.on&&SCR.multi){stripBand.visible=false;const pr=running&&k==='pour'&&(placed>0||SCR.pourTold),sc=running&&k==='screed',pulse=.16+.06*Math.sin(performance.now()*.004);
     msBands.children.forEach((m,i)=>{let ab=null,op=.14;if(pr&&i<SCR.S.length&&msStripFill(i)<.85){const t=SCR.S[i];ab=[t.a,t.b];op=pulse}else if(sc&&i===0){ab=SCR.lanes[SCR.lane];op=SCR.ph===0?.16:.07}
       m.visible=!!ab;if(ab){m.position.set(RCX,ELV()+.06,(wz(ab[0])+wz(ab[1]))/2);m.scale.set(RW,Math.abs(wz(ab[1])-wz(ab[0])),1);m.material.opacity=op}})}else msBands.children.forEach(m=>m.visible=false);
@@ -7001,7 +7013,7 @@ function updateTools(dt,t){
       dummy.position.set(X+lastDir*(.12+w*.6),.03+ELV(),wz(Math.min(r,GH-1)+.5));dummy.rotation.set(0,0,-lastDir*X*2.4+r*1.3);dummy.scale.set(Math.max(.001,w),Math.max(.001,c*.06),c>.05?.27:.001);
       dummy.updateMatrix();mound.setMatrixAt(r,dummy.matrix)}}
     dummy.rotation.set(0,0,0);mound.instanceMatrix.needsUpdate=true;mound.visible=false;
-    {const tt=performance.now()*.001;if(scrStrip()){const Z=wz(Math.max(0,boardY));srollSet(GW,c=>[wx(c+.5),Z],0,lastDirY,carryC,tt)}else srollSet(GH,r=>[wx(boardX),wz(r+.5)],lastDir,0,carry,tt);SROLL.m.visible=screedG.visible}
+    SROLL.m.visible=false;
   }
   updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{updateXT(dt)}catch(e){}
   blob.visible=false;
