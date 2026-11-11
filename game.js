@@ -4096,13 +4096,21 @@ const concM=new THREE.MeshStandardMaterial({color:0x7c776e,roughness:.45});
 const SROLL=(()=>{const L=Math.max(GW,GH),C=12,g=new THREE.BufferGeometry(),pos=new Float32Array(L*C*3),idx=[];
   for(let i=0;i<L-1;i++)for(let j=0;j<C-1;j++){const a=i*C+j,b=a+1,c=a+C,d=c+1;idx.push(a,c,b,b,c,d)}
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setIndex(idx);
-  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x77726a,roughness:.38}));m.castShadow=m.receiveShadow=true;m.frustumCulled=false;m.visible=false;
+  const mt=new THREE.MeshStandardMaterial({color:0x8a857c,roughness:.42});
+  // same placed-mud photo as the slab (Kris's pump pour, R of the packed picture), read in world space so the lumps flow through the roll as it moves
+  mt.onBeforeCompile=sh=>{sh.uniforms.cPk=CPH.U.cPk;sh.uniforms.cOn={get value(){return CPH.on?1:0}};
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vSrW;').replace('#include <project_vertex>','#include <project_vertex>\nvSrW=(modelMatrix*vec4(transformed,1.)).xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vSrW;uniform sampler2D cPk;uniform float cOn;')
+     .replace('#include <map_fragment>','#include <map_fragment>\n{vec2 q=vSrW.xz*.42+vec2(0.,vSrW.y*.6);float d=texture2D(cPk,q).r*2.;diffuseColor.rgb*=mix(1.,d,.8*cOn);}')
+     .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 q=vSrW.xz*.42+vec2(0.,vSrW.y*.6);float d=texture2D(cPk,q).r;normal=normalize(normal+vec3(dFdx(d),dFdy(d),0.)*-9.*cOn);}')};
+  mt.customProgramCacheKey=()=>'sroll1';
+  const m=new THREE.Mesh(g,mt);m.castShadow=m.receiveShadow=true;m.frustumCulled=false;m.visible=false;
   try{scene.add(m)}catch(e){}return{m,g,pos,L,C,cs:new Float32Array(L)}})();
 function srollSet(n,pt,dx,dz,carr,t){const R=SROLL,Pp=R.pos,C=R.C,base=ELV()-.012;
   for(let i=0;i<n;i++){let a=0,w=0;for(let k=-3;k<=3;k++){const j=i+k;if(j<0||j>=n)continue;const ww=4-Math.abs(k);a+=Math.min(Math.max(carr[j]||0,0),4)*ww;w+=ww}R.cs[i]=w?a/w:0}
   for(let i=0;i<R.L;i++){const ii=Math.min(i,n-1),q=pt(ii),c=R.cs[ii],wd=.2+c*.16,hg=c*.06*(1+.12*Math.sin(ii*.7-t*2.1)+.05*Math.sin(ii*1.9+t*3.3));
     for(let j=0;j<C;j++){const u=j/(C-1),off=.06+u*wd,pr=Math.pow(Math.sin(Math.PI*Math.pow(u,.6)),1.3),rip=1+.05*Math.sin(u*9.-t*4.+ii*.45),o=(i*C+j)*3;
-      Pp[o]=q[0]+dx*off;Pp[o+1]=c>.03?base+hg*pr*rip:base-.04;Pp[o+2]=q[1]+dz*off}}
+      const X=q[0]+dx*off,Z=q[1]+dz*off,nz=(Math.sin(X*6.3+Z*4.1)*Math.sin(Z*5.7-X*3.3)+Math.sin(X*13.1-Z*9.7)*.4)*.5;Pp[o]=X;Pp[o+1]=c>.03?base+hg*pr*rip*(1+.22*nz):base-.04;Pp[o+2]=Z}}
   R.g.attributes.position.needsUpdate=true;R.g.computeVertexNormals();R.g.computeBoundingSphere()}
 const corkM=new THREE.MeshStandardMaterial({color:0xb3261e,roughness:.55});
 const gloveM=new THREE.MeshStandardMaterial({color:0xd9a02a,roughness:.85});
