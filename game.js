@@ -619,7 +619,7 @@ function paintUrl(f){return '/_vercel/image?url='+encodeURIComponent(PAINT_CDN+f
 function addPaints(o){for(const id in o){const L=LEVELS.find(l=>l.id===id),F=PAINT_F[id];if(L&&!L.paint&&F)L.paint=Object.assign({fov:70,asp:.75,img:paintUrl(F[0]),imgPrep:paintUrl(F[1])},o[id])}}
 // Ontario (home region)
 addPaints({"court":{cam:[-36.5,30.9,39.2],look:[9.3,0,-10]},"hottub":{cam:[-12.4,20,29.9],look:[9.2,0,-7.9]},"drive2":{cam:[-32.2,39.4,60.1],look:[8.2,0,-15.3]},"heated":{cam:[-32.1,23.7,25.7],look:[8.2,0,-6.5]},"drivewalk":{cam:[-37.2,39.4,58],look:[9.4,0,-13.7]},"stampdrive":{cam:[-24.1,35.2,55.3],look:[6.5,0,-14.9]},"freeze":{cam:[-16.2,23.7,37.3],look:[4.1,0,-10]},"firehall":{cam:[-40,49.5,75.8],look:[10.2,0,-19.3]},"patio":{cam:[-24.3,22.5,30.5],look:[6.2,0,-7.7]},"cottage":{cam:[2,22.5,38.9],look:[-0.5,0,-9.9]},"walk":{cam:[-18,22.5,33.7],look:[4.6,0,-9.6]},"sidewalk":{cam:[-42.6,33.7,41.3],look:[10.8,0,-8.9]},"downtown":{cam:[-17.9,33.7,55.3],look:[4.5,0,-14.4]},"curvewalk":{cam:[-14.1,22.5,36.3],look:[3.6,0,-9.2]},"porch":{cam:[2.4,20,32.5],look:[-0.6,0,-10.9]},"drive1":{cam:[-17.1,35.2,58.5],look:[4.8,0,-14.9]},"exposed":{cam:[-8.3,22.5,38.1],look:[2.1,0,-9.7]},"shed":{cam:[-7,20,32.9],look:[6.7,0,-8.3]}});
-addPaints({"tutorial":{cam:[-22.9,20,26],look:[5.8,0,-6.6],bdBox:[[-5.95,-4.05,6.25,3.6],[-1.6,-4.05,6.25,3.85]]},"stairs":{cam:[-23.7,20,25.4],look:[5.8,0,-6.4]},"cottsteps":{cam:[-8.2,20,33.8],look:[1.2,0,-8.6]},"curb":{cam:[-203.4,129.4,-87.7],look:[51.7,0,30.1]},"retain":{cam:[-11.2,32.3,53.3],look:[2.9,0,-15.5]},"foundation":{cam:[-13.4,39.4,66.9],look:[3.4,0,-17]},"custom":{cam:[-31,20.2,16.4],look:[7.6,0,-4.2]},"garage":{cam:[-39.9,24.4,13.9],look:[10.1,0,-3.5]},"night":{cam:[-53.8,31.9,12.3],look:[13.7,0,-3.1]},"warehouse":{cam:[-181.9,107.8,42.2],look:[46.2,0,-10.7]},"bridge":{cam:[-91.4,74,-19.8],look:[23.2,20,5]}});
+addPaints({"tutorial":{cam:[-22.9,20,26],look:[5.8,0,-6.6],apron:[-6.1,-4.15,6.3,3.75]},"stairs":{cam:[-23.7,20,25.4],look:[5.8,0,-6.4]},"cottsteps":{cam:[-8.2,20,33.8],look:[1.2,0,-8.6]},"curb":{cam:[-203.4,129.4,-87.7],look:[51.7,0,30.1]},"retain":{cam:[-11.2,32.3,53.3],look:[2.9,0,-15.5]},"foundation":{cam:[-13.4,39.4,66.9],look:[3.4,0,-17]},"custom":{cam:[-31,20.2,16.4],look:[7.6,0,-4.2]},"garage":{cam:[-39.9,24.4,13.9],look:[10.1,0,-3.5]},"night":{cam:[-53.8,31.9,12.3],look:[13.7,0,-3.1]},"warehouse":{cam:[-181.9,107.8,42.2],look:[46.2,0,-10.7]},"bridge":{cam:[-91.4,74,-19.8],look:[23.2,20,5]}});
 addPaints({"binpad":{cam:[-28.6,20.6,21.5],look:[7.3,0,-5.5]},"shopapron":{cam:[-43.5,33.7,39.4],look:[10.6,0,-10]},"acreage":{cam:[-46.4,35.2,38.3],look:[12.2,0,-11]},"windpatio":{cam:[-26.7,22.5,28.4],look:[6.8,0,-7.2]},"prshop":{cam:[-31.1,24.4,28.5],look:[7.9,0,-7.2]},"prwalk":{cam:[-44.4,33.7,40.5],look:[11.3,0,-7.2]},"prsteps":{cam:[-16,20,30.8],look:[3.9,0,-7.8]},"prsteps2":{cam:[-16,20,31.1],look:[3.2,0,-7.9]},"prdrive2":{cam:[-26.6,23.7,31],look:[6.8,0,-8.2]},"prgarage":{cam:[-20.9,24.4,36.7],look:[5.3,0,-9.3]},"prcurve":{cam:[-27.3,22.5,27.8],look:[6.9,0,-7.1]},"elevator":{cam:[-70.8,49.5,48.3],look:[18,0,-12.3]}});// v321 Prairies
 addPaints({"plexsteps":{cam:[-21,20,28],look:[4.5,0,-7.1]},"ruelle":{cam:[-44.1,33.7,39.9],look:[11.2,0,-8.2]},"cabane":{cam:[0.3,22.5,39],look:[-0.1,0,-9.9]},"vieuxqc":{cam:[-26.8,22.5,28.3],look:[6.8,0,-7.2]},"qcdrive":{cam:[-51.9,35.2,30.6],look:[13.6,0,-9]},"qcpatio":{cam:[-4.3,22.5,38.7],look:[1.1,0,-9.8]},"qcgarage":{cam:[-25.8,30,45.1],look:[6.6,0,-11.5]},"qcsteps2":{cam:[-15.1,20,31.3],look:[3.6,0,-7.9]},"qcdrive2":{cam:[-46.6,35.2,39],look:[12.3,0,-9.9]},"qcwalk":{cam:[-45,33.7,38.5],look:[11.4,0,-8.2]},"qcexposed":{cam:[-27.4,22.5,27.7],look:[7,0,-7]},"qcnight":{cam:[-31,24.4,28.7],look:[7.9,0,-7.3]}});// v320 QC
 addPaints({"bcsteps":{cam:[-21.9,20,27.5],look:[4.5,0,-7]},"lane":{cam:[-20.3,24.7,37.8],look:[5.2,0,-9.6]},"coastpatio":{cam:[-13.8,20,31.6],look:[3.5,0,-8.3]},"marina":{cam:[-28.4,24.7,32.1],look:[7.2,0,-8.2]},"gastown":{cam:[-17.8,33.7,56.9],look:[4.5,0,-12.9]},"seawall":{cam:[-23,22.5,31.5],look:[5.8,0,-8]},"bcdrive":{cam:[-52.9,35.2,30.6],look:[13.8,0,-6.9]},"bcstamp":{cam:[-27.2,22.5,27.9],look:[6.9,0,-7.1]},"bcsteps2":{cam:[-14.8,20,31.2],look:[4.2,0,-7.9]},"bcdrive2":{cam:[-27.8,23.7,30.3],look:[7.1,0,-7.7]}});// v319 BC
@@ -1587,8 +1587,9 @@ function strSample(u,v,t){const fx=u-.5,fy=v-.5,x0=Math.floor(fx),y0=Math.floor(
   let best=-DEPTH-1,bd=99;const cx=Math.floor(u),cy=Math.floor(v);
   for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=GW||y>=GH)continue;const i=y*GW+x;if(!inR[i]||STR.tid[i]!==t)continue;const d=dx*dx+dy*dy;if(d<bd){bd=d;best=h[i]}}
   return best}
-function strGeo(){const p=slabGeo.attributes.position,n=p.count;
-  for(let k=0;k<n;k++){const t=STR.vT[k];let y;if(!vMode[k]||t<0)y=-DEPTH/12-.06;else{const v=strSample(vU[k],vV[k],t);y=v<-DEPTH+.1?-DEPTH/12-.06:yOf(v)+STR.vOff[k]}p.setY(k,y)}
+function strGeo(){const p=slabGeo.attributes.position,n=p.count,z0=wz(RY0),z1=wz(RY1);
+  for(let k=0;k<n;k++){const t=STR.vT[k];let y;if(!vMode[k]||t<0)y=-DEPTH/12-.06;else{const v=strSample(vU[k],vV[k],t);y=v<-DEPTH+.1?-DEPTH/12-.06:yOf(v)+STR.vOff[k];
+    /* v367: mud above the form top slumps back from the riser and side boards instead of standing up as a cliff */const X=p.getX(k),Z=p.getZ(k),d=Math.max(0,Math.min(X-wx(STR.T[t].c0)+.004,Z-z0,z1-Z)),cap=STR.vOff[k]+.015+d*.55;if(y>cap)y=cap+(y-cap)*.15*Math.min(1,d/.6)}p.setY(k,y)}
   p.needsUpdate=true;slabGeo.computeVertexNormals();slabGeo.computeBoundingSphere()}
 // what a tarp lies on: the form tops (risers, strongbacks, side panels) and the braces sloping out to their stakes
 function strTarpY(X,Z){const x0=wx(RX0)-.35,x1=wx(RX1),z0=wz(RY0),z1=wz(RY1);if(X<x0||X>x1+.1)return surfY(X,Z);
@@ -3140,14 +3141,14 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.7-fw*.85,0.,1.);
    ${CPH.on?`// v363: real broom marks from Kris's photo, laid along the pull; each 2 ft broom width is its own pass (own offset)
    float bn=floor(c/1.9);vec2 bu=vec2(al/1.25+gH1(vec2(bn,1.))*7.,c/1.25+gH1(vec2(bn,2.))*3.);float bA=texture2D(cPk,bu).a,bAc=texture2D(cPk,bu+vec2(0.,1.5/1024.)).a;
-   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+(bA-.5)*1.6*bc*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*14.*bc*pull*aa;}}}`:`
+   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.18)*.8*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*14.*bc*pull*aa;}}}`:`
    float st=sin(c*300.+sin(al*2.7+c*35.)*1.6)*.6+sin(c*610.+sin(al*4.9)*2.3)*.4;float pull=.6+.4*sin(al*.9+gH1(floor(vec2(c*3.,0.)))*6.);
    gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}`}
  // steel trowel: overlapping fan-shaped swipes, each a set of fine burnished arcs
  {float tw=clamp(ED2.g,0.,1.);if(tw>.04){vec2 g=p/1.7,id=floor(g);float acc=0.;
    for(int k=0;k<4;k++){vec2 o=vec2(k==1||k==3?1.:0.,k>=2?1.:0.),cid=id+o;float h=gH1(cid),h2=gH1(cid+7.3);vec2 c=cid+vec2(h,h2)*.9-.45;vec2 v=g-c;float r=length(v)*1.7;
      float an=atan(v.y,v.x),a0=h*6.283,da=abs(mod(an-a0+3.1416,6.2832)-3.1416),sec=1.-smoothstep(.7,1.15,da),ring=smoothstep(.55,.95,sin(r*48.+h2*20.));acc+=sec*ring*(1.-smoothstep(1.,1.5,r));}
-   float aa=clamp(1.4-fwidth(p.x)*60.,0.,1.);acc=min(acc,1.)*aa;gRgh-=.3*tw*acc;gCol*=1.+.14*tw*(acc-.3);}}
+   float aa=clamp(1.4-fwidth(p.x)*60.,0.,1.);acc=min(acc,1.)*aa*(1.-clamp(texture2D(gBD,uvG).r*1.5,0.,1.));gRgh-=.3*tw*acc;gCol*=1.+.14*tw*(acc-.3);}}
  // bull float: wide faint swaths with soft ridge lines where passes overlap
  {float fl=clamp(ED2.b,0.,1.)*(1.-clamp(ED2.g,0.,1.));if(fl>.05){float q=p.y*.92+sin(p.x*.37)*1.1+sin(p.x*.11+1.3)*2.;float f=fract(q/4.),ln=1.-smoothstep(0.,.06,min(f,1.-f));float aa=clamp(1.3-fwidth(q)*25.,0.,1.);
    }}
@@ -3160,10 +3161,10 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float fur=smoothstep(.35,.95,sin(ph))*smoothstep(.25,.7,gVN(vec2(c*2.,al*.9)+1.7)),cr=smoothstep(.7,.9,gVN(p*13.+3.1))*clamp(1.6-fwidth(p.x)*40.,0.,1.);
    gCol*=1.-(.3*fur*aa+.1)*tk+.14*cr*tk;gRgh+=.25*tk;gTl+=pr*cos(ph)*1.2*tk*aa*fur+(vec2(gVN(p*13.+.05),gVN(p*13.+7.))-.5)*cr*tk*2.5;}
   // finished over bleed water: a weak floury skin that shows as it dries, pale and dusty
-  float dk=MK.g*mi*max(smoothstep(.55,1.,sl),gCure);if(dk>.02){float sp=gVN(p*31.)*.6+gVN(p*7.3+2.)*.4;gCol*=1.+dk*(.22+(sp-.5)*.45);gRgh+=.45*dk;gTl*=1.-.6*dk;}
+  float dk=MK.g*mi*max(smoothstep(.55,1.,sl),gCure);if(dk>.02){float sp=gVN(p*31.)*.6+gVN(p*7.3+2.)*.4;gCol*=1.+dk*(.1+(sp-.5)*.2);gRgh+=.3*dk;gTl*=1.-.6*dk;}
   if(gWM>.5){float w=MK.a*mi;if(w>.01){float wt=smoothstep(.01,.15,w);gCol*=1.-.32*wt;gPool=max(gPool,smoothstep(.2,.7,w));gShn=max(gShn,wt);
     gTl*=1.-.85*wt;float ra=clamp(1.5-fwidth(p.x)*10.,0.,1.);gTl+=(vec2(gVN(p*2.3+vec2(gTm*.9,gTm*.4)),gVN(p*2.3+vec2(5.2-gTm*.5,gTm*.8)))-.5)*.08*wt*ra;}}
-  else{float sh=MK.a*mi;if(sh>.01){gRgh-=.45*sh;gCol*=1.-.08*sh;gShn=max(gShn,sh*.85);}}
+  else{float sh=MK.a*mi;if(sh>.01){gRgh-=.15*sh;gCol*=1.-.1*sh;}}
   if(gCure>0.){gCol*=1.+.26*gCure*mi;gRgh+=.18*gCure*mi;}
  }
 }
@@ -8085,7 +8086,7 @@ function bkdGrade(on){const ls=[[sun,1],[hemi,.85],[fill,.6]];
 function bkdMask(){const Z=zoneZ||(typeof SHAPE!=='undefined'&&SHAPE);if(!Z)return null;if(BKD.mask&&BKD.mask.Z===Z&&BKD.mask.I===zoneI)return BKD.mask;
   const W=SLAB_W+8,D=SLAB_D+8,x0=-W/2,z0=-D/2,S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,S,S);
   const poly=(P,col)=>{g.fillStyle=col;g.beginPath();P.forEach((p,i)=>{const u=(p[0]-x0)/W*S,v=(p[1]-z0)/D*S;i?g.lineTo(u,v):g.moveTo(u,v)});g.closePath();g.fill()};
-  poly((!zoneI&&Z.length===SHAPE.length&&NOFORM.some(v=>v))?offsetPolyNF(Z,1.6,0,NOFORM):offsetPoly(Z,1.6),'#fff');/* v342: no padding at butt-up ends, or the 3D lawn shows there */if(zoneI)poly(offsetPoly(zoneI,-1.6),'#000');{const km=(BKD.L&&BKD.L.paint&&BKD.L.paint.koPad)||0;((BKD.L&&BKD.L.paint&&BKD.L.paint.bdBox)||[]).forEach(r=>poly([[r[0],r[1]],[r[2],r[1]],[r[2],r[3]],[r[0],r[3]]],'#fff'));/* v367: per-job extra 3D ground over forms painted into the photo */((BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut)||[]).forEach(r=>poly([[r[0]-km,r[1]-km],[r[2]+km,r[1]-km],[r[2]+km,r[3]+km],[r[0]-km,r[3]+km]],'#000'))}
+  poly((!zoneI&&Z.length===SHAPE.length&&NOFORM.some(v=>v))?offsetPolyNF(Z,1.6,0,NOFORM):offsetPoly(Z,1.6),'#fff');/* v342: no padding at butt-up ends, or the 3D lawn shows there */if(zoneI)poly(offsetPoly(zoneI,-1.6),'#000');{const km=(BKD.L&&BKD.L.paint&&BKD.L.paint.koPad)||0;((BKD.L&&BKD.L.paint&&BKD.L.paint.keepOut)||[]).forEach(r=>poly([[r[0]-km,r[1]-km],[r[2]+km,r[1]-km],[r[2]+km,r[3]+km],[r[0]-km,r[3]+km]],'#000'))}
   const t=new THREE.CanvasTexture(cv);t.flipY=false;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;
   if(BKD.mask)BKD.mask.t.dispose();BKD.mask={Z,I:zoneI,t,r:new THREE.Vector4(x0,z0,W,D)};BKD.clips.forEach(e=>Object.values(e).forEach(c=>{const sh=c.userData.sh;if(sh)sh.uniforms.bkM.value=t}));return BKD.mask}
 function bkdClip(m,cutY){if(!m||m.userData.bkClip)return m;const ck=cutY==null?'':cutY.toFixed(2);let c=BKD.clips.get(m)&&BKD.clips.get(m)[ck];if(c)return c;c=m.clone();c.userData={bkClip:true,orig:m};const prev=m.onBeforeCompile,pk=m.customProgramCacheKey?m.customProgramCacheKey():'';
@@ -8123,7 +8124,19 @@ function bkdHideTick(){const keep=BKD.hid,seen=new Set(keep.map(h=>h[0])),far=o=
    const L=BKD.lid;L.visible=ly!=null&&pitMesh.visible;if(L.visible){L.geometry=pitMesh.geometry;pitMesh.updateMatrixWorld();L.matrix.copy(pitMesh.matrixWorld);L.matrixWorld.copy(pitMesh.matrixWorld)}}}
 function loadCurtain(on){let d=loadCurtain.d;if(!d){d=loadCurtain.d=document.createElement('div');d.style.cssText='position:absolute;inset:0;background:#0b0a08;opacity:0;pointer-events:none;z-index:0';cv.parentNode.insertBefore(d,cv.nextSibling)}
   clearTimeout(loadCurtain.t);if(on){d.style.transition='none';d.style.opacity='1';loadCurtain.on=true;loadCurtain.n=0;loadCurtain.t=setTimeout(()=>loadCurtain(false),5000)}else if(loadCurtain.on){loadCurtain.on=false;d.style.transition='opacity .3s ease-out';d.style.opacity='0'}}
-function bkdTick(){try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible));/* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
+// v367: some yard photos have their own form boards painted around the pad; a feathered 3D gravel apron covers them
+const APR={m:null,L:null};
+function aprTick(){const C=BKD.on&&LV&&LV.paint&&LV.paint.apron;if(!C){if(APR.m)APR.m.visible=false;return}
+  if(!APR.m||APR.L!==LV){if(APR.m){scene.remove(APR.m);APR.m.geometry.dispose();APR.m.material.alphaMap&&APR.m.material.alphaMap.dispose();APR.m.material.dispose()}
+    const [x0,z0,x1,z1]=C,W=x1-x0,D=z1-z0,S=256,cv=document.createElement('canvas');cv.width=S;cv.height=Math.round(S*D/W);const g=cv.getContext('2d'),sx=S/W,sz=cv.height/D,f=.35;
+    g.fillStyle='#000';g.fillRect(0,0,cv.width,cv.height);g.filter='blur('+Math.round(f*sx*.6)+'px)';g.fillStyle='#fff';g.fillRect(f*sx,f*sz,(W-2*f)*sx,(D-2*f)*sz);g.filter='none';
+    g.fillStyle='#000';g.beginPath();SHAPE.forEach((q,i)=>{const u=(q[0]-x0)*sx,v=(q[1]-z0)*sz;i?g.lineTo(u,v):g.moveTo(u,v)});g.closePath();g.fill();
+    const am=new THREE.CanvasTexture(cv);const tx=new THREE.TextureLoader().load('tex/gravel.jpg');tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(W/2.2,D/2.2);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
+    const gm=new THREE.PlaneGeometry(W,D);gm.rotateX(-Math.PI/2);
+    const m=new THREE.Mesh(gm,new THREE.MeshStandardMaterial({map:tx,alphaMap:am,transparent:true,depthWrite:false,color:0xd9d2c6,roughness:.95,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));
+    m.position.set((x0+x1)/2,ELV()+.004,(z0+z1)/2);m.receiveShadow=true;m.renderOrder=-1;m.userData.live=true;scene.add(m);APR.m=m;APR.L=LV}
+  APR.m.visible=true}
+function bkdTick(){try{aprTick()}catch(e){}try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible));/* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
   if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
   if(!BKD.on)return;bkdHideTick();
   // where the game wanted to look this frame, and how much of the ground it wanted to see there
