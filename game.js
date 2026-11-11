@@ -138,7 +138,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2]},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -3141,14 +3141,14 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.7-fw*.85,0.,1.);
    ${CPH.on?`// v363: real broom marks from Kris's photo, laid along the pull; each 2 ft broom width is its own pass (own offset)
    float bn=floor(c/1.9);vec2 bu=vec2(al/1.25+gH1(vec2(bn,1.))*7.,c/1.25+gH1(vec2(bn,2.))*3.);float bA=texture2D(cPk,bu).a,bAc=texture2D(cPk,bu+vec2(0.,1.5/1024.)).a;
-   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.18)*.8*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*6.*bc*pull*aa;}}}`:`
+   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.15)*.55*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;}}}`:`
    float st=sin(c*300.+sin(al*2.7+c*35.)*1.6)*.6+sin(c*610.+sin(al*4.9)*2.3)*.4;float pull=.6+.4*sin(al*.9+gH1(floor(vec2(c*3.,0.)))*6.);
    gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}`}
  // steel trowel: overlapping fan-shaped swipes, each a set of fine burnished arcs
  {float tw=clamp(ED2.g,0.,1.);if(tw>.04){vec2 g=p/1.7,id=floor(g);float acc=0.;
    for(int k=0;k<4;k++){vec2 o=vec2(k==1||k==3?1.:0.,k>=2?1.:0.),cid=id+o;float h=gH1(cid),h2=gH1(cid+7.3);vec2 c=cid+vec2(h,h2)*.9-.45;vec2 v=g-c;float r=length(v)*1.7;
      float an=atan(v.y,v.x),a0=h*6.283,da=abs(mod(an-a0+3.1416,6.2832)-3.1416),sec=1.-smoothstep(.7,1.15,da),ring=smoothstep(.55,.95,sin(r*48.+h2*20.));acc+=sec*ring*(1.-smoothstep(1.,1.5,r));}
-   float aa=clamp(1.4-fwidth(p.x)*60.,0.,1.);acc=min(acc,1.)*aa*(1.-clamp(texture2D(gBD,uvG).r*1.5,0.,1.));gRgh-=.3*tw*acc;gCol*=1.+.14*tw*(acc-.3);}}
+   float aa=clamp(1.4-fwidth(p.x)*60.,0.,1.);acc=min(acc,1.)*aa*(1.-clamp(texture2D(gBD,uvG).r*1.5,0.,1.));gRgh-=.1*tw*acc;gCol*=1.+.035*tw*(acc-.3);}}
  // bull float: wide faint swaths with soft ridge lines where passes overlap
  {float fl=clamp(ED2.b,0.,1.)*(1.-clamp(ED2.g,0.,1.));if(fl>.05){float q=p.y*.92+sin(p.x*.37)*1.1+sin(p.x*.11+1.3)*2.;float f=fract(q/4.),ln=1.-smoothstep(0.,.06,min(f,1.-f));float aa=clamp(1.3-fwidth(q)*25.,0.,1.);
    }}
@@ -7969,15 +7969,16 @@ function bkdBuild(C){try{shdLoad(lpKey())}catch(e){}const o=BKD.o;o.position.fro
    photo itself through the painting's camera: it lines up with the painted stone at any zoom, wet mud stops against it, and the chute and
    tools still pass in front of it. */
 function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(BKD.cop)BKD.cop.visible=false;return}
-  if(!BKD.cop||BKD.cop.userData.L!==BKD.L||BKD.cop.material.map!==BKD.tex){if(BKD.cop){scene.remove(BKD.cop);BKD.cop.geometry.dispose();BKD.cop.material.dispose()}
+  if(!BKD.cop||BKD.cop.userData.L!==BKD.L||BKD.cop.userData.tex!==BKD.tex||BKD.cop.userData.C!==C){if(BKD.cop){scene.remove(BKD.cop);BKD.cop.geometry.dispose();BKD.cop.material.dispose()}
     const cam=BKD.o;cam.fov=C.fov;cam.aspect=C.asp;cam.updateProjectionMatrix();cam.updateMatrixWorld(true);const gs=[];
-    C.keepOut.forEach(r=>{const o=C.copOut||0,k=C.copIn||1.2,sh=new THREE.Shape([[r[0]-o,r[1]-o],[r[2]+o,r[1]-o],[r[2]+o,r[3]+o],[r[0]-o,r[3]+o]].map(q=>new THREE.Vector2(q[0],q[1])));
+    C.keepOut.forEach(r=>{const o=C.copOut||0,k=C.copSolid||C.copIn||1.2,sh=new THREE.Shape([[r[0]-o,r[1]-o],[r[2]+o,r[1]-o],[r[2]+o,r[3]+o],[r[0]-o,r[3]+o]].map(q=>new THREE.Vector2(q[0],q[1])));
       sh.holes.push(new THREE.Path([[r[0]+k,r[1]+k],[r[0]+k,r[3]-k],[r[2]-k,r[3]-k],[r[2]-k,r[1]+k]].map(q=>new THREE.Vector2(q[0],q[1]))));
       const g=new THREE.ShapeGeometry(sh,2);g.rotateX(Math.PI/2);g.translate(0,C.copY||.06,0);gs.push(g)});
     const g=gs.length>1?mergeGeos(gs):gs[0],P=g.attributes.position,uv=g.attributes.uv,v=new THREE.Vector3();
     for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).project(cam);uv.setXY(i,(v.x+1)/2,(v.y+1)/2)}uv.needsUpdate=true;
-    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
-    m.renderOrder=3;m.raycast=()=>{};m.userData.L=BKD.L;scene.add(m);BKD.cop=m}
+    /* v367: where the photo left grass (and its own forms) between the pad and the pool, the coping is solid stone right up to the slab */
+    const m=new THREE.Mesh(g,C.copSolid?new THREE.MeshStandardMaterial({color:0xdcd8cf,roughness:.8,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}):new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
+    if(C.copSolid)m.receiveShadow=true;m.renderOrder=3;m.raycast=()=>{};m.userData.L=BKD.L;m.userData.tex=BKD.tex;m.userData.C=C;scene.add(m);BKD.cop=m}
   BKD.cop.visible=true}
 function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);{const ys=C.imgPrep||null;if(ys&&BKD.yrSrc!==ys){BKD.yrSrc=ys;const o=BKD.yrTex;BKD.yrTex=null;if(o)o.dispose();new THREE.TextureLoader().load(ys,t=>{t.colorSpace=THREE.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;if(BKD.yrSrc===ys)BKD.yrTex=t;else t.dispose()})}}if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});try{pfxApply()}catch(e){console.warn('pfx',e)}BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
