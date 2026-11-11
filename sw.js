@@ -2,7 +2,7 @@
 // Two caches. V holds the page itself and is replaced every release (bump it with the version). A holds models, photos, textures and
 // engine files; it survives releases so they download once. Bump A only if a file's contents change under the same name
 // (the safer habit: give a changed model or texture a new file name).
-const V='slabrush-v362',A='slabrush-assets-1';
+const V='slabrush-v363',A='slabrush-assets-1';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','./game.js','./manifest.json','./icon-192.png'])).catch(()=>{}))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V&&k!==A).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 const isAsset=u=>/^\/(models|paint|tex|lib|brand)\//.test(u.pathname)||u.pathname==='/_vercel/image'||/\.(glb|ktx2|hdr|wasm|png|jpg|webp)$/.test(u.pathname)||/\/three-r\d+\.min\.js$/.test(u.pathname);

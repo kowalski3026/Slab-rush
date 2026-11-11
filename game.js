@@ -2964,7 +2964,7 @@ const SLABD={on:false,n:null,m:null};
 const CPH={on:false,off:false,U:{cPk:{value:null},gPh:{value:1}}};
 /* v290: the concrete photo detail is ONE packed texture (R raw-mud detail, G floated-paste detail, BA raw-mud normal) so the slab shader fits
    phones that only allow 16 textures. When it's on, the older slab detail maps are switched off (they did the same job). */
-(()=>{if(typeof safeGfx!=='undefined'&&safeGfx)return;const t=new THREE.TextureLoader().load('tex/cpack.webp',()=>{if(CPH.off)return;CPH.on=true;SLABD.try=1;SLABD.on=false;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}});
+(()=>{if(typeof safeGfx!=='undefined'&&safeGfx)return;const t=new THREE.TextureLoader().load('tex/cpack2.webp',/* v363: Kris's own pour photos */()=>{if(CPH.off)return;CPH.on=true;SLABD.try=1;SLABD.on=false;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}});
   t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.colorSpace=THREE.NoColorSpace;t.premultiplyAlpha=false;CPH.U.cPk.value=t})();
 function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Promise.all([pbrImg('slab_n'),pbrImg('slab_m')]).then(([a,b])=>{if(!a||!b)return;const T=im=>{const t=new THREE.Texture(im);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.needsUpdate=true;return t};
   SLABD.n=T(a);SLABD.m=T(b);SLABD.on=!CPH.on;slabMat.needsUpdate=true}).catch(()=>{})}
@@ -3053,35 +3053,35 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float cream=clamp(C.b,0.,1.),lump=(1.-cream)*gRel*(1.-.7*gPh);
    // v288 photo concrete: real fresh-placed mud (stone, paste, shine) blending to floated cream as it's struck off and floated
    ${CPH.on?`if(gPh>.01){vec2 pr=p*.42;vec4 ck=texture2D(cPk,pr);float rw=ck.r*2.;
-    // v291: three looks. Placed mud: lumps and stone. Struck off: flat but open and sandy (fine grain, little shine). Bull floated: closed,
-    // smooth creamy paste with only a faint mottle. The line between struck and floated reads clearly, like on a real pour.
+    // v363: the concrete is Kris's own pour photos, one packed picture: R placed mud (pump pour), G struck-off open paste,
+    // B bull-floated cream, A broom. Each is read at two different turns and blended by slow noise so the 2-3 ft tile never repeats.
     float scr=max(texture2D(gBD,uvG).a,step(.5,cream)),cl=clamp(texture2D(gED,uvG).b*1.15,0.,1.);
-    // v293: struck and floated concrete are fully procedural (no photo tile = nothing can repeat). Only the placed mud uses the photo.
     float fq=fwidth(p.x)+fwidth(p.y);
     rw=mix(rw,texture2D(cPk,vec2(p.x*.454-p.y*.891,p.x*.891+p.y*.454)*.37+.71).r*2.,smoothstep(.3,.7,gVN(p*.53+11.7)));
-    // v294: far/oblique mud kept rough. Mipmapping averages the fine lumps away, so add a coarse lump layer and give back the lost contrast with distance.
+    // far/oblique mud kept rough: mipmapping averages the fine lumps away, so a coarse layer gives back the lost contrast with distance
     vec4 cc=texture2D(cPk,vec2(p.x*-.669-p.y*.743,p.x*.743-p.y*.669)*.16+.29);float dk=clamp(fq*2.2,0.,1.);
-    rw=1.+(rw-1.)*(1.+dk*.9)+(cc.r*2.-1.)*(.25+.35*dk);ck.ba=mix(ck.ba,cc.ba,.35+.3*dk);float a1=clamp(1.6-fq*22.,0.,1.),a2=clamp(1.6-fq*55.,0.,1.),a3=clamp(1.6-fq*120.,0.,1.);
-    // sand: open, gritty paste at 1/4-1 in, tone drifts slowly over feet
-    float s1=gVN(p*9.3+1.7),s2=gVN(p*23.+5.3),s3=gVN(p*51.+9.1),lo=gVN(p*.31+2.2)*.6+gVN(p*1.13+7.7)*.4;
-    float sand=(s1-.5)*.5*a1+(s2-.5)*.75*a2+(s3-.5)*.6*a3;
-    vec2 sd=gSdir;float th=dot(sd,sd)>.01?.5*atan(sd.y,sd.x):0.;vec2 ld=vec2(cos(th),sin(th)),ac=vec2(-ld.y,ld.x);float qa=dot(p,ac),qb=dot(p,ld);
-    // drag: fines pulled into short irregular streaks along the board's path
-    float dr=(gVN(vec2(qa*14.+gVN(vec2(qb*.4,qa*2.))*3.,qb*.9))-.5)*a2*.7+(gVN(vec2(qa*4.3,qb*.3+4.))-.5)*.5;
-    float fg=1.+sand*.34+dr*.16+(lo-.5)*.14;
-    float rough=mix(rw,fg,scr);
-    // floated: closed creamy paste, only a soft blotchy mottle and faint fines
-    float fm=1.+(gVN(p*.47+3.3)-.5)*.07+(gVN(p*1.9+8.1)-.5)*.04+(s1-.5)*.025*a1;
+    rw=1.+(rw-1.)*(1.+dk*.9)+(cc.r*2.-1.)*(.25+.35*dk);float a1=clamp(1.6-fq*22.,0.,1.),a2=clamp(1.6-fq*55.,0.,1.);
+    // relief straight from the photo: the lit tops of stone and lumps read as high
+    vec2 te=vec2(1.5/1024.,0.);float mh=ck.r;vec2 ng=-vec2(texture2D(cPk,pr+te.xy).r-mh,texture2D(cPk,pr+te.yx).r-mh)*7.*(.75+.5*dk)*(.4+.6*a2);
+    float lo=gVN(p*.31+2.2)*.6+gVN(p*1.13+7.7)*.4,rough=rw;
+    if(scr>.01){vec2 s1u=p*.36+.13,s2u=vec2(p.x*.81-p.y*.59,p.x*.59+p.y*.81)*.31+.47;float sm=smoothstep(.3,.7,gVN(p*.41+3.9));
+     float g1=texture2D(cPk,s1u).g,sG=mix(g1,texture2D(cPk,s2u).g,sm);
+     vec2 sd=gSdir;float th=dot(sd,sd)>.01?.5*atan(sd.y,sd.x):0.;vec2 ld=vec2(cos(th),sin(th)),ac=vec2(-ld.y,ld.x);float qa=dot(p,ac),qb=dot(p,ld);
+     // drag: fines pulled into short irregular streaks along the board's path
+     float dr=(gVN(vec2(qa*14.+gVN(vec2(qb*.4,qa*2.))*3.,qb*.9))-.5)*a2*.7+(gVN(vec2(qa*4.3,qb*.3+4.))-.5)*.5;
+     float fg=1.+(sG-.5)*1.5+dr*.16+(lo-.5)*.14;rough=mix(rw,fg,scr);
+     vec2 sn=-vec2(texture2D(cPk,s1u+te.xy).g-g1,texture2D(cPk,s1u+te.yx).g-g1)*5.*(.4+.6*a2);ng=mix(ng,sn,scr);}
+    // bull floated: closed creamy paste, a soft blotchy mottle plus the fine pinholes and sand from the photo
+    float fm=1.+(gVN(p*.47+3.3)-.5)*.07+(gVN(p*1.9+8.1)-.5)*.04;
+    if(cl>.01){float fB=mix(texture2D(cPk,p*.3+.61).b,texture2D(cPk,vec2(p.x*.26-p.y*.97,p.x*.97+p.y*.26)*.27+.2).b,smoothstep(.3,.7,gVN(p*.37+6.1)));fm+=(fB-.5)*.75*(.5+.5*a1);}
     float det=mix(rough,fm,cl)*(1.+.05*cl);diffuseColor.rgb*=mix(1.,det,inK*gPh);
-    vec2 nr=ck.ba*2.-1.;gRN.xz+=vec2(nr.x,-nr.y)*(.75+.5*dk)*(1.-scr)*(1.-cl)*inK*gPh;
-    {float e2=.04;vec2 sg=vec2(gVN(p*23.+5.3+vec2(e2,0.))-s2,gVN(p*23.+5.3+vec2(0.,e2))-s2)/e2*a2*.012+vec2(gVN(p*9.3+1.7+vec2(e2,0.))-s1,gVN(p*9.3+1.7+vec2(0.,e2))-s1)/e2*a1*.01;
-     gRN.xz+=sg*scr*(1.-cl)*inK*gPh;}
+    gRN.xz+=ng*(1.-cl)*inK*gPh;
     diffuseColor.rgb*=1.-(.16-.08*scr)*(1.-cl)*inK*gPh;gRgh+=(.12*(1.-cl)*scr-.1*cl)*inK*gPh;}`:''}
    // fresh mud lumps: soft blobs at 4 in and 1.5 in, gone once it's struck and floated
    vec2 q=p*2.9;float n1=gVN(q),n1x=gVN(q+vec2(.05,0.)),n1z=gVN(q+vec2(0.,.05));vec2 q2=p*8.;float n2=gVN(q2),n2x=gVN(q2+vec2(.05,0.)),n2z=gVN(q2+vec2(0.,.05));
    float aaL=clamp(1.6-fwidth(p.x)*18.,0.,1.);
    vec2 lg=(vec2(n1x-n1,n1z-n1)/.05*2.9*.012+vec2(n2x-n2,n2z-n2)/.05*8.*.004*aaL)*lump;
-   gRN=vec3(-lg.x,0.,-lg.y);gRK=inK;
+   gRN+=vec3(-lg.x,0.,-lg.y);gRK=inK;
    // stone showing through the paste
    float stv=(1.-cream)*inK*(1.-.7*gPh);if(stv>.02){vec2 g=p/.11,id=floor(g),f=fract(g);float md=9.,sh=0.;vec2 sp=vec2(0.);
     for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y)),r=gH2(id+o);vec2 dv=o+r*.8+.1-f;float rad=.18+.22*gH1(id+o+3.1),d=length(dv)-rad;if(d<md){md=d;sh=gH1(id+o+9.7);sp=dv;}}
@@ -3133,8 +3133,11 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  // broom: real-scale bristle striations along the pull, faded out where they'd shimmer
  {vec4 BD=texture2D(gBD,uvG);float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);if(bc>.03){vec2 d2=BD.gb*2.-1.;if(dot(d2,d2)>.01){float th=.5*atan(d2.y,d2.x);vec2 dv=vec2(cos(th),sin(th)),pr=vec2(-dv.y,dv.x);
    float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.7-fw*.85,0.,1.);
+   ${CPH.on?`// v363: real broom marks from Kris's photo, laid along the pull; each 2 ft broom width is its own pass (own offset)
+   float bn=floor(c/1.9);vec2 bu=vec2(al/1.25+gH1(vec2(bn,1.))*7.,c/1.25+gH1(vec2(bn,2.))*3.);float bA=texture2D(cPk,bu).a,bAc=texture2D(cPk,bu+vec2(0.,1.5/1024.)).a;
+   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+(bA-.5)*1.6*bc*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*14.*bc*pull*aa;}}}`:`
    float st=sin(c*300.+sin(al*2.7+c*35.)*1.6)*.6+sin(c*610.+sin(al*4.9)*2.3)*.4;float pull=.6+.4*sin(al*.9+gH1(floor(vec2(c*3.,0.)))*6.);
-   gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}
+   gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}`}
  // steel trowel: overlapping fan-shaped swipes, each a set of fine burnished arcs
  {float tw=clamp(ED2.g,0.,1.);if(tw>.04){vec2 g=p/1.7,id=floor(g);float acc=0.;
    for(int k=0;k<4;k++){vec2 o=vec2(k==1||k==3?1.:0.,k>=2?1.:0.),cid=id+o;float h=gH1(cid),h2=gH1(cid+7.3);vec2 c=cid+vec2(h,h2)*.9-.45;vec2 v=g-c;float r=length(v)*1.7;
@@ -3149,7 +3152,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);\n#endif')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl209';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl363';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
