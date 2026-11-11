@@ -4096,12 +4096,12 @@ const concM=new THREE.MeshStandardMaterial({color:0x7c776e,roughness:.45});
 const SROLL=(()=>{const L=Math.max(GW,GH),C=12,g=new THREE.BufferGeometry(),pos=new Float32Array(L*C*3),idx=[];
   for(let i=0;i<L-1;i++)for(let j=0;j<C-1;j++){const a=i*C+j,b=a+1,c=a+C,d=c+1;idx.push(a,c,b,b,c,d)}
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setIndex(idx);
-  const mt=new THREE.MeshStandardMaterial({color:0x8a857c,roughness:.42});
+  const mt=new THREE.MeshStandardMaterial({color:0x938e85,roughness:.32});
   // same placed-mud photo as the slab (Kris's pump pour, R of the packed picture), read in world space so the lumps flow through the roll as it moves
   mt.onBeforeCompile=sh=>{sh.uniforms.cPk=CPH.U.cPk;sh.uniforms.cOn={get value(){return CPH.on?1:0}};
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vSrW;').replace('#include <project_vertex>','#include <project_vertex>\nvSrW=(modelMatrix*vec4(transformed,1.)).xyz;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vSrW;uniform sampler2D cPk;uniform float cOn;')
-     .replace('#include <map_fragment>','#include <map_fragment>\n{vec2 q=vSrW.xz*.42+vec2(0.,vSrW.y*.6);float d=texture2D(cPk,q).r*2.;diffuseColor.rgb*=mix(1.,d,.8*cOn);}')
+     .replace('#include <map_fragment>','#include <map_fragment>\n{vec2 q=vSrW.xz*.42+vec2(0.,vSrW.y*.6);float d=texture2D(cPk,q).r*2.;diffuseColor.rgb*=mix(1.,d,.62*cOn);}')
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 q=vSrW.xz*.42+vec2(0.,vSrW.y*.6);float d=texture2D(cPk,q).r;normal=normalize(normal+vec3(dFdx(d),dFdy(d),0.)*-9.*cOn);}')};
   mt.customProgramCacheKey=()=>'sroll1';
   const m=new THREE.Mesh(g,mt);m.castShadow=m.receiveShadow=true;m.frustumCulled=false;m.visible=false;
