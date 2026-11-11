@@ -1,7 +1,12 @@
 try{BOOT.at(.3,'Building the site')}catch(e){}
 setTimeout(()=>{
 try{(()=>{
-const GW=48, GH=24, N=GW*GH;let DEPTH=4,CELL_IN=5,LS=1;
+const GW=48, GH=24, N=GW*GH;
+/* v364: per-cell extras for the slab shader (one small texture, GPS.mk): R = the yard photo's own shade on the pour, G = dusting (finished over
+   bleed water), B = broom tear (broomed too wet), A = fresh wet sheen (mud just flowed, paste just pulled up) or, during the hose test, water depth */
+const PSH=new Float32Array(N),DUST=new Float32Array(N),TEAR=new Float32Array(N),PST=new Float32Array(N),MKS={t:0,live:0,dirty:1};
+const PAY={on:false,t:0,ph:0,wat:new Float32Array(N),fl:new Float32Array(N),src:0,row:null,cuts:[],hid:[],el:null,timedOut:false,meas:false,
+  wm:{value:0},cure:{value:0},tm:{value:0}};let DEPTH=4,CELL_IN=5,LS=1;
 let SLAB_W=20, SLAB_D=10;const EX=3.1;
 const GFX=(()=>{try{return localStorage.getItem('bts-gfx')||'fx'}catch(e){return'fx'}})();
 const TEXLOW=GFX==='saver';// battery-saver: smaller slab canvases (about half the memory)
@@ -2972,12 +2977,12 @@ function slabDetailInit(){if(SLABD.try||safeGfx||!renderer)return;SLABD.try=1;Pr
    the coarse grid only says HOW MUCH is cut/edged; the shape (groove, bevels, burnished tool bands, rounded nose, tool lip) is exact in feet */
 const GPS={on:false,JN:24,EN:64,jl:[],es:[],jn:0,en:0,sw:{value:20},sd:{value:10},jt:null,ed:null};
 for(let i=0;i<GPS.JN;i++)GPS.jl.push(new THREE.Vector4());for(let i=0;i<GPS.EN;i++)GPS.es.push(new THREE.Vector4());
-{const mk8=(w,h)=>{const t=new THREE.DataTexture(new Uint8Array(w*h*4),w,h,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t};GPS.jt=mk8(48,GPS.JN);GPS.ed=mk8(GW,GH);GPS.bd=mk8(GW,GH);GPS.mr=mk8(GW,GH);
+{const mk8=(w,h)=>{const t=new THREE.DataTexture(new Uint8Array(w*h*4),w,h,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.LinearFilter;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t};GPS.jt=mk8(48,GPS.JN);GPS.ed=mk8(GW,GH);GPS.bd=mk8(GW,GH);GPS.mr=mk8(GW,GH);GPS.mk=mk8(GW,GH);
   {const t=new THREE.DataTexture(new Uint16Array(GW*GH*4),GW,GH,THREE.RGBAFormat,THREE.HalfFloatType);t.magFilter=t.minFilter=THREE.LinearFilter;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;GPS.hm=t}}
 /* v186 real concrete: per-pixel relief, stone in the fresh paste, bleed water pooling in the lows, blotchy drying */
 var RAIN={w:0,slab:0,base:null,mats:null};
 const RC={rel:{value:1},bl:{value:0},fr:{value:0},cs:{value:CELL_IN/12}};
-GPS.U={gSdir:{value:new THREE.Vector2(1,0)},gMR:{value:GPS.mr},gHM:{value:GPS.hm},gRel:RC.rel,gBl:RC.bl,gFr:RC.fr,gCs:RC.cs,gJL:{value:GPS.jl},gES:{value:GPS.es},gJN:{value:0},gEN:{value:0},gJT:{value:GPS.jt},gED:{value:GPS.ed},gBD:{value:GPS.bd},gSW:GPS.sw,gSD:GPS.sd};
+GPS.U={gMK:{value:GPS.mk},gWM:PAY.wm,gCure:PAY.cure,gTm:PAY.tm,gSdir:{value:new THREE.Vector2(1,0)},gMR:{value:GPS.mr},gHM:{value:GPS.hm},gRel:RC.rel,gBl:RC.bl,gFr:RC.fr,gCs:RC.cs,gJL:{value:GPS.jl},gES:{value:GPS.es},gJN:{value:0},gEN:{value:0},gJT:{value:GPS.jt},gED:{value:GPS.ed},gBD:{value:GPS.bd},gSW:GPS.sw,gSD:GPS.sd};
 function gpsShape(){if(!GPS.on)return;const on=LV&&!LV.slip&&!LV.wall;let segs=on?SEGS.filter(g=>!g.nf).concat(STR.on?STR.rsegs:[]):[];
   // v210: too many edge pieces for the shader: simplify each continuous run of edge on its own (never a chord across a gap or
   // an end of the slab), keeping corners, with the tolerance raised until it fits
@@ -3000,9 +3005,9 @@ function gpsSync(){if(!GPS.on)return;
    GPS.mr.needsUpdate=true;{const m=Math.hypot(GPS.sc,GPS.ss);if(m>1e-3)GPS.U.gSdir.value.set(GPS.sc/m,GPS.ss/m)}}
   const E=GPS.ed.image.data;for(let i=0;i<N;i++){const o=i*4;E[o]=band[i]?Math.min(255,edged[i]*255):0;E[o+1]=Math.min(255,trow[i]*255);E[o+2]=Math.min(255,closed[i]*255);E[o+3]=inR[i]?Math.min(255,rpit[i]*255*Math.max(0,1-trow[i]*.8)):0}GPS.ed.needsUpdate=true;
   {const B=GPS.bd.image.data;for(let i=0;i<N;i++){const o=i*4,m=Math.hypot(bxv[i],byv[i]);B[o]=inR[i]?Math.min(255,bcov[i]*230):0;B[o+1]=m>1e-4?(bxv[i]/m*.5+.5)*255:128;B[o+2]=m>1e-4?(byv[i]/m*.5+.5)*255:128;B[o+3]=GPS.sa?GPS.sa[i]:0}GPS.bd.needsUpdate=true}
-  const J=GPS.jt.image.data;J.fill(0);let n=0;if(LV&&!LV.slip&&!LV.wall)for(const j of joints){if(n>=GPS.JN)break;const row=n*48*4;for(let k=0;k<48;k++)J[row+k*4]=Math.min(255,Math.max(0,j.cells[k]||0)*255);
-    const pos=j.o==='x'?j.p/GW*SLAB_W-SLAB_W/2:j.p/GH*SLAB_D-SLAB_D/2,early=j.set<.42;GPS.jl[n].set(j.o==='x'?0:1,pos,LV.saw?.007:early?.03:.022,LV.saw?0:early?.13:.115);n++}
-  GPS.jn=n;GPS.U.gJN.value=n;GPS.jt.needsUpdate=true}
+  const J=GPS.jt.image.data;J.fill(0);let n=0;if(LV&&!LV.slip&&!LV.wall)for(const j of joints.concat(PAY.cuts)){if(n>=GPS.JN)break;const row=n*48*4;for(let k=0;k<48;k++)J[row+k*4]=Math.min(255,Math.max(0,j.cells[k]||0)*255);
+    const pos=j.o==='x'?j.p/GW*SLAB_W-SLAB_W/2:j.p/GH*SLAB_D-SLAB_D/2,early=j.set<.42;GPS.jl[n].set(j.o==='x'?0:1,pos,LV.saw||j.saw?.007:early?.03:.022,LV.saw||j.saw?0:early?.13:.115);n++}
+  GPS.jn=n;GPS.U.gJN.value=n;GPS.jt.needsUpdate=true;try{mkSync()}catch(e){}}
 /* v162: daylight wet glare. At night the work lights put bright highlights in the wet film; in daylight the slab mirrors
    the bright sky, which at a high camera angle a plain reflection barely shows. This adds that glare lobe (wide soft sheen
    + tight sparkle core) along the mirror direction from the camera, nudged toward the sun, scaled by the wetness (clearcoat)
@@ -3036,7 +3041,7 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
     F=F.replace('varying vec2 vDW;',`varying vec2 vDW;
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
 float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;${CPH.on?'uniform sampler2D cPk;uniform float gPh;':'float gPh=0.;'}uniform float gSD;
-uniform sampler2D gMR;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
+uniform sampler2D gMR;uniform sampler2D gMK;uniform float gWM;uniform float gCure;uniform float gTm;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
 float gVN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gH1(i),gH1(i+vec2(1,0)),f.x),mix(gH1(i+vec2(0,1)),gH1(i+vec2(1,1)),f.x),f.y);}
@@ -3045,7 +3050,7 @@ vec4 gBS(vec2 uv){vec2 ts=vec2(${GW}.,${GH}.),st=uv*ts-.5,i=floor(st),f=st-i;vec
  vec2 w0=(1.-3.*f+3.*f2-f3)/6.,w1=(4.-6.*f2+3.*f3)/6.,w2=(1.+3.*f+3.*f2-3.*f3)/6.,w3=f3/6.;vec2 g0=w0+w1,g1=w2+w3,h0=(w1/g0-1.+i+.5)/ts,h1=(w3/g1+1.+i+.5)/ts;
  return (texture2D(gHM,vec2(h0.x,h0.y))*g0.x+texture2D(gHM,vec2(h1.x,h0.y))*g1.x)*g0.y+(texture2D(gHM,vec2(h0.x,h1.y))*g0.x+texture2D(gHM,vec2(h1.x,h1.y))*g1.x)*g1.y;}`)
      .replace('#include <map_fragment>',`#include <map_fragment>
-float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
+float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;float gSunK=1.,gShn=0.;
 {vec2 p=vDW,uvG=vec2(p.x/gSW+.5,p.y/gSD+.5);
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
@@ -3093,8 +3098,8 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    if(gBl>.01){float ring=(gBS(uvG+e*2.4).r+gBS(uvG-e*2.4).r+gBS(uvG+vec2(e.x,-e.y)*2.4).r+gBS(uvG+vec2(-e.x,e.y)*2.4).r)*.25;
     float low=ring-C.r+(gVN(p*1.3)-.5)*.05+(gVN(p*3.7)-.5)*.04;gPool=smoothstep(.015,.08,low)*gBl*inK;diffuseColor.rgb*=1.-.22*gPool;gRgh-=.9*gPool;}
    // drying: edges and thin spots go first, the front is blotchy
-   {float sl=C.g,ph=sl+(gVN(p*.45)*.65+gVN(p*1.7)*.35-.5)*.16-(1.-clamp((C.a-.35)/.65,0.,1.))*.07;
-    float w0=1.-smoothstep(.3,.66,sl),w1=1.-smoothstep(.3,.66,ph);gCol*=1.-.16*(w1-w0)*inK;gRgh-=.35*(w1-w0)*inK;}
+   {float sl=C.g,ph=sl+(gVN(p*.45)*.65+gVN(p*1.7)*.35-.5)*.26-(1.-clamp((C.a-.35)/.65,0.,1.))*.07;
+    float w0=1.-smoothstep(.3,.66,sl),w1=1.-smoothstep(.3,.66,ph);gCol*=1.-.22*(w1-w0)*inK;gCol*=1.+(gVN(p*.19+5.)-.5)*.1*smoothstep(.3,.5,sl)*(1.-smoothstep(.8,1.,sl))*inK*(1.-gCure);gRgh-=.35*(w1-w0)*inK;}
   }}
  // v187 tool marks, drawn at real scale in feet
  {vec4 MR=texture2D(gMR,uvG);float ra=MR.r;if(ra>.02){vec2 d2=MR.gb*2.-1.;if(dot(d2,d2)>.01){float th=.5*atan(d2.y,d2.x);vec2 dv=vec2(cos(th),sin(th)),pr=vec2(-dv.y,dv.x);
@@ -3146,13 +3151,29 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  // bull float: wide faint swaths with soft ridge lines where passes overlap
  {float fl=clamp(ED2.b,0.,1.)*(1.-clamp(ED2.g,0.,1.));if(fl>.05){float q=p.y*.92+sin(p.x*.37)*1.1+sin(p.x*.11+1.3)*2.;float f=fract(q/4.),ln=1.-smoothstep(0.,.06,min(f,1.-f));float aa=clamp(1.3-fwidth(q)*25.,0.,1.);
    }}
+ // v364: the yard photo's own shade, mistakes you can see, fresh wet sheen, hose water, cure
+ {vec4 MK=texture2D(gMK,uvG);vec4 HM=texture2D(gHM,uvG);float mi=smoothstep(.2,.5,HM.a),sl=HM.g;
+  gSunK=1.-clamp(MK.r,0.,1.)*mi;
+  // broomed too wet: the bristles tear the paste instead of combing it. Ragged furrows, rolled-up crumbs, dark wet fines
+  float tk=MK.b*mi;if(tk>.02){vec2 d2=texture2D(gBD,uvG).gb*2.-1.;float th=dot(d2,d2)>.01?.5*atan(d2.y,d2.x):0.;vec2 dv=vec2(cos(th),sin(th)),pr=vec2(-dv.y,dv.x);
+   float c=dot(p,pr),al=dot(p,dv),ph=c*11.+gVN(vec2(c*3.,al*.7))*5.+gVN(vec2(c*.8,al*2.3))*2.,aa=clamp(1.5-fwidth(ph)*.8,0.,1.);
+   float fur=smoothstep(.35,.95,sin(ph))*smoothstep(.25,.7,gVN(vec2(c*2.,al*.9)+1.7)),cr=smoothstep(.7,.9,gVN(p*13.+3.1))*clamp(1.6-fwidth(p.x)*40.,0.,1.);
+   gCol*=1.-(.3*fur*aa+.1)*tk+.14*cr*tk;gRgh+=.25*tk;gTl+=pr*cos(ph)*1.2*tk*aa*fur+(vec2(gVN(p*13.+.05),gVN(p*13.+7.))-.5)*cr*tk*2.5;}
+  // finished over bleed water: a weak floury skin that shows as it dries, pale and dusty
+  float dk=MK.g*mi*max(smoothstep(.55,1.,sl),gCure);if(dk>.02){float sp=gVN(p*31.)*.6+gVN(p*7.3+2.)*.4;gCol*=1.+dk*(.13+(sp-.5)*.35);gRgh+=.4*dk;gTl*=1.-.5*dk;}
+  if(gWM>.5){float w=MK.a*mi;if(w>.01){float wt=smoothstep(.01,.15,w);gCol*=1.-.32*wt;gPool=max(gPool,smoothstep(.2,.7,w));gShn=max(gShn,wt);
+    gTl+=vec2(sin(p.x*7.+p.y*3.+gTm*5.),sin(p.y*8.-p.x*2.-gTm*4.3))*.05*wt;}}
+  else{float sh=MK.a*mi;if(sh>.01){gRgh-=.45*sh;gCol*=1.-.08*sh;gShn=max(gShn,sh*.85);}}
+  if(gCure>0.){gCol*=1.+.17*gCure*mi;gRgh+=.18*gCure*mi;}
+ }
 }
 diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
+     .replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight );\n\t\t#if UNROLLED_LOOP_INDEX == 0\n\t\tdirectLight.color*=gSunK;\n\t\t#endif'))
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
-     .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);\n#endif')}
+     .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*.9)*(1.-.92*gCure);\n#endif')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl363';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+'gl364';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -4080,7 +4101,7 @@ function handle(len,elev){const m=new THREE.Mesh(new THREE.CylinderGeometry(.035
 const screedG=new THREE.Group();
 const board=new THREE.Mesh(new THREE.BoxGeometry(.13,.3,1),new THREE.MeshStandardMaterial({map:wood,roughness:.8}));board.position.y=.17;screedG.add(board);
 shadowAll(screedG);scene.add(screedG);
-const mound=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,8),concM,Math.max(GW,GH));mound.castShadow=true;scene.add(mound);
+const mound=new THREE.InstancedMesh((()=>{const g=new THREE.SphereGeometry(1,18,10),p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),n=1+.12*Math.sin(x*5.1+z*3.7)*Math.sin(y*4.3+1.1)+.07*Math.sin(z*9.2-x*2.3+y*6.1)+.05*Math.sin(y*11.+z*7.);p.setXYZ(i,x*n,y*n,z*n)}g.computeVertexNormals();return g})(),concM,Math.max(GW,GH));mound.castShadow=true;scene.add(mound);
 const dummy=new THREE.Object3D();
 
 // 48 in magnesium bull float (Marshalltown-style): flat extruded blade, full round ends, two raised ribs, black tilt bracket, red adapter
@@ -4333,8 +4354,8 @@ function exSfxStart(){hap([70,40,120],2);shake(.05);if(!au.exb||!soundOn||!AC)re
 const FREQ={slip:140,shape:600,dig:110,gravel:95,base:75,form:900,tube:320,expose:6500,power:140,blanket:220,pour:420,screed:650,float:480,edge:2300,trowel:2900,joint:1900,broom:5200,color:3800,stamp:300},GAIN={slip:.45,shape:.25,dig:.5,gravel:.45,base:.55,form:.06,tube:.05,expose:.3,power:.5,blanket:.1,pour:.38,screed:.4,float:.28,edge:.22,trowel:.26,joint:.2,broom:.32,color:.12,stamp:0};
 function updAudio(){
   if(!AC)return;const t=AC.currentTime,on=soundOn&&running?1:0,k=STAGES[stage].key,sp=Math.min(1,toolSpeed/10);
-  au.scrape.f.frequency.setTargetAtTime((FREQ[k]||1000)*(.85+sp*.3),t,.05);
-  au.scrape.g.gain.setTargetAtTime(on*(ptr.down&&(k!=='pour'||pourTool==='rake')?sp*(GAIN[k]||.2):0),t,.04);
+  au.scrape.f.frequency.setTargetAtTime((FREQ[k]||1000)*(.85+sp*.3)*(1-.45*TFEEL.suck+.5*TFEEL.chat),t,.05);
+  au.scrape.g.gain.setTargetAtTime(on*(ptr.down&&(k!=='pour'||pourTool==='rake')?sp*(GAIN[k]||.2)*(TFEEL.chat>.15?.3+Math.random()*1.2:1)*(1+.5*TFEEL.suck*Math.abs(Math.sin(t*7))):0),t,.04);
   au.ring.g.gain.setTargetAtTime(on*(ptr.down&&k==='trowel'?sp*.05:0),t,.05);
   const truckOn=truck.visible?1:0;
   au.rumble.g.gain.setTargetAtTime(on*truckOn*(.18+(pouring?.3:0)),t,.2);
@@ -4438,7 +4459,7 @@ function feelTick(t,dt){try{rumbleTick(t,dt)}catch(e){}const S2=spark;let live=f
   if(running&&ptr.down){const k=STAGES[stage]&&STAGES[stage].key;
     if(k==='power'&&toolSpeed>1.5&&set>.75&&t-sparkT>90){sparkT=t;const i=S2.k=(S2.k+1)%S2.n,r=2.2;
       S2.pos[i*3]=toolPos.x+(Math.random()-.5)*2*r;S2.pos[i*3+1]=ELV()+.08;S2.pos[i*3+2]=toolPos.z+(Math.random()-.5)*2*r;S2.life[i]=1;live=true}
-    const kk=k==='pour'&&pourTool==='rake'?'rake':k,hp=HAPT[kk];if(hp&&toolSpeed>1&&t-hapT>hp[1]){hapT=t;hap(hp[0],1)}}
+    const kk=k==='pour'&&pourTool==='rake'?'rake':k,hp=HAPT[kk];if(hp&&toolSpeed>1){const F=TFEEL,iv=F.chat>.25?55:F.suck>.25?300:hp[1],ms=F.chat>.25?5:F.suck>.25?Math.round(hp[0]+20*F.suck):hp[0];if(t-hapT>iv){hapT=t;hap(ms,1)}}}
   if(live){S2.P.geometry.attributes.position.needsUpdate=true;S2.P.geometry.attributes.color.needsUpdate=true}S2.P.visible=live}
 
 /* ---------- progression: stars, ranks, daily + weekly goals, paint rewards ---------- */
@@ -4531,7 +4552,7 @@ function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.vi
 function rebarTrace(){}// kept for old callers
 /* ---------- state init ---------- */
 function reset(){setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
-  h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);
+  h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);DUST.fill(0);TEAR.fill(0);PST.fill(0);MKS.dirty=1;try{payReset()}catch(e){console.warn('pay',e)}
   for(let i=0;i<N;i++)mott[i]=(Math.random()-.5)*10;
   {const nz=new Float32Array(N);for(let i=0;i<N;i++)nz[i]=Math.random();
    for(let k=0;k<4;k++)for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;let a=0,c=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=GW||yy>=GH)continue;a+=nz[yy*GW+xx];c++}dryOff[i]=a/c}
@@ -5427,7 +5448,7 @@ function msNext(c){const n=SCR.S.length,nm=c.t==='s'?msStripName(c.i):msBayName(
   return `${nm}'s struck. `+(sReady.length?`Tap ${sReady[0]+1} for ${msStripName(sReady[0])}.`:sLeft.length?`${msStripName(sLeft[0])} isn't placed yet: ← to pour it.`:bReady.length?`Tap ${String.fromCharCode(65+bReady[0])} to pull ${msBayName(bReady[0])}.`:bOpen.length?`Hit ← and fill ${msBayName(bOpen[0])} between the strips.`:'')}
 function processRow(r,eff){
   let moved=0;const [C0,C1]=scrCols();
-  for(let c=C0;c<C1;c++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,1,0,.6*eff);if(v>0)carryC[c]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,1,0,.6*eff);
+  for(let c=C0;c<C1;c++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,1,0,.6*eff);if(v>0)carryC[c]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);PST[i]=Math.max(PST[i],.55*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,1,0,.6*eff);
     if(v>0){const t=v*eff;h[i]-=t;carryC[c]+=t;moved+=t}
     else if(v<0){const f=Math.min(carryC[c],-v*eff);h[i]+=f;carryC[c]-=f;moved+=f}
     if(has(i))h[i]+=(Math.random()-.5)*(gear('laser')?.004:.02)}
@@ -5459,7 +5480,7 @@ function scrLevel(i){const v=h[i],t=(Math.random()-.5)*(gear('laser')?.004:gear(
 function screedEff(){const lim=gear('laser')?.5:gear('pscreed')?.4:.3,b=gear('laser')?.99:gear('pscreed')?.96:.92;return set<lim?b:Math.max(.1,b-(set-lim)*3)}
 function processCol(c,eff){
   let moved=0;const [LA,LB]=scrRows();
-  for(let r=LA;r<LB;r++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,0,1,.6*eff);if(v>0)carry[r]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,0,1,.6*eff);
+  for(let r=LA;r<LB;r++){const i=r*GW+c,v=h[i];if(!inR[i])continue;if(has(i)&&scrFull(i)){markAdd(scA,scC,scS,i,0,1,.6*eff);if(v>0)carry[r]+=v;moved+=scrLevel(i);continue}struck[i]=Math.min(1,struck[i]+.5*eff);PST[i]=Math.max(PST[i],.55*eff);rkA[i]*=1-.75*eff;markAdd(scA,scC,scS,i,0,1,.6*eff);
     if(v>0){const t=v*eff;h[i]-=t;carry[r]+=t;moved+=t}
     else if(v<0){const f=Math.min(carry[r],-v*eff);h[i]+=f;carry[r]-=f;moved+=f}
     if(has(i))h[i]+=(Math.random()-.5)*(gear('laser')?.004:.02)}
@@ -5501,10 +5522,10 @@ function floatSweep0(x0,y0,x1,y1){
     for(let cx=Math.max(RX0,Math.floor(px-HL-1));cx<=Math.min(RX1-1,Math.ceil(px+HL+1));cx++){
       const ox=cx+.5-px,oy=cy+.5-py,al=Math.abs(ox*ux+oy*uy),pe=Math.abs(ox*nx+oy*ny);if(al>HW||pe>HL)continue;
       const i=cy*GW+cx;if(!has(i))continue;const f=clamp01((HL-pe)/1.4);
-      const add=Math.min(.09*f*eff*TK.float(),Math.max(0,1-closed[i]));closed[i]+=add;work+=add;
+      const add=Math.min(.09*f*eff*TK.float(),Math.max(0,1-closed[i]));closed[i]+=add;work+=add;if(add>.004)PST[i]=Math.max(PST[i],Math.min(1,.45+add*5)*f);
       const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;
       h[i]+=(avg-h[i])*.3*f*eff;if(TRD.on)h[i]-=h[i]*.14*f*eff;
-      if(b>.12)weak[i]=Math.min(1,weak[i]+.018*f*b)}}
+      if(b>.12){weak[i]=Math.min(1,weak[i]+.018*f*b);DUST[i]=Math.min(1,DUST[i]+.06*f*b)}}}
   acc[S.float].w+=work;acc[S.float].q+=work*winQ(set,STAGES[S.float]);surfDirty=geoDirty=true;
   // the plate wipes screed striations and old marks; the rounded ends feather out instead of cutting lines
   const P0x=x0*CPX,P0y=y0*CPX,P1x=x1*CPX,P1y=y1*CPX,hl=HL*CPX;
@@ -5555,7 +5576,7 @@ function trowelSeg0(x0,y0,x1,y1){
     if(LV.wall){h[i]+=(TG[i]-h[i])*.45*f;weak[i]=Math.max(0,weak[i]-.25*f)}
     if(TRD.on)h[i]-=h[i]*.12*f*Math.max(.35,eff);
     if(set<.9){const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;h[i]+=(avg-h[i])*.22*f*eff}
-    if(early)weak[i]=Math.min(1,weak[i]+.006*f);else if(!late&&weak[i]>0){const r=Math.min(weak[i],.07*f*eff);weak[i]-=r;healed+=r}
+    if(b>.12)DUST[i]=Math.min(1,DUST[i]+.05*f*b);if(!early&&!late&&TEAR[i]>0)TEAR[i]=Math.max(0,TEAR[i]-.05*f*eff);if(early)weak[i]=Math.min(1,weak[i]+.006*f);else if(!late&&weak[i]>0){const r=Math.min(weak[i],.07*f*eff);weak[i]-=r;healed+=r}
     if(!early&&!late&&bcov[i]>0&&set<.7){bcov[i]=Math.max(0,bcov[i]-.08*f);bxv[i]*=.94;byv[i]*=.94}}
   acc[S.trowel].w+=work;acc[S.trowel].q+=work*winQ(set,STAGES[S.trowel]);
   const P0x=x0*CPX,P0y=y0*CPX,P1x=x1*CPX,P1y=y1*CPX,hw=W*CPX;
@@ -5601,7 +5622,7 @@ function broomSeg0(x0,y0,x1,y1){
     const d=Math.hypot(cx+.5-(x0+ux*len*t),cy+.5-(y0+uy*len*t));if(d>W)continue;
     const i=cy*GW+cx;if(!inR[i])continue;const f=1-d/W*.5,add=.16*Math.pow(LS,.8)*Math.min(len,2.5)*f*eff*TK.fin();
     work+=Math.min(add,Math.max(0,1-bcov[i]));bcov[i]=Math.min(1.3,bcov[i]+add);bxv[i]+=c2*add;byv[i]+=s2*add;
-    if(early)weak[i]=Math.min(1,weak[i]+.02*f)}
+    if(early){weak[i]=Math.min(1,weak[i]+.02*f);TEAR[i]=Math.min(1,TEAR[i]+.1*f*(1.25-set/.5))}}
   acc[S.broom].w+=work;acc[S.broom].q+=work*winQ(set,STAGES[S.broom]);
   const P0x=x0*CPX,P0y=y0*CPX,P1x=x1*CPX,P1y=y1*CPX,hw=W*CPX;
   bctx.lineCap=brx.lineCap='round';
@@ -6946,14 +6967,14 @@ function updateTools(dt,t){
   if(k==='screed'){
     if(scrStrip()){const Z=wz(Math.max(0,boardY)),[c0,c1]=scrCols(),BX=(wx(c0)+wx(c1))/2;board.scale.z=Math.abs(wx(c1)-wx(c0))+1.2;screedG.position.set(BX+Math.sin(sawPhase)*(pEng.visible?.04:.45),ELV(),Z);pEng.rotation.y=lastDirY>0?Math.PI:0;screedG.rotation.y=Math.PI/2+Math.sin(sawPhase)*.02;
       for(let c=0;c<mound.count;c++){const q=c<GW?Math.min(carryC[c],4):0,w=q*.14;
-        dummy.position.set(wx(c+.5),.03+ELV(),Z+lastDirY*(.12+w*.6));dummy.scale.set(q>.05?.27:.001,Math.max(.001,q*.06),Math.max(.001,w));
+        dummy.position.set(wx(c+.5),.03+ELV(),Z+lastDirY*(.12+w*.6));dummy.rotation.set(lastDirY*Z*2.4+c*1.3,0,0);dummy.scale.set(q>.05?.27:.001,Math.max(.001,q*.06),Math.max(.001,w));
         dummy.updateMatrix();mound.setMatrixAt(c,dummy.matrix)}}
     else{
     const X=wx(boardX),[LA,LB]=scrRows(),LZ=SCR.on?(wz(LA)+wz(LB))/2:RCZ;board.scale.z=SCR.on?Math.abs(wz(LB)-wz(LA))+1.2:RD+1.6;screedG.position.set(X,ELV(),LZ+Math.sin(sawPhase)*(pEng.visible?.04:.45));pEng.rotation.y=lastDir>0?0:Math.PI;(0);screedG.rotation.y=Math.sin(sawPhase)*.02;
     for(let r=0;r<mound.count;r++){const c=r<GH?Math.min(carry[r],4):0,w=c*.14;
-      dummy.position.set(X+lastDir*(.12+w*.6),.03+ELV(),wz(Math.min(r,GH-1)+.5));dummy.scale.set(Math.max(.001,w),Math.max(.001,c*.06),c>.05?.27:.001);
+      dummy.position.set(X+lastDir*(.12+w*.6),.03+ELV(),wz(Math.min(r,GH-1)+.5));dummy.rotation.set(0,0,-lastDir*X*2.4+r*1.3);dummy.scale.set(Math.max(.001,w),Math.max(.001,c*.06),c>.05?.27:.001);
       dummy.updateMatrix();mound.setMatrixAt(r,dummy.matrix)}}
-    mound.instanceMatrix.needsUpdate=true;
+    dummy.rotation.set(0,0,0);mound.instanceMatrix.needsUpdate=true;
   }
   updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{updateXT(dt)}catch(e){}
   blob.visible=false;
@@ -6961,7 +6982,8 @@ function updateTools(dt,t){
       if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false}}return}
   {const bs={float:[4.3,1],edge:[.7,.9],trowel:[1.7,.9],joint:[.7,.9],broom:[3.1,.9],power:[3.4,3.4],expose:[2.2,1.4]}[k];
    if(bs){blob.visible=true;blob.position.set(toolPos.x,Math.max(0,surfY(toolPos.x,toolPos.z))+.012,toolPos.z);blob.scale.set(bs[0],bs[1],1);blob.rotation.z=k==='trowel'?-trYaw:k==='float'?-fYaw:0;if(k==='joint')blob.position.copy(grooverG.position).setY(blob.position.y)}}
-  toolTarget.set(wx(ptr.x),0,wz(ptr.y));if(!(RIDE.drive&&rideLive()))toolPos.lerp(toolTarget,1-Math.pow(.0005,dt));
+  const TF=toolFeel(k);
+  toolTarget.set(wx(ptr.x),0,wz(ptr.y));if(!(RIDE.drive&&rideLive()))toolPos.lerp(toolTarget,1-Math.pow(.0005,dt*(1-.72*TF.suck)));
   const X=toolPos.x,Z=toolPos.z,Y=Math.max(0,surfY(X,Z));
   const vz=ptr.vy,mvx=ptr.vx;
   if(k==='float'){
@@ -6997,6 +7019,11 @@ function updateTools(dt,t){
     const grip=tv2.set(0,.22,0).applyEuler(trowelRoll.rotation).applyEuler(trowelG.rotation).add(trowelG.position);
     placeArm(grip,trYaw);
   }
+  // v364: the tool sinks and drags when it's too wet, chatters when it's late
+  {const g=k==='float'?floatG:k==='trowel'?trowelG:k==='broom'?broomG:k==='edge'?edgerG:k==='joint'?grooverG:k==='power'&&!rideLive()?powerG:null;
+   if(g&&(TF.suck>.02||TF.chat>.02)){g.position.y-=.06*TF.suck;const j=TF.chat*(.02+.025*Math.min(1,toolSpeed/8));g.position.x+=(Math.random()-.5)*j;g.position.z+=(Math.random()-.5)*j;g.rotation.y+=(Math.random()-.5)*.06*TF.chat}
+   if(TF.suck>.55)say(k==='float'?'It\'s soup. The float\'s sinking in, give it a minute.':'Too wet. It\'s sucking the tool down.','bad','tfS'+k,5000);
+   else if(TF.chat>.55)say(k==='screed'?'The board\'s chattering. It\'s stiffening up.':'It\'s chattering. Too hard for this tool now.','bad','tfC'+k,5000)}
 }
 
 /* ---------- HUD ---------- */
@@ -7491,7 +7518,8 @@ function buildSC(){
   };
   Object.assign(SC,strSC(q,tm));Object.assign(SC,brgSC(q,tm));
   return {SC,q,w,tm,ratio,r,RG,maxP}}
-function finish(timedOut){try{govJobEnd()}catch(e){}
+function finish(timedOut){if(PAY.on)return;if(payOk()){payStart(timedOut);return}finish0(timedOut)}
+function finish0(timedOut){try{govJobEnd()}catch(e){}
   chalk=[];try{updateSurface();slabTex.needsUpdate=true}catch(e){}// v198: chalk lines are gone once the job's done
   leafStains=0;leaves.forEach(l=>{if(l.gone||!l.landed)return;leafStains++;const c=cellAt(l.tx,l.tz);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const j=c+dy*GW+dx;if(j>=0&&j<N&&inR[j])weak[j]=Math.min(1,weak[j]+.5)}});
   photoA=snapPhoto();
@@ -7500,7 +7528,7 @@ function finish(timedOut){try{govJobEnd()}catch(e){}
   if(stage===S.pour)placedAtLeave=placed;
   const {SC,q,w,tm,ratio,r,RG,maxP}=buildSC();
   const WT={demo:.08,soffit:.08,sform:.05,riser:.05,sbar:.06,vibe:.14,tread:.45,rebar:.08,mark:.05,cure:.15,slip:.4,shape:.25,dig:.1,gravel:.1,base:.1,form:.1,tube:.15,expose:.3,power:.25,blanket:.2,pour:.1,screed:.15,float:.1,edge:.1,trowel:.15,joint:.2,broom:.2,color:.15,stamp:.3};
-  const rows=STAGES.map(s=>{const [n,sc,note]=SC[s.key]();return[n,clamp01(sc),note,LV.bridge&&s.key==='screed'?.4:WT[s.key]]});if(SITE.insp&&SITE.insp.done)rows.push(['Inspection',SITE.insp.pass?1:.3,SITE.insp.note,.06]);try{const pr=prepRow(SC);if(pr)rows.push(pr)}catch(e){console.warn('prep',e)}{const el=$('prepClk');if(el)el.hidden=true}
+  const rows=STAGES.map(s=>{const [n,sc,note]=SC[s.key]();return[n,clamp01(sc),note,LV.bridge&&s.key==='screed'?.4:WT[s.key]]});if(SITE.insp&&SITE.insp.done)rows.push(['Inspection',SITE.insp.pass?1:.3,SITE.insp.note,.06]);if(PAY.row)rows.push(PAY.row);try{const pr=prepRow(SC);if(pr)rows.push(pr)}catch(e){console.warn('prep',e)}{const el=$('prepClk');if(el)el.hidden=true}
   let wk=0;for(let i=0;i<N;i++)if(inR[i])wk+=Math.min(1,weak[i]);wk/=RN;
   const wsum=rows.reduce((a,x)=>a+x[3],0),raw=100*rows.reduce((a,x)=>a+x[1]*x[3],0)/wsum-wk*60;
   const total=Math.round(Math.max(0,Math.min(100,raw+(cab.used?3:0))));
@@ -7549,6 +7577,78 @@ function finish(timedOut){try{govJobEnd()}catch(e){}
   $('results').hidden=false;$('results').scrollTop=0;
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#rRows .bar i').forEach(i=>i.style.width=i.dataset.w+'%')));buzz([20,60,20]);
 }
+
+
+/* ---------- v364: tool feel, photo shade, hose test and cure time-lapse ---------- */
+/* how the set feels in your hand: suck = too wet for this tool (it sinks and drags), chat = too late (it skips and chatters) */
+const TFEEL={suck:0,chat:0};
+function toolFeel(k){let s=0,c=0;const st=STAGES[stage];
+  if(st&&running&&ptr.down&&st.key===k&&/^(float|edge|trowel|broom|screed|power|joint|tread)$/.test(k)){const a=st.win[0],b=st.win[1],sf=st.soft||.15;
+    if(k==='float')s=clamp01((.12-set)/.12)*.7;else if(a>0)s=clamp01((a-set)/(sf*1.4));
+    c=k==='screed'?clamp01((set-(gear('laser')?.5:gear('pscreed')?.4:.3))/.15):clamp01((set-b)/(sf*1.2))}
+  TFEEL.suck+=(s-TFEEL.suck)*.2;TFEEL.chat+=(c-TFEEL.chat)*.2;if(TFEEL.suck<.005)TFEEL.suck=0;if(TFEEL.chat<.005)TFEEL.chat=0;return TFEEL}
+/* the yard photo's own shade on the pour, measured offline (tex/aux/<key>_sh.png, one value per slab cell). Only photos whose shadows really
+   cross the pad have one: the shade was cast from the photo's own 3D (its helper map) toward its sun, then kept only where the lawn's shadows
+   round the pad and the pad itself in the photo both agree. */
+const SHK=new Set(["acreage", "bcdrive", "bcsteps2", "binpad", "curb", "curvewalk", "drive1", "freeze", "heated", "qcdrive", "qcdrive2", "qcgarage", "qcsteps2", "stampdrive"]);
+function shdLoad(k){if(PSH.k===k)return;PSH.k=k;PSH.fill(0);MKS.dirty=1;if(!k||!SHK.has(k))return;const im=new Image();
+  im.onload=()=>{if(PSH.k!==k)return;try{const c=document.createElement('canvas');c.width=GW;c.height=GH;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,GW,GH);
+    const d=g.getImageData(0,0,GW,GH).data;for(let i=0;i<N;i++)PSH[i]=d[i*4]/255;MKS.dirty=1}catch(e){console.warn('shade',e)}};
+  im.src='tex/aux/'+k+'_sh.png'}
+function mkSync(){if(!GPS.on||!GPS.mk)return;const M=GPS.mk.image.data,now=performance.now(),dt=Math.min(.25,(now-(MKS.t||now))/1000);MKS.t=now;let live=0;
+  const mud=running&&STAGES[stage]&&STAGES[stage].key==='pour'&&mudOn(),wm=PAY.wm.value>.5;
+  for(let i=0;i<N;i++){const o=i*4;if(PST[i]>0){PST[i]=Math.max(0,PST[i]-dt*.4);live=1}
+    if(!inR[i]){M[o]=M[o+1]=M[o+2]=M[o+3]=0;continue}
+    M[o]=PSH[i]*255;M[o+1]=Math.min(255,DUST[i]*255);M[o+2]=Math.min(255,TEAR[i]*255);
+    let a;if(wm)a=Math.sqrt(Math.min(1,PAY.wat[i]/.3));else{const f=mud?Math.max(0,1-MUD.age[i]/2.5):0;if(f>0)live=1;a=Math.max(f,PST[i])}
+    M[o+3]=a*255}
+  GPS.mk.needsUpdate=true;MKS.live=live}
+
+/* The payoff. When the job's called, a hose runs across the finished slab before the results: water sheets off a good slab and sits in
+   every low you left (that's the score), then a time-lapse: it cures lighter, a stamped slab gets its saw cuts, and the forms come off.
+   Tap to skip. Flat slabs only (no walls, steps, curbs, bridge deck). */
+function payOk(){return !!(GPS.on&&LV&&!LV.wall&&!LV.slip&&!LV.bridge&&!LV.stair&&!LV.strips&&!(typeof STR!=='undefined'&&STR.on)&&!practice&&S.pour!=null&&RN>8)}
+function payLbl(t,sub){let e=PAY.el;if(!e){e=PAY.el=document.createElement('div');e.style.cssText='position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;padding-top:calc(env(safe-area-inset-top) + 72px);pointer-events:auto;font-family:inherit;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)';
+    e.innerHTML='<b style="font-size:26px;letter-spacing:.04em"></b><span style="font-size:15px;opacity:.9;margin-top:6px;max-width:86vw;text-align:center"></span><small style="position:absolute;bottom:calc(env(safe-area-inset-bottom) + 26px);font-size:13px;opacity:.75">Tap to skip</small>';
+    e.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();PAY.skip=true},{passive:false});document.body.appendChild(e)}
+  e.children[0].textContent=t;e.children[1].textContent=sub||''}
+function payStart(timedOut){PAY.on=true;PAY.t=0;PAY.ph=0;PAY.timedOut=timedOut;PAY.skip=false;PAY.meas=false;PAY.row=null;PAY.cuts=[];PAY.hid=[];PAY.wat.fill(0);
+  running=false;try{hold(false)}catch(e){}pouring=false;try{hideHint()}catch(e){}
+  // hose at the end the water would come from: the side the slab is highest on
+  let l=0,r=0,nl=0,nr=0;const mid=(RX0+RX1)/2;for(let i=0;i<N;i++)if(inR[i]){if(i%GW<mid){l+=h[i];nl++}else{r+=h[i];nr++}}PAY.src=(nl?l/nl:0)>=(nr?r/nr:0)?0:1;
+  // a stamped slab is saw cut once it can take it: lines at the job's panel size
+  if(S.joint==null&&S.stamp!=null){const mp=(LV.maxPanel||10)/(SLAB_W/GW),mz=(LV.maxPanel||10)/(SLAB_D/GH),nx=Math.max(0,Math.ceil((RX1-RX0)/mp)-1),nz=Math.max(0,Math.ceil((RY1-RY0)/mz)-1);
+    for(let m=1;m<=nx;m++)PAY.cuts.push({o:'x',p:Math.round(RX0+(RX1-RX0)*m/(nx+1)),cells:new Array(48).fill(0),set:.9,saw:1});
+    for(let m=1;m<=nz;m++)PAY.cuts.push({o:'z',p:Math.round(RY0+(RY1-RY0)*m/(nz+1)),cells:new Array(48).fill(0),set:.9,saw:1})}
+  PAY.wm.value=1;payLbl('Hose test','Water runs across it. Every low you left holds a puddle.');try{buzz(30)}catch(e){}surfDirty=true}
+function paySim(dt){const W=PAY.wat,F=PAY.fl,cf=SLAB_W/GW,pitch=.125*cf*(PAY.src?-1:1);// 1/8 in per ft fall away from the hose
+  const sub=6,k=.22;for(let s=0;s<sub;s++){
+    if(PAY.t<2.8){const c0=PAY.src?RX1-3:RX0;for(let y=RY0;y<RY1;y++)for(let x=c0;x<c0+3;x++){const i=y*GW+x;if(inR[i])W[i]+=1.6*dt/sub}}
+    F.fill(0);
+    for(let y=RY0;y<RY1;y++)for(let x=RX0;x<RX1;x++){const i=y*GW+x;if(!inR[i]||W[i]<=1e-5)continue;const si=h[i]-pitch*x+W[i];let tot=0;const q=[0,0,0,0],J=[i-1,i+1,i-GW,i+GW],ok=[x>0,x<GW-1,y>0,y<GH-1];
+      for(let n=0;n<4;n++){let sj;if(ok[n]&&inR[J[n]]){const xj=J[n]%GW;sj=h[J[n]]-pitch*xj+W[J[n]]}else sj=h[i]-pitch*x-.6;const d=si-sj;if(d>0){q[n]=d*k;tot+=q[n]}}
+      if(tot<=0)continue;const sc=Math.min(1,W[i]/tot);F[i]-=tot*sc;for(let n=0;n<4;n++)if(q[n]>0&&ok[n]&&inR[J[n]])F[J[n]]+=q[n]*sc}
+    for(let i=0;i<N;i++)if(F[i])W[i]=Math.max(0,W[i]+F[i])}}
+function payMeasure(){const W=PAY.wat,cf=(SLAB_W/GW)*(SLAB_D/GH),seen=new Uint8Array(N);let cells=0,n=0;
+  for(let i=0;i<N;i++){if(!inR[i]||W[i]<.06||seen[i])continue;n++;const st=[i];seen[i]=1;while(st.length){const j=st.pop();cells++;const x=j%GW;[x>0?j-1:-1,x<GW-1?j+1:-1,j-GW,j+GW].forEach(q=>{if(q>=0&&q<N&&!seen[q]&&inR[q]&&W[q]>=.06){seen[q]=1;st.push(q)}})}}
+  const ft=cells*cf,sc=clamp01(1-cells/Math.max(1,RN*.07));
+  const note=n?`${n} birdbath${n>1?'s':''}, about ${ft<1?'1':Math.round(ft)} sq ft holding water.`:'Shed it clean. No birdbaths.';
+  PAY.row=['Hose test',sc,note,.1];payLbl('Hose test',note);try{say(n?`Hose test: ${note} That's where you left it low.`:'Hose test: shed it clean, not one birdbath.',n?'bad':'good','payHose',0)}catch(e){};if(!n)try{chime()}catch(e){}}
+function payTick(dt){PAY.t+=dt;PAY.tm.value=PAY.t;const t=PAY.t,hasCut=PAY.cuts.length>0,T1=7.2,T2=T1+(hasCut?4.6:3.4),T3=T2+1.4;
+  if(PAY.skip){PAY.skip=false;if(t<6.2){for(let i=0;i<260;i++){PAY.t=Math.min(PAY.t+.025,6.19);paySim(.025)}}if(!PAY.meas){PAY.meas=true;payMeasure()}PAY.t=T3;payForms(1);PAY.cuts.forEach(j=>j.cells.fill(1));PAY.cure.value=1;PAY.wat.fill(0);PAY.wm.value=0;surfDirty=true;payEnd();return}
+  if(t<6.2)paySim(dt);
+  if(t>=6.2&&!PAY.meas){PAY.meas=true;payMeasure()}
+  if(t>=T1){if(PAY.ph<2){PAY.ph=2;payLbl('Curing','A week in a few seconds.')}
+    const k=clamp01((t-T1)/(T2-T1-.4));PAY.cure.value=k*k*(3-2*k);for(let i=0;i<N;i++)PAY.wat[i]*=Math.exp(-dt*1.6);
+    if(hasCut){const ck=clamp01((t-T1-.6)/2.6);if(ck>0){if(PAY.ph<3){PAY.ph=3;payLbl('Saw cutting','Joints cut once it can take the saw.')}PAY.cuts.forEach((j,m)=>{const M=j.o==='x'?GH:GW;for(let q=0;q<M;q++){const v=jValid(j.o,j.p,q)?clamp01(ck*M*1.15-q):0;j.cells[q]=v}});surfDirty=true}}}
+  if(t>=T2){if(PAY.ph<4){PAY.ph=4;payLbl('Forms off','');try{buzz(12)}catch(e){}}payForms(clamp01((t-T2)/1.1))}
+  if(t>=T3)payEnd()}
+function payForms(k){if(!PAY.hid.length&&k>0){siteG.traverse(o=>{if(o!==siteG&&o.visible&&(/^(form|stake|splat)$/.test(o.userData.kind||'')||o.userData.strForm))PAY.hid.push([o,o.position.y])});if(!PAY.hid.length)PAY.hid.push([null,0])}
+  PAY.hid.forEach(([o,y])=>{if(!o)return;o.position.y=y+k*k*1.6;o.visible=k<1})}
+function payEnd(){if(!PAY.on)return;PAY.on=false;PAY.wm.value=0;PAY.wat.fill(0);if(PAY.el){PAY.el.remove();PAY.el=null}MKS.dirty=1;surfDirty=true;
+  try{updateSurface();slabTex.needsUpdate=true}catch(e){}finish0(PAY.timedOut)}
+function payReset(){PAY.on=false;PAY.wm.value=0;PAY.cure.value=0;PAY.row=null;PAY.cuts=[];PAY.wat.fill(0);if(PAY.el){PAY.el.remove();PAY.el=null}
+  PAY.hid.forEach(([o,y])=>{if(o){o.position.y=y;o.visible=true}});PAY.hid=[]}
 
 /* ---------- v232: perf meter, adaptive resolution, shader + texture warm-up ---------- */
 const PRBASE=renderer?renderer.getPixelRatio():1;// the pixel ratio the graphics mode asked for
@@ -7821,7 +7921,7 @@ function pfxApply(){const p=PFX[lpKey()]||null;BKD.sunV=null;BKG.tint=p&&p[3]?(B
   if(BKD.shM)BKD.shM.opacity=p?p[2]:.34;
   try{SHF.r0=p?(p[2]<=.2?3:p[2]<=.3?2:1):1;SHF.lw=0}catch(e){}
   if(p&&p[0]!=null){const az=p[0]*Math.PI/180,el=p[1]*Math.PI/180;BKD.sunV=(BKD.sunV0||(BKD.sunV0=new THREE.Vector3())).set(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).multiplyScalar(27);try{SHD.force=1}catch(e){}}}
-function bkdBuild(C){const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
+function bkdBuild(C){try{shdLoad(lpKey())}catch(e){}const o=BKD.o;o.position.fromArray(C.cam);o.lookAt(BKD.v.fromArray(C.look));o.updateMatrixWorld(true);BKD.P.copy(o.position);BKD.Q.copy(o.quaternion);
   BKD.PV=C.fov*Math.PI/360;BKD.PH=Math.atan(Math.tan(BKD.PV)*C.asp);
   const D=300,h=2*D*Math.tan(BKD.PV),w=h*C.asp;
   if(!BKD.quad){BKD.quad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({depthWrite:false,depthTest:false,fog:false,toneMapped:false}));
@@ -7843,7 +7943,7 @@ function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(
   BKD.cop.visible=true}
 function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);{const ys=C.imgPrep||null;if(ys&&BKD.yrSrc!==ys){BKD.yrSrc=ys;const o=BKD.yrTex;BKD.yrTex=null;if(o)o.dispose();new THREE.TextureLoader().load(ys,t=>{t.colorSpace=THREE.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;if(BKD.yrSrc===ys)BKD.yrTex=t;else t.dispose()})}}if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});try{pfxApply()}catch(e){console.warn('pfx',e)}BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
-function bkdOff(){BKD.sunV=null;BKG.tint=null;try{LP.off.set(0,0,0);SHF.r0=1;SHF.lw=0}catch(e){}try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
+function bkdOff(){PSH.fill(0);PSH.k=null;MKS.dirty=1;BKD.sunV=null;BKG.tint=null;try{LP.off.set(0,0,0);SHF.r0=1;SHF.lw=0}catch(e){}try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
 /* v282: on painted sites the code-built mixer body is swapped for a photoreal Higgsfield image-to-3D model.
    v285: the model is split on load: the drum is cut out and spins about its own (tilted) axis; the model's folded chute is removed and the game's
@@ -8032,6 +8132,8 @@ function frame0(t){
 }
 function step(t,dt){
   ema=ema*.95+dt*.05;
+  if(PAY.on){try{payTick(dt)}catch(e){console.warn('pay',e);payEnd()}}
+  if(GPS.on&&(MKS.live||MKS.dirty||PAY.on)){MKS.dirty=0;try{mkSync()}catch(e){}}
   /* v185: no auto low-quality drop */
   if(running&&!document.hidden){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
