@@ -4105,8 +4105,9 @@ const SROLL=(()=>{const L=Math.max(GW,GH),C=12,g=new THREE.BufferGeometry(),pos=
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 q=vSrW.xz*.42+vec2(0.,vSrW.y*.6);float d=texture2D(cPk,q).r;normal=normalize(normal+vec3(dFdx(d),dFdy(d),0.)*-9.*cOn);}')};
   mt.customProgramCacheKey=()=>'sroll1';
   const m=new THREE.Mesh(g,mt);m.castShadow=m.receiveShadow=true;m.frustumCulled=false;m.visible=false;
-  try{scene.add(m)}catch(e){}return{m,g,pos,L,C,cs:new Float32Array(L)}})();
+  try{scene.add(m)}catch(e){}return{m,g,pos,L,C,up:true,cs:new Float32Array(L)}})();
 function srollSet(n,pt,dx,dz,carr,t){const R=SROLL,Pp=R.pos,C=R.C,base=ELV()-.012;
+  {const up=dx!==0?dx>0:dz<0;if(R.up!==up){R.up=up;const ix=R.g.index.array,L=R.L;let k=0;for(let i=0;i<L-1;i++)for(let j=0;j<C-1;j++){const a=i*C+j,b=a+1,c=a+C,d=c+1;if(up){ix[k++]=a;ix[k++]=c;ix[k++]=b;ix[k++]=b;ix[k++]=c;ix[k++]=d}else{ix[k++]=a;ix[k++]=b;ix[k++]=c;ix[k++]=b;ix[k++]=d;ix[k++]=c}}R.g.index.needsUpdate=true}}
   for(let i=0;i<n;i++){let a=0,w=0;for(let k=-3;k<=3;k++){const j=i+k;if(j<0||j>=n)continue;const ww=4-Math.abs(k);a+=Math.min(Math.max(carr[j]||0,0),4)*ww;w+=ww}R.cs[i]=w?a/w:0}
   for(let i=0;i<R.L;i++){const ii=Math.min(i,n-1),q=pt(ii),c=R.cs[ii],wd=.2+c*.16,hg=c*.06*(1+.12*Math.sin(ii*.7-t*2.1)+.05*Math.sin(ii*1.9+t*3.3));
     for(let j=0;j<C;j++){const u=j/(C-1),off=.06+u*wd,pr=Math.pow(Math.sin(Math.PI*Math.pow(u,.6)),1.3),rip=1+.05*Math.sin(u*9.-t*4.+ii*.45),o=(i*C+j)*3;
@@ -7633,7 +7634,7 @@ function mkSync(){if(!GPS.on||!GPS.mk)return;const M=GPS.mk.image.data,now=perfo
 /* The payoff. When the job's called, a hose runs across the finished slab before the results: water sheets off a good slab and sits in
    every low you left (that's the score), then a time-lapse: it cures lighter, a stamped slab gets its saw cuts, and the forms come off.
    Tap to skip. Flat slabs only (no walls, steps, curbs, bridge deck). */
-function payOk(){return !!(GPS.on&&LV&&!LV.wall&&!LV.slip&&!LV.bridge&&!LV.stair&&!LV.strips&&!(typeof STR!=='undefined'&&STR.on)&&!practice&&S.pour!=null&&RN>8)}
+function payOk(){return false&&!!(GPS.on&&LV&&!LV.wall&&!LV.slip&&!LV.bridge&&!LV.stair&&!LV.strips&&!(typeof STR!=='undefined'&&STR.on)&&!practice&&S.pour!=null&&RN>8)}
 function payLbl(t,sub){let e=PAY.el;if(!e){e=PAY.el=document.createElement('div');e.style.cssText='position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;padding-top:calc(env(safe-area-inset-top) + 72px);pointer-events:auto;font-family:inherit;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)';
     e.innerHTML='<b style="font-size:26px;letter-spacing:.04em"></b><span style="font-size:15px;opacity:.9;margin-top:6px;max-width:86vw;text-align:center"></span><small style="position:absolute;bottom:calc(env(safe-area-inset-bottom) + 26px);font-size:13px;opacity:.75">Tap to skip</small>';
     e.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();PAY.skip=true},{passive:false});document.body.appendChild(e)}
