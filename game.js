@@ -5395,7 +5395,7 @@ const MUD={age:new Float32Array(N).fill(99),slump:5};
 function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on))}
 function mudBig(){return LS>1.5}
 function mudSlump(){return (LV&&LV.slump)||MUD.slump}
-function mudFlow(dt){const A=MUD.age,Y=mudBig()?Math.max(.3,.012*(9-mudSlump())*CELL_IN):Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;/* v368: on big pads the yield is per foot of slope, not per cell, so a pumped pile spreads into a low mound */dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
+function mudFlow(dt){const A=MUD.age,Y=mudBig()?Math.max(.3,.02*(9-mudSlump())*CELL_IN):Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;/* v368: on big pads the yield is per foot of slope, not per cell, so a pumped pile spreads into a low mound */dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
   let moved=0;const rate=a=>a<1.2?3.2:a<4?1.4:a<10?.5*(1-(a-4)/6):0;
   const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
     const m=Math.min((d-y)*.45,(d-y)*r*dt);h[hi]-=m;h[lo]+=m;moved+=m;if(A[lo]>A[hi]+.6)A[lo]=A[hi]+.6};
