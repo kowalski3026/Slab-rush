@@ -11032,7 +11032,7 @@ function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);updateBlankets
 
 /* ---------- weather events: rain (tarp it), wind and sun (sets faster) ---------- */
 let ev=null,tarpOn=false;
-const rainIM=new THREE.InstancedMesh(new THREE.BoxGeometry(.022,2.4,.022),new THREE.MeshBasicMaterial({color:0xb8c8dc,transparent:true,opacity:.34,depthWrite:false}),1600),rainP=[],rdm=new THREE.Object3D(),_rv=new THREE.Vector3();
+const rainIM=new THREE.InstancedMesh(new THREE.BoxGeometry(.022,2.4,.022),new THREE.MeshBasicMaterial({color:0xb8c8dc,transparent:true,opacity:.24,depthWrite:false}),1600),rainP=[],rdm=new THREE.Object3D(),_rv=new THREE.Vector3();
 rainIM.visible=false;rainIM.frustumCulled=false;scene.add(rainIM);for(let i=0;i<1600;i++)rainP.push([0,-1,0]);
 /* v250: rain that hits things. Splash rings spread on the ground, the slab and the tarp around the camera; a few drops bounce up as
    tiny splashes; water drips off the tarp's low edge. Scales with how hard it's raining. */
@@ -11169,7 +11169,7 @@ function evVisual(dt){
   const rain=rainIM.visible,sunny=ev&&ev.phase==='on'&&ev.type==='sun';
   const bwl=LV&&LV.bridge&&weather.night?1:0;// night bridge: the light plant on the deck carries the scene, not the moon
   sun.intensity=LK*weather.sunI*TOD.sunK*CSH.k*(rain?.4:ev&&ev.phase==='warn'?.7:sunny?1.25:1)*(bwl?4.5:1);hemi.intensity=LK*weather.hemi*TOD.hemiK*(rain?.75:1)*skyHK()*(bwl?2:1);if(!rain)rippleIM.visible=false;else rippleStep(dt);
-  if(rain){const wk=Math.min(5,Math.max(1,camera.position.distanceTo(lookC)/22));for(let i=0;i<rainP.length;i++){const p=rainP[i];p[1]-=46*dt;if(p[1]<-.3){rainSpot(p);p[1]+=26}
+  if(rain){const wk=Math.min(2.4,Math.max(1,camera.position.distanceTo(lookC)/38));for(let i=0;i<rainP.length;i++){const p=rainP[i];p[1]-=46*dt;if(p[1]<-.3){rainSpot(p);p[1]+=26}
     rdm.position.set(p[0],p[1],p[2]);if(p[3])rdm.scale.setScalar(0);else rdm.scale.set(wk,1+.15*wk,wk);rdm.updateMatrix();rainIM.setMatrixAt(i,rdm.matrix)}rdm.scale.setScalar(1);rainIM.instanceMatrix.needsUpdate=true}
   tarpTick(dt)}
 $('evBtn').addEventListener('click',()=>{if(!ev||(ev.phase!=='warn'&&ev.phase!=='rain')||tarpOn)return;tarpOn=true;ptr.down=false;
