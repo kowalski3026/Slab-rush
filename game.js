@@ -225,11 +225,11 @@ const LEVELS=[
    scene:()=>cottageScene(),dress:()=>cottageDock(),
    lede:'A patio between the cottage and the lake, up in Muskoka. Loons on the water, the dock out front, and the owners watching from their Muskoka chairs. Light trowel, joints at 10 ft, a fine broom.',
    slab:'20 × 10 ft patio, 4 in thick',finish:'Light trowel, fine broom, joints at 10 ft'},
-  {id:'firehall',name:'Fire Hall Apron',tag:'44 × 16 ft · pump · heavy duty',ls:2.4,pump:true,shape:rectPoly(-22,-8,22,8),steps:['pour','screed','float','edge','joint','broom'],
-   wTxt:'16 ft',pTxt:'15 ft',maxPanel:15.5,minPanel:5,truck:{x:-28,z:17,ry:Math.PI},mix:'35 MPa, 5-8% air, 8 in',
+  {id:'firehall',name:'Fire Hall Apron',tag:'44 × 28 ft · pump · heavy duty',ls:3,pump:true,shape:rectPoly(-22,-14,22,14),steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'28 ft',pTxt:'15 ft',maxPanel:15.5,minPanel:5,truck:{x:-29,z:19,ry:Math.PI},mix:'35 MPa, 5-8% air, 8 in',
    scene:()=>fireHall(),
    lede:'The apron in front of the new fire hall in Innisfil, where the pumpers roll out on a call. Eight inches thick, three bays wide, pumped from the side so the trucks can still get out. Joints at 15 ft and a broom.',
-   slab:'44 × 16 ft apron, 8 in thick',finish:'Broom, joints at 15 ft'},
+   slab:'44 × 28 ft apron, 8 in thick',finish:'Broom, joints at 15 ft'},
   {id:'bridge',name:'Highway 400 Bridge Deck',tag:'48 × 24 ft · night · Bid-Well',ls:2.4,elev:20,depth:9,pump:true,bridge:true,wx:'night',
    wxNote:'Night pour: lanes closed under the bridge from 10 to 5. Work lights on the deck, traffic still moving below.',
    shape:[[-24,-12,1],[24,-12,1],[24,12,1],[-24,12,1]],steps:['pour','screed','cure'],names:{screed:'Bid-Well',demo:'Tear out',soffit:'Soffit forms',rebar:'Deck steel'},win:{screed:[0,.55]},
@@ -281,11 +281,11 @@ const LEVELS=[
    scene:()=>{plex(-26,-14,26,0);plex(0,-14,26,0);plex(26,-14,26,0);fence(-60,-2.4,60,-2.4);for(let x=-40;x<=40;x+=8){shrub(x,6.4,1.2);shrub(x+3,7.2,.9)}lumber(36,12);lawn()},
    lede:'A greened back lane in Montreal: the neighbours tore out the asphalt and want a concrete path down the middle, with gardens on both sides. Kids on bikes, cats on fences. Joints every 5 ft, broom it, and don\'t step in the tomatoes.',
    slab:'5 × 30 ft lane walk, 4 in thick',finish:'Broom, joints every 5 ft'},
-  {id:'cabane',reg:'qc',name:'Sugar Shack Pad',tag:'20 × 12 ft · in the maples',ls:1.2,shape:[[-10,-6],[10,-6],[10,1.5],[5.5,6],[-10,6]],steps:['pour','screed','float','edge','joint','broom'],
-   wTxt:'12 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:4,
+  {id:'cabane',reg:'qc',name:'Sugar Shack Pad',tag:'22 × 13 ft · in the maples',ls:1.5,shape:[[-11,-6.2],[11,-6.2],[11,2.3],[6,7.1],[-11,7.1]],steps:['pour','screed','float','edge','joint','broom'],
+   wTxt:'13 ft',pTxt:'11 ft',maxPanel:11.5,minPanel:4,
    scene:()=>{house(0,-12,30,0,[['door',-4,0x6b2a22],['win',4],['win',-10],['light',-1.8]],{h:10,d:18,col:'#9e4b3c',chimney:8});lumber(-18,-4);for(let k=0;k<9;k++)shadeTree(-26+Math.random()*52,-28-Math.random()*16,.9+Math.random()*.3);shadeTree(-20,10,1);lawn()},
    lede:'A pad in front of the sugar shack so the tour buses have somewhere to unload in the spring. It\'s in the bush, the truck had to crawl in on the farm road, and the boss wants it done before the sap runs.',
-   slab:'20 × 12 ft pad, 5 in thick',finish:'Broom, joint at 10 ft'},
+   slab:'22 × 13 ft pad, 5 in thick',finish:'Broom, joint at 11 ft'},
   {id:'vieuxqc',reg:'qc',name:'Old Québec Plaza',tag:'Stamped · ashlar',shape:[[-10,-2],[-7,-5],[7,-5],[10,-2],[10,2],[7,5],[-7,5],[-10,2]],steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(196,182,160)',sunFlip:true,
    scene:()=>{[[-24,16,22,'BOULANGERIE','#6b2a22'],[-8,16,26,'CAFÉ DU COIN','#2a3f66'],[8,16,22,'ÉPICERIE','#2f4f4a'],[24,16,24,'BISTRO','#7a3a2a']].forEach(([x,w,H,n,a])=>storefront(x,w,-8.5,H,n,a));lampPost(-14,6.5);lampPost(14,6.5);lawn()},
@@ -618,10 +618,10 @@ function paintUrl(f){return '/_vercel/image?url='+encodeURIComponent(PAINT_CDN+f
   try{const L=LEVELS.find(l=>l.id==='stamp');if(L&&L.paint){fx(L.paint);(L.paint.views||[]).forEach(fx)}}catch(e){}}
 function addPaints(o){for(const id in o){const L=LEVELS.find(l=>l.id===id),F=PAINT_F[id];if(L&&!L.paint&&F)L.paint=Object.assign({fov:70,asp:.75,img:paintUrl(F[0]),imgPrep:paintUrl(F[1])},o[id])}}
 // Ontario (home region)
-addPaints({"court":{cam:[-36.5,30.9,39.2],look:[9.3,0,-10]},"hottub":{cam:[-12.4,20,29.9],look:[9.2,0,-7.9]},"drive2":{cam:[-32.2,39.4,60.1],look:[8.2,0,-15.3]},"heated":{cam:[-32.1,23.7,25.7],look:[8.2,0,-6.5]},"drivewalk":{cam:[-37.2,39.4,58],look:[9.4,0,-13.7]},"stampdrive":{cam:[-24.1,35.2,55.3],look:[6.5,0,-14.9]},"freeze":{cam:[-16.2,23.7,37.3],look:[4.1,0,-10]},"firehall":{cam:[-40,49.5,75.8],look:[10.2,0,-19.3]},"patio":{cam:[-24.3,22.5,30.5],look:[6.2,0,-7.7]},"cottage":{cam:[2,22.5,38.9],look:[-0.5,0,-9.9]},"walk":{cam:[-18,22.5,33.7],look:[4.6,0,-9.6]},"sidewalk":{cam:[-42.6,33.7,41.3],look:[10.8,0,-8.9]},"downtown":{cam:[-17.9,33.7,55.3],look:[4.5,0,-14.4]},"curvewalk":{cam:[-14.1,22.5,36.3],look:[3.6,0,-9.2]},"porch":{cam:[2.4,20,32.5],look:[-0.6,0,-10.9]},"drive1":{cam:[-17.1,35.2,58.5],look:[4.8,0,-14.9]},"exposed":{cam:[-8.3,22.5,38.1],look:[2.1,0,-9.7]},"shed":{cam:[-7,20,32.9],look:[6.7,0,-8.3]}});
+addPaints({"court":{cam:[-36.5,30.9,39.2],look:[9.3,0,-10]},"hottub":{cam:[-12.4,20,29.9],look:[9.2,0,-7.9]},"drive2":{cam:[-32.2,39.4,60.1],look:[8.2,0,-15.3]},"heated":{cam:[-32.1,23.7,25.7],look:[8.2,0,-6.5]},"drivewalk":{cam:[-37.2,39.4,58],look:[9.4,0,-13.7]},"stampdrive":{cam:[-24.1,35.2,55.3],look:[6.5,0,-14.9]},"freeze":{cam:[-16.2,23.7,37.3],look:[4.1,0,-10]},"firehall":{cam:[-40,49.5,69.8],look:[10.2,0,-25.3]},"patio":{cam:[-24.3,22.5,30.5],look:[6.2,0,-7.7]},"cottage":{cam:[2,22.5,38.9],look:[-0.5,0,-9.9]},"walk":{cam:[-18,22.5,33.7],look:[4.6,0,-9.6]},"sidewalk":{cam:[-42.6,33.7,41.3],look:[10.8,0,-8.9]},"downtown":{cam:[-17.9,33.7,55.3],look:[4.5,0,-14.4]},"curvewalk":{cam:[-14.1,22.5,36.3],look:[3.6,0,-9.2]},"porch":{cam:[2.4,20,32.5],look:[-0.6,0,-10.9]},"drive1":{cam:[-17.1,35.2,58.5],look:[4.8,0,-14.9]},"exposed":{cam:[-8.3,22.5,38.1],look:[2.1,0,-9.7]},"shed":{cam:[-7,20,32.9],look:[6.7,0,-8.3]}});
 addPaints({"tutorial":{cam:[-22.9,20,26],look:[5.8,0,-6.6],base:1},"stairs":{cam:[-23.7,20,25.4],look:[5.8,0,-6.4]},"cottsteps":{cam:[-8.2,20,33.8],look:[1.2,0,-8.6]},"curb":{cam:[-203.4,129.4,-87.7],look:[51.7,0,30.1]},"retain":{cam:[-11.2,32.3,53.3],look:[2.9,0,-15.5]},"foundation":{cam:[-13.4,39.4,66.9],look:[3.4,0,-17]},"custom":{cam:[-31,20.2,16.4],look:[7.6,0,-4.2]},"garage":{cam:[-39.9,24.4,13.9],look:[10.1,0,-3.5]},"night":{cam:[-53.8,31.9,12.3],look:[13.7,0,-3.1]},"warehouse":{cam:[-181.9,107.8,42.2],look:[46.2,0,-10.7]},"bridge":{cam:[-91.4,74,-19.8],look:[23.2,20,5]}});
 addPaints({"binpad":{cam:[-28.6,20.6,21.5],look:[7.3,0,-5.5]},"shopapron":{cam:[-43.5,33.7,39.4],look:[10.6,0,-10]},"acreage":{cam:[-46.4,35.2,38.3],look:[12.2,0,-11]},"windpatio":{cam:[-26.7,22.5,28.4],look:[6.8,0,-7.2]},"prshop":{cam:[-31.1,24.4,28.5],look:[7.9,0,-7.2]},"prwalk":{cam:[-44.4,33.7,40.5],look:[11.3,0,-7.2]},"prsteps":{cam:[-16,20,30.8],look:[3.9,0,-7.8]},"prsteps2":{cam:[-16,20,31.1],look:[3.2,0,-7.9]},"prdrive2":{cam:[-26.6,23.7,31],look:[6.8,0,-8.2]},"prgarage":{cam:[-20.9,24.4,36.7],look:[5.3,0,-9.3]},"prcurve":{cam:[-27.3,22.5,27.8],look:[6.9,0,-7.1]},"elevator":{cam:[-70.8,49.5,48.3],look:[18,0,-12.3]}});// v321 Prairies
-addPaints({"plexsteps":{cam:[-21,20,28],look:[4.5,0,-7.1]},"ruelle":{cam:[-44.1,33.7,39.9],look:[11.2,0,-8.2]},"cabane":{cam:[0.3,22.5,39],look:[-0.1,0,-9.9]},"vieuxqc":{cam:[-26.8,22.5,28.3],look:[6.8,0,-7.2]},"qcdrive":{cam:[-51.9,35.2,30.6],look:[13.6,0,-9]},"qcpatio":{cam:[-4.3,22.5,38.7],look:[1.1,0,-9.8]},"qcgarage":{cam:[-25.8,30,45.1],look:[6.6,0,-11.5]},"qcsteps2":{cam:[-15.1,20,31.3],look:[3.6,0,-7.9]},"qcdrive2":{cam:[-46.6,35.2,39],look:[12.3,0,-9.9]},"qcwalk":{cam:[-45,33.7,38.5],look:[11.4,0,-8.2]},"qcexposed":{cam:[-27.4,22.5,27.7],look:[7,0,-7]},"qcnight":{cam:[-31,24.4,28.7],look:[7.9,0,-7.3]}});// v320 QC
+addPaints({"plexsteps":{cam:[-21,20,28],look:[4.5,0,-7.1]},"ruelle":{cam:[-44.1,33.7,39.9],look:[11.2,0,-8.2]},"cabane":{cam:[0.3,22.5,39],look:[-0.1,0,-9.9],base:1},"vieuxqc":{cam:[-26.8,22.5,28.3],look:[6.8,0,-7.2]},"qcdrive":{cam:[-51.9,35.2,30.6],look:[13.6,0,-9]},"qcpatio":{cam:[-4.3,22.5,38.7],look:[1.1,0,-9.8]},"qcgarage":{cam:[-25.8,30,45.1],look:[6.6,0,-11.5]},"qcsteps2":{cam:[-15.1,20,31.3],look:[3.6,0,-7.9]},"qcdrive2":{cam:[-46.6,35.2,39],look:[12.3,0,-9.9]},"qcwalk":{cam:[-45,33.7,38.5],look:[11.4,0,-8.2]},"qcexposed":{cam:[-27.4,22.5,27.7],look:[7,0,-7]},"qcnight":{cam:[-31,24.4,28.7],look:[7.9,0,-7.3]}});// v320 QC
 addPaints({"bcsteps":{cam:[-21.9,20,27.5],look:[4.5,0,-7]},"lane":{cam:[-20.3,24.7,37.8],look:[5.2,0,-9.6]},"coastpatio":{cam:[-13.8,20,31.6],look:[3.5,0,-8.3]},"marina":{cam:[-28.4,24.7,32.1],look:[7.2,0,-8.2]},"gastown":{cam:[-17.8,33.7,56.9],look:[4.5,0,-12.9]},"seawall":{cam:[-23,22.5,31.5],look:[5.8,0,-8]},"bcdrive":{cam:[-52.9,35.2,30.6],look:[13.8,0,-6.9]},"bcstamp":{cam:[-27.2,22.5,27.9],look:[6.9,0,-7.1]},"bcsteps2":{cam:[-14.8,20,31.2],look:[4.2,0,-7.9]},"bcdrive2":{cam:[-27.8,23.7,30.3],look:[7.1,0,-7.7]}});// v319 BC
 let STAGES=[],S={},LV=LEVELS[0];
 
@@ -2437,11 +2437,11 @@ function cottageScene(){house(-2,-9,40,0,[['slider',-6],['win',6],['win',14],['d
 function cottageDock(){const sx=LV.sea.x,wd=new THREE.MeshStandardMaterial({map:wood,roughness:.85,color:0xb59a7a});const b=new THREE.Mesh(new THREE.BoxGeometry(40,.4,6),wd);b.position.set(sx+14,-.8,RCZ+2);b.castShadow=b.receiveShadow=true;REGG.add(b);
   const t=new THREE.Mesh(new THREE.BoxGeometry(10,.4,16),wd);t.position.set(sx+30,-.8,RCZ+2);t.castShadow=t.receiveShadow=true;REGG.add(t);
   const k=new THREE.Group();k.position.set(sx+22,-1.4,RCZ+10);k.userData.bob=1;REGG.add(k);const hull=new THREE.Mesh(new THREE.CapsuleGeometry(.9,11,4,10),new THREE.MeshStandardMaterial({color:0xd8481c,roughness:.4}));hull.rotation.z=Math.PI/2;hull.scale.set(1,1,.6);k.add(hull)}
-function fireHall(){const G=new THREE.Group();G.position.set(0,-.3,-9);sceneG.add(G);addOb(-30,-40,30,-8);const t=photoTex(brickTex.clone(),'brick',1);t.needsUpdate=true;t.repeat.set(14,6);
+function fireHall(){const G=new THREE.Group();G.position.set(0,-.3,-15);sceneG.add(G);addOb(-30,-46,30,-14);const t=photoTex(brickTex.clone(),'brick',1);t.needsUpdate=true;t.repeat.set(14,6);
   box(60,22,30,new THREE.MeshStandardMaterial({map:t,roughness:.92,color:0xd9a090}),0,11,-15,0,G);box(61,1.4,31,new THREE.MeshStandardMaterial({color:0xe8e1cf,roughness:.7}),0,22.4,-15,0,G);
   [-18,0,18].forEach(x=>{box(13,14,.3,new THREE.MeshStandardMaterial({color:0xc0392b,roughness:.45}),x,7,.1,0,G);for(let r=0;r<4;r++)box(12,.15,.32,new THREE.MeshStandardMaterial({color:0xf2efe8}),x,9+r*1.2,.15,0,G)});
   {const sg=new THREE.Mesh(new THREE.PlaneGeometry(26,3),signMat('INNISFIL FIRE STATION 1','#c0392b','#f4efe2'));sg.position.set(0,18.5,.35);G.add(sg)}
-  lampPost(-34,4);lampPost(34,4);lawn()}
+  lampPost(-34,-2);lampPost(34,-2);lawn()}
 
 /* v204: the ground and forms right around the slab. Real stones and clods (lumpy, not polyhedra), boot prints in the dug ring,
    a cut sod edge, nail heads and grade stamps on the forms, and concrete splatter on the form tops once the mud reaches them. */
@@ -3191,7 +3191,7 @@ const slab=new THREE.Mesh(slabGeo,slabMat);slab.receiveShadow=true;slab.castShad
 
 if(renderer){const a=renderer.capabilities.getMaxAnisotropy();slabTex.anisotropy=a;roughTex.anisotropy=a}
 // v289: with real mud flow, heaps are shown nearly true height (the old 3.1x lift made every pile a hill)
-const EXf=()=>mudOn()?1.35:EX;
+const EXf=()=>mudOn()&&!mudBig()?1.35:EX;
 const yOf=v=>v>=0?v*EXf()/12:v/12;
 
 function sampleH(u,v){ // bilinear on cell centers, using only cells inside the job footprint
@@ -4634,7 +4634,7 @@ function pourStep(dt){
   let ti=Math.floor(cy)*GW+Math.floor(cx);
   if(LV.snap&&!(cx>=RX0&&cx<RX1&&cy>=RY0&&cy<RY1&&inR[ti])){if(Math.hypot(tip.x-tipTarget.x,tip.z-tipTarget.z)>.8)return}
   if(cx<RX0||cx>=RX1||cy<RY0||cy>=RY1||!inR[ti]){wasted+=rate;say('You\'re pouring on the ground. That\'s money.','bad','waste');return}
-  const inch=rate/(CELL_IN*CELL_IN*1.6387e-5),R=mudOn()?Math.max(.9/LS,.42*12/CELL_IN):Math.max(1.8/LS,(LS>2?2.2:.75)*12/CELL_IN);let ws=0;const cells=[];
+  const inch=rate/(CELL_IN*CELL_IN*1.6387e-5),R=mudOn()?(mudBig()?Math.max(1.15,.9*12/CELL_IN):Math.max(.9/LS,.42*12/CELL_IN)):Math.max(1.8/LS,(LS>2?2.2:.75)*12/CELL_IN);let ws=0;const cells=[];
   for(let y=Math.max(RY0,Math.floor(cy-R*2));y<=Math.min(RY1-1,Math.ceil(cy+R*2));y++)
   for(let x=Math.max(RX0,Math.floor(cx-R*2));x<=Math.min(RX1-1,Math.ceil(cx+R*2));x++){
     if(!inR[y*GW+x]||(STR.on&&STR.tid[y*GW+x]!==STR.tid[ti]))continue;const w=Math.exp(-((x+.5-cx)**2+(y+.5-cy)**2)/(2*R*R));ws+=w;cells.push([y*GW+x,w])}
@@ -5392,9 +5392,10 @@ function runTick(dt,t){if(RUN.on&&((stage!==S.pour&&!runCarry())||!placeMode()))
    holds comes from the slump: a stiff 3-4 in mix stands up in piles, a 6-7 in mix flattens a lot more. Only fresh mud creeps; once it's
    sat ~10 s it stays where it is (rake marks stay too). Stairs, walls, curbs, bridges and big floors keep the old model. */
 const MUD={age:new Float32Array(N).fill(99),slump:5};
-function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on)&&LS<=1.5)}
+function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on))}
+function mudBig(){return LS>1.5}
 function mudSlump(){return (LV&&LV.slump)||MUD.slump}
-function mudFlow(dt){const A=MUD.age,Y=Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
+function mudFlow(dt){const A=MUD.age,Y=mudBig()?Math.max(.3,.012*(9-mudSlump())*CELL_IN):Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;/* v368: on big pads the yield is per foot of slope, not per cell, so a pumped pile spreads into a low mound */dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
   let moved=0;const rate=a=>a<1.2?3.2:a<4?1.4:a<10?.5*(1-(a-4)/6):0;
   const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
     const m=Math.min((d-y)*.45,(d-y)*r*dt);h[hi]-=m;h[lo]+=m;moved+=m;if(A[lo]>A[hi]+.6)A[lo]=A[hi]+.6};
@@ -5403,7 +5404,8 @@ function mudFlow(dt){const A=MUD.age,Y=Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.4
   if(moved>.001)geoDirty=surfDirty=true}
 function relax(iters,k){
   let moved=0;const thr=LV&&LV.stiff?3.5:LV&&LV.strips?.5*LS:.55; // v147: big-floor cells are 25 in, so a strip holds its shape like real mud
-  const flow=(a,b)=>{if(!inR[a]||!inR[b])return;if(STR.on&&STR.tid[a]!==STR.tid[b])return;const d=h[a]-h[b];if(d>thr){if(!has(a))return;const m=(d-thr)*k;h[a]-=m;h[b]+=m;moved+=m}
+  const flow=(a,b)=>{if(!inR[a]||!inR[b])return;if(STR.on&&STR.tid[a]!==STR.tid[b]){const ta=STR.tid[a],tb=STR.tid[b];if(Math.abs(ta-tb)!==1||stage!==S.pour)return;const u=ta>tb?a:b,l=u===a?b:a,e=h[u]-.35;
+      /* v368: overfill an upper step and it runs over the riser board onto the step below */if(e>0&&has(u)){const m=e*k*.8;h[u]-=m;h[l]+=m;moved+=m}return}const d=h[a]-h[b];if(d>thr){if(!has(a))return;const m=(d-thr)*k;h[a]-=m;h[b]+=m;moved+=m}
     else if(-d>thr){if(!has(b))return;const m=(-d-thr)*k;h[b]-=m;h[a]+=m;moved+=m}};
   for(let it=0;it<iters;it++){
     const flip=it%2;
