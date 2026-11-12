@@ -709,15 +709,15 @@ function buildMask(){
   if(SEGS.some(s=>s.nf)&&SEGS.some(s=>!s.nf))for(let i=0;i<N;i++)if(band[i]){const r=nearSeg(wx(i%GW+.5),wz(((i/GW)|0)+.5));if(r[0]&&r[0].nf)band[i]=0}
 }
 // slab mesh vertices: inside ones follow the concrete, the ring just outside snaps onto the outline so curves read clean
-let vMode=new Uint8Array(0),vU=new Float32Array(0),vV=new Float32Array(0);
+let vMode=new Uint8Array(0),vU=new Float32Array(0),vV=new Float32Array(0),vEd=new Float32Array(0);
 function buildVerts(){
-  const p=slabGeo.attributes.position,uv=slabGeo.attributes.uv,n=p.count,ins=new Uint8Array(n);vMode=new Uint8Array(n);vU=new Float32Array(n);vV=new Float32Array(n);
+  const p=slabGeo.attributes.position,uv=slabGeo.attributes.uv,n=p.count,ins=new Uint8Array(n);vMode=new Uint8Array(n);vU=new Float32Array(n);vV=new Float32Array(n);vEd=new Float32Array(n);
   for(let iy=0;iy<=VY;iy++)for(let ix=0;ix<=VX;ix++){const k=iy*(VX+1)+ix,x=-SLAB_W/2+ix*SLAB_W/VX,z=-SLAB_D/2+iy*SLAB_D/VY;ins[k]=pointInPoly(x,z,SHAPE)?1:0}
   for(let iy=0;iy<=VY;iy++)for(let ix=0;ix<=VX;ix++){const k=iy*(VX+1)+ix;let x=-SLAB_W/2+ix*SLAB_W/VX,z=-SLAB_D/2+iy*SLAB_D/VY,m=0;
     if(ins[k])m=1;else{let nb=false;for(let dy=-1;dy<=1&&!nb;dy++)for(let dx=-1;dx<=1;dx++){const xx=ix+dx,yy=iy+dy;if(xx<0||yy<0||xx>VX||yy>VY)continue;if(ins[yy*(VX+1)+xx]){nb=true;break}}
       if(nb){const r=nearestOnPoly(x,z);x=r[0];z=r[1];m=2}}
     vMode[k]=m;p.setX(k,x);p.setZ(k,z);uv.setXY(k,(x+SLAB_W/2)/SLAB_W,1-(z+SLAB_D/2)/SLAB_D);
-    vU[k]=gu(x);vV[k]=gv(z)}
+    vU[k]=gu(x);vV[k]=gv(z);vEd[k]=m?(m===2?0:nearSeg(x,z)[1]):9}
   const idx=[],W1=VX+1;
   for(let iy=0;iy<VY;iy++)for(let ix=0;ix<VX;ix++){const a=iy*W1+ix,b=(iy+1)*W1+ix,c=b+1,d=a+1,m0=vMode[a],m1=vMode[b],m2=vMode[c],m3=vMode[d];
     if(!m0||!m1||!m2||!m3)continue;
@@ -3219,7 +3219,7 @@ function updateGeo(){
   for(let k=0;k<n;k++){let v=D0;if(vMode[k]){const u=vU[k],w=vV[k],fx=u-.5,fy=w-.5,x0=Math.floor(fx),y0=Math.floor(fy),tx=fx-x0,ty=fy-y0;let sm=0,ws=0;
       for(let q=0;q<4;q++){const cx=x0+(q&1),cy=y0+(q>>1);if(cx<0||cy<0||cx>=GW||cy>=GH)continue;const i=cy*GW+cx;if(!inR[i])continue;const ww=((q&1)?tx:1-tx)*((q>>1)?ty:1-ty);if(ww<=0)continue;sm+=h[i]*ww;ws+=ww}
       v=ws>1e-4?sm/ws:sampleH2(u,w);if(v<D1)v=HOLD?D1:D0}
-    P[k*3+1]=v>=0?v*E:v/12}
+    let y=v>=0?v*E:v/12;/* v369: mud above the form top rolls down to the board; the edge sits on the form, never a cliff you can see under */if(y>0&&vEd[k]<1.6){const d=vEd[k],cap=d*.22;if(y>cap)y=cap+(y-cap)*.1*Math.min(1,d/.8)}P[k*3+1]=y}
   try{scrWave(P,n)}catch(e){}
   p.needsUpdate=true;
   const NA=slabGeo.attributes.normal.array,RW=VX+1;
@@ -11032,8 +11032,8 @@ function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);updateBlankets
 
 /* ---------- weather events: rain (tarp it), wind and sun (sets faster) ---------- */
 let ev=null,tarpOn=false;
-const rainIM=new THREE.InstancedMesh(new THREE.BoxGeometry(.022,2.4,.022),new THREE.MeshBasicMaterial({color:0xb8c8dc,transparent:true,opacity:.34,depthWrite:false}),900),rainP=[],rdm=new THREE.Object3D();
-rainIM.visible=false;scene.add(rainIM);for(let i=0;i<900;i++)rainP.push([0,-1,0]);
+const rainIM=new THREE.InstancedMesh(new THREE.BoxGeometry(.022,2.4,.022),new THREE.MeshBasicMaterial({color:0xb8c8dc,transparent:true,opacity:.34,depthWrite:false}),1600),rainP=[],rdm=new THREE.Object3D(),_rv=new THREE.Vector3();
+rainIM.visible=false;rainIM.frustumCulled=false;scene.add(rainIM);for(let i=0;i<1600;i++)rainP.push([0,-1,0]);
 /* v250: rain that hits things. Splash rings spread on the ground, the slab and the tarp around the camera; a few drops bounce up as
    tiny splashes; water drips off the tarp's low edge. Scales with how hard it's raining. */
 const RRING={N:140,im:null,sp:null,L:[],S:[]};
@@ -11118,13 +11118,17 @@ function tarpTick(dt){if(!tarpMesh.visible||!TC.mesh)return;TC.acc+=Math.min(dt,
 function tarpYAt(x,z){const C=TC;if(!C.mesh)return .92+ELV();const F=3.28084,i=Math.max(0,Math.min(C.NX-1,Math.round(((x-RCX)/F+C.Wm/2)/(C.Wm/(C.NX-1))))),k=Math.max(0,Math.min(C.NZ-1,Math.round(((z-RCZ)/F+C.Dm/2)/(C.Dm/(C.NZ-1)))));return C.P[(k*C.NX+i)*3+1]*F+.04}
 /* v207: rain you can see. While it rains the light drops, the yard, forms and gravel go dark and glossy, and an untarped slab
    pools water in its lows and pits where the drops land. Everything dries back over ~40 s after the rain passes. */
-function rainTick(dt){const raining=!!(ev&&ev.type==='rain'&&ev.phase==='rain'&&running),tg=raining?1:0;RAIN.w+=(tg-RAIN.w)*Math.min(1,dt*(raining?.6:.025));try{rainRings(raining?dt:dt*3,raining)}catch(e){console.warn('rings',e)}
+// v369: rain clouds. The whole picture (photo and 3D) goes flatter, greyer and cooler while it rains
+let OVC=null,OVCw=-1;function ovcSet(w){w=Math.round(Math.max(0,Math.min(1,w))*40)/40;if(w===OVCw)return;OVCw=w;
+  if(!OVC){OVC=document.createElement('div');OVC.style.cssText='position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(78,86,98,.9) 0%,rgba(92,99,108,.75) 45%,rgba(70,76,84,.8) 100%);opacity:0';cv.insertAdjacentElement('afterend',OVC)}
+  OVC.style.opacity=(w*.3).toFixed(3);cv.style.filter=w>0?`saturate(${(1-.45*w).toFixed(3)}) brightness(${(1-.12*w).toFixed(3)}) contrast(${(1-.14*w).toFixed(3)})`:''}
+function rainTick(dt){const raining=!!(ev&&ev.type==='rain'&&ev.phase==='rain'&&running),tg=raining?1:0;{const cl=ev&&ev.type==='rain'&&(ev.phase==='warn'||ev.phase==='rain')&&running?1:0;RAIN.cl=(RAIN.cl||0)+(cl-(RAIN.cl||0))*Math.min(1,dt*(cl?.3:.08));try{ovcSet(RAIN.cl<.01?0:RAIN.cl)}catch(e){}}RAIN.w+=(tg-RAIN.w)*Math.min(1,dt*(raining?.6:.025));try{rainRings(raining?dt:dt*3,raining)}catch(e){console.warn('rings',e)}
   const st=raining&&!tarpOn&&set<.92?1:0;RAIN.slab+=(st-RAIN.slab)*Math.min(1,dt*(st?.5:.05));if(RAIN.w<.002&&RAIN.slab<.002){if(RAIN.base){rainApply(0);RAIN.base=null}return}
   if(!RAIN.base){RAIN.base={sun:sun.intensity,hemi:hemi.intensity,fill:fill.intensity};RAIN.mats=[lawnM,dirtRingM,gravelRingM,woodM,stakeM,dirtM].filter(Boolean).map(m=>({m,c:m.color.clone(),r:m.roughness}))}
   rainApply(RAIN.w);if(RAIN.slab>.01)surfDirty=true}
 function rainApply(w){const B=RAIN.base;if(!B)return;sun.intensity=B.sun*(1-.6*w);hemi.intensity=B.hemi*(1-.2*w);fill.intensity=B.fill*(1-.3*w);
   RAIN.mats.forEach(q=>{q.m.color.copy(q.c).multiplyScalar(1-.32*w);q.m.roughness=q.r*(1-.45*w)})}
-function planEvent(rng,maySkip){try{if(RAIN.base){RAIN.w=RAIN.slab=0;rainApply(0);RAIN.base=null}}catch(e){}ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true;
+function planEvent(rng,maySkip){try{RAIN.cl=0;ovcSet(0)}catch(e){}try{if(RAIN.base){RAIN.w=RAIN.slab=0;rainApply(0);RAIN.base=null}}catch(e){}ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true;
   if(LV.free||S.blanket!=null||(typeof practice!=='undefined'&&practice))return;const r=rng||Math.random;if(LV.ev){ev={type:LV.ev,at:.3+r()*.2,phase:'wait',t:0,hits:0};return}const rn=RT().rain||0,wn=RT().wind||0;if((!rng||maySkip)&&r()>(rn||wn?.93:.7))return;
   ev={type:r()<rn?'rain':r()<wn?'wind':(weather&&weather.night?['rain','wind','wind']:['rain','wind','sun'])[Math.floor(r()*3)],at:.3+r()*.28,phase:'wait',t:0,hits:0}}
 function evStep(dt){
@@ -11156,16 +11160,17 @@ function rippleStep(dt){const m=rippleIM,P=m.userData.p,d=rdm;m.visible=true;
 function rainSegHit(ax,az,bx,bz,o){let t0=0,t1=1;const dx=bx-ax,dz=bz-az;for(const[p,q,lo,hi]of[[ax,dx,o[0],o[2]],[az,dz,o[1],o[3]]]){if(Math.abs(q)<1e-6){if(p<lo||p>hi)return false;continue}
   let a=(lo-p)/q,b=(hi-p)/q;if(a>b)[a,b]=[b,a];t0=Math.max(t0,a);t1=Math.min(t1,b);if(t0>t1)return false}return true}
 function rainBlocked(x,z){const bk=typeof BKD!=='undefined'&&BKD.on;for(const o of rainOcc){if(x>o[0]-.5&&x<o[2]+.5&&z>o[1]-.5&&z<o[3]+.5)return true;if(bk&&rainSegHit(camera.position.x,camera.position.z,x,z,[o[0]-.5,o[1]-.5,o[2]+.5,o[3]+.5]))return true}return false}
-function rainSpot(p){
-  for(let k=0;k<6;k++){const x=RCX+(Math.random()-.5)*(RW+18),z=RCZ+(Math.random()-.5)*(RD+18);
+function rainSpot(p){/* v369: drops fill the whole view, not just a box round the slab */const C=camera.position;
+  for(let k=0;k<8;k++){_rv.set((Math.random()*2-1)*1.15,(Math.random()*2-1)*1.15,.5).unproject(camera).sub(C).normalize();if(_rv.y>-.04)continue;const t=-C.y/_rv.y,sd=.18+Math.random()*1.05,x=C.x+_rv.x*t*sd,z=C.z+_rv.z*t*sd;
     const bad=rainBlocked(x,z);
-    if(!bad||k===5){p[0]=x;p[2]=z;p[1]=-20+Math.random()*16;p[3]=bad?1:0;return}}}
+    if(!bad||k===7){p[0]=x;p[2]=z;p[1]=-20+Math.random()*16;p[3]=bad?1:0;return}}
+  p[0]=RCX+(Math.random()-.5)*(RW+18);p[2]=RCZ+(Math.random()-.5)*(RD+18);p[1]=-20+Math.random()*16;p[3]=0}
 function evVisual(dt){
   const rain=rainIM.visible,sunny=ev&&ev.phase==='on'&&ev.type==='sun';
   const bwl=LV&&LV.bridge&&weather.night?1:0;// night bridge: the light plant on the deck carries the scene, not the moon
   sun.intensity=LK*weather.sunI*TOD.sunK*CSH.k*(rain?.4:ev&&ev.phase==='warn'?.7:sunny?1.25:1)*(bwl?4.5:1);hemi.intensity=LK*weather.hemi*TOD.hemiK*(rain?.75:1)*skyHK()*(bwl?2:1);if(!rain)rippleIM.visible=false;else rippleStep(dt);
-  if(rain){for(let i=0;i<rainP.length;i++){const p=rainP[i];p[1]-=46*dt;if(p[1]<-.3){rainSpot(p);p[1]+=26}
-    rdm.position.set(p[0],p[1],p[2]);rdm.scale.setScalar(p[3]?0:1);rdm.updateMatrix();rainIM.setMatrixAt(i,rdm.matrix)}rdm.scale.setScalar(1);rainIM.instanceMatrix.needsUpdate=true}
+  if(rain){const wk=Math.min(5,Math.max(1,camera.position.distanceTo(lookC)/22));for(let i=0;i<rainP.length;i++){const p=rainP[i];p[1]-=46*dt;if(p[1]<-.3){rainSpot(p);p[1]+=26}
+    rdm.position.set(p[0],p[1],p[2]);if(p[3])rdm.scale.setScalar(0);else rdm.scale.set(wk,1+.15*wk,wk);rdm.updateMatrix();rainIM.setMatrixAt(i,rdm.matrix)}rdm.scale.setScalar(1);rainIM.instanceMatrix.needsUpdate=true}
   tarpTick(dt)}
 $('evBtn').addEventListener('click',()=>{if(!ev||(ev.phase!=='warn'&&ev.phase!=='rain')||tarpOn)return;tarpOn=true;ptr.down=false;
   tarpDeploy();$('evBtn').textContent='Tarped';$('evBtn').disabled=true;buzz(20);say('Tarp\'s on. Sit tight till it passes.','good','tarp',0)});
