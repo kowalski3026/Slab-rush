@@ -5553,14 +5553,14 @@ function floatSweep0(x0,y0,x1,y1){
   fAx=dx/len;fAy=dy/len;
   // footprint follows the plate as it's drawn: width along its travel, length across it
   const ux=Math.sin(fYaw),uy=Math.cos(fYaw),nx=uy,ny=-ux;
-  const HL=(TRD.on?1.7:4.8)/LS,HW=Math.max(.55,(TRD.on?.6:.9)/LS),eff=floatEff(),b=bleed(set);let work=0;
+  const BM=TRD.on?1:Math.max(1,Math.min(2.4,RW*RD/380)),HL=(TRD.on?1.7:4.8)/LS*Math.sqrt(BM),HW=Math.max(.55,(TRD.on?.6:.9)/LS),eff=floatEff(),b=bleed(set);let work=0;/* v369: on big pours the float is a crew floating behind the screed */
   const steps=Math.max(1,Math.ceil(len/.6));
   for(let s=1;s<=steps;s++){const px=x0+dx*s/steps,py=y0+dy*s/steps;
     for(let cy=Math.max(RY0,Math.floor(py-HL-1));cy<=Math.min(RY1-1,Math.ceil(py+HL+1));cy++)
     for(let cx=Math.max(RX0,Math.floor(px-HL-1));cx<=Math.min(RX1-1,Math.ceil(px+HL+1));cx++){
       const ox=cx+.5-px,oy=cy+.5-py,al=Math.abs(ox*ux+oy*uy),pe=Math.abs(ox*nx+oy*ny);if(al>HW||pe>HL)continue;
       const i=cy*GW+cx;if(!has(i))continue;const f=clamp01((HL-pe)/1.4);
-      const add=Math.min(.09*f*eff*TK.float(),Math.max(0,1-closed[i]));closed[i]+=add;work+=add;
+      const add=Math.min(.09*f*eff*TK.float()*BM,Math.max(0,1-closed[i]));closed[i]+=add;work+=add;
       const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;
       h[i]+=(avg-h[i])*.3*f*eff;if(TRD.on)h[i]-=h[i]*.14*f*eff;
       if(b>.12){weak[i]=Math.min(1,weak[i]+.018*f*b);DUST[i]=Math.min(1,DUST[i]+.06*f*b)}}}
@@ -10776,17 +10776,16 @@ function pedHitE(e){if(!LV||!LV.peds)return false;const act=peds.filter(p=>p.on&
 const [ageMask,amx]=mk(TW,TH);
 function ageSlab(cl){amx.clearRect(0,0,TW,TH);amx.fillStyle='#fff';for(let i=0;i<N;i++)if(inR[i])amx.fillRect((i%GW)*CPX,((i/GW)|0)*CPX,CPX+.5,CPX+.5);
   tmx.save();tmx.setTransform(1,0,0,1,0,0);tmx.globalCompositeOperation='source-over';tmx.clearRect(0,0,TW,TH);
-  tmx.fillStyle='rgba(112,104,90,.24)';tmx.fillRect(0,0,TW,TH);
-  for(let k=0;k<1600;k++){tmx.fillStyle=`rgba(${60+Math.random()*30|0},${55+Math.random()*25|0},${45+Math.random()*20|0},${.05+Math.random()*.14})`;tmx.beginPath();tmx.arc(Math.random()*TW,Math.random()*TH,.6+Math.random()*2.6,0,6.283);tmx.fill()}
-  for(let i=0;i<N;i++){if(!inR[i]||weak[i]<.12)continue;const n=1+weak[i]*4|0;for(let k=0;k<n;k++){const x=(i%GW+Math.random())*CPX,y=(((i/GW)|0)+Math.random())*CPX,r=CPX*(.15+Math.random()*.38*weak[i]);
-    tmx.fillStyle='rgba(172,166,152,.88)';tmx.beginPath();tmx.ellipse(x,y,r,r*.7,Math.random()*3,0,6.283);tmx.fill();tmx.strokeStyle='rgba(55,50,44,.55)';tmx.lineWidth=.8;tmx.stroke();
-    for(let q=0;q<4;q++){tmx.fillStyle='rgba(70,64,56,.6)';tmx.fillRect(x+(Math.random()-.5)*r*1.6,y+(Math.random()-.5)*r*1.6,1.3,1.3)}}}
+  tmx.fillStyle='rgba(206,204,198,.3)';tmx.fillRect(0,0,TW,TH);/* v369: a year on, cured concrete is pale grey */
+  for(let k=0;k<500;k++){tmx.fillStyle=`rgba(${120+Math.random()*30|0},${116+Math.random()*25|0},${108+Math.random()*20|0},${.04+Math.random()*.08})`;tmx.beginPath();tmx.arc(Math.random()*TW,Math.random()*TH,.6+Math.random()*2.6,0,6.283);tmx.fill()}
+  for(let i=0;i<N;i++){if(!inR[i]||weak[i]<.3||Math.random()>.55)continue;const n=1+weak[i]*1.5|0;for(let k=0;k<n;k++){const x=(i%GW+Math.random())*CPX,y=(((i/GW)|0)+Math.random())*CPX,r=CPX*(.1+Math.random()*.2*weak[i]);
+    tmx.fillStyle='rgba(190,186,176,.6)';tmx.beginPath();tmx.ellipse(x,y,r,r*.7,Math.random()*3,0,6.283);tmx.fill();tmx.strokeStyle='rgba(90,86,80,.3)';tmx.lineWidth=.6;tmx.stroke()}}
   leaves.forEach(l=>{if(l.gone||!l.landed)return;const gx=(l.tx+SLAB_W/2)/SLAB_W*GW*CPX,gy=(l.tz+SLAB_D/2)/SLAB_D*GH*CPX,r=.55/SLAB_W*GW*CPX;tmx.fillStyle='rgba(120,74,36,.55)';tmx.beginPath();for(let k=0;k<=10;k++){const a=k/10*6.283,rr=(k%2?.5:1)*r;tmx.lineTo(gx+Math.cos(a)*rr,gy+Math.sin(a)*rr)}tmx.fill()});
-  if(lateT&&lateT.cells)lateT.cells.forEach(i=>{tmx.fillStyle='rgba(40,36,30,.75)';tmx.fillRect((i%GW+.3)*CPX,(((i/GW)|0)+.3)*CPX,CPX*.4,CPX*.4)});
+  if(lateT&&lateT.cells)lateT.cells.forEach(i=>{tmx.fillStyle='rgba(90,86,78,.4)';tmx.fillRect((i%GW+.3)*CPX,(((i/GW)|0)+.3)*CPX,CPX*.4,CPX*.4)});
   const nC=(cl==='hi'?3:cl==='mid'?1:0)+(lateT&&lateT.cold?1:0)+(blow?1:0),horiz=(RX1-RX0)>=(RY1-RY0);
   for(let c=0;c<nC;c++){let a=(horiz?RX0+(RX1-RX0)*(.18+Math.random()*.64):RY0+(RY1-RY0)*(.18+Math.random()*.64))*CPX;const s0=(horiz?RY0:RX0)*CPX-4,s1=(horiz?RY1:RX1)*CPX+4;
     tmx.beginPath();for(let s=s0;s<=s1;s+=CPX*.7){a+=(Math.random()-.5)*CPX*.6;if(horiz)tmx.lineTo(a,s);else tmx.lineTo(s,a)}
-    tmx.strokeStyle='rgba(225,220,208,.4)';tmx.lineWidth=3.2;tmx.stroke();tmx.strokeStyle='rgba(26,23,20,.92)';tmx.lineWidth=1.7;tmx.stroke()}
+    tmx.strokeStyle='rgba(225,220,208,.25)';tmx.lineWidth=2.2;tmx.stroke();tmx.strokeStyle='rgba(50,46,42,.62)';tmx.lineWidth=1;tmx.stroke()}
   tmx.globalCompositeOperation='destination-in';tmx.drawImage(ageMask,0,0);tmx.restore();
   sx.drawImage(tmp,0,0)}
 
@@ -11188,6 +11187,17 @@ function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){h
   return()=>{hid.forEach(o=>o.visible=true);siteG.traverse(o=>{if(o.userData.yrHide)delete o.userData.yrHide});if(m){scene.remove(m);m.geometry.dispose();m.material.dispose()}}}
 /* v298: on a painted site the result photos are taken from the drone spot with the yard photo behind the concrete, framed on the pad.
    The 1-year-later shot swaps in that side's 'before' photo (plain lawn), so grass meets the aged slab. */
+/* v369: a year on the lawn has grown back to the slab. On photo jobs the dug ring and the old dirt or gravel apron in the photo are covered by
+   a band of the photo's own grass, cloned from just outside the band and feathered into it. */
+function yrRing(tex){if(!tex||!BKD.o||LV.wall||LV.bridge||LV.slip||ELV()>.5||!lawnOn)return null;const C=BKD.L&&bkdC(BKD.L);if(!C)return null;
+  const W=Math.min(6,2.2+.07*Math.max(RW,RD)),S=SHAPE.length,offs=[0,.5*W,.85*W,W],al=[1,1,.75,0],L=offs.map(o=>offsetPolyNF(SHAPE,o+.03,0)),Ls=offs.map(o=>offsetPolyNF(SHAPE,o+W+1.2,0));
+  if(L.some(q=>q.length!==S)||Ls.some(q=>q.length!==S))return null;
+  const cam=BKD.o;cam.fov=C.fov;cam.aspect=C.asp;cam.updateProjectionMatrix();cam.updateMatrixWorld(true);
+  const pos=[],uv=[],col=[],idx=[],v=new THREE.Vector3(),y=-.285;
+  for(let r=0;r<offs.length;r++)for(let i=0;i<S;i++){pos.push(L[r][i][0],y,L[r][i][1]);v.set(Ls[r][i][0],0,Ls[r][i][1]).project(cam);uv.push((v.x+1)/2,(v.y+1)/2);col.push(1,1,1,al[r])}
+  for(let r=0;r<offs.length-1;r++)for(let i=0;i<S;i++){const j=(i+1)%S,a=r*S+i,b=r*S+j,c=(r+1)*S+i,d=(r+1)*S+j;idx.push(a,c,b,b,c,d)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('color',new THREE.Float32BufferAttribute(col,4));g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:tex,vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false,toneMapped:false}));m.renderOrder=2;m.raycast=()=>{};scene.add(m);return m}
 function snapPaint(pre){const c=camera,yr=!!BKD.yr;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
@@ -11198,7 +11208,8 @@ function snapPaint(pre){const c=camera,yr=!!BKD.yr;try{
   bkdAim(ctr,Math.tan(c.fov*Math.PI/360)*Math.min(1,c.aspect)*dist/R);
   /* v357: a year on the slab is flush with the lawn. It normally stands a slab-thickness proud of grade, which from the drone angle slid it up-screen off its own footprint and showed the dug dirt through the gap, so it looked like it was floating. */
   const sy0=slab.position.y;if(yr&&!LV.wall){const E=ELV()&&(LV.slip||isPrep())?ELV():0;slab.position.y=-.27-E}
-  drawFrame();const url=cv.toDataURL('image/jpeg',.86);slab.position.y=sy0;
+  const cu0=PAY.cure.value;let yrg=null;if(yr){PAY.cure.value=1.7;try{yrg=yrRing(yt||BKD.tex)}catch(e){console.warn('yrRing',e)}}
+  drawFrame();const url=cv.toDataURL('image/jpeg',.86);slab.position.y=sy0;PAY.cure.value=cu0;if(yrg){scene.remove(yrg);yrg.geometry.dispose();yrg.material.dispose()}
   if(yt){BKD.quad.material.map=qm;if(BKD.cop)BKD.cop.material.map=cm}
   c.position.copy(p);c.quaternion.copy(q);if(c.zoom!==z0){c.zoom=z0;c.updateProjectionMatrix()}vis.forEach(([o,v])=>{if(o)o.visible=v});tk.forEach(([o,v])=>o.visible=v);return url}catch(e){try{slab.position.y=ELV()}catch(_){}console.warn('snapPaint',e);return null}}
 function snapPhoto(pre){if(!renderer)return null;const bk=typeof BKD!=='undefined'&&BKD.on;
