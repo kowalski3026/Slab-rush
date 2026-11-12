@@ -10776,7 +10776,7 @@ function pedHitE(e){if(!LV||!LV.peds)return false;const act=peds.filter(p=>p.on&
 const [ageMask,amx]=mk(TW,TH);
 function ageSlab(cl){amx.clearRect(0,0,TW,TH);amx.fillStyle='#fff';for(let i=0;i<N;i++)if(inR[i])amx.fillRect((i%GW)*CPX,((i/GW)|0)*CPX,CPX+.5,CPX+.5);
   tmx.save();tmx.setTransform(1,0,0,1,0,0);tmx.globalCompositeOperation='source-over';tmx.clearRect(0,0,TW,TH);
-  tmx.fillStyle='rgba(206,204,198,.3)';tmx.fillRect(0,0,TW,TH);/* v369: a year on, cured concrete is pale grey */
+  tmx.fillStyle='rgba(196,194,188,.18)';tmx.fillRect(0,0,TW,TH);/* v369: a year on, cured concrete is pale grey */
   for(let k=0;k<500;k++){tmx.fillStyle=`rgba(${120+Math.random()*30|0},${116+Math.random()*25|0},${108+Math.random()*20|0},${.04+Math.random()*.08})`;tmx.beginPath();tmx.arc(Math.random()*TW,Math.random()*TH,.6+Math.random()*2.6,0,6.283);tmx.fill()}
   for(let i=0;i<N;i++){if(!inR[i]||weak[i]<.3||Math.random()>.55)continue;const n=1+weak[i]*1.5|0;for(let k=0;k<n;k++){const x=(i%GW+Math.random())*CPX,y=(((i/GW)|0)+Math.random())*CPX,r=CPX*(.1+Math.random()*.2*weak[i]);
     tmx.fillStyle='rgba(190,186,176,.6)';tmx.beginPath();tmx.ellipse(x,y,r,r*.7,Math.random()*3,0,6.283);tmx.fill();tmx.strokeStyle='rgba(90,86,80,.3)';tmx.lineWidth=.6;tmx.stroke()}}
@@ -11208,7 +11208,7 @@ function snapPaint(pre){const c=camera,yr=!!BKD.yr;try{
   bkdAim(ctr,Math.tan(c.fov*Math.PI/360)*Math.min(1,c.aspect)*dist/R);
   /* v357: a year on the slab is flush with the lawn. It normally stands a slab-thickness proud of grade, which from the drone angle slid it up-screen off its own footprint and showed the dug dirt through the gap, so it looked like it was floating. */
   const sy0=slab.position.y;if(yr&&!LV.wall){const E=ELV()&&(LV.slip||isPrep())?ELV():0;slab.position.y=-.27-E}
-  const cu0=PAY.cure.value;let yrg=null;if(yr){PAY.cure.value=1.7;try{yrg=yrRing(yt||BKD.tex)}catch(e){console.warn('yrRing',e)}}
+  const cu0=PAY.cure.value;let yrg=null;if(yr){PAY.cure.value=1;try{yrg=yrRing(yt||BKD.tex)}catch(e){console.warn('yrRing',e)}}
   drawFrame();const url=cv.toDataURL('image/jpeg',.86);slab.position.y=sy0;PAY.cure.value=cu0;if(yrg){scene.remove(yrg);yrg.geometry.dispose();yrg.material.dispose()}
   if(yt){BKD.quad.material.map=qm;if(BKD.cop)BKD.cop.material.map=cm}
   c.position.copy(p);c.quaternion.copy(q);if(c.zoom!==z0){c.zoom=z0;c.updateProjectionMatrix()}vis.forEach(([o,v])=>{if(o)o.visible=v});tk.forEach(([o,v])=>o.visible=v);return url}catch(e){try{slab.position.y=ELV()}catch(_){}console.warn('snapPaint',e);return null}}
