@@ -998,7 +998,7 @@ function updateSurface(){
   // bump: ripple where the paste is wet and untroweled, rock where unfloated, broom grooves, tooled edges and joints
   bpx.fillStyle='rgb(128,128,128)';bpx.fillRect(0,0,TW,TH);
   const rip=set<.5?1:Math.max(.25,1-(set-.5)*3);
-  maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
+  maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip*(STR.on?1-.85*Math.min(1,STR.vib[i]):1),ripple);// v291: the bull float closes the surface; no ripple left under it
   maskDraw(bpx,i=>(1-Math.min(1,closed[i]))*.95*(STR.on?1-.85*Math.min(1,STR.vib[i]):1),rough);// v376: vibrated mud has settled, the rock is under the paste
   if(!m2b){bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);}if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
   if(!GPS.on)maskDraw(bpx,i=>band[i]?Math.min(1,edged[i])*.9:0,'rgb(132,132,132)');
