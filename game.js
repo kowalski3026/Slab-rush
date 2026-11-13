@@ -968,7 +968,7 @@ function updateSurface(){
   if(LV.color){maskDraw(sx,i=>Math.min(1,hard[i])*.8,LV.color);maskDraw(sx,i=>Math.min(1,hard[i])*.35,LV.color,'multiply');sx.globalCompositeOperation='multiply';sx.drawImage(stampC,0,0);sx.globalCompositeOperation='source-over'}
   maskDraw(sx,i=>Math.min(1,weak[i])*.42,'rgb(232,228,218)');if(printN)sx.drawImage(printC,0,0);if(S.cure!=null)maskDraw(sx,i=>Math.min(1,cure[i])*.62,'rgb(246,246,240)');
   sx.drawImage(grain,0,0);sx.drawImage(edgeAOC,0,0);
-  if(STAGES[stage]&&STAGES[stage].key==='joint'){const cz=CPX/21.3,CL=(w,st)=>{sx.fillStyle=st;const h=w*cz;for(const c of chalk){if(jCut(c.o,c.p))continue;const M=c.o==='x'?GH:GW,X=c.p*CPX;
+  if(STAGES[stage]&&STAGES[stage].key==='joint'&&!(typeof BKD!=='undefined'&&BKD.yr)){const cz=CPX/21.3,CL=(w,st)=>{sx.fillStyle=st;const h=w*cz;for(const c of chalk){if(jCut(c.o,c.p))continue;const M=c.o==='x'?GH:GW,X=c.p*CPX;
     for(let k=0;k<M;k++){if(!jValid(c.o,c.p,k))continue;if(c.o==='x')sx.fillRect(X-h/2,k*CPX,h,CPX+.6);else sx.fillRect(k*CPX,X-h/2,CPX+.6,h)}}};
     // v197 snap line: soft powder halo, bright blue core, then speckle gaps so it still reads as chalk
     CL(26,'rgba(140,190,255,.3)');CL(13,'rgba(25,95,245,.6)');CL(7,'rgba(15,100,255,1)');
@@ -998,9 +998,9 @@ function updateSurface(){
   // bump: ripple where the paste is wet and untroweled, rock where unfloated, broom grooves, tooled edges and joints
   bpx.fillStyle='rgb(128,128,128)';bpx.fillRect(0,0,TW,TH);
   const rip=set<.5?1:Math.max(.25,1-(set-.5)*3);
-  if(!m2b){maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
+  maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
   maskDraw(bpx,i=>(1-Math.min(1,closed[i]))*.95,rough);
-  bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);}if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
+  if(!m2b){bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);}if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
   if(!GPS.on)maskDraw(bpx,i=>band[i]?Math.min(1,edged[i])*.9:0,'rgb(132,132,132)');
   if(!GPS.on)for(const j of joints){const [lo,hi]=jRange(j),c=j.p*CPX;for(let k=lo;k<hi;k++){const d=Math.min(1,j.cells[k]);if(d>0){bpx.fillStyle=`rgba(20,20,20,${d})`;j.o==='x'?bpx.fillRect(c-3,k*CPX,6,CPX+.6):bpx.fillRect(k*CPX,c-3,CPX+.6,6)}}}
 }
@@ -3225,7 +3225,7 @@ void main(){
  // slump: wet paste flows and heals, stony raw mud and stiff concrete hold their shape
  float fl=clamp(1.-sl/.6,0.,1.);fl*=fl;
  float lap=texture2D(tA,uv+vec2(uTx.x,0.)).r+texture2D(tA,uv-vec2(uTx.x,0.)).r+texture2D(tA,uv+vec2(0.,uTx.y)).r+texture2D(tA,uv-vec2(0.,uTx.y)).r-4.*d;
- d+=lap*min(.2,uDt*fl*(.5+9.*w*smoothstep(.25,.7,c)));
+ d+=lap*min(.2,uDt*fl*(.15+9.*w*smoothstep(.25,.7,c)));
  // bleed water comes up, sits in the fine lows, and dries off as it sets
  float dB=textureLod(tA,uv,3.).r,pool=smoothstep(0.,.06,dB-d+(vn(p*1.3)-.5)*.05);
  float wT=uBl*(.15+.85*pool);if(wT>w)w+=(wT-w)*clamp(uDtS*.9,0.,1.);
@@ -3289,7 +3289,7 @@ function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.need
   if(scr){const bw=wx(boardX),pv=M2.bx===null?bw:M2.bx,car=u.uCar.value;M2.bx=bw;
     for(let r=0;r<GH;r++){let a=0,w=0;for(let j=-3;j<=3;j++){const q=r+j;if(q<0||q>=GH)continue;const ww=4-Math.abs(j);a+=Math.min(Math.max(carry[q]||0,0),4)*ww;w+=ww}car[r]=w?a/w:0}
     M2.q.unshift({t:2,A:[pv,bw,lastDir||1,screedEff()],B:[2,wz(RY0)-.05,wz(RY1)+.05,0],C:[Math.abs(bw-pv)>1e-4?1:0,0,0,0]})}else M2.bx=null;
-  u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=1.35;
+  u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=EXf();
   u.uBl.value=bleed(set);u.uDt.value=Math.min(.05,dt);u.uDtS.value=Math.min(.5,dt+Math.max(0,set-M2.ps)*40);M2.ps=set;
   const idle=!M2.q.length&&!u.uClrA.value&&!pour&&(set>.62||M2.fr%6);M2.stg=k;if(idle)return;
   for(let pass=0;pass<3;pass++){const n=Math.min(4,M2.q.length);for(let i=0;i<n;i++){const s=M2.q.shift();u.uTA.value[i].fromArray(s.A);u.uTB.value[i].fromArray(s.B);u.uTC.value[i].fromArray(s.C||[0,0,0,0])}u.uN.value=n;m2Pass();u.uDt.value=0;u.uDtS.value=0;u.uClrA.value=0;if(!M2.q.length)break}}
@@ -4433,6 +4433,7 @@ function computeCam(){panReset();
   let across=portrait?RD+1.6:RW+2,along=portrait?RW+1.6:RD+2,lx=RCX,lz=RCZ+(portrait?0:.4);
   if(stage===S.pour&&view!==3){if(LV.truck){if(portrait){across=Math.max(15,RD+8);along=RW+16;lx=RCX-4;lz=RCZ+2}else{across=RW+16;along=Math.max(14,RD+9);lx=RCX-4;lz=RCZ+3}}
     else if(portrait){across=Math.max(15,RD+5);along=RW+20;lx=RCX+5*LS}else{across=RW+14;along=Math.max(14,RD+4);lx=RCX+5*LS}}
+  if(typeof S!=='undefined'&&stage===S.screed&&view!==3){across*=1.2;along*=1.12}
   if(view===3){across=portrait?6.5:8;along=6;lx=Math.max(wx(RX0)+3,Math.min(wx(RX1)-3,closeLook.x));lz=Math.max(wz(RY0)+Math.min(2,RD/2),Math.min(wz(RY1)-Math.min(1.5,RD/2),closeLook.z))}
   if(LV&&LV.slip&&stage===S.slip&&view!==1&&typeof sl!=='undefined'){const P=curbAt(Math.min(CLT,sl.s)),tx=P[2],tz=P[3],nx=-tz,nz=tx,k=portrait?1:.8,lk=[P[0]+nx*1.6-tx*1.5,P[1]+nz*1.6-tz*1.5];
     lookT.set(lk[0]-tx*9,ELV()+1,lk[1]-tz*9);{const ox=-tx*32*k-nx*30*k,oz=-tz*32*k-nz*30*k,oy=view===2?9:32,hd=Math.hypot(ox,oz),d=Math.hypot(hd,oy),yaw=Math.atan2(oz,ox)+SLC.yaw+PAN.yaw,el=Math.max(.06,Math.min(1.45,Math.atan2(oy,hd)+SLC.pitch+PAN.pitch));
