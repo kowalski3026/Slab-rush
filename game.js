@@ -3055,10 +3055,13 @@ vec4 gBS(vec2 uv){vec2 ts=vec2(${GW}.,${GH}.),st=uv*ts-.5,i=floor(st),f=st-i;vec
 float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;float gSunK=1.,gShn=0.;
 {vec2 p=vDW,uvG=vec2(p.x/gSW+.5,p.y/gSD+.5);
  ${m2?`// v370 fine-grained mud: relief, water and cream at every point come from the simulation
- {vec2 mu=(p-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){mIn=1.;mM=texture2D(mA,mu);float h0=mM.r+mM.a*mRoll;
-   vec4 mx=texture2D(mA,mu+vec2(mTx.x,0.)),mz=texture2D(mA,mu+vec2(0.,mTx.y));vec2 mg=vec2(mx.r+mx.a*mRoll-h0,mz.r+mz.a*mRoll-h0)/(mTx*mO.zw*12.);gTl-=mg*mEx*1.25;
-   float cav=h0-textureLod(mA,mu,3.5).r-textureLod(mA,mu,3.5).a*mRoll;gCol*=1.+clamp(cav*4.,-.26,.13);
-   float mb=mM.a*(1.-mRoll);gRgh+=.2*step(.3,mb)-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(.05+(mb-.55)*.25)*step(.3,mb));}}`:''}
+ {vec2 mu=(p-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){mIn=1.;
+   float tsz=mO.z*mTx.x,fwp=(fwidth(p.x)+fwidth(p.y))*.5,mlod=clamp(log2(max(fwp/tsz,1.)),0.,4.),msc=exp2(mlod);
+   mM=textureLod(mA,mu,mlod);float h0=mM.r+mM.a*mRoll;
+   vec4 mx=textureLod(mA,mu+vec2(mTx.x*msc,0.),mlod),mz=textureLod(mA,mu+vec2(0.,mTx.y*msc),mlod);
+   vec2 mg=vec2(mx.r+mx.a*mRoll-h0,mz.r+mz.a*mRoll-h0)/(mTx*msc*mO.zw*12.);gTl-=mg*mEx*1.25;
+   vec4 mlo=textureLod(mA,mu,mlod+3.);float cav=h0-mlo.r-mlo.a*mRoll;gCol*=1.+clamp(cav*4.,-.26,.13);
+   float mb=mM.a*(1.-mRoll),bk=smoothstep(.25,.45,mb);gRgh+=.2*bk-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(.05+(mb-.55)*.25)*bk);}}`:''}
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
@@ -3181,7 +3184,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
-    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.5*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
+    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*4.5*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
      .replace('#include <map_fragment>','#ifdef USE_MAP\nvec4 sampledDiffuseColor=texture2D(map,vMapUv,3.);diffuseColor*=sampledDiffuseColor;\n#endif')
      .replace('#include <roughnessmap_fragment>','float roughnessFactor=roughness;\n#ifdef USE_ROUGHNESSMAP\nvec4 texelRoughness=texture2D(roughnessMap,vRoughnessMapUv,3.);roughnessFactor*=texelRoughness.g;\n#endif');
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
@@ -3253,11 +3256,14 @@ void main(){
     c=min(1.,c+.34*k);w=min(1.,w+.3*k+C.z*.4*k);b*=1.-k;}
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
-   if(al>-.05&&al<L+.05&&abs(q)<B.y){float qa=dot(p,pr)*uF+B.w,id=floor(qa),f=fract(qa),amp=.45+.55*h1(vec2(id,B.w)),v=abs(f-.5)*2.;
-    float depth=mix(.075,.13,C.x)*(1.-.8*C.y),g=(v-.62)*depth*amp*1.6,alw=dot(p,dv);
-    g*=mix(1.,.3+1.6*vn(vec2(qa*.7,alw*6.)),C.x);g+=C.x*.07*smoothstep(.62,.8,vn(p*26.+B.w));
-    g*=mix(1.,step(.45,vn(vec2(qa*.35,alw*2.5))),C.y);
-    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q));d=mix(d,g,k);c=mix(c,max(c,.8),k);b=mix(b,.45+.55*(vn(vec2(qa*.09+B.w,alw*.35))*.65+vn(vec2(qa*.4,alw*1.3+B.w))*.35),k);w*=1.-.5*k;}
+   if(al>-.05&&al<L+.05&&abs(q)<B.y){float qa=dot(p,pr)*uF,alw=dot(p,dv);
+    // v371: real broom grooves are finer than this field can hold, and storing them made the surface shimmer and moire as you zoom.
+    // The field keeps only the broad lap ridges between passes (and torn furrows when it's too wet); the fine bristle lines are drawn
+    // from the broom photo in the slab shader, which filters cleanly at every distance.
+    float lap=sin(dot(p,pr)*2.1+B.w*.7)*.011+(vn(vec2(qa*.1+B.w,alw*.45))-.5)*.028;
+    float tear=C.x*((vn(vec2(qa*.5+B.w,alw*2.))-.5)*.1+(smoothstep(.62,.86,vn(p*9.+B.w))-.22)*.05);
+    float g=lap+tear;
+    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.55,C.y);d=mix(d,d*.25+g,k);c=mix(c,max(c,.8),k);b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
   }}
  gl_FragColor=vec4(d*step(.01,inK),w,c,b);}`;
 function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0,W=dx>=dz?1024:Math.round(1024*dx/dz),H=dx>=dz?Math.round(1024*dz/dx):1024;
@@ -8245,8 +8251,10 @@ function fgoTick(){const C=BKD.on&&!BKD.yr&&BKD.L&&bkdC(BKD.L);if(!C||!C.fgOcc||
   if(!FGO.m||FGO.L!==BKD.L||FGO.m.material.map!==BKD.tex){if(FGO.m){scene.remove(FGO.m);FGO.m.geometry.dispose();FGO.m.material.dispose()}
     const cam=BKD.o;cam.position.fromArray(C.cam);cam.fov=C.fov||70;cam.aspect=C.asp||.75;cam.updateProjectionMatrix();cam.lookAt(new THREE.Vector3().fromArray(C.look));cam.updateMatrixWorld(true);
     const P=C.fgOcc,pos=[],uv=[],v=new THREE.Vector3(),o=cam.position;P.forEach(q=>{v.set(q[0],q[1],.5).unproject(cam).sub(o).normalize();const f=v.dot(cam.getWorldDirection(new THREE.Vector3()));v.multiplyScalar(C.fgD/f).add(o);pos.push(v.x,v.y,v.z);uv.push((q[0]+1)/2,(q[1]+1)/2)});
-    const tri=THREE.ShapeUtils.triangulateShape(P.map(q=>new THREE.Vector2(q[0],q[1])),[]),g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(tri.flat());
-    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false}));m.renderOrder=4;m.raycast=()=>{};m.frustumCulled=false;scene.add(m);FGO.m=m;FGO.L=BKD.L}
+    let tri=[];try{tri=THREE.ShapeUtils.triangulateShape(P.map(q=>new THREE.Vector2(q[0],q[1])),[])}catch(e){}
+    if(!tri||tri.length<1){tri=[];for(let i=1;i<P.length-1;i++)tri.push([0,i,i+1])}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(tri.flat());
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,depthTest:false,depthWrite:false}));m.renderOrder=6;m.raycast=()=>{};m.frustumCulled=false;scene.add(m);FGO.m=m;FGO.L=BKD.L}
   FGO.m.visible=true}
 function bkdTick(){try{aprTick()}catch(e){}try{fgoTick()}catch(e){}try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible));/* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
   if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
