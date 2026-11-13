@@ -3057,8 +3057,8 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  ${m2?`// v370 fine-grained mud: relief, water and cream at every point come from the simulation
  {vec2 mu=(p-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){mIn=1.;mM=texture2D(mA,mu);float h0=mM.r+mM.a*mRoll;
    vec4 mx=texture2D(mA,mu+vec2(mTx.x,0.)),mz=texture2D(mA,mu+vec2(0.,mTx.y));vec2 mg=vec2(mx.r+mx.a*mRoll-h0,mz.r+mz.a*mRoll-h0)/(mTx*mO.zw*12.);gTl-=mg*mEx*1.25;
-   float cav=h0-textureLod(mA,mu,3.5).r-textureLod(mA,mu,3.5).a*mRoll;gCol*=1.+clamp(cav*1.5,-.2,.1);
-   float mb=mM.a*(1.-mRoll);gRgh+=.2*mb-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+.06*mb);}}`:''}
+   float cav=h0-textureLod(mA,mu,3.5).r-textureLod(mA,mu,3.5).a*mRoll;gCol*=1.+clamp(cav*4.,-.26,.13);
+   float mb=mM.a*(1.-mRoll);gRgh+=.2*step(.3,mb)-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(mb-.55)*.22*step(.3,mb));}}`:''}
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
@@ -3184,7 +3184,7 @@ diffuseColor.rgb*=gCol;`)
     F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG)').join('vec4(0.,.5,.5,0.)').replace('float tk=MK.b*mi;','float tk=0.;')
      .replace('#include <map_fragment>','#ifdef USE_MAP\nvec4 sampledDiffuseColor=texture2D(map,vMapUv,3.);diffuseColor*=sampledDiffuseColor;\n#endif')
      .replace('#include <roughnessmap_fragment>','float roughnessFactor=roughness;\n#ifdef USE_ROUGHNESSMAP\nvec4 texelRoughness=texture2D(roughnessMap,vRoughnessMapUv,3.);roughnessFactor*=texelRoughness.g;\n#endif');
-    sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,0.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
+    sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
 slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+'gl370';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
@@ -3254,10 +3254,10 @@ void main(){
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
    if(al>-.05&&al<L+.05&&abs(q)<B.y){float qa=dot(p,pr)*uF+B.w,id=floor(qa),f=fract(qa),amp=.45+.55*h1(vec2(id,B.w)),v=abs(f-.5)*2.;
-    float depth=mix(.05,.11,C.x)*(1.-.8*C.y),g=(v-.62)*depth*amp*1.6,alw=dot(p,dv);
+    float depth=mix(.075,.13,C.x)*(1.-.8*C.y),g=(v-.62)*depth*amp*1.6,alw=dot(p,dv);
     g*=mix(1.,.3+1.6*vn(vec2(qa*.7,alw*6.)),C.x);g+=C.x*.07*smoothstep(.62,.8,vn(p*26.+B.w));
     g*=mix(1.,step(.45,vn(vec2(qa*.35,alw*2.5))),C.y);
-    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q));d=mix(d,g,k);c=mix(c,max(c,.8),k);b=mix(b,1.,k);w*=1.-.5*k;}
+    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q));d=mix(d,g,k);c=mix(c,max(c,.8),k);b=mix(b,.45+.55*(vn(vec2(qa*.09+B.w,alw*.35))*.65+vn(vec2(qa*.4,alw*1.3+B.w))*.35),k);w*=1.-.5*k;}
   }}
  gl_FragColor=vec4(d*step(.01,inK),w,c,b);}`;
 function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0,W=dx>=dz?1024:Math.round(1024*dx/dz),H=dx>=dz?Math.round(1024*dz/dx):1024;
@@ -3267,8 +3267,8 @@ function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,
       uSW:{value:20},uSD:{value:10},uDt:{value:0},uDtS:{value:0},uBl:{value:0},uSeed:{value:1},uClear:{value:0},uClrA:{value:0},uF:{value:26},uN:{value:0},uTA:{value:ta},uTB:{value:tb},uTC:{value:tc},uCar:{value:new Float32Array(48)}},
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:M2FS});
     M2.sc=new THREE.Scene();M2.cam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),M2.sim);m.frustumCulled=false;M2.sc.add(m)}
-  if(M2.W!==W||M2.H!==H){M2.rt.forEach(r=>r.dispose());M2.rt=[0,1].map(()=>{const r=new THREE.WebGLRenderTarget(W,H,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,generateMipmaps:true,depthBuffer:false,stencilBuffer:false});r.texture.wrapS=r.texture.wrapT=THREE.ClampToEdgeWrapping;r.texture.anisotropy=4;return r});M2.W=W;M2.H=H}
-  const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;u.uF.value=1/(3.2*dx/W);u.uSeed.value=1+Math.random()*40;
+  if(M2.W!==W||M2.H!==H){M2.rt.forEach(r=>r.dispose());M2.rt=[0,1].map(()=>{const r=new THREE.WebGLRenderTarget(W,H,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,generateMipmaps:true,depthBuffer:false,stencilBuffer:false});r.texture.wrapS=r.texture.wrapT=THREE.ClampToEdgeWrapping;r.texture.anisotropy=8;return r});M2.W=W;M2.H=H}
+  const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;u.uF.value=1/(3.6*dx/W);u.uSeed.value=1+Math.random()*40;
   M2.U.mO.value.set(x0,z0,dx,dz);M2.U.mTx.value.set(1/W,1/H);M2.key=[LV.id,RX0,RX1,RY0,RY1].join();M2.clr=1;M2.q.length=0;M2.bx=null;M2.hp.set(h)}
 function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA.value=src.texture;const prt=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=false;renderer.setRenderTarget(dst);renderer.render(M2.sc,M2.cam);renderer.setRenderTarget(prt);renderer.autoClear=ac;M2.i=1-M2.i;M2.U.mA.value=dst.texture}
 function m2Stamp(s){if(M2.on&&M2.q.length<24)M2.q.push(s)}
@@ -5756,7 +5756,7 @@ function broomSeg0(x0,y0,x1,y1){
   const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.15)return;
   const ux=dx/len,uy=dy/len,nx=-uy,ny=ux,W=(TRD.on?1.5:3.2)/LS,eff=broomEff(),early=set<.5;
   const th=Math.atan2(uy,ux),c2=Math.cos(2*th),s2=Math.sin(2*th);let work=0;
-  {const cs=SLAB_W/GW,qa=Math.round(th/.035)*.035,L=len*cs,X0=wx(x0),Z0=wz(y0);m2Stamp({t:4,A:[X0,Z0,X0+Math.cos(qa)*L,Z0+Math.sin(qa)*L],B:[4,W*cs,Math.min(1,.35+eff),M2.bs||0],C:[Math.max(0,Math.min(1,(.5-set)/.12)),Math.max(0,Math.min(1,(set-.74)/.14)),0,0]})}
+  {const cs=SLAB_W/GW,qa=Math.round(th/.035)*.035,L=len*cs,X0=wx(x0),Z0=wz(y0);{const nw=performance.now();if(nw-(M2.bt||0)>300)M2.bs=Math.random()*50;M2.bt=nw}m2Stamp({t:4,A:[X0,Z0,X0+Math.cos(qa)*L,Z0+Math.sin(qa)*L],B:[4,W*cs,Math.min(1,.35+eff),M2.bs||0],C:[Math.max(0,Math.min(1,(.5-set)/.12)),Math.max(0,Math.min(1,(set-.74)/.14)),0,0]})}
   const minx=Math.max(0,Math.floor(Math.min(x0,x1)-W)),maxx=Math.min(GW-1,Math.ceil(Math.max(x0,x1)+W));
   const miny=Math.max(0,Math.floor(Math.min(y0,y1)-W)),maxy=Math.min(GH-1,Math.ceil(Math.max(y0,y1)+W));
   for(let cy=miny;cy<=maxy;cy++)for(let cx=minx;cx<=maxx;cx++){
