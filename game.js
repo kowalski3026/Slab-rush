@@ -3058,7 +3058,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  {vec2 mu=(p-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){mIn=1.;mM=texture2D(mA,mu);float h0=mM.r+mM.a*mRoll;
    vec4 mx=texture2D(mA,mu+vec2(mTx.x,0.)),mz=texture2D(mA,mu+vec2(0.,mTx.y));vec2 mg=vec2(mx.r+mx.a*mRoll-h0,mz.r+mz.a*mRoll-h0)/(mTx*mO.zw*12.);gTl-=mg*mEx*1.25;
    float cav=h0-textureLod(mA,mu,3.5).r-textureLod(mA,mu,3.5).a*mRoll;gCol*=1.+clamp(cav*4.,-.26,.13);
-   float mb=mM.a*(1.-mRoll);gRgh+=.2*step(.3,mb)-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(mb-.55)*.22*step(.3,mb));}}`:''}
+   float mb=mM.a*(1.-mRoll);gRgh+=.2*step(.3,mb)-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(.05+(mb-.55)*.25)*step(.3,mb));}}`:''}
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
@@ -3181,7 +3181,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
-    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG)').join('vec4(0.,.5,.5,0.)').replace('float tk=MK.b*mi;','float tk=0.;')
+    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.5*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
      .replace('#include <map_fragment>','#ifdef USE_MAP\nvec4 sampledDiffuseColor=texture2D(map,vMapUv,3.);diffuseColor*=sampledDiffuseColor;\n#endif')
      .replace('#include <roughnessmap_fragment>','float roughnessFactor=roughness;\n#ifdef USE_ROUGHNESSMAP\nvec4 texelRoughness=texture2D(roughnessMap,vRoughnessMapUv,3.);roughnessFactor*=texelRoughness.g;\n#endif');
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
