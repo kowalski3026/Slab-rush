@@ -1697,7 +1697,7 @@ function vibAt(cx,cy,dt){const ci=Math.floor(cy)*GW+Math.floor(cx);if(ci<0||ci>=
   if(!has(ci)){say('Nothing to vibrate there yet. Put mud in it first.','info','vibEmpty');return}
   const R=Math.max(2.2,18/CELL_IN),eff=set<.3?1:Math.max(.1,1-(set-.3)/.15);let work=0,over=false;
   // v249: the whole tread you're in settles and flows level, so a few seconds per step does it
-  try{const T=STR.T[t];if(T){const xc=(wx(T.c0)+wx(T.c1))/2,hw=Math.abs(wx(T.c1)-wx(T.c0))/2;m2Stamp({t:5,A:[xc,wz(RY0)-.1,xc,wz(RY1)+.1],B:[5,hw,Math.min(1,dt*5*eff),.45],C:[.5,0,1,0]})}}catch(e){}
+  try{const T=STR.T[t];if(T){const xc=(wx(T.c0)+wx(T.c1))/2,hw=Math.abs(wx(T.c1)-wx(T.c0))/2;m2Stamp({t:5,A:[xc,wz(RY0)-.1,xc,wz(RY1)+.1],B:[5,hw,Math.min(1,dt*5*eff),.62],C:[.3,0,1,0]})}}catch(e){}
   for(let i=0;i<N;i++){if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const a=dt*.4*eff;work+=Math.min(a,Math.max(0,1-STR.vib[i]));STR.vib[i]=Math.min(1.5,STR.vib[i]+a);const kk=Math.min(1,dt*1.6*eff);if(h[i]>-1.5)h[i]+=(0-h[i])*kk;rkA[i]*=1-kk;scA[i]*=1-kk}
   for(let y=Math.max(RY0,Math.floor(cy-R));y<=Math.min(RY1-1,Math.ceil(cy+R));y++)for(let x=Math.max(RX0,Math.floor(cx-R));x<=Math.min(RX1-1,Math.ceil(cx+R));x++){
     const i=y*GW+x;if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const d=Math.hypot(x+.5-cx,y+.5-cy);if(d>R)continue;const w=1-d/R*.5,add=dt*4*w*eff;
