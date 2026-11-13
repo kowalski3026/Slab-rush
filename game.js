@@ -3150,7 +3150,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
    float c=dot(p,pr),al=dot(p,dv),fw=fwidth(c)*300.,aa=clamp(1.7-fw*.85,0.,1.);
    ${CPH.on?`// v363: real broom marks from Kris's photo, laid along the pull; each 2 ft broom width is its own pass (own offset)
    float bn=floor(c/1.9);vec2 bu=vec2(al/1.25+gH1(vec2(bn,1.))*7.,c/1.25+gH1(vec2(bn,2.))*3.);float bA=texture2D(cPk,bu).a,bAc=texture2D(cPk,bu+vec2(0.,1.5/1024.)).a;
-   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.15)*.55*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;}}}`:`
+   float pull=.75+.25*sin(al*.9+gH1(vec2(bn,0.))*6.);gCol*=1.+clamp(bA-.5,-.5,.2)*.8*bc*pull*(.35+.65*aa)-.03*bc;gRgh+=.18*bc;gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;}}}`:`
    float st=sin(c*300.+sin(al*2.7+c*35.)*1.6)*.6+sin(c*610.+sin(al*4.9)*2.3)*.4;float pull=.6+.4*sin(al*.9+gH1(floor(vec2(c*3.,0.)))*6.);
    gCol*=1.-.17*bc*(st*.5+.5)*aa*pull-.03*bc;gRgh+=.18*bc;gTl+=pr*st*.95*bc*aa*pull;}}}`}
  // steel trowel: overlapping fan-shaped swipes, each a set of fine burnished arcs
@@ -3184,7 +3184,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
-    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*4.5*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
+    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
      .replace('#include <map_fragment>','#ifdef USE_MAP\nvec4 sampledDiffuseColor=texture2D(map,vMapUv,3.);diffuseColor*=sampledDiffuseColor;\n#endif')
      .replace('#include <roughnessmap_fragment>','float roughnessFactor=roughness;\n#ifdef USE_ROUGHNESSMAP\nvec4 texelRoughness=texture2D(roughnessMap,vRoughnessMapUv,3.);roughnessFactor*=texelRoughness.g;\n#endif');
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
@@ -3256,14 +3256,16 @@ void main(){
     c=min(1.,c+.34*k);w=min(1.,w+.3*k+C.z*.4*k);b*=1.-k;}
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
-   if(al>-.05&&al<L+.05&&abs(q)<B.y){float qa=dot(p,pr)*uF,alw=dot(p,dv);
-    // v371: real broom grooves are finer than this field can hold, and storing them made the surface shimmer and moire as you zoom.
-    // The field keeps only the broad lap ridges between passes (and torn furrows when it's too wet); the fine bristle lines are drawn
-    // from the broom photo in the slab shader, which filters cleanly at every distance.
-    float lap=sin(dot(p,pr)*2.1+B.w*.7)*.011+(vn(vec2(qa*.1+B.w,alw*.45))-.5)*.028;
-    float tear=C.x*((vn(vec2(qa*.5+B.w,alw*2.))-.5)*.1+(smoothstep(.62,.86,vn(p*9.+B.w))-.22)*.05);
-    float g=lap+tear;
-    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.55,C.y);d=mix(d,d*.25+g,k);c=mix(c,max(c,.8),k);b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
+   if(al>-.05&&al<L+.05&&abs(q)<B.y){float alw=dot(p,dv);
+    // v372: the grooves are real relief again, but their spacing is tied to the field (6 points per groove) so they stay clean,
+    // and the slab reads the field at the detail the screen needs, so they fade with distance instead of crawling.
+    float qa=dot(p,pr)*uF+B.w;qa+=(vn(vec2(alw*.7,floor(qa)*.37))-.5)*.3;
+    float id=floor(qa),amp=.55+.45*h1(vec2(id,B.w)),wv=cos(fract(qa)*6.2832);
+    float depth=mix(.055,.1,C.x)*(1.-.72*C.y);
+    float g=(wv*.5-.5)*depth*amp;
+    g*=mix(1.,.35+1.5*vn(vec2(qa*.6,alw*5.)),C.x);g+=C.x*.05*smoothstep(.64,.84,vn(p*16.+B.w));
+    g+=sin(dot(p,pr)*2.1+B.w*.7)*.009+(vn(vec2(qa*.1+B.w,alw*.45))-.5)*.022;
+    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,d*.3+g,k);c=mix(c,max(c,.8),k);b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
   }}
  gl_FragColor=vec4(d*step(.01,inK),w,c,b);}`;
 function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0,W=dx>=dz?1024:Math.round(1024*dx/dz),H=dx>=dz?Math.round(1024*dz/dx):1024;
@@ -3274,7 +3276,7 @@ function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:M2FS});
     M2.sc=new THREE.Scene();M2.cam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),M2.sim);m.frustumCulled=false;M2.sc.add(m)}
   if(M2.W!==W||M2.H!==H){M2.rt.forEach(r=>r.dispose());M2.rt=[0,1].map(()=>{const r=new THREE.WebGLRenderTarget(W,H,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,generateMipmaps:true,depthBuffer:false,stencilBuffer:false});r.texture.wrapS=r.texture.wrapT=THREE.ClampToEdgeWrapping;r.texture.anisotropy=8;return r});M2.W=W;M2.H=H}
-  const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;u.uF.value=1/(3.6*dx/W);u.uSeed.value=1+Math.random()*40;
+  const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;u.uF.value=1/(6*dx/W);u.uSeed.value=1+Math.random()*40;
   M2.U.mO.value.set(x0,z0,dx,dz);M2.U.mTx.value.set(1/W,1/H);M2.key=[LV.id,RX0,RX1,RY0,RY1].join();M2.clr=1;M2.q.length=0;M2.bx=null;M2.hp.set(h)}
 function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA.value=src.texture;const prt=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=false;renderer.setRenderTarget(dst);renderer.render(M2.sc,M2.cam);renderer.setRenderTarget(prt);renderer.autoClear=ac;M2.i=1-M2.i;M2.U.mA.value=dst.texture}
 function m2Stamp(s){if(M2.on&&M2.q.length<24)M2.q.push(s)}
