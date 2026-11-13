@@ -1697,6 +1697,7 @@ function vibAt(cx,cy,dt){const ci=Math.floor(cy)*GW+Math.floor(cx);if(ci<0||ci>=
   if(!has(ci)){say('Nothing to vibrate there yet. Put mud in it first.','info','vibEmpty');return}
   const R=Math.max(2.2,18/CELL_IN),eff=set<.3?1:Math.max(.1,1-(set-.3)/.15);let work=0,over=false;
   // v249: the whole tread you're in settles and flows level, so a few seconds per step does it
+  try{const T=STR.T[t];if(T){const xc=(wx(T.c0)+wx(T.c1))/2,hw=Math.abs(wx(T.c1)-wx(T.c0))/2;m2Stamp({t:5,A:[xc,wz(RY0)-.1,xc,wz(RY1)+.1],B:[5,hw,Math.min(1,dt*2.2*eff),.45],C:[.5,0,1,0]})}}catch(e){}
   for(let i=0;i<N;i++){if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const a=dt*.4*eff;work+=Math.min(a,Math.max(0,1-STR.vib[i]));STR.vib[i]=Math.min(1.5,STR.vib[i]+a);const kk=Math.min(1,dt*1.6*eff);if(h[i]>-1.5)h[i]+=(0-h[i])*kk;rkA[i]*=1-kk;scA[i]*=1-kk}
   for(let y=Math.max(RY0,Math.floor(cy-R));y<=Math.min(RY1-1,Math.ceil(cy+R));y++)for(let x=Math.max(RX0,Math.floor(cx-R));x<=Math.min(RX1-1,Math.ceil(cx+R));x++){
     const i=y*GW+x;if(!inR[i]||STR.tid[i]!==t||!has(i))continue;const d=Math.hypot(x+.5-cx,y+.5-cy);if(d>R)continue;const w=1-d/R*.5,add=dt*4*w*eff;
@@ -1785,7 +1786,7 @@ function strSC(q,tm){return{
   tread:()=>{let s=0,r=0,nd=0;STR.T.forEach((T,t)=>{const st=trdStats(t);s+=TRD_TOOLS.reduce((a,[k])=>a+Math.min(1,st[k]/TRDNEED[k]),0)/4;r+=st.r;if(TRD.done[t])nd++});const n=STR.T.length||1;s/=n;r/=n;
     const lev=clamp01(1-(r-.15)/.9);return['Hand finish',s*(.6+.4*lev)*(.3+.7*q('tread')),`${nd} of ${n} treads finished, ±${r.toFixed(2)} in off the forms. `+(lev>.8?'Water sheds off every step. ':'Some treads hold water. ')+tm('tread')]}}}
 const STRAUTO={sform:()=>{STR.pieces.forEach(p=>p.placed=true);strVis()},riser:()=>{STR.risers.forEach(p=>p.placed=true);strVis()},sbar:()=>{STR.bars.forEach(p=>p.placed=true);strVis()},
-  vibe:()=>{for(let i=0;i<N;i++)if(inR[i])STR.vib[i]=1.1;for(let i=0;i<N;i++)if(inR[i])h[i]=.1+(Math.random()-.5)*.3;geoDirty=surfDirty=true},
+  vibe:()=>{try{m2Stamp({t:5,A:[wx(RX0),RCZ,wx(RX1),RCZ],B:[5,RD,1,.45],C:[.5,0,0,0]})}catch(e){}for(let i=0;i<N;i++)if(inR[i])STR.vib[i]=1.1;for(let i=0;i<N;i++)if(inR[i])h[i]=.1+(Math.random()-.5)*.3;geoDirty=surfDirty=true},
   tread:()=>{const tool=TRD.tool;TRD_TOOLS.forEach(([k])=>{TRD.tool=k;set=Math.max(set,{trowel:.2,edge:.56,broom:.64}[k]);[...STR.T.keys()].reverse().forEach(t=>{TRD.sel=t;const T=STR.T[t];
     for(let pass=0;pass<5;pass++)for(let y=RY0+.5;y<RY1;y+=1)for(let x=T.c0;x<T.c1;x+=.5){if(k==='float')floatSweep(x,y,x+.5,y);else if(k==='trowel')trowelSeg(x,y,x+.5,y);else if(k==='broom')broomSeg(T.c0-.5,y,T.c1+.5,y)}
       if(k==='edge')for(let r=0;r<4;r++)for(let i=0;i<N;i++)if(band[i]&&STR.tid[i]===t)edgeAt(i%GW+.5,((i/GW)|0)+.5)})});TRD.tool=tool;trdCheck()}};
@@ -3251,9 +3252,13 @@ void main(){
    vec2 s=A.zw-A.xy;float L2=max(dot(s,s),1e-6),tt=clamp(dot(p-A.xy,s)/L2,0.,1.);vec2 o=p-(A.xy+s*tt),u=C.xy,n=vec2(u.y,-u.x);float al=abs(dot(o,u)),pe=abs(dot(o,n));
    if(al<B.z&&pe<B.y){float k=B.w*inK*smoothstep(B.z,B.z*.6,al);
     d=mix(d,textureLod(tA,uv,2.).r*.55,.8*k);
-    float e=smoothstep(B.y-.035,B.y-.012,pe)*(1.-smoothstep(B.y-.012,B.y,pe));d+=.02*e*k;
+    float e=smoothstep(B.y-.035,B.y-.012,pe)*(1.-smoothstep(B.y-.012,B.y,pe));d=max(d,.01*e*step(.3,k));
     d+=sin(dot(p,u)*70.)*.012*C.w*k;
     c=min(1.,c+.34*k);w=min(1.,w+.3*k+C.z*.4*k);b*=1.-k;}
+  }else if(t==5){// vibrator or steel trowel: the lumps settle out, paste comes up and the surface closes
+   vec2 s=A.zw-A.xy;float L2=max(dot(s,s),1e-6),tt=clamp(dot(p-A.xy,s)/L2,0.,1.),ds=length(p-(A.xy+s*tt));
+   if(C.z>.5)ds=(p.y>min(A.y,A.w)&&p.y<max(A.y,A.w))?abs(p.x-A.x):9.;
+   if(ds<B.y){float k=B.z*inK*smoothstep(B.y,B.y*(C.z>.5?.96:.75),ds);d=mix(d,textureLod(tA,uv,2.).r*.35,k);c=mix(c,max(c,B.w),k);w=min(1.,w+C.x*k);if(C.y>.5)b*=1.-k;}
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
    if(al>-.05&&al<L+.05&&abs(q)<B.y){float alw=dot(p,dv);
@@ -3289,7 +3294,7 @@ function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.need
   if(scr){const bw=wx(boardX),pv=M2.bx===null?bw:M2.bx,car=u.uCar.value;M2.bx=bw;
     for(let r=0;r<GH;r++){let a=0,w=0;for(let j=-3;j<=3;j++){const q=r+j;if(q<0||q>=GH)continue;const ww=4-Math.abs(j);a+=Math.min(Math.max(carry[q]||0,0),4)*ww;w+=ww}car[r]=w?a/w:0}
     const [LA,LB]=scrRows();M2.q.unshift({t:2,A:[bw,bw,lastDir||1,0],B:[2,wz(LA)-.05,wz(LB)+.05,0],C:[0,0,1,0]})}else M2.bx=null;
-  u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=EXf();
+  u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=mudOn()&&mudBig()?EX:1.35;
   u.uBl.value=bleed(set);u.uDt.value=Math.min(.05,dt);u.uDtS.value=Math.min(.5,dt+Math.max(0,set-M2.ps)*40);M2.ps=set;
   const idle=!M2.q.length&&!u.uClrA.value&&!pour&&(set>.62||M2.fr%6);M2.stg=k;if(idle)return;
   for(let pass=0;pass<3;pass++){const n=Math.min(4,M2.q.length);for(let i=0;i<n;i++){const s=M2.q.shift();u.uTA.value[i].fromArray(s.A);u.uTB.value[i].fromArray(s.B);u.uTC.value[i].fromArray(s.C||[0,0,0,0])}u.uN.value=n;m2Pass();u.uDt.value=0;u.uDtS.value=0;u.uClrA.value=0;if(!M2.q.length)break}}
@@ -5717,6 +5722,7 @@ function trowelEff(){const lim=LV.hardTrowel?.96:.9;return set<(TRD.on?.12:.44)?
 function trowelSeg0(x0,y0,x1,y1){
   const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.04)return;
   const ux=dx/len,uy=dy/len,W=Math.max(.9,1.6/LS),eff=trowelEff(),b=bleed(set),late=set>.88&&!LV.hardTrowel,early=(TRD.on?false:set<.44)||b>.12;let work=0,healed=0;
+  try{const cs=SLAB_W/GW;m2Stamp({t:5,A:[wx(x0),wz(y0),wx(x1),wz(y1)],B:[5,W*cs,Math.min(1,.3+eff),1],C:[b>.12?.5:.12,1,0,0]})}catch(e){}
   const minx=Math.max(RX0,Math.floor(Math.min(x0,x1)-W)),maxx=Math.min(RX1-1,Math.ceil(Math.max(x0,x1)+W));
   const miny=Math.max(RY0,Math.floor(Math.min(y0,y1)-W)),maxy=Math.min(RY1-1,Math.ceil(Math.max(y0,y1)+W));
   for(let cy=miny;cy<=maxy;cy++)for(let cx=minx;cx<=maxx;cx++){
