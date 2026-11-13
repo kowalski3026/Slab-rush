@@ -2289,7 +2289,7 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
     else if(live&&BW.auto){const sd=-BW.s,end=sd<0?RX0-3.2:RX1+3.2;if(sd*(end-BW.x)>0){BW.wait=lowAhead(sd,3)<-1.5;if(!BW.wait)want=sd*Math.min(Math.abs(end-BW.x),.5*dt*(12/CELL_IN))}
       else{BW.auto=false;BW.done=true;say('Bid-Well\'s walked off the end of the span. Deck\'s struck and finished.','good','bwDone',0)}}
     if(want){const x0=BW.x,x1=BW.x+want;BW.dir=Math.sign(want);const c0=Math.floor(x0),c1=Math.floor(x1);if(BW.dir!==BW.ld)BW.last=null;BW.ld=BW.dir;
-      for(let c=c0;BW.dir>0?c<=c1:c>=c1;c+=BW.dir){if(c===BW.last)continue;BW.last=c;bwCol(c)}BW.x=x1;sp=Math.abs(want)/dt}
+      for(let c=c0;BW.dir>0?c<=c1:c>=c1;c+=BW.dir){if(c===BW.last)continue;BW.last=c;bwCol(c)}try{m2Stamp({t:2,A:[wx(x0),wx(x1),BW.dir,1],B:[2,wz(RY0)-.05,wz(RY1)+.05,0],C:[1,0,0,0]})}catch(e){}BW.x=x1;sp=Math.abs(want)/dt}
     if(live){boardX=BW.x;lastDir=BW.dir;if(BW.wait&&BW.auto&&k==='pour')say('Bid-Well\'s waiting on mud. Keep the pour 15 to 20 ft ahead of it.','info','bwWait',6000)}
     // the start button: shows once 15 ft in front of the parked machine is placed
     if(!BW.auto&&!BW.done&&!BW.hand&&(k==='pour'||PREPK.has(k)))brgHome();
@@ -3234,15 +3234,15 @@ void main(){
  if(J.r>.004){float k=clamp(J.r*2.5,0.,1.)*inK;d=mix(d,lumps(p),k);w=mix(w,.6,k);c*=1.-k;if(uClrA<.5&&b>0.)b*=1.-k;}
  for(int i=0;i<4;i++){if(i>=uN)break;vec4 A=uTA[i],B=uTB[i],C=uTC[i];int t=int(B.x+.5);
   if(t==2){// screed: strikes off what it has passed over, and carries a roll of mud ahead
-   float lo=min(A.x,A.y)-.03,hi=max(A.x,A.y)+.03;
-   if(C.x>.5&&p.x>lo&&p.x<hi&&p.y>B.y&&p.y<B.z&&hC>-.15){
-    float dg=(vn(vec2(p.y*38.,p.x*2.2))-.5)*.035+(vn(vec2(p.y*95.,p.x*.6))-.5)*.02+(vn(vec2(p.y*9.,p.x*1.1))-.5)*.02;
+   float lo=min(A.x,A.y)-.03,hi=max(A.x,A.y)+.03;vec2 pp=C.y>.5?p.yx:p;
+   if(C.x>.5&&pp.x>lo&&pp.x<hi&&pp.y>B.y&&pp.y<B.z&&hC>-.15){
+    float dg=(vn(vec2(pp.y*38.,pp.x*2.2))-.5)*.035+(vn(vec2(pp.y*95.,pp.x*.6))-.5)*.02+(vn(vec2(pp.y*9.,pp.x*1.1))-.5)*.02;
     float k=A.w*inK;d=mix(d,dg,k);c=mix(c,max(c,.42),k);w=mix(w,max(w,.5),k);}
    float acr=(p.x-A.y)*A.z,r=0.;
    if(acr>0.&&acr<1.3&&p.y>B.y&&p.y<B.z){float row=clamp(gu.y*24.-.5,0.,23.);int i0=int(floor(row));float cA=mix(uCar[i0],uCar[min(i0+1,23)],fract(row));
     if(cA>.03){float Hr=min(2.4,.95*pow(cA,.7)),wr=.2+.15*min(cA,4.),tt=acr/wr;if(tt<1.){float pr=pow(min(1.,tt/.16),.6)*pow(1.-tt,1.5)/.63;
      float tb=vn(vec2(p.y*5.5,acr*9.-A.y*4.))*.6+vn(vec2(p.y*14.,acr*22.-A.y*9.))*.4;r=Hr*pr*(.75+.5*tb)*inK;}}}
-   b=r;
+   if(C.z>.5)b=r;
   }else if(t==1){// rake: tines comb the mud along the pull
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
    if(al>-.08&&al<L+.08&&abs(q)<B.y){float g=abs(fract(dot(p,pr)*5.5)-.5)*2.,tine=(smoothstep(0.,.55,g)-.6)*.16;
@@ -3288,7 +3288,7 @@ function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.need
   const scr=k==='screed'&&running&&!scrStrip();
   if(scr){const bw=wx(boardX),pv=M2.bx===null?bw:M2.bx,car=u.uCar.value;M2.bx=bw;
     for(let r=0;r<GH;r++){let a=0,w=0;for(let j=-3;j<=3;j++){const q=r+j;if(q<0||q>=GH)continue;const ww=4-Math.abs(j);a+=Math.min(Math.max(carry[q]||0,0),4)*ww;w+=ww}car[r]=w?a/w:0}
-    M2.q.unshift({t:2,A:[pv,bw,lastDir||1,screedEff()],B:[2,wz(RY0)-.05,wz(RY1)+.05,0],C:[Math.abs(bw-pv)>1e-4?1:0,0,0,0]})}else M2.bx=null;
+    const [LA,LB]=scrRows();M2.q.unshift({t:2,A:[bw,bw,lastDir||1,0],B:[2,wz(LA)-.05,wz(LB)+.05,0],C:[0,0,1,0]})}else M2.bx=null;
   u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=EXf();
   u.uBl.value=bleed(set);u.uDt.value=Math.min(.05,dt);u.uDtS.value=Math.min(.5,dt+Math.max(0,set-M2.ps)*40);M2.ps=set;
   const idle=!M2.q.length&&!u.uClrA.value&&!pour&&(set>.62||M2.fr%6);M2.stg=k;if(idle)return;
@@ -5614,6 +5614,7 @@ function screedMoveY(y0,y1){
   for(let r=r0;dir>0?r<=r1:r>=r1;r+=dir){if(r===lastRow)continue;lastRow=r;
     if(r<LA||r>=LB){if(carryC.some(v=>v>0))spillRow(r);continue}
     processRow(r,eff)}
+  try{const [c0,c1]=scrCols(),a=Math.max(LA-1,Math.min(LB+1,y0)),b=Math.max(LA-1,Math.min(LB+1,y1));if(Math.abs(b-a)<6)m2Stamp({t:2,A:[wz(a),wz(b),dir,Math.min(1,eff)],B:[2,wx(c0)-.05,wx(c1)+.05,0],C:[1,1,0,0]})}catch(e){}
   boardY=y1;surfDirty=geoDirty=true;scrAdvance();
   if(set>(gear('laser')?.54:gear('pscreed')?.44:.34))say('Mix is stiffening. The straightedge is skipping over it.','bad','stiffS');
 }
@@ -5648,6 +5649,7 @@ function screedMove(x0,x1){
     if(c===lastCol)continue;lastCol=c;
     if(c<RX0||c>=RX1){carry.fill(0);continue}
     processCol(c,eff)}
+  try{const [LA,LB]=scrRows(),a=Math.max(RX0-1,Math.min(RX1+1,x0)),b=Math.max(RX0-1,Math.min(RX1+1,x1));if(Math.abs(b-a)<6)m2Stamp({t:2,A:[wx(a),wx(b),dir,Math.min(1,eff)],B:[2,wz(LA)-.05,wz(LB)+.05,0],C:[1,0,0,0]})}catch(e){}
   boardX=x1;surfDirty=geoDirty=true;
   if(SCR.on)scrAdvance();
   if(set>(gear('laser')?.54:gear('pscreed')?.44:.34))say('Mix is stiffening. The straightedge is skipping over it.','bad','stiffS');
