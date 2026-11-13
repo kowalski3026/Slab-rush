@@ -3225,7 +3225,7 @@ void main(){
  // slump: wet paste flows and heals, stony raw mud and stiff concrete hold their shape
  float fl=clamp(1.-sl/.6,0.,1.);fl*=fl;
  float lap=texture2D(tA,uv+vec2(uTx.x,0.)).r+texture2D(tA,uv-vec2(uTx.x,0.)).r+texture2D(tA,uv+vec2(0.,uTx.y)).r+texture2D(tA,uv-vec2(0.,uTx.y)).r-4.*d;
- d+=lap*min(.2,uDt*fl*(.15+9.*w*smoothstep(.25,.7,c)));
+ d+=lap*min(.2,uDt*fl*(J.r*2.5+9.*w*smoothstep(.25,.7,c)));
  // bleed water comes up, sits in the fine lows, and dries off as it sets
  float dB=textureLod(tA,uv,3.).r,pool=smoothstep(0.,.06,dB-d+(vn(p*1.3)-.5)*.05);
  float wT=uBl*(.15+.85*pool);if(wT>w)w+=(wT-w)*clamp(uDtS*.9,0.,1.);
