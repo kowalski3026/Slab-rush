@@ -3208,10 +3208,10 @@ const slab=new THREE.Mesh(slabGeo,slabMat);slab.receiveShadow=true;slab.castShad
 const M2={on:false,cap:null,rt:[],i:0,W:0,H:0,q:[],hp:new Float32Array(N),J:null,ps:0,bx:null,stg:'',clr:1,fr:0,key:'',
   U:{mA:{value:null},mO:{value:new THREE.Vector4(0,0,1,1)},mTx:{value:new THREE.Vector2(1,1)},mRoll:{value:0},mEx:{value:1.35}}};
 function m2Cap(){if(M2.cap!==null)return M2.cap;try{const gl=renderer.getContext();M2.cap=!!(gl.getExtension('EXT_color_buffer_float')||gl.getExtension('EXT_color_buffer_half_float'))}catch(e){M2.cap=false}return M2.cap}
-function m2Want(){return !!(LV&&LV.tut&&GPS.on&&renderer&&!safeGfx&&!(typeof STR!=='undefined'&&STR.on)&&m2Cap())}
+function m2Want(){return !!(LV&&GPS.on&&renderer&&!safeGfx&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on)&&!(LV.steps&&LV.steps.includes('stamp'))&&m2Cap())}
 const M2FS=`precision highp float;
 uniform sampler2D tA;uniform sampler2D tJ;uniform sampler2D tH;uniform vec2 uTx;uniform vec2 uOrg;uniform vec2 uSize;
-uniform float uSW;uniform float uSD;uniform float uDt;uniform float uDtS;uniform float uBl;uniform float uSeed;uniform float uClear;uniform float uClrA;uniform float uF;
+uniform float uSW;uniform float uSD;uniform float uDt;uniform float uDtS;uniform float uBl;uniform float uSeed;uniform float uClear;uniform float uClrA;uniform float uF;uniform float uGk;
 uniform int uN;uniform vec4 uTA[4];uniform vec4 uTB[4];uniform vec4 uTC[4];uniform float uCar[48];
 varying vec2 vUv;
 float h1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}
@@ -3261,9 +3261,9 @@ void main(){
     // and the slab reads the field at the detail the screen needs, so they fade with distance instead of crawling.
     float qa=dot(p,pr)*uF+B.w;qa+=(vn(vec2(alw*.7,floor(qa)*.37))-.5)*.3;
     float id=floor(qa),amp=.55+.45*h1(vec2(id,B.w)),wv=cos(fract(qa)*6.2832);
-    float depth=mix(.055,.1,C.x)*(1.-.72*C.y);
+    float depth=mix(.055,.1,C.x)*(1.-.72*C.y)*uGk;
     float g=(wv*.5-.5)*depth*amp;
-    g*=mix(1.,.35+1.5*vn(vec2(qa*.6,alw*5.)),C.x);g+=C.x*.05*smoothstep(.64,.84,vn(p*16.+B.w));
+    g*=mix(1.,.35+1.5*vn(vec2(qa*.6,alw*5.)),C.x);g+=C.x*.05*uGk*smoothstep(.64,.84,vn(p*16.+B.w));
     g+=sin(dot(p,pr)*2.1+B.w*.7)*.009+(vn(vec2(qa*.1+B.w,alw*.45))-.5)*.022;
     float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,d*.3+g,k);c=mix(c,max(c,.8),k);b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
   }}
@@ -3272,11 +3272,11 @@ function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,
   if(!M2.sim){M2.J=new THREE.DataTexture(new Uint8Array(N*4),GW,GH,THREE.RGBAFormat);M2.J.magFilter=M2.J.minFilter=THREE.LinearFilter;M2.J.needsUpdate=true;
     const ta=[],tb=[],tc=[];for(let i=0;i<4;i++){ta.push(new THREE.Vector4());tb.push(new THREE.Vector4());tc.push(new THREE.Vector4())}
     M2.sim=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{tA:{value:null},tJ:{value:M2.J},tH:{value:GPS.hm},uTx:{value:new THREE.Vector2()},uOrg:{value:new THREE.Vector2()},uSize:{value:new THREE.Vector2()},
-      uSW:{value:20},uSD:{value:10},uDt:{value:0},uDtS:{value:0},uBl:{value:0},uSeed:{value:1},uClear:{value:0},uClrA:{value:0},uF:{value:26},uN:{value:0},uTA:{value:ta},uTB:{value:tb},uTC:{value:tc},uCar:{value:new Float32Array(48)}},
+      uSW:{value:20},uSD:{value:10},uDt:{value:0},uDtS:{value:0},uBl:{value:0},uSeed:{value:1},uClear:{value:0},uClrA:{value:0},uF:{value:26},uGk:{value:1},uN:{value:0},uTA:{value:ta},uTB:{value:tb},uTC:{value:tc},uCar:{value:new Float32Array(48)}},
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:M2FS});
     M2.sc=new THREE.Scene();M2.cam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),M2.sim);m.frustumCulled=false;M2.sc.add(m)}
   if(M2.W!==W||M2.H!==H){M2.rt.forEach(r=>r.dispose());M2.rt=[0,1].map(()=>{const r=new THREE.WebGLRenderTarget(W,H,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,generateMipmaps:true,depthBuffer:false,stencilBuffer:false});r.texture.wrapS=r.texture.wrapT=THREE.ClampToEdgeWrapping;r.texture.anisotropy=8;return r});M2.W=W;M2.H=H}
-  const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;u.uF.value=1/(6*dx/W);u.uSeed.value=1+Math.random()*40;
+  const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;{const txf=dx/W,sp=Math.max(.8/12,5*txf);u.uF.value=1/sp;u.uGk.value=Math.max(0,Math.min(1,(1.6/12-sp)/(.5/12)))}u.uSeed.value=1+Math.random()*40;
   M2.U.mO.value.set(x0,z0,dx,dz);M2.U.mTx.value.set(1/W,1/H);M2.key=[LV.id,RX0,RX1,RY0,RY1].join();M2.clr=1;M2.q.length=0;M2.bx=null;M2.hp.set(h)}
 function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA.value=src.texture;const prt=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=false;renderer.setRenderTarget(dst);renderer.render(M2.sc,M2.cam);renderer.setRenderTarget(prt);renderer.autoClear=ac;M2.i=1-M2.i;M2.U.mA.value=dst.texture}
 function m2Stamp(s){if(M2.on&&M2.q.length<24)M2.q.push(s)}
@@ -3289,7 +3289,7 @@ function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.need
   if(scr){const bw=wx(boardX),pv=M2.bx===null?bw:M2.bx,car=u.uCar.value;M2.bx=bw;
     for(let r=0;r<GH;r++){let a=0,w=0;for(let j=-3;j<=3;j++){const q=r+j;if(q<0||q>=GH)continue;const ww=4-Math.abs(j);a+=Math.min(Math.max(carry[q]||0,0),4)*ww;w+=ww}car[r]=w?a/w:0}
     M2.q.unshift({t:2,A:[pv,bw,lastDir||1,screedEff()],B:[2,wz(RY0)-.05,wz(RY1)+.05,0],C:[Math.abs(bw-pv)>1e-4?1:0,0,0,0]})}else M2.bx=null;
-  u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=EXf();
+  u.uClrA.value=M2.stg==='screed'&&k!=='screed'?1:0;M2.U.mRoll.value=scr?1:0;M2.U.mEx.value=1.35;
   u.uBl.value=bleed(set);u.uDt.value=Math.min(.05,dt);u.uDtS.value=Math.min(.5,dt+Math.max(0,set-M2.ps)*40);M2.ps=set;
   const idle=!M2.q.length&&!u.uClrA.value&&!pour&&(set>.62||M2.fr%6);M2.stg=k;if(idle)return;
   for(let pass=0;pass<3;pass++){const n=Math.min(4,M2.q.length);for(let i=0;i<n;i++){const s=M2.q.shift();u.uTA.value[i].fromArray(s.A);u.uTB.value[i].fromArray(s.B);u.uTC.value[i].fromArray(s.C||[0,0,0,0])}u.uN.value=n;m2Pass();u.uDt.value=0;u.uDtS.value=0;u.uClrA.value=0;if(!M2.q.length)break}}
@@ -3308,7 +3308,7 @@ function sampleH(u,v){ // bilinear on cell centers, using only cells inside the 
 }
 // v367: the mud the screed carries is a wave in the slab itself, right in front of the board: same concrete, stops at the forms
 const WV={on:false,cs:new Float32Array(64)};
-function scrWave(P,n){if(!WV.on||STR.on||(LV&&LV.bridge)||M2.on)return;const st=scrStrip(),src=st?carryC:carry,M=st?GW:GH,cs=WV.cs;
+function scrWave(P,n){if(!WV.on||STR.on||(LV&&LV.bridge)||(M2.on&&!scrStrip()))return;const st=scrStrip(),src=st?carryC:carry,M=st?GW:GH,cs=WV.cs;
   for(let i=0;i<M;i++){let a=0,w=0;for(let k=-3;k<=3;k++){const j=i+k;if(j<0||j>=M)continue;const ww=4-Math.abs(k);a+=Math.min(Math.max(src[j]||0,0),4)*ww;w+=ww}cs[i]=w?a/w:0}
   const b=st?boardY:boardX,dir=st?lastDirY:lastDir,cell=st?SLAB_D/GH:SLAB_W/GW;
   for(let k=0;k<n;k++){if(!vMode[k])continue;const u=vU[k],v=vV[k],ci=Math.min(GW-1,Math.max(0,Math.floor(u))),cj=Math.min(GH-1,Math.max(0,Math.floor(v)));if(!inR[cj*GW+ci])continue;
