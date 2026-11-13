@@ -959,8 +959,9 @@ function updateSurface(){
     const L=94+sl*82+Math.max(-3,h[i])*(5+7*relief)+hs+mott[i]-trow[i]*6;d[o]=L+3+q*4;d[o+1]=L+2+q*2;d[o+2]=L-q*7;d[o+3]=255}
   smx.putImageData(simg,0,0);sx.imageSmoothingEnabled=true;sx.drawImage(small,0,0,TW,TH);
   maskDraw(sx,i=>(1-Math.min(1,closed[i]))*.85,paste);
-  sx.drawImage(screedC,0,0);sx.drawImage(floatC,0,0);sx.drawImage(trowC,0,0);
-  sx.drawImage(broomC,0,0);
+  const m2b=typeof M2!=='undefined'&&M2.on;
+  if(!m2b){sx.drawImage(screedC,0,0);sx.drawImage(floatC,0,0);sx.drawImage(trowC,0,0);}
+  if(!m2b)sx.drawImage(broomC,0,0);
   if(S.expose!=null)maskDraw(sx,i=>Math.min(1,expo[i]),pebbles);
   const L=baseL()+3;
   if(!GPS.on){maskDraw(sx,i=>band[i]?Math.min(1,edged[i])*.9:0,`rgb(${L+8|0},${L+5|0},${L-3|0})`);drawEdgeLines()}
@@ -991,15 +992,15 @@ function updateSurface(){
     const sl=set+dryOff[i],pool=clamp01(.75-h[i]*.7);R-=Math.max(wetness(sl)*.32,fresh*.36,bleed(sl)*pool*.8);
     if(!has(i))R=1;const v=Math.max(10,Math.min(255,R*255));d[o]=d[o+1]=d[o+2]=v;d[o+3]=255}
   smx.putImageData(simg,0,0);rx.imageSmoothingEnabled=true;rx.drawImage(small,0,0,TW,TH);
-  rx.drawImage(trowR,0,0);rx.drawImage(broomR,0,0);if(LV.color)rx.drawImage(stampR,0,0);
+  if(!m2b){rx.drawImage(trowR,0,0);rx.drawImage(broomR,0,0);}if(LV.color)rx.drawImage(stampR,0,0);
   for(let i=0;i<N;i++){const o=i*4,sl=set+dryOff[i],w=has(i)?Math.max(wetness(sl)*.8,bleed(sl)*clamp01(.85-h[i]*.6)):0,v=Math.min(255,w*255);d[o]=d[o+1]=d[o+2]=v;d[o+3]=255}
   smx.putImageData(simg,0,0);ccx.imageSmoothingEnabled=true;ccx.drawImage(small,0,0,256,128);
   // bump: ripple where the paste is wet and untroweled, rock where unfloated, broom grooves, tooled edges and joints
   bpx.fillStyle='rgb(128,128,128)';bpx.fillRect(0,0,TW,TH);
   const rip=set<.5?1:Math.max(.25,1-(set-.5)*3);
-  maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
+  if(!m2b){maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip,ripple);// v291: the bull float closes the surface; no ripple left under it
   maskDraw(bpx,i=>(1-Math.min(1,closed[i]))*.95,rough);
-  bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
+  bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);}if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
   if(!GPS.on)maskDraw(bpx,i=>band[i]?Math.min(1,edged[i])*.9:0,'rgb(132,132,132)');
   if(!GPS.on)for(const j of joints){const [lo,hi]=jRange(j),c=j.p*CPX;for(let k=lo;k<hi;k++){const d=Math.min(1,j.cells[k]);if(d>0){bpx.fillStyle=`rgba(20,20,20,${d})`;j.o==='x'?bpx.fillRect(c-3,k*CPX,6,CPX+.6):bpx.fillRect(k*CPX,c-3,CPX+.6,6)}}}
 }
@@ -3185,8 +3186,7 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
     F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
-     .replace('#include <map_fragment>','#ifdef USE_MAP\nvec4 sampledDiffuseColor=texture2D(map,vMapUv,3.);diffuseColor*=sampledDiffuseColor;\n#endif')
-     .replace('#include <roughnessmap_fragment>','float roughnessFactor=roughness;\n#ifdef USE_ROUGHNESSMAP\nvec4 texelRoughness=texture2D(roughnessMap,vRoughnessMapUv,3.);roughnessFactor*=texelRoughness.g;\n#endif');
+;
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
 slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+'gl370';
@@ -3208,7 +3208,7 @@ const slab=new THREE.Mesh(slabGeo,slabMat);slab.receiveShadow=true;slab.castShad
 const M2={on:false,cap:null,rt:[],i:0,W:0,H:0,q:[],hp:new Float32Array(N),J:null,ps:0,bx:null,stg:'',clr:1,fr:0,key:'',
   U:{mA:{value:null},mO:{value:new THREE.Vector4(0,0,1,1)},mTx:{value:new THREE.Vector2(1,1)},mRoll:{value:0},mEx:{value:1.35}}};
 function m2Cap(){if(M2.cap!==null)return M2.cap;try{const gl=renderer.getContext();M2.cap=!!(gl.getExtension('EXT_color_buffer_float')||gl.getExtension('EXT_color_buffer_half_float'))}catch(e){M2.cap=false}return M2.cap}
-function m2Want(){return !!(LV&&GPS.on&&renderer&&!safeGfx&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on)&&!(LV.steps&&LV.steps.includes('stamp'))&&m2Cap())}
+function m2Want(){return !!(LV&&GPS.on&&renderer&&!safeGfx&&m2Cap())}
 const M2FS=`precision highp float;
 uniform sampler2D tA;uniform sampler2D tJ;uniform sampler2D tH;uniform vec2 uTx;uniform vec2 uOrg;uniform vec2 uSize;
 uniform float uSW;uniform float uSD;uniform float uDt;uniform float uDtS;uniform float uBl;uniform float uSeed;uniform float uClear;uniform float uClrA;uniform float uF;uniform float uGk;
@@ -3280,7 +3280,7 @@ function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,
   M2.U.mO.value.set(x0,z0,dx,dz);M2.U.mTx.value.set(1/W,1/H);M2.key=[LV.id,RX0,RX1,RY0,RY1].join();M2.clr=1;M2.q.length=0;M2.bx=null;M2.hp.set(h)}
 function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA.value=src.texture;const prt=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=false;renderer.setRenderTarget(dst);renderer.render(M2.sc,M2.cam);renderer.setRenderTarget(prt);renderer.autoClear=ac;M2.i=1-M2.i;M2.U.mA.value=dst.texture}
 function m2Stamp(s){if(M2.on&&M2.q.length<24)M2.q.push(s)}
-function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.needsUpdate=true;slabMat.bumpScale=want?0:.045;if(!want)return;M2.key=''}
+function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}if(!want)return;M2.key=''}
   if(!M2.on)return;if(M2.key!==[LV.id,RX0,RX1,RY0,RY1].join())m2Setup();
   const u=M2.sim.uniforms,k=STAGES[stage]&&STAGES[stage].key,pour=k==='pour';M2.fr++;
   if(M2.clr){M2.clr=0;u.uClear.value=1;m2Pass();m2Pass();u.uClear.value=0;M2.hp.set(h);M2.q.length=0;M2.bx=null}
