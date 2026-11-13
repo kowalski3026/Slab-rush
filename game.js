@@ -8252,11 +8252,12 @@ const FGO={m:null,L:null};
 function fgoTick(){const C=BKD.on&&!BKD.yr&&BKD.L&&bkdC(BKD.L);if(!C||!C.fgOcc||!BKD.tex||!BKD.o){if(FGO.m)FGO.m.visible=false;return}
   if(!FGO.m||FGO.L!==BKD.L||FGO.m.material.map!==BKD.tex){if(FGO.m){scene.remove(FGO.m);FGO.m.geometry.dispose();FGO.m.material.dispose()}
     const cam=BKD.o;cam.position.fromArray(C.cam);cam.fov=C.fov||70;cam.aspect=C.asp||.75;cam.updateProjectionMatrix();cam.lookAt(new THREE.Vector3().fromArray(C.look));cam.updateMatrixWorld(true);
-    const P=C.fgOcc,pos=[],uv=[],v=new THREE.Vector3(),o=cam.position;P.forEach(q=>{v.set(q[0],q[1],.5).unproject(cam).sub(o).normalize();const f=v.dot(cam.getWorldDirection(new THREE.Vector3()));v.multiplyScalar(C.fgD/f).add(o);pos.push(v.x,v.y,v.z);uv.push((q[0]+1)/2,(q[1]+1)/2)});
+    let P=C.fgOcc;{let cx=0,cy=0;P.forEach(q=>{cx+=q[0];cy+=q[1]});cx/=P.length;cy/=P.length;P=P.map(q=>[cx+(q[0]-cx)*1.1,cy+(q[1]-cy)*1.1])}
+    const pos=[],uv=[],v=new THREE.Vector3(),o=cam.position;P.forEach(q=>{v.set(q[0],q[1],.5).unproject(cam).sub(o).normalize();const f=v.dot(cam.getWorldDirection(new THREE.Vector3()));v.multiplyScalar(C.fgD/f).add(o);pos.push(v.x,v.y,v.z);uv.push((q[0]+1)/2,(q[1]+1)/2)});
     let tri=[];try{tri=THREE.ShapeUtils.triangulateShape(P.map(q=>new THREE.Vector2(q[0],q[1])),[])}catch(e){}
     if(!tri||tri.length<1){tri=[];for(let i=1;i<P.length-1;i++)tri.push([0,i,i+1])}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(tri.flat());
-    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,depthTest:false,depthWrite:false}));m.renderOrder=6;m.raycast=()=>{};m.frustumCulled=false;scene.add(m);FGO.m=m;FGO.L=BKD.L}
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,depthTest:false,depthWrite:false,transparent:true}));m.renderOrder=999;m.raycast=()=>{};m.frustumCulled=false;scene.add(m);FGO.m=m;FGO.L=BKD.L}
   FGO.m.visible=true}
 function bkdTick(){try{aprTick()}catch(e){}try{fgoTick()}catch(e){}try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible));/* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
   if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
