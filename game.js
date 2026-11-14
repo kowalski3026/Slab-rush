@@ -3193,7 +3193,7 @@ ${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each
   gTl*=1.-.75*dk;gTl-=sl*1.6;
   float lo=1.-smoothstep(.25,.55,T.r);
   gCol*=mix(1.,.8+.26*T.b+.12*(T.r-.5)-.1*lo,dk);
-  float ant=rel*mix(.5,.08+.85*max(lo,T.g*.9),dk);diffuseColor.rgb=mix(diffuseColor.rgb,spRel,clamp(ant,0.,.85));
+  float mo=gVN(sq*1.7+3.)*.6+gVN(sq*5.3)*.4,ant=rel*mix(.5,.04+.2*smoothstep(.35,.75,mo)+.85*max(lo,T.g*.9),dk);diffuseColor.rgb=mix(diffuseColor.rgb,spRel,clamp(ant,0.,.85));
   gRgh+=.28*rel*(1.-.5*dk)+.06*dk;gPool*=1.-dk;
   float tr=SD.a;if(tr>.02){float n=gVN(sq*9.)*.6+gVN(sq*23.)*.4;gCol*=1.-.3*tr*smoothstep(.45,.7,n);gTl+=(vec2(gVN(sq*9.+.3),gVN(sq*9.+5.1))-.5)*tr*3.;gRgh+=.2*tr;}
  }}}`:''}
@@ -7050,13 +7050,14 @@ function spBlur(a,w,h,r){const t=new Float32Array(w*h),n=2*r+1;
   return a}
 function spPatBuild(){const id=stampSel.pat;if(SP.pat===id&&SP.tT)return;SP.pat=id;let T;TSK=4;try{T=STAMPS[id].gen()}finally{TSK=1}
   const w=T.b.width,h=T.b.height,n=w*h,B=T.b.getContext('2d').getImageData(0,0,w,h).data,M=T.m.getContext('2d').getImageData(0,0,w,h).data,Sd=T.s.getContext('2d').getImageData(0,0,w,h).data;
-  const hf=new Float32Array(n);for(let i=0;i<n;i++)hf[i]=B[i*4];spBlur(hf,w,h,3);
+  // the stone-face texture (slate cleft, sand pits, wood grain) sits shallower than the joints: real mats print it at a fraction of the joint depth
+  const hf=new Float32Array(n);for(let i=0;i<n;i++){const v=B[i*4];hf[i]=v>96?150+(v-150)*.42:v}spBlur(hf,w,h,3);
   const out=new Uint8Array(n*4);for(let i=0;i<n;i++){const o=i*4;out[o]=hf[i];out[o+1]=M[o+3];out[o+2]=Sd[o];out[o+3]=255}
   if(SP.tT)SP.tT.dispose();const t=new THREE.DataTexture(out,w,h,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=8;t.needsUpdate=true;
   SP.tT=t;const sp=STAMPS[id].span||[1,1];SP.sp=sp;SP.P=[2*sp[0],2*sp[1]];SP.U.spT.value=t;SP.U.spP.value.set(SP.P[0],SP.P[1]);SP.U.spR.value.set(w,h);
   // the mat's own face: the same design in blue-grey urethane, the stone faces sitting low (it's the negative)
   const tw=Math.max(64,w/2|0),th=Math.max(64,h/2|0),[c,g]=mk(tw,th),im=g.createImageData(tw,th);
-  for(let y=0;y<th;y++)for(let x=0;x<tw;x++){const v=hf[(y*2)*w+x*2]/255,o=(y*tw+x)*4,k=.62+1.1*(.6-v);im.data[o]=58*k;im.data[o+1]=74*k;im.data[o+2]=88*k;im.data[o+3]=255}
+  for(let y=0;y<th;y++)for(let x=0;x<tw;x++){const v=hf[(y*2)*w+x*2]/255,o=(y*tw+x)*4,k=.78+.9*(.6-v);im.data[o]=96*k;im.data[o+1]=116*k;im.data[o+2]=132*k;im.data[o+3]=255}
   g.putImageData(im,0,0);SP.topC=c;SP.mats.forEach(spMatTex)}
 function spSetup(){const r=SP.res=Math.min(16,1024/Math.max(SLAB_W,SLAB_D));SP.W=Math.round(SLAB_W*r);SP.H=Math.round(SLAB_D*r);SP.x0=-SLAB_W/2;SP.z0=-SLAB_D/2;
   const n=SP.W*SP.H*4;SP.dep=new Uint8Array(n);SP.off=new Uint8Array(n);[SP.tD,SP.tF].forEach(t=>t&&t.dispose());
