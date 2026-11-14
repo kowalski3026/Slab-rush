@@ -7158,6 +7158,8 @@ function spTick(dt){const g=spWant();if(g!==SP.g){SP.g=g;if(!g)spClear()}
   SP.U.spRel.value.copy(spRelCol());
   if(!SP.tmp){SP.tmp=spTamperNew();SP.sh=spShadowNew()}
   const stp=curK()==='stamp';let tm=null;
+  // left the stamp step with mats still down: they print as they are and come up
+  if(!stp)for(const m of SP.mats){if(m.st==='drop')m.st='down';if(m.st==='down')spLift(m)}
   for(const m of SP.mats){if(m.st==='idle')continue;const y0=Math.max(0,surfY(m.x+1,m.z+1));
     if(m.st==='hold'){if(!stp){m.st='idle';m.g.visible=false;continue}m.t+=dt;m.g.position.set(m.x,y0+.5+Math.sin(m.t*5)*.03,m.z+1);m.top.opacity=m.side.opacity=.85}
     else if(m.st==='drop'){m.t+=dt;const k=Math.min(1,m.t/.11);m.g.position.set(m.x,y0+.5*(1-k*k),m.z+1);m.top.opacity=m.side.opacity=1;if(k>=1){m.st='down';buzz(10)}}
@@ -8494,7 +8496,7 @@ function step(t,dt){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
     if(autoFF&&!flags.aff){flags.aff=1;say('Bleed water\'s still coming up. Skipping ahead, get ready to thumb-test.','info','aff',0)}if(!autoFF&&flags.aff===1&&set>=.43){flags.aff=2;buzz(25);say('Close now. Thumb-test it.','good','aff2',0)}
     wb.classList.toggle('held',waitHeld||autoFF);const ff=waitHeld?Math.min(60,12+holdT*30):autoFF?40:1,s0=set;
-    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
+    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?.55:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
     if(set>=1&&!(LV.saw&&STAGES[stage].key==='joint')){if(!flags.endT){flags.endT=t;say('It\'s set up. That\'s the job, let\'s walk it.','bad','setup',0);buzz(80)}else if(t-flags.endT>2400){flags.endT=0;finish(STAGES[stage].key!=='blanket')}}
     if(waitHeld&&[.46,.72].some(m=>s0<m&&set>=m)){holdT=0;buzz(25)}
     if(pouring)pourStep(dt);try{runTick(dt,t)}catch(e){console.warn('run',e)}
