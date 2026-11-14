@@ -140,7 +140,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{stamp:'Drag a mat onto the slab. The first one squares up to a straight form, the rest snap edge to edge (green shadow). Tap a mat to tamp it in, twice, and it peels up on its own. Work in rows. Too soft and they sink, too hard and they barely print.',joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{stamp:'Tap the slab to drop a mat (drag to line it up). The first squares up to a straight form, the rest snap edge to edge (green shadow). Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.',joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -3282,7 +3282,7 @@ void main(){
    if(ds<B.y){float k=B.z*inK*smoothstep(B.y,B.y*(C.z>.5?.96:.75),ds);d=mix(d,textureLod(tA,uv,6.).r*.15,k);c=mix(c,max(c,B.w),k);w=min(1.,w+C.x*k);if(C.y>.5)b*=1.-k;}
   }else if(t==6){// stamp mat: pressed flat under it; soft mud squeezes up into a lip around the edge
    vec2 q=abs(p-A.xy)-A.zw;float od=max(q.x,q.y);
-   if(od<0.){float k=B.z*inK*smoothstep(0.,-.04,od);d=mix(d,textureLod(tA,uv,5.).r*.25,k);b*=1.-k;}
+   if(od<0.){float k=B.z*inK*(1.-smoothstep(-.04,0.,od));d=mix(d,textureLod(tA,uv,5.).r*.25,k);b*=1.-k;}
    else if(B.w>.5&&od<.14)d+=.09*inK*(1.-od/.14)*smoothstep(0.,.03,od);
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
@@ -7097,13 +7097,14 @@ function spPlace(m,X,Z){let x=X-1,z=Z-1,snap=false;
   m.x=x;m.z=z;m.snap=snap}
 function spDown(p){const X=p.wx,Z=p.wz,m=spMatAt(X,Z);
   if(m){if(m.st==='down'&&m.lt<0)SP.tap={m,x:X,z:Z};return}
-  let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<5){f=spMatNew();SP.mats.push(f)}
-  if(!f){say('All five mats are down. Tamp them in and they come up.','info','spAll');return}
+  let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<8){f=spMatNew();SP.mats.push(f)}
+  if(!f){say('All eight mats are down. Tamp them in and they come up.','info','spAll');return}
   Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0});f.g.rotation.set(0,0,0);f.inner.scale.y=1;SP.hold=f;spPlace(f,X,Z);f.g.visible=true;buzz(8)}
-function spMove(p){const t=SP.tap;if(t&&!SP.hold&&Math.hypot(p.wx-t.x,p.wz-t.z)>.45){SP.tap=null;
-    if(t.m.d<=.2){t.m.st='hold';t.m.lt=-1;SP.hold=t.m}else say('It\'s already printing. Tamp it out, don\'t drag it.','info','spDrag')}
+// v379: a drag that starts on a mat that's down is a tamping run: every mat the finger crosses gets tamped
+function spMove(p){const t=SP.tap;if(t&&!SP.hold&&Math.hypot(p.wx-t.x,p.wz-t.z)>.3){SP.tap=null;SP.swipe=true;spTamp(t.m,t.x,t.z)}
+  if(SP.swipe){const m=spMatAt(p.wx,p.wz);if(m&&m.st==='down'&&m.lt<0)spTamp(m,p.wx,p.wz)}
   if(SP.hold)spPlace(SP.hold,p.wx,p.wz)}
-function spUp(){const t=SP.tap;SP.tap=null;if(t&&t.m.st==='down'){spTamp(t.m,t.x,t.z);return}
+function spUp(){const t=SP.tap;SP.tap=null;if(SP.swipe){SP.swipe=false;return}if(t&&t.m.st==='down'){spTamp(t.m,t.x,t.z);return}
   const m=SP.hold;if(!m)return;SP.hold=null;
   let on=false;for(let y=0;y<GH&&!on;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){on=true;break}}
   if(!on){m.st='idle';m.g.visible=false;return}// dragged off the slab: back on the stack
@@ -7116,7 +7117,7 @@ function spUp(){const t=SP.tap;SP.tap=null;if(t&&t.m.st==='down'){spTamp(t.m,t.x
   Object.assign(m,{q,dq,st:'drop',t:0,d:.18});acc[S.stamp].w+=1;acc[S.stamp].q+=q;
   if(m.tex){const sp=SP.sp,ix=Math.round((m.x-SP.lat[0])/2),iz=Math.round((m.z-SP.lat[1])/2);m.tex.offset.set((((ix%sp[0])+sp[0])%sp[0])/sp[0],(((iz%sp[1])+sp[1])%sp[1])/sp[1])}}
 function spTamp(m,X,Z){if(m.lt>=0)return;m.ta=0;m.hit=0;m.tx=Math.max(m.x+.45,Math.min(m.x+1.55,X));m.tz=Math.max(m.z+.45,Math.min(m.z+1.55,Z));
-  m.d=Math.min(1.2,m.d+.46);if(m.d>=1)m.lt=.42}
+  m.d=Math.min(1.2,m.d+.85);if(m.d>=1)m.lt=.36}
 function spPuff(m){let r=0,n=0;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){r+=Math.min(1,SP.relC[i]);n++}}
   if(!n||r/n<.2)return;const c=spRelCol();for(let k=0;k<3;k++){const s=Math.random()*4|0,u=Math.random()*2,X=m.x+(s===0?-.05:s===1?2.05:u),Z=m.z+(s===2?-.05:s===3?2.05:u);try{cdustPuff(X,surfY(X,Z),Z,c,false)}catch(e){}}}
 function spLift(m){m.st='lift';m.t=0;spPrint(m);SP.nMat++;try{m2Stamp({t:6,A:[m.x+1,m.z+1,1,1],B:[6,0,Math.min(1,.4+.6*m.dq),m.sl<.46?1:0],C:[0,0,0,0]})}catch(e){}}
@@ -7531,7 +7532,7 @@ $('next').addEventListener('click',e=>{
     if(k==='broom'&&set<.5)say('Too wet to broom yet. Thumb-test first.','info','nBroom',0);
     if(k==='color')say(set<.44?'Bleed water has to be gone first. Thumb-test.':'Drag to broadcast. Two light, even coats.','info','nCol',0);
     if(k==='release')say('Drag to shake the release on. One even coat over all of it.','info','nRel',0);
-    if(k==='stamp')say(SP.g?'Drag a mat onto the slab. Tap it twice to tamp it in. Start at a straight form and work in rows.':'Start at the front form and work in rows.','info','nSt',0);
+    if(k==='stamp')say(SP.g?'Tap to drop mats along the form, then swipe across them to tamp. Work in rows.':'Start at the front form and work in rows.','info','nSt',0);
     if(k==='gravel')say(digPct()<.9?'Some of it isn\'t dug out yet. Gravel\'s on site anyway, spread it.':'Pit\'s dug. Gravel\'s dumped, spread it out with the bucket.','info','nGrav',0);
     if(k==='base')say('Gravel\'s spread. Run the plate compactor over all of it.','info','nBase',0);
     if(k==='slip')say('Slide the travel lever to start. The truck feeds itself: go slow enough that the hopper never runs dry.','info','nSlip',0);
@@ -8507,7 +8508,7 @@ function step(t,dt){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
     if(autoFF&&!flags.aff){flags.aff=1;say('Bleed water\'s still coming up. Skipping ahead, get ready to thumb-test.','info','aff',0)}if(!autoFF&&flags.aff===1&&set>=.43){flags.aff=2;buzz(25);say('Close now. Thumb-test it.','good','aff2',0)}
     wb.classList.toggle('held',waitHeld||autoFF);const ff=waitHeld?Math.min(60,12+holdT*30):autoFF?40:1,s0=set;
-    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?.55:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
+    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?.4:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
     if(set>=1&&!(LV.saw&&STAGES[stage].key==='joint')){if(!flags.endT){flags.endT=t;say('It\'s set up. That\'s the job, let\'s walk it.','bad','setup',0);buzz(80)}else if(t-flags.endT>2400){flags.endT=0;finish(STAGES[stage].key!=='blanket')}}
     if(waitHeld&&[.46,.72].some(m=>s0<m&&set>=m)){holdT=0;buzz(25)}
     if(pouring)pourStep(dt);try{runTick(dt,t)}catch(e){console.warn('run',e)}
