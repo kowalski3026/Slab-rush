@@ -3187,13 +3187,12 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
 ${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each spot was printed; release powder dusts the top and stays dark in the lows
 {vec2 sq=vDW,su=(sq-spO.xy)/spO.zw;if(su.x>0.&&su.x<1.&&su.y>0.&&su.y<1.){vec4 SD=texture2D(spD,su);float dep=SD.r,rel=SD.g;
  if(dep>.003||rel>.003){vec4 SF=texture2D(spF,su);vec2 pw=sq/spP,pu=pw-SF.rg;float bl=1.+SD.b*5.;vec2 gx=dFdx(pw)*bl,gy=dFdy(pw)*bl;
-  vec4 T=textureGrad(spT,pu,gx,gy);vec2 st=max(1./spR,vec2(length(vec2(gx.x,gy.x)),length(vec2(gx.y,gy.y))));
-  float hx=textureGrad(spT,pu+vec2(st.x,0.),gx,gy).r,hz=textureGrad(spT,pu+vec2(0.,st.y),gx,gy).r;
-  vec2 sl=vec2(hx-T.r,hz-T.r)/(st*spP)*spH*dep;float dk=min(dep*1.5,1.);
+  vec4 T=textureGrad(spT,pu,gx,gy);
+  vec2 sl=(T.gb-.502)*(255./1200.)*spR/spP*spH*dep;float dk=min(dep*1.5,1.);
   gTl*=1.-.75*dk;gTl-=sl*1.6;
   float lo=1.-smoothstep(.25,.55,T.r);
-  gCol*=mix(1.,.8+.26*T.b+.12*(T.r-.5)-.1*lo,dk);
-  float mo=gVN(sq*1.7+3.)*.6+gVN(sq*5.3)*.4,ant=rel*mix(.5,.04+.2*smoothstep(.35,.75,mo)+.85*max(lo,T.g*.9),dk);diffuseColor.rgb=mix(diffuseColor.rgb,spRel,clamp(ant,0.,.85));
+  gCol*=mix(1.,.98+.25*(T.r-.59)-.12*lo,dk);
+  float mo=gVN(sq*2.3+3.),ant=rel*mix(.5,.04+.2*smoothstep(.3,.75,mo)+.85*max(lo,T.a*.9),dk);diffuseColor.rgb=mix(diffuseColor.rgb,spRel,clamp(ant,0.,.85));
   gRgh+=.28*rel*(1.-.5*dk)+.06*dk;gPool*=1.-dk;
   float tr=SD.a;if(tr>.02){float n=gVN(sq*9.)*.6+gVN(sq*23.)*.4;gCol*=1.-.3*tr*smoothstep(.45,.7,n);gTl+=(vec2(gVN(sq*9.+.3),gVN(sq*9.+5.1))-.5)*tr*3.;gRgh+=.2*tr;}
  }}}`:''}
@@ -7052,7 +7051,9 @@ function spPatBuild(){const id=stampSel.pat;if(SP.pat===id&&SP.tT)return;SP.pat=
   const w=T.b.width,h=T.b.height,n=w*h,B=T.b.getContext('2d').getImageData(0,0,w,h).data,M=T.m.getContext('2d').getImageData(0,0,w,h).data,Sd=T.s.getContext('2d').getImageData(0,0,w,h).data;
   // the stone-face texture (slate cleft, sand pits, wood grain) sits shallower than the joints: real mats print it at a fraction of the joint depth
   const hf=new Float32Array(n);for(let i=0;i<n;i++){const v=B[i*4];hf[i]=v>96?150+(v-150)*.42:v}spBlur(hf,w,h,3);
-  const out=new Uint8Array(n*4);for(let i=0;i<n;i++){const o=i*4;out[o]=hf[i];out[o+1]=M[o+3];out[o+2]=Sd[o];out[o+3]=255}
+  // R height, G/B its slope across and along (so the shader needs one fetch, and the mipmaps filter the normals properly), A where release collects
+  const out=new Uint8Array(n*4),E=v=>Math.max(0,Math.min(255,Math.round(128+v*1200)));for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x,o=i*4;
+    out[o]=hf[i];out[o+1]=E((hf[y*w+(x+1)%w]-hf[y*w+(x+w-1)%w])/510);out[o+2]=E((hf[((y+1)%h)*w+x]-hf[((y+h-1)%h)*w+x])/510);out[o+3]=Math.max(M[o+3],(255-Sd[o])*.6)}
   if(SP.tT)SP.tT.dispose();const t=new THREE.DataTexture(out,w,h,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=8;t.needsUpdate=true;
   SP.tT=t;const sp=STAMPS[id].span||[1,1];SP.sp=sp;SP.P=[2*sp[0],2*sp[1]];SP.U.spT.value=t;SP.U.spP.value.set(SP.P[0],SP.P[1]);SP.U.spR.value.set(w,h);
   // the mat's own face: the same design in blue-grey urethane, the stone faces sitting low (it's the negative)
@@ -7083,14 +7084,14 @@ function spTamperNew(){const g=new THREE.Group(),st=new THREE.MeshStandardMateri
   const gr=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.7,8),SPM.hand);gr.rotation.z=Math.PI/2;gr.position.y=3.44;g.add(gr);
   g.visible=false;scene.add(g);return g}
 function spShadowNew(){const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.3,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=3;m.visible=false;scene.add(m);return m}
-function spMatAt(X,Z){for(const m of SP.mats)if(m.st==='down'&&m.lt<0&&X>=m.x-.15&&X<=m.x+2.15&&Z>=m.z-.15&&Z<=m.z+2.15)return m;return null}
+function spMatAt(X,Z){for(const m of SP.mats)if((m.st==='down'||m.st==='drop'||m.st==='lift')&&X>=m.x-.15&&X<=m.x+2.15&&Z>=m.z-.15&&Z<=m.z+2.15)return m;return null}
 function spPlace(m,X,Z){let x=X-1,z=Z-1,snap=false;
   if(SP.lat){const lx=SP.lat[0]+Math.round((x-SP.lat[0])/2)*2,lz=SP.lat[1]+Math.round((z-SP.lat[1])/2)*2;if(Math.abs(lx-x)<.5&&Math.abs(lz-z)<.5){x=lx;z=lz;snap=true}}
   else{for(const L of SP.xl){if(Math.abs(x-L)<.6){x=L;snap=true}else if(Math.abs(x+2-L)<.6){x=L-2;snap=true}}
     for(const L of SP.zl){if(Math.abs(z-L)<.6){z=L;snap=true}else if(Math.abs(z+2-L)<.6){z=L-2;snap=true}}}
   m.x=x;m.z=z;m.snap=snap}
 function spDown(p){const X=p.wx,Z=p.wz,m=spMatAt(X,Z);
-  if(m){SP.tap={m,x:X,z:Z};return}
+  if(m){if(m.st==='down'&&m.lt<0)SP.tap={m,x:X,z:Z};return}
   let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<5){f=spMatNew();SP.mats.push(f)}
   if(!f){say('All five mats are down. Tamp them in and they come up.','info','spAll');return}
   Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0});f.g.rotation.set(0,0,0);f.inner.scale.y=1;SP.hold=f;spPlace(f,X,Z);f.g.visible=true;buzz(8)}
