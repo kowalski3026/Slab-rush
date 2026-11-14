@@ -3252,7 +3252,7 @@ void main(){
    vec2 s=A.zw-A.xy;float L2=max(dot(s,s),1e-6),tt=clamp(dot(p-A.xy,s)/L2,0.,1.);vec2 o=p-(A.xy+s*tt),u=C.xy,n=vec2(u.y,-u.x);float al=abs(dot(o,u)),pe=abs(dot(o,n));
    if(al<B.z&&pe<B.y){float k=B.w*inK*smoothstep(B.z,B.z*.6,al);
     d=mix(d,textureLod(tA,uv,2.).r*.55,.8*k);
-    float e=smoothstep(B.y-.035,B.y-.012,pe)*(1.-smoothstep(B.y-.012,B.y,pe));d=max(d,.01*e*step(.3,k));
+    float e=smoothstep(B.y-.035,B.y-.012,pe)*(1.-smoothstep(B.y-.012,B.y,pe));d+=.02*e*k*(1.-smoothstep(.012,.035,d));// v380: the blade-edge waves build up again (that's the bull-float look), but level off before they make ridges
     d+=sin(dot(p,u)*70.)*.012*C.w*k;
     c=min(1.,c+.34*k);w=min(1.,w+.3*k+C.z*.4*k);b*=1.-k;}
   }else if(t==5){// vibrator or steel trowel: the lumps settle out, paste comes up and the surface closes
