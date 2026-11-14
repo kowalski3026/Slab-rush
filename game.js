@@ -3270,7 +3270,7 @@ void main(){
     float g=(wv*.5-.5)*depth*amp;
     g*=mix(1.,.35+1.5*vn(vec2(qa*.6,alw*5.)),C.x);g+=C.x*.05*uGk*smoothstep(.64,.84,vn(p*16.+B.w));
     g+=sin(dot(p,pr)*2.1+B.w*.7)*.009+(vn(vec2(qa*.1+B.w,alw*.45))-.5)*.022;
-    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,clamp(d,-.03,.02)*.3+g,k);c=mix(c,max(c,.8),k);// v381: the broom knocks the float's built-up blade ridges down, so they don't show as lines a year laterb=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
+    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,clamp(d,-.03,.02)*.3+g,k);c=mix(c,max(c,.8),k);/* v381: the broom knocks the float's built-up blade ridges down, so they don't show as lines a year later */b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
   }}
  gl_FragColor=vec4(d*step(.01,inK),w,c,b);}`;
 function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0,W=dx>=dz?1024:Math.round(1024*dx/dz),H=dx>=dz?Math.round(1024*dz/dx):1024;
