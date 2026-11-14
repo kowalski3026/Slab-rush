@@ -3273,7 +3273,7 @@ void main(){
    vec2 s=A.zw-A.xy;float L2=max(dot(s,s),1e-6),tt=clamp(dot(p-A.xy,s)/L2,0.,1.);vec2 o=p-(A.xy+s*tt),u=C.xy,n=vec2(u.y,-u.x);float al=abs(dot(o,u)),pe=abs(dot(o,n));
    if(al<B.z&&pe<B.y){float k=B.w*inK*smoothstep(B.z,B.z*.6,al);
     d=mix(d,textureLod(tA,uv,2.).r*.55,.8*k);
-    float e=smoothstep(B.y-.035,B.y-.012,pe)*(1.-smoothstep(B.y-.012,B.y,pe));d+=.02*e*k*(1.-smoothstep(.012,.035,d));// v380: the blade-edge waves build up again (that's the bull-float look), but level off before they make ridges
+    float e=smoothstep(B.y-.035,B.y-.012,pe)*(1.-smoothstep(B.y-.012,B.y,pe));d+=.02*e*k;// v381: exactly as v375 (the bull-float look)
     d+=sin(dot(p,u)*70.)*.012*C.w*k;
     c=min(1.,c+.34*k);w=min(1.,w+.3*k+C.z*.4*k);b*=1.-k;}
   }else if(t==5){// vibrator or steel trowel: the lumps settle out, paste comes up and the surface closes
@@ -3295,7 +3295,7 @@ void main(){
     float g=(wv*.5-.5)*depth*amp;
     g*=mix(1.,.35+1.5*vn(vec2(qa*.6,alw*5.)),C.x);g+=C.x*.05*uGk*smoothstep(.64,.84,vn(p*16.+B.w));
     g+=sin(dot(p,pr)*2.1+B.w*.7)*.009+(vn(vec2(qa*.1+B.w,alw*.45))-.5)*.022;
-    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,d*.3+g,k);c=mix(c,max(c,.8),k);b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
+    float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,clamp(d,-.03,.02)*.3+g,k);c=mix(c,max(c,.8),k);// v381: the broom knocks the float's built-up blade ridges down, so they don't show as lines a year laterb=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
   }}
  gl_FragColor=vec4(d*step(.01,inK),w,c,b);}`;
 function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0,W=dx>=dz?1024:Math.round(1024*dx/dz),H=dx>=dz?Math.round(1024*dz/dx):1024;
