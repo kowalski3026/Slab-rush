@@ -3049,7 +3049,7 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
 float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;${CPH.on?'uniform sampler2D cPk;uniform float gPh;':'float gPh=0.;'}uniform float gSD;
 uniform sampler2D mA;uniform vec4 mO;uniform vec2 mTx;uniform float mRoll;uniform float mEx;vec4 mM=vec4(0.);float mIn=0.;
-${spOn?'uniform sampler2D spT;uniform sampler2D spD;uniform sampler2D spF;uniform vec4 spO;uniform vec2 spP;uniform vec2 spR;uniform vec3 spRel;uniform float spH;':''}
+${spOn?'uniform sampler2D spT;uniform sampler2D spD;uniform vec4 spO;uniform vec2 spP;uniform vec2 spR;uniform vec2 spS;uniform vec3 spRel;uniform float spH;uniform float spRl;':''}
 uniform sampler2D gMR;uniform sampler2D gMK;uniform float gWM;uniform float gCure;uniform float gTm;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
@@ -3185,8 +3185,11 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  }
 }
 ${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each spot was printed; release powder dusts the top and stays dark in the lows
-{vec2 sq=vDW,su=(sq-spO.xy)/spO.zw;if(su.x>0.&&su.x<1.&&su.y>0.&&su.y<1.){vec4 SD=texture2D(spD,su);float dep=SD.r,rel=SD.g;
- if(dep>.003||rel>.003){vec4 SF=texture2D(spF,su);vec2 pw=sq/spP,pu=pw-SF.rg;float bl=1.+SD.b*5.;vec2 gx=dFdx(pw)*bl,gy=dFdy(pw)*bl;
+{vec2 sq=vDW,su=(sq-spO.xy)/spO.zw;if(su.x>0.&&su.x<1.&&su.y>0.&&su.y<1.){
+ // one small texture: R depth, G release, B/A the mat's pattern offset. Depth and release blended by hand (4 taps), the offset taken from the nearest
+ vec2 tc=su*spS-.5,f=fract(tc),e=1./spS,i0=(floor(tc)+.5)*e;vec4 a=texture2D(spD,i0),b=texture2D(spD,i0+vec2(e.x,0.)),c=texture2D(spD,i0+vec2(0.,e.y)),d=texture2D(spD,i0+e);
+ vec2 DR=mix(mix(a.rg,b.rg,f.x),mix(c.rg,d.rg,f.x),f.y);float dep=DR.x,rel=DR.y;
+ if(dep>.003||rel>.003){vec4 SN=f.y<.5?(f.x<.5?a:b):(f.x<.5?c:d);vec2 pw=sq/spP,pu=pw-SN.ba;vec2 gx=dFdx(pw),gy=dFdy(pw);
   vec4 T=textureGrad(spT,pu,gx,gy);
   vec2 sl=(T.gb-.502)*(255./1200.)*spR/spP*spH*dep;float dk=min(dep*1.5,1.);
   gTl*=1.-.75*dk;gTl-=sl*1.6;
@@ -3194,7 +3197,7 @@ ${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each
   gCol*=mix(1.,.98+.25*(T.r-.59)-.12*lo,dk);
   float mo=gVN(sq*2.3+3.),ant=rel*mix(.5,.04+.2*smoothstep(.3,.75,mo)+.85*max(lo,T.a*.9),dk);diffuseColor.rgb=mix(diffuseColor.rgb,spRel,clamp(ant,0.,.85));
   gRgh+=.28*rel*(1.-.5*dk)+.06*dk;gPool*=1.-dk;
-  float tr=SD.a;if(tr>.02){float n=gVN(sq*9.)*.6+gVN(sq*23.)*.4;gCol*=1.-.3*tr*smoothstep(.45,.7,n);gTl+=(vec2(gVN(sq*9.+.3),gVN(sq*9.+5.1))-.5)*tr*3.;gRgh+=.2*tr;}
+  float tr=dep*spRl*(1.-smoothstep(.12,.3,rel));if(tr>.02){float n=gVN(sq*9.)*.6+gVN(sq*23.)*.4;gCol*=1.-.3*tr*smoothstep(.45,.7,n);gTl+=(vec2(gVN(sq*9.+.3),gVN(sq*9.+5.1))-.5)*tr*3.;gRgh+=.2*tr;}
  }}}`:''}
 diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
@@ -3216,6 +3219,7 @@ const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9
 /* v209: if a phone can't build the detailed slab shader (too many textures or too long), fall back to the plain one
    instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
 if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
+  if(spOnNow()){SP.bad=1;spGfx(false);return}
   if(CPH.on){CPH.on=false;CPH.off=true}else if(SLABD.on){SLABD.on=false}else if(GPS.on){GPS.on=false}slabMat.needsUpdate=true}}
 try{if(renderer&&renderer.capabilities.maxTextures<16){SLABD.try=1}}catch(e){}
 function gpsInit(){if(GPS.on||safeGfx||!renderer)return;GPS.on=true;gpsShape();gpsSync();slabMat.needsUpdate=true}
@@ -7038,7 +7042,8 @@ function thump(){shake(.1);if(performance.now()>HAP.until)hap(22,2);if(!AC||!sou
    pressed as deep as that spot was printed. The release stays dark in the joints and texture. */
 const SP={g:false,on:false,key:'',pat:'',res:16,W:0,H:0,x0:0,z0:0,dep:null,off:null,tD:null,tF:null,tT:null,P:[2,2],sp:[1,1],topC:null,
   mats:[],hold:null,tap:null,lat:null,xl:[],zl:[],relC:new Float32Array(N),prC:new Float32Array(N),prQ:new Float32Array(N),nDbl:0,nOff:0,nStuck:0,nMat:0,dirty:0,tmp:null,sh:null,rc:null,
-  U:{spT:{value:null},spD:{value:null},spF:{value:null},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
+  U:{spT:{value:null},spD:{value:null},spS:{value:new THREE.Vector2(1,1)},spRl:{value:1},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
+function spOnNow(){try{return SP.on}catch(e){return false}}
 function spWant(){return !!(LV&&LV.steps&&LV.steps.includes('stamp')&&(LV.id==='stamp'||/stamp2/.test(location.search))&&!STR.on)}
 function spRelCol(){const r=RELEASES.find(o=>o.id===stampSel.rel)||RELEASES[0];return (SP.rc||(SP.rc=new THREE.Color())).setStyle(r.c)}
 // box blur with wrap-around, twice (about a gaussian), so the joints get a rounded shoulder instead of a pixel step
@@ -7061,14 +7066,14 @@ function spPatBuild(){const id=stampSel.pat;if(SP.pat===id&&SP.tT)return;SP.pat=
   for(let y=0;y<th;y++)for(let x=0;x<tw;x++){const v=hf[(y*2)*w+x*2]/255,o=(y*tw+x)*4,k=.78+.9*(.6-v);im.data[o]=96*k;im.data[o+1]=116*k;im.data[o+2]=132*k;im.data[o+3]=255}
   g.putImageData(im,0,0);SP.topC=c;SP.mats.forEach(spMatTex)}
 function spSetup(){const r=SP.res=Math.min(16,1024/Math.max(SLAB_W,SLAB_D));SP.W=Math.round(SLAB_W*r);SP.H=Math.round(SLAB_D*r);SP.x0=-SLAB_W/2;SP.z0=-SLAB_D/2;
-  const n=SP.W*SP.H*4;SP.dep=new Uint8Array(n);SP.off=new Uint8Array(n);[SP.tD,SP.tF].forEach(t=>t&&t.dispose());
+  const n=SP.W*SP.H*4;SP.dep=new Uint8Array(n);if(SP.tD)SP.tD.dispose();
   const mkT=(a,lin)=>{const t=new THREE.DataTexture(a,SP.W,SP.H,THREE.RGBAFormat);t.magFilter=t.minFilter=lin?THREE.LinearFilter:THREE.NearestFilter;t.needsUpdate=true;return t};
-  SP.tD=mkT(SP.dep,1);SP.tF=mkT(SP.off,0);SP.U.spD.value=SP.tD;SP.U.spF.value=SP.tF;SP.U.spO.value.set(SP.x0,SP.z0,SLAB_W,SLAB_D);
+  SP.tD=mkT(SP.dep,0);SP.U.spD.value=SP.tD;SP.U.spS.value.set(SP.W,SP.H);SP.U.spO.value.set(SP.x0,SP.z0,SLAB_W,SLAB_D);
   // straight form lines the first mat can square up to
   SP.xl=[];SP.zl=[];const P=LV.shape||[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];if(!a||!b)continue;
     if(Math.abs(a[0]-b[0])<.02&&Math.abs(a[1]-b[1])>1.5)SP.xl.push(a[0]);if(Math.abs(a[1]-b[1])<.02&&Math.abs(a[0]-b[0])>1.5)SP.zl.push(a[1])}
   SP.key=[LV.id,SLAB_W,SLAB_D].join();spClear()}
-function spClear(){if(SP.dep){SP.dep.fill(0);SP.off.fill(0);SP.dirty=1}SP.relC.fill(0);SP.prC.fill(0);SP.prQ.fill(0);SP.nDbl=SP.nOff=SP.nStuck=SP.nMat=0;SP.lat=null;SP.hold=SP.tap=null;
+function spClear(){SP.done=[];if(SP.dep){SP.dep.fill(0);SP.dirty=1}SP.relC.fill(0);SP.prC.fill(0);SP.prQ.fill(0);SP.nDbl=SP.nOff=SP.nStuck=SP.nMat=0;SP.lat=null;SP.hold=SP.tap=null;
   SP.mats.forEach(m=>{m.st='idle';m.g.visible=false});if(SP.tmp)SP.tmp.visible=false;if(SP.sh)SP.sh.visible=false}
 const SPM={side:new THREE.MeshStandardMaterial({color:0x2c3a44,roughness:.62,transparent:true}),hand:new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.85})};
 function spMatNew(){const g=new THREE.Group(),inner=new THREE.Group();inner.position.x=1;g.add(inner);
@@ -7115,21 +7120,22 @@ function spTamp(m,X,Z){if(m.lt>=0)return;m.ta=0;m.hit=0;m.tx=Math.max(m.x+.45,Ma
 function spPuff(m){let r=0,n=0;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){r+=Math.min(1,SP.relC[i]);n++}}
   if(!n||r/n<.2)return;const c=spRelCol();for(let k=0;k<3;k++){const s=Math.random()*4|0,u=Math.random()*2,X=m.x+(s===0?-.05:s===1?2.05:u),Z=m.z+(s===2?-.05:s===3?2.05:u);try{cdustPuff(X,surfY(X,Z),Z,c,false)}catch(e){}}}
 function spLift(m){m.st='lift';m.t=0;spPrint(m);SP.nMat++;try{m2Stamp({t:6,A:[m.x+1,m.z+1,1,1],B:[6,0,Math.min(1,.4+.6*m.dq),m.sl<.46?1:0],C:[0,0,0,0]})}catch(e){}}
-function spPrint(m){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,F=SP.off,P=SP.P,rel=S.release!=null,lat=SP.lat||[m.x,m.z];
+function spPrint(m){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,P=SP.P,rel=S.release!=null,lat=SP.lat||[m.x,m.z];
   const ox=m.snap||m.first?lat[0]:m.x,oz=m.snap||m.first?lat[1]:m.z,R8=Math.round((((ox%P[0])+P[0])%P[0])/P[0]*255)&255,G8=Math.round((((oz%P[1])+P[1])%P[1])/P[1]*255)&255;
   const ax=(m.x-SP.x0)*r,az=(m.z-SP.z0)*r,bx=ax+2*r,bz=az+2*r,i0=Math.max(0,Math.floor(ax)),i1=Math.min(W,Math.ceil(bx)),j0=Math.max(0,Math.floor(az)),j1=Math.min(H,Math.ceil(bz));
   const dv=Math.min(1,m.d)*m.dq;let ov=0,tot=0,stuck=0;
   for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){tot++;if(D[(j*W+i)*4]>90)ov++}
   if(tot&&ov/tot>.2){SP.nDbl++;m.q*=.4;say('Double stamp. That leaves ghost lines.','bad','stDbl')}
   for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){const k=(j*W+i)*4,e=Math.min(i+.5-ax,bx-i-.5,j+.5-az,bz-j-.5),a=Math.max(0,Math.min(1,(e+.5)/1.5));if(a<=0)continue;
-    const old=D[k];if(old>60&&(F[k]!==R8||F[k+1]!==G8))D[k+2]=Math.max(D[k+2],Math.round(220*a));
-    D[k]=Math.max(old,Math.round(dv*255*a));F[k]=R8;F[k+1]=G8;F[k+3]=255;
-    if(rel){const rv=D[k+1]/255;if(rv<.3){D[k+3]=Math.max(D[k+3],Math.round((1-rv/.3)*255*a));stuck++}}}
+    D[k]=Math.max(D[k],Math.round(dv*255*a));D[k+2]=R8;D[k+3]=G8;
+    if(rel&&D[k+1]<77)stuck++}
   SP.dirty=1;if(rel&&tot&&stuck/tot>.12){SP.nStuck++;m.q*=.6;say('No release there. The mat stuck and tore the face.','bad','spStuck')}
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(!inR[i])continue;const cx=wx(x+.5),cz=wz(y+.5);if(cx<m.x||cx>m.x+2||cz<m.z||cz>m.z+2)continue;
     const pv=SP.prC[i];SP.prC[i]=Math.max(pv,dv);SP.prQ[i]=pv>.3?Math.min(SP.prQ[i],m.q):m.q;if(m.sl<.46)weak[i]=Math.min(1,weak[i]+.06)}
-  if(!SP.on){// plain graphics: the old flat print
-    const px=(m.x+SLAB_W/2)/SLAB_W*TW,py=(m.z+SLAB_D/2)/SLAB_D*TH,ts=2/SLAB_W*TW;stc.globalAlpha=stb.globalAlpha=dv;stc.drawImage(STILE.col,0,0,128,128,px,py,ts,ts);stb.drawImage(STILE.bump,0,0,128,128,px,py,ts,ts);stc.globalAlpha=stb.globalAlpha=1}
+  SP.done.push({x:m.x,z:m.z,dv});if(!SP.on)spFlat(m.x,m.z,dv);
+  surfDirty=true}
+function spFlat(x,z,dv){{// plain graphics: the old flat print
+    const m={x,z},px=(m.x+SLAB_W/2)/SLAB_W*TW,py=(m.z+SLAB_D/2)/SLAB_D*TH,ts=2/SLAB_W*TW;stc.globalAlpha=stb.globalAlpha=dv;stc.drawImage(STILE.col,0,0,128,128,px,py,ts,ts);stb.drawImage(STILE.bump,0,0,128,128,px,py,ts,ts);stc.globalAlpha=stb.globalAlpha=1}
   surfDirty=true}
 function spRelPaint(X,Z,amt){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,rr=1.25*r,s2=2*(rr*.5)*(rr*.5),cx=(X-SP.x0)*r,cz=(Z-SP.z0)*r;
   for(let j=Math.max(0,Math.floor(cz-rr));j<Math.min(H,Math.ceil(cz+rr));j++)for(let i=Math.max(0,Math.floor(cx-rr));i<Math.min(W,Math.ceil(cx+rr));i++){
@@ -7150,12 +7156,16 @@ function spAuto(){if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();if(!SP.lat)
     let on=false;for(let y=0;y<GH&&!on;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2){on=true;break}}if(on)spPrint(m)}}
 function spStats(){let n=0,tot=0,q=0;for(let i=0;i<N;i++){if(!inR[i])continue;tot++;if(SP.prC[i]>=.5){n++;q+=SP.prQ[i]*Math.min(1,SP.prC[i]/.85)}}
   return{n,tot,cov:tot?n/tot:0,q:n?q/n:0,dbl:SP.nDbl,off:SP.nOff,stuck:SP.nStuck,mats:SP.nMat}}
+function spGfx(on){const was=SP.on;SP.on=on;slabMat.clearcoatMap=on?null:ccTex;slabMat.needsUpdate=true;surfDirty=true;
+  if(was&&!on&&SP.done)SP.done.forEach(o=>spFlat(o.x,o.z,o.dv))}
 function spTick(dt){const g=spWant();if(g!==SP.g){SP.g=g;if(!g)spClear()}
-  const on=g&&!!(GPS.on&&renderer);if(on!==SP.on){SP.on=on;slabMat.needsUpdate=true;surfDirty=true}
+  // the relief shader only from the release step on: phones allow 16 textures in a shader and the slab already uses them all,
+  // so while it's on the wet-sheen map and the site shading on the slab are dropped (the slab is past bleed water by then)
+  const s0=S.release!=null?S.release:S.stamp,on=g&&!SP.bad&&!!(GPS.on&&renderer)&&stage>=s0;if(on!==SP.on)spGfx(on);
   if(!g)return;
   if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();
   if(SP.pat!==stampSel.pat||!SP.tT)spPatBuild();
-  if(SP.dirty){SP.dirty=0;SP.tD.needsUpdate=SP.tF.needsUpdate=true}
+  if(SP.dirty){SP.dirty=0;SP.tD.needsUpdate=true}
   SP.U.spRel.value.copy(spRelCol());
   if(!SP.tmp){SP.tmp=spTamperNew();SP.sh=spShadowNew()}
   const stp=curK()==='stamp';let tm=null;
@@ -9189,7 +9199,7 @@ function mergeInto(root,list){const inv=new THREE.Matrix4().copy(root.matrixWorl
 const AO={hk:new WeakSet(),N:22,S:512,U:{aoMap:{value:null},aoBox:{value:new THREE.Vector4(-90,-90,180,180)},aoK:{value:0}},done:false};
 function aoHook(m){if(!m||AO.hk.has(m)||!(m.isMeshStandardMaterial||m.isMeshLambertMaterial||m.isMeshPhongMaterial))return;AO.hk.add(m);
   const ob=m.onBeforeCompile,ck=m.customProgramCacheKey;
-  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);Object.assign(sh.uniforms,AO.U);if(sh.vertexShader.indexOf('vAoW')>=0)return;/* v332: a photo-site clone of an AO material chains the original's patch and got hooked again: double declarations, the shader failed and the dug pit vanished on retry */
+  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);if(this===slabMat&&spOnNow())return;Object.assign(sh.uniforms,AO.U);if(sh.vertexShader.indexOf('vAoW')>=0)return;/* v332: a photo-site clone of an AO material chains the original's patch and got hooked again: double declarations, the shader failed and the dug pit vanished on retry */
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vAoW;').replace('#include <project_vertex>','#include <project_vertex>\n{vec4 aoP=vec4(transformed,1.);\n#ifdef USE_INSTANCING\naoP=instanceMatrix*aoP;\n#endif\nvAoW=(modelMatrix*aoP).xyz;}');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vAoW;uniform sampler2D aoMap;uniform vec4 aoBox;uniform float aoK;')
       .replace('#include <aomap_fragment>','#include <aomap_fragment>\nif(aoK>0.){vec2 q=(vAoW.xz-aoBox.xy)/aoBox.zw;if(q.x>0.&&q.x<1.&&q.y>0.&&q.y<1.){float a=min(1.,texture2D(aoMap,q).r*1.04),hf=smoothstep(.2,5.,vAoW.y+.3),o=mix(1.,mix(a*a*(3.-2.*a),1.,hf),aoK);reflectedLight.indirectDiffuse*=o;reflectedLight.indirectSpecular*=mix(1.,o,.75);}}')};
