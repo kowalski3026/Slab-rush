@@ -3288,7 +3288,13 @@ function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,
   const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;{const txf=dx/W,sp=Math.max(.8/12,5*txf);u.uF.value=1/sp;u.uGk.value=Math.max(0,Math.min(1,(1.6/12-sp)/(.5/12)))}u.uSeed.value=1+Math.random()*40;
   M2.U.mO.value.set(x0,z0,dx,dz);M2.U.mTx.value.set(1/W,1/H);M2.key=[LV.id,RX0,RX1,RY0,RY1].join();M2.clr=1;M2.q.length=0;M2.bx=null;M2.hp.set(h)}
 function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA.value=src.texture;const prt=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=false;renderer.setRenderTarget(dst);renderer.render(M2.sc,M2.cam);renderer.setRenderTarget(prt);renderer.autoClear=ac;M2.i=1-M2.i;M2.U.mA.value=dst.texture}
-function m2Stamp(s){if(M2.on&&M2.q.length<24)M2.q.push(s)}
+/* v386: a screed strike is struck however far the finger moved in one step (it used to be skipped past 6 cells, so on a big pad
+   seen zoomed out most of the strike never happened and the mud stayed raw), and back-to-back strikes on the same lane are
+   joined into one so a fast pass can't overflow the queue */
+function m2Stamp(s){if(!M2.on)return;const l=M2.q[M2.q.length-1];
+  if(s.t===2&&l&&l.t===2&&s.C&&l.C&&s.C[0]>.5&&l.C[0]>.5&&l.C[1]===s.C[1]&&l.B[1]===s.B[1]&&l.B[2]===s.B[2]){
+    l.A=[Math.min(l.A[0],l.A[1],s.A[0],s.A[1]),Math.max(l.A[0],l.A[1],s.A[0],s.A[1]),s.A[2],Math.max(l.A[3],s.A[3])];return}
+  if(M2.q.length<24)M2.q.push(s)}
 function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}if(!want)return;M2.key=''}
   if(!M2.on)return;if(M2.key!==[LV.id,RX0,RX1,RY0,RY1].join())m2Setup();
   const u=M2.sim.uniforms,k=STAGES[stage]&&STAGES[stage].key,pour=k==='pour';M2.fr++;
@@ -5623,7 +5629,7 @@ function screedMoveY(y0,y1){
   for(let r=r0;dir>0?r<=r1:r>=r1;r+=dir){if(r===lastRow)continue;lastRow=r;
     if(r<LA||r>=LB){if(carryC.some(v=>v>0))spillRow(r);continue}
     processRow(r,eff)}
-  try{const [c0,c1]=scrCols(),a=Math.max(LA-1,Math.min(LB+1,y0)),b=Math.max(LA-1,Math.min(LB+1,y1));if(Math.abs(b-a)<6)m2Stamp({t:2,A:[wz(a),wz(b),dir,Math.min(1,eff)],B:[2,wx(c0)-.05,wx(c1)+.05,0],C:[1,1,0,0]})}catch(e){}
+  try{const [c0,c1]=scrCols(),a=Math.max(LA-1,Math.min(LB+1,y0)),b=Math.max(LA-1,Math.min(LB+1,y1));m2Stamp({t:2,A:[wz(a),wz(b),dir,Math.min(1,eff)],B:[2,wx(c0)-.05,wx(c1)+.05,0],C:[1,1,0,0]})}catch(e){}
   boardY=y1;surfDirty=geoDirty=true;scrAdvance();
   if(set>(gear('laser')?.54:gear('pscreed')?.44:.34))say('Mix is stiffening. The straightedge is skipping over it.','bad','stiffS');
 }
@@ -5658,7 +5664,7 @@ function screedMove(x0,x1){
     if(c===lastCol)continue;lastCol=c;
     if(c<RX0||c>=RX1){carry.fill(0);continue}
     processCol(c,eff)}
-  try{const [LA,LB]=scrRows(),a=Math.max(RX0-1,Math.min(RX1+1,x0)),b=Math.max(RX0-1,Math.min(RX1+1,x1));if(Math.abs(b-a)<6)m2Stamp({t:2,A:[wx(a),wx(b),dir,Math.min(1,eff)],B:[2,wz(LA)-.05,wz(LB)+.05,0],C:[1,0,0,0]})}catch(e){}
+  try{const [LA,LB]=scrRows(),a=Math.max(RX0-1,Math.min(RX1+1,x0)),b=Math.max(RX0-1,Math.min(RX1+1,x1));m2Stamp({t:2,A:[wx(a),wx(b),dir,Math.min(1,eff)],B:[2,wz(LA)-.05,wz(LB)+.05,0],C:[1,0,0,0]})}catch(e){}
   boardX=x1;surfDirty=geoDirty=true;
   if(SCR.on)scrAdvance();
   if(set>(gear('laser')?.54:gear('pscreed')?.44:.34))say('Mix is stiffening. The straightedge is skipping over it.','bad','stiffS');
