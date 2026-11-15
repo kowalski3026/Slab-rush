@@ -2971,6 +2971,8 @@ const slabMat=new THREE.MeshPhysicalMaterial({map:slabTex,bumpMap:bumpTex,bumpSc
 const SLABD={on:false,n:null,m:null};
 const CPH={on:false,off:false,U:{cPk:{value:null},gPh:{value:1}}};
 const SLAB_LK={U:{value:new THREE.Vector3(1,1,1)}};
+// v390: ?cdbg paints the slab with what its shader gets: red = cream (bright where floated), green = the mud sim covers it, blue = inside the pour
+const CDBG=/[?&]cdbg/.test(location.search);
 /* v290: the concrete photo detail is ONE packed texture (R raw-mud detail, G floated-paste detail, BA raw-mud normal) so the slab shader fits
    phones that only allow 16 textures. When it's on, the older slab detail maps are switched off (they did the same job). */
 (()=>{if(typeof safeGfx!=='undefined'&&safeGfx)return;const t=new THREE.TextureLoader().load('tex/cpack2.webp',/* v363: Kris's own pour photos */()=>{if(CPH.off)return;CPH.on=true;SLABD.try=1;SLABD.on=false;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}});
@@ -3022,7 +3024,7 @@ function glareTick(){if(!camera)return;const night=weather.night,k=night?0:WETD.
 slabMat.onBeforeCompile=sh=>{
   Object.assign(sh.uniforms,{gGlDir:GLARE.dir,gGlCol:GLARE.col,gGlK:GLARE.k,gRT:REFL.U.t,gRM:REFL.U.m,gRK:REFL.U.k,gLk:SLAB_LK.U},SKYS.U);
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vRW;').replace('#include <project_vertex>','#include <project_vertex>\nvRW=(modelMatrix*vec4(transformed,1.)).xyz;');
-  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;uniform sampler2D gRT;uniform mat4 gRM;uniform float gRK;uniform vec3 gLk;varying vec3 vRW;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`outgoingLight*=gLk;
+  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;uniform sampler2D gRT;uniform mat4 gRM;uniform float gRK;uniform vec3 gLk;varying vec3 vRW;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`outgoingLight*=gLk;${CDBG?'if(gDbg.x>=0.)outgoingLight=gDbg;':''}
 #ifdef USE_CLEARCOAT
 if(gGlK>0.){vec3 vd=normalize(vViewPosition),nn=normalize(normal),rv=reflect(-vd,nn),rw=normalize((vec4(rv,0.)*viewMatrix).xyz);
  float fr=.04+.96*pow(1.-clamp(dot(nn,vd),0.,1.),5.),hz=pow(1.-clamp(rw.y,0.,1.),3.),sp=max(dot(rw,gGlDir),0.);
@@ -3056,7 +3058,7 @@ vec4 gBS(vec2 uv){vec2 ts=vec2(${GW}.,${GH}.),st=uv*ts-.5,i=floor(st),f=st-i;vec
  vec2 w0=(1.-3.*f+3.*f2-f3)/6.,w1=(4.-6.*f2+3.*f3)/6.,w2=(1.+3.*f+3.*f2-3.*f3)/6.,w3=f3/6.;vec2 g0=w0+w1,g1=w2+w3,h0=(w1/g0-1.+i+.5)/ts,h1=(w3/g1+1.+i+.5)/ts;
  return (texture2D(gHM,vec2(h0.x,h0.y))*g0.x+texture2D(gHM,vec2(h1.x,h0.y))*g1.x)*g0.y+(texture2D(gHM,vec2(h0.x,h1.y))*g0.x+texture2D(gHM,vec2(h1.x,h1.y))*g1.x)*g1.y;}`)
      .replace('#include <map_fragment>',`#include <map_fragment>
-float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;float gSunK=1.,gShn=0.;
+float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;float gSunK=1.,gShn=0.;
 {vec2 p=vDW,uvG=vec2(p.x/gSW+.5,p.y/gSD+.5);
  ${m2?`// v370 fine-grained mud: relief, water and cream at every point come from the simulation
  {vec2 mu=(p-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){mIn=1.;
@@ -3070,6 +3072,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
    float cream=${m2?'mix(clamp(C.b,0.,1.),mM.b,mIn)':'clamp(C.b,0.,1.)'},lump=(1.-cream)*gRel*(1.-.7*gPh)${m2?'*(1.-mIn)':''};
+   ${CDBG?'gDbg=vec3(cream,'+(m2?'mIn':'0.')+',inK*.6);':''}
    // v288 photo concrete: real fresh-placed mud (stone, paste, shine) blending to floated cream as it's struck off and floated
    ${CPH.on?`if(gPh>.01){vec2 pr=p*.42;vec4 ck=texture2D(cPk,pr);float rw=ck.r*2.;
     // v363: the concrete is Kris's own pour photos, one packed picture: R placed mud (pump pour), G struck-off open paste,
@@ -3192,7 +3195,7 @@ diffuseColor.rgb*=gCol;`)
 ;
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+'gl370';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(CDBG?'D':'')+'gl370';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
