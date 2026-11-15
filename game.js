@@ -3273,7 +3273,11 @@ void main(){
     float k=B.z*inK*smoothstep(B.y,B.y*.88,abs(q))*mix(1.,.6,C.y);d=mix(d,d*.3+g,k);c=mix(c,max(c,.8),k);b=mix(b,.5+.5*(vn(vec2(qa*.05+B.w,alw*.3))*.6+vn(vec2(qa*.2,alw*1.1+B.w))*.4),k);w*=1.-.5*k;}
   }}
  gl_FragColor=vec4(d*step(.01,inK),w,c,b);}`;
-function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0,W=dx>=dz?1024:Math.round(1024*dx/dz),H=dx>=dz?Math.round(1024*dz/dx):1024;
+// v385: same detail per foot on every pad as the training pad (about 92 points a foot), up to 2048 on the long side.
+// It used to be 1024 across whatever the pad was, so a 20 ft pad got half the detail and the struck-off roughness washed out.
+function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,z1=wz(RY1)+.6,dx=x1-x0,dz=z1-z0;
+  let mx=2048;try{mx=Math.min(2048,renderer.capabilities.maxTextureSize||2048)}catch(e){}const L=Math.max(1024,Math.min(mx,Math.round(Math.max(dx,dz)*92)));
+  const W=dx>=dz?L:Math.round(L*dx/dz),H=dx>=dz?Math.round(L*dz/dx):L;
   if(!M2.sim){M2.J=new THREE.DataTexture(new Uint8Array(N*4),GW,GH,THREE.RGBAFormat);M2.J.magFilter=M2.J.minFilter=THREE.LinearFilter;M2.J.needsUpdate=true;
     const ta=[],tb=[],tc=[];for(let i=0;i<4;i++){ta.push(new THREE.Vector4());tb.push(new THREE.Vector4());tc.push(new THREE.Vector4())}
     M2.sim=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{tA:{value:null},tJ:{value:M2.J},tH:{value:GPS.hm},uTx:{value:new THREE.Vector2()},uOrg:{value:new THREE.Vector2()},uSize:{value:new THREE.Vector2()},
