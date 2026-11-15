@@ -8405,7 +8405,9 @@ function slabLightK(on){const v=SLAB_LK.U.value;if(!on||!BKD.sunV||weather.night
   for(const c of ['r','g','b']){const sb=A.i*A.c[c],hb=B.i*.85*B.c[c],fb=C.i*.6*C.c[c]*.3,
     cur=sb*(1+(T[c]-1)*.35)*sC+hb*(1+(T[c]-1)*.55)+fb*(1+(T[c]-1)*.35),ref=sb*(1+(W[c]-1)*.35)*sR+hb*(1+(W[c]-1)*.55)+fb*(1+(W[c]-1)*.35);
     o.push(Math.max(.6,Math.min(2.2,ref/Math.max(1e-4,cur))))}
-  v.set(o[0],o[1],o[2])}
+  // calibrated against renders of the two jobs side by side (v388): the photo's tint reaches the slab about a third as much as the
+  // light model says, and the brightness gap is a quarter bigger
+  const m=(o[0]+o[1]+o[2])/3,bk=1+(m-1)*1.27;v.set(bk*(1+.3*(o[0]/m-1)),bk*(1+.3*(o[1]/m-1)),bk*(1+.3*(o[2]/m-1)))}
 function bkdGrade(on){const ls=[[sun,1],[hemi,.85],[fill,.6]];
   ls.forEach(([l,kk],i)=>{const r=BKG.L[i]||(BKG.L[i]={i:null,set:null,c:new THREE.Color(),cs:new THREE.Color()});
     if(l.intensity!==r.set)r.i=l.intensity;if(!l.color.equals(r.cs))r.c.copy(l.color);
