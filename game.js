@@ -3289,6 +3289,10 @@ function m2Setup(){const cs=SLAB_W/GW,x0=wx(RX0)-.6,x1=wx(RX1)+.6,z0=wz(RY0)-.6,
   if(M2.W!==W||M2.H!==H){M2.rt.forEach(r=>r.dispose());M2.rt=[0,1].map(()=>{const r=new THREE.WebGLRenderTarget(W,H,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,generateMipmaps:true,depthBuffer:false,stencilBuffer:false});r.texture.wrapS=r.texture.wrapT=THREE.ClampToEdgeWrapping;r.texture.anisotropy=8;return r});M2.W=W;M2.H=H}
   const u=M2.sim.uniforms;u.uTx.value.set(1/W,1/H);u.uOrg.value.set(x0,z0);u.uSize.value.set(dx,dz);u.uSW.value=SLAB_W;u.uSD.value=SLAB_D;{const txf=dx/W,sp=Math.max(.8/12,5*txf);u.uF.value=1/sp;u.uGk.value=Math.max(0,Math.min(1,(1.6/12-sp)/(.5/12)))}u.uSeed.value=1+Math.random()*40;
   M2.U.mO.value.set(x0,z0,dx,dz);M2.U.mTx.value.set(1/W,1/H);M2.key=[LV.id,RX0,RX1,RY0,RY1].join();M2.clr=1;M2.q.length=0;M2.bx=null;M2.hp.set(h)}
+// v389: perf-meter probe: what the mud sim holds right under the tool (relief, water, cream), read back a few times a second
+function m2Probe(){if(!M2.on||!M2.rt||!M2.rt[M2.i]||(M2.fr|0)%15)return;try{const O=M2.U.mO.value,X=toolPos.x,Z=toolPos.z,ix=Math.floor((X-O.x)/O.z*M2.W),iy=Math.floor((Z-O.y)/O.w*M2.H);
+  if(ix<0||iy<0||ix>=M2.W||iy>=M2.H){M2.pr='off box';return}const b=M2.pb||(M2.pb=new Uint16Array(4));renderer.readRenderTargetPixels(M2.rt[M2.i],ix,iy,1,1,b);
+  const hf=v=>{const e=(v>>10)&31,f=v&1023,x=e===0?f/1024*Math.pow(2,-14):(1+f/1024)*Math.pow(2,e-15);return v>>15?-x:x};M2.pr=`d${hf(b[0]).toFixed(3)} w${hf(b[1]).toFixed(2)} c${hf(b[2]).toFixed(2)}`}catch(e){M2.pr='rd '+String(e).slice(0,30)}}
 function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA.value=src.texture;const prt=renderer.getRenderTarget(),ac=renderer.autoClear;renderer.autoClear=false;renderer.setRenderTarget(dst);renderer.render(M2.sc,M2.cam);renderer.setRenderTarget(prt);renderer.autoClear=ac;M2.i=1-M2.i;M2.U.mA.value=dst.texture}
 /* v386: a screed strike is struck however far the finger moved in one step (it used to be skipped past 6 cells, so on a big pad
    seen zoomed out most of the strike never happened and the mud stayed raw), and back-to-back strikes on the same lane are
@@ -3296,7 +3300,7 @@ function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA
 function m2Stamp(s){if(!M2.on)return;const l=M2.q[M2.q.length-1];
   if(s.t===2&&l&&l.t===2&&s.C&&l.C&&s.C[0]>.5&&l.C[0]>.5&&l.C[1]===s.C[1]&&l.B[1]===s.B[1]&&l.B[2]===s.B[2]){
     l.A=[Math.min(l.A[0],l.A[1],s.A[0],s.A[1]),Math.max(l.A[0],l.A[1],s.A[0],s.A[1]),s.A[2],Math.max(l.A[3],s.A[3])];return}
-  if(M2.q.length<24)M2.q.push(s)}
+  M2.nS=(M2.nS|0)+1;if(M2.q.length<24)M2.q.push(s);else M2.nD=(M2.nD|0)+1}
 function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}if(!want)return;M2.key=''}
   if(!M2.on)return;if(M2.key!==[LV.id,RX0,RX1,RY0,RY1].join())m2Setup();
   const u=M2.sim.uniforms,k=STAGES[stage]&&STAGES[stage].key,pour=k==='pour';M2.fr++;
@@ -7905,7 +7909,7 @@ function perfFrame(t,js,menu){if(!renderer)return;const inf=renderer.info,drew=i
   const txt=`${fps.toFixed(0)}/${FPSCAP?30:60} fps ${ms.toFixed(1)}ms w${PERF.ivMax.toFixed(0)} h${PERF.hitch} js${(PERF.js/PERF.n).toFixed(1)}
 ${inf.render.calls} draws ${k(inf.render.triangles)} tris ${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)}MB
 ${(PRBASE*ADR.k).toFixed(2)}x/${(PRBASE*Math.min(adrMax(),ADR.top)).toFixed(2)} ${v.x}x${v.y} e${PERF.ema.toFixed(1)} u${(ADR.under/1000).toFixed(0)} sh+${PERF.progMid}
-${GFX}${GOV.lv?' -'+GOV.names.slice(1,GOV.lv+1).join(','):''} conc:${typeof M2!=='undefined'&&M2.on?'sim':'nosim'}${M2&&M2.cap===false?'!':''},${CPH.on?'photo':CPH.off?'PHOTOFAIL':'nophoto'},${GPS.on?'gps':'nogps'} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}${typeof PSEC!=='undefined'&&PSEC.log.length?'\nhitch '+PSEC.log.join('\n      '):''}`;
+${GFX}${GOV.lv?' -'+GOV.names.slice(1,GOV.lv+1).join(','):''} conc:${typeof M2!=='undefined'&&M2.on?'sim':'nosim'}${M2&&M2.cap===false?'!':''},${CPH.on?'photo':CPH.off?'PHOTOFAIL':'nophoto'},${GPS.on?'gps':'nogps'}${typeof M2!=='undefined'&&M2.on?`\nm2 ${M2.W}x${M2.H} st${M2.nS|0} dr${M2.nD|0} ${M2.pr||''} set${set.toFixed(2)}`:''} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}${typeof PSEC!=='undefined'&&PSEC.log.length?'\nhitch '+PSEC.log.join('\n      '):''}`;
   const el=perfEl();el.style.display=coachOpen?'none':'';if(txt!==PERF.txt){PERF.txt=txt;el.textContent=txt}
   PERF.n=0;PERF.w0=t;PERF.ivMax=0;PERF.js=0;PERF.jsMax=0}
 /* compile every material in the scene (hidden tools, trucks, tarps included) and pre-upload their textures,
@@ -8353,6 +8357,7 @@ function step(t,dt){
   if((surfDirty&&t-surfT>(lowQ?180:110))||(t-surfT>1200&&!PREPK.has(STAGES[stage].key))){updateSurface();slabTex.needsUpdate=true;roughTex.needsUpdate=true;bumpTex.needsUpdate=true;ccTex.needsUpdate=true;surfDirty=false;surfT=t}
   if(geoDirty){updateGeo();geoDirty=false}
   try{m2Tick(dt)}catch(e){console.warn('m2',e);M2.cap=false}
+  try{if(PERF&&PERF.on)m2Probe()}catch(e){}
   const b=bleed(set),wq=wetness(set-.04);const rw=typeof rainIM!=='undefined'&&rainIM.visible&&!tarpOn?1:0;WETV+=((Math.max(wq,b*.9,rw*.8))-WETV)*Math.min(1,dt*1.5);const nt=weather.night;slabMat.clearcoat=Math.max(.001,Math.min(1,Math.max(wq*.8,b*1.15,rw*.7))*(LV&&LV.wall?.3:1)*(nt?1:WETD.cc)*(stage===S.pour&&mudOn()?.45:1));slabMat.color.setScalar(1-.16*WETV);slabMat.envMapIntensity=nt?.1:1+WETD.env*WETV;if(nt)slabMat.clearcoat*=.4;/* v314: at night the slab self-lights from its own colours (emissive map = the surface texture), so grey mud stays grey and brown forms stay brown */{const em=nt?slabTex:null;if(slabMat.emissiveMap!==em){slabMat.emissiveMap=em;slabMat.needsUpdate=true}if(nt)slabMat.emissive.setRGB(.34,.37,.4);else if(slabMat.emissive.r)slabMat.emissive.setRGB(0,0,0)}slabMat.clearcoatRoughness=Math.max(nt?.06:WETD.rmin,.16-.1*clamp01(b*1.3)-.04*wq-(nt?0:WETD.r));
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
   updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
