@@ -7893,7 +7893,7 @@ function perfFrame(t,js,menu){if(!renderer)return;const inf=renderer.info,drew=i
   const txt=`${fps.toFixed(0)}/${FPSCAP?30:60} fps ${ms.toFixed(1)}ms w${PERF.ivMax.toFixed(0)} h${PERF.hitch} js${(PERF.js/PERF.n).toFixed(1)}
 ${inf.render.calls} draws ${k(inf.render.triangles)} tris ${PERF.mem[0].toFixed(0)}+${PERF.mem[1].toFixed(0)}MB
 ${(PRBASE*ADR.k).toFixed(2)}x/${(PRBASE*Math.min(adrMax(),ADR.top)).toFixed(2)} ${v.x}x${v.y} e${PERF.ema.toFixed(1)} u${(ADR.under/1000).toFixed(0)} sh+${PERF.progMid}
-${GFX}${GOV.lv?' -'+GOV.names.slice(1,GOV.lv+1).join(','):''} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}${typeof PSEC!=='undefined'&&PSEC.log.length?'\nhitch '+PSEC.log.join('\n      '):''}`;
+${GFX}${GOV.lv?' -'+GOV.names.slice(1,GOV.lv+1).join(','):''} conc:${typeof M2!=='undefined'&&M2.on?'sim':'nosim'}${M2&&M2.cap===false?'!':''},${CPH.on?'photo':CPH.off?'PHOTOFAIL':'nophoto'},${GPS.on?'gps':'nogps'} ktx${typeof KTX!=='undefined'?KTX.n:0} m${typeof LM!=='undefined'?LM.saved:0} ${hp} ${PERF.gpu}${typeof PSEC!=='undefined'&&PSEC.log.length?'\nhitch '+PSEC.log.join('\n      '):''}`;
   const el=perfEl();el.style.display=coachOpen?'none':'';if(txt!==PERF.txt){PERF.txt=txt;el.textContent=txt}
   PERF.n=0;PERF.w0=t;PERF.ivMax=0;PERF.js=0;PERF.jsMax=0}
 /* compile every material in the scene (hidden tools, trucks, tarps included) and pre-upload their textures,
