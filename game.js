@@ -2970,6 +2970,7 @@ const bumpTex=new THREE.CanvasTexture(bumpC),ccTex=new THREE.CanvasTexture(ccC);
 const slabMat=new THREE.MeshPhysicalMaterial({map:slabTex,bumpMap:bumpTex,bumpScale:.045,roughness:1,roughnessMap:roughTex,metalness:0,clearcoat:0,clearcoatRoughness:.07,clearcoatMap:ccTex,envMapIntensity:1});
 const SLABD={on:false,n:null,m:null};
 const CPH={on:false,off:false,U:{cPk:{value:null},gPh:{value:1}}};
+const SLAB_LK={U:{value:new THREE.Vector3(1,1,1)}};
 /* v290: the concrete photo detail is ONE packed texture (R raw-mud detail, G floated-paste detail, BA raw-mud normal) so the slab shader fits
    phones that only allow 16 textures. When it's on, the older slab detail maps are switched off (they did the same job). */
 (()=>{if(typeof safeGfx!=='undefined'&&safeGfx)return;const t=new THREE.TextureLoader().load('tex/cpack2.webp',/* v363: Kris's own pour photos */()=>{if(CPH.off)return;CPH.on=true;SLABD.try=1;SLABD.on=false;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}});
@@ -3019,9 +3020,10 @@ const GLARE={dir:{value:new THREE.Vector3(0,1,0)},col:{value:new THREE.Color(1,1
 function glareTick(){if(!camera)return;const night=weather.night,k=night?0:WETD.glare;GLARE.k.value=k;if(!k)return;
   GLARE.dir.value.copy(sun.position).normalize();GLARE.col.value.copy(sun.color).lerp(new THREE.Color(1,1,1),.6)}
 slabMat.onBeforeCompile=sh=>{
-  Object.assign(sh.uniforms,{gGlDir:GLARE.dir,gGlCol:GLARE.col,gGlK:GLARE.k,gRT:REFL.U.t,gRM:REFL.U.m,gRK:REFL.U.k},SKYS.U);
+  Object.assign(sh.uniforms,{gGlDir:GLARE.dir,gGlCol:GLARE.col,gGlK:GLARE.k,gRT:REFL.U.t,gRM:REFL.U.m,gRK:REFL.U.k,gLk:SLAB_LK.U},SKYS.U);
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vRW;').replace('#include <project_vertex>','#include <project_vertex>\nvRW=(modelMatrix*vec4(transformed,1.)).xyz;');
-  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;uniform sampler2D gRT;uniform mat4 gRM;uniform float gRK;varying vec3 vRW;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`#ifdef USE_CLEARCOAT
+  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;uniform sampler2D gRT;uniform mat4 gRM;uniform float gRK;uniform vec3 gLk;varying vec3 vRW;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`outgoingLight*=gLk;
+#ifdef USE_CLEARCOAT
 if(gGlK>0.){vec3 vd=normalize(vViewPosition),nn=normalize(normal),rv=reflect(-vd,nn),rw=normalize((vec4(rv,0.)*viewMatrix).xyz);
  float fr=.04+.96*pow(1.-clamp(dot(nn,vd),0.,1.),5.),hz=pow(1.-clamp(rw.y,0.,1.),3.),sp=max(dot(rw,gGlDir),0.);
  vec3 rs=skyCol(normalize(vec3(rw.x,max(rw.y,.02),rw.z)),0.);
@@ -8207,11 +8209,21 @@ function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP
 /* v288: on a painted site the 3D work is lit to match the photo: the game's sun, sky fill and reflections are scaled down and warmed to the
    photo's late-afternoon light (the photo itself isn't lit). Each frame the game may set its own values, so the grade is re-applied on top. */
 const BKG={k:.62,warm:new THREE.Color(1,.88,.72),c:new THREE.Color(),L:[]};
+/* v387: the concrete looks the same on every photo job. Each photo sets the sun's height and tint to match that picture (the pool deck's
+   sun is 22 degrees up and pinkish, the training pad's 35 degrees and warm), and that alone made the same mud read darker, greyer and
+   flatter on one job than another. The slab's light is scaled back to the training pad's: same brightness and colour on a flat slab. */
+function slabLightK(on){const v=SLAB_LK.U.value;if(!on||!BKD.sunV||weather.night||BKG.L.length<3){v.set(1,1,1);return}
+  const el=Math.asin(Math.max(.08,Math.min(1,BKD.sunV.y/BKD.sunV.length()))),sC=Math.sin(el),sR=Math.sin(35*Math.PI/180),W=BKG.warm,T=BKG.tint||BKG.warm,[A,B,C]=BKG.L,o=[];
+  for(const c of ['r','g','b']){const sb=A.i*A.c[c],hb=B.i*.85*B.c[c],fb=C.i*.6*C.c[c]*.3,
+    cur=sb*(1+(T[c]-1)*.35)*sC+hb*(1+(T[c]-1)*.55)+fb*(1+(T[c]-1)*.35),ref=sb*(1+(W[c]-1)*.35)*sR+hb*(1+(W[c]-1)*.55)+fb*(1+(W[c]-1)*.35);
+    o.push(Math.max(.6,Math.min(2.2,ref/Math.max(1e-4,cur))))}
+  v.set(o[0],o[1],o[2])}
 function bkdGrade(on){const ls=[[sun,1],[hemi,.85],[fill,.6]];
   ls.forEach(([l,kk],i)=>{const r=BKG.L[i]||(BKG.L[i]={i:null,set:null,c:new THREE.Color(),cs:new THREE.Color()});
     if(l.intensity!==r.set)r.i=l.intensity;if(!l.color.equals(r.cs))r.c.copy(l.color);
     if(on){l.intensity=r.i*BKG.k*(i?kk:1);l.color.copy(r.c).lerp(r.c.clone().multiply(BKG.tint||BKG.warm),i===1?.55:.35)}else{l.intensity=r.i;l.color.copy(r.c)}
     r.set=l.intensity;r.cs.copy(l.color)});
+  try{slabLightK(on)}catch(e){SLAB_LK.U.value.set(1,1,1)}
   if(on)GLARE.k.value*=.35;// wet sheen reflects the game's blue sky; keep only a hint of it against the photo
   if(scene.environmentIntensity!=null){if(scene.environmentIntensity!==BKG.es)BKG.e0=scene.environmentIntensity;scene.environmentIntensity=on?BKG.e0*.55:BKG.e0;BKG.es=scene.environmentIntensity}}
 // v281: in a dig job the 3D lot is a full 20x10 rectangle; on a painted site only the dug zone (plus a short border) is drawn, the painting shows the rest
