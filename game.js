@@ -6081,17 +6081,22 @@ cv.addEventListener('contextmenu',e=>e.preventDefault());
 /* v401: edge follow. Zoomed in, a finger working near the edge of the view slides the view along with it, so a pass never has to stop
    for a two-finger pan. The deeper into the edge band, the faster it slides; the tool keeps working under the finger while it moves. */
 const EDGF={id:null,on:0,rT:-1e9,box:null,tip:false};
-cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0},true);
+cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0;EDGF.lx=null},true);
 function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r=cv.getBoundingClientRect();let top=r.top,bot=r.bottom;
   try{const a=$('hudTop').getBoundingClientRect();if(a.height&&a.bottom>top&&a.bottom<r.top+r.height*.6)top=a.bottom}catch(e){}
   try{const b=$('hudBot').getBoundingClientRect();if(b.height&&b.top<bot&&b.top>r.top+r.height*.4)bot=b.top}catch(e){}
   return EDGF.box=[r.left,top,r.right,bot]}
 function edgeTick(dt,t){const live=running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&(ZOOM[view]||1)<.95&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip');
-  if(!live){EDGF.on=0;return}
+  if(!live){EDGF.on=0;EDGF.lx=null;return}
   const [L,T,R,B]=edgeBox(t),m=Math.max(44,Math.min(R-L,B-T)*.17),x=rpCX,y=rpCY,band=d=>Math.pow(Math.max(0,Math.min(1,(m-d)/m)),1.4);
-  let vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(!vx&&!vy){EDGF.on=0;return}
-  EDGF.on=Math.min(1,EDGF.on+dt*4);const sp=430*EDGF.on;   // eases in so a finger put down near the edge doesn't jerk the view
-  const px=PAN.x,pz=PAN.z,dx=-vx*sp*dt,dy=-vy*sp*dt;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
+  // v402: keep the thumb near the middle. When the thumb moves away from the centre the view moves with it (more the farther out it is),
+  // so the thumb covers less glass and stays central. Moving back in, or holding still, moves nothing, so the tool never creeps on its own.
+  let fx=0,fy=0;if(EDGF.lx!=null){const mx=x-EDGF.lx,my=y-EDGF.ly,ox=x-(L+R)/2,oy=y-(T+B)/2,or=Math.hypot(ox,oy),ml=Math.hypot(mx,my);
+    if(or>1&&ml>.3){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=2.3*Math.max(0,Math.min(1,(r-.08)/.37))*out;fx=mx*g;fy=my*g}}}
+  EDGF.lx=x;EDGF.ly=y;
+  let vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(vx||vy)EDGF.on=Math.min(1,EDGF.on+dt*4);else EDGF.on=0;if(!vx&&!vy&&!fx&&!fy)return;
+  const sp=430*EDGF.on;   // edge band: eases in so a finger put down near the edge doesn't jerk the view
+  const px=PAN.x,pz=PAN.z,dx=-vx*sp*dt-fx,dy=-vy*sp*dt-fy;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
   if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5)return;   // at the pan limit
   try{cv.dispatchEvent(new PointerEvent('pointermove',{clientX:x,clientY:y,pointerId:EDGF.id,pointerType:'touch',isPrimary:true,bubbles:true}))}catch(e){}
   if(!EDGF.tip){EDGF.tip=true;try{if(!localStorage.getItem('bts-edgetip')){localStorage.setItem('bts-edgetip','1');say('Zoomed in: work toward the edge and the view slides along with you.','info','edgeTip',3500)}}catch(e){}}
