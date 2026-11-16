@@ -7079,6 +7079,8 @@ const SP={g:false,on:false,key:'',pat:'',res:16,W:0,H:0,x0:0,z0:0,dep:null,off:n
   mats:[],hold:null,tap:null,lat:null,xl:[],zl:[],relC:new Float32Array(N),prC:new Float32Array(N),prQ:new Float32Array(N),nDbl:0,nOff:0,nStuck:0,nMat:0,dirty:0,tmp:null,sh:null,rc:null,
   U:{spT:{value:null},spD:{value:null},spS:{value:new THREE.Vector2(1,1)},spL:{value:new THREE.Vector2(0,0)},spRl:{value:1},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
 function spOnNow(){try{return SP.on}catch(e){return false}}
+// v395: the stamp clock scales with how many mats the slab takes, so a big driveway gets as long per mat as the pool deck (about 45 mats at 0.4)
+function spClock(){if(SP.ck&&SP.ck.k===SP.key)return SP.ck.v;let n=0;for(let i=0;i<N;i++)if(inR[i])n++;const mats=n*(SLAB_W/GW)*(SLAB_D/GH)/4,v=.4*Math.min(1,45/Math.max(1,mats));SP.ck={k:SP.key,v};return v}
 function spWant(){return !!(LV&&LV.steps&&LV.steps.includes('stamp')&&!STR.on)}// v394: every stamped job (not stairs)
 function spRelCol(){const r=RELEASES.find(o=>o.id===stampSel.rel)||RELEASES[0];return (SP.rc||(SP.rc=new THREE.Color())).setStyle(r.c)}
 // box blur with wrap-around, twice (about a gaussian), so the joints get a rounded shoulder instead of a pixel step
@@ -8564,7 +8566,7 @@ function step(t,dt){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
     if(autoFF&&!flags.aff){flags.aff=1;say('Bleed water\'s still coming up. Skipping ahead, get ready to thumb-test.','info','aff',0)}if(!autoFF&&flags.aff===1&&set>=.43){flags.aff=2;buzz(25);say('Close now. Thumb-test it.','good','aff2',0)}
     wb.classList.toggle('held',waitHeld||autoFF);const ff=waitHeld?Math.min(60,12+holdT*30):autoFF?40:1,s0=set;
-    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?.4:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
+    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?spClock():1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
     if(set>=1&&!(LV.saw&&STAGES[stage].key==='joint')){if(!flags.endT){flags.endT=t;say('It\'s set up. That\'s the job, let\'s walk it.','bad','setup',0);buzz(80)}else if(t-flags.endT>2400){flags.endT=0;finish(STAGES[stage].key!=='blanket')}}
     if(waitHeld&&[.46,.72].some(m=>s0<m&&set>=m)){holdT=0;buzz(25)}
     if(pouring)pourStep(dt);try{runTick(dt,t)}catch(e){console.warn('run',e)}
