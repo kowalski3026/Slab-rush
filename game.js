@@ -62,7 +62,7 @@ const DEFS={
   release:{name:'Release',win:[.46,.9],soft:.12,
    desc:'Shake the release powder on by dragging. One even coat, every inch, right before the mats. It keeps them from sticking and leaves the dark antique colour in the joints. Too heavy and it cakes.'},
   stamp:{name:'Stamp',win:[.5,.9],soft:.1,
-   desc:'Release is down. Drag along each row to lay the 2 ft mats and tamp them in. Too soft and they sink. Too hard and they barely print. Don\'t stamp the same spot twice.'},
+   desc:'Tap the slab to drop a mat. It locks square into the grid, and if that spot is already done it slides to the nearest empty one. Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.'},
   break:{name:'Break up',win:[0,1],soft:1,desc:'The hammer is on the excavator. Press and drag over the old asphalt: it cracks into slabs and the machine tracks along to keep up. Work every edge and corner. The bucket comes next.'},
   strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Dig the bucket into the old asphalt. The leading edge crumbles and pops into slabs and the bucket scoops them up as it goes. Drag where you want it and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
   mark:{name:'Lay out',win:[0,1],soft:1,
@@ -140,7 +140,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{stamp:'Tap the slab to drop a mat. It locks square into the grid, and if that spot is already done it slides to the nearest empty one. Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.',joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -6202,6 +6202,8 @@ function renderStampOpts(){
 /* ---------- pick the finish on any flatwork job ---------- */
 const FINS={broom:'Broom',trowel:'Smooth trowel',stamp:'Stamped',expose:'Exposed aggregate',power:'Power trowel'};
 let finSel={};try{finSel=JSON.parse(localStorage.getItem('bts-fin'))||{}}catch(e){}
+// v394: every stamped job (not stairs) gets the release step before the mats
+for(const L of LEVELS){if(!L.stair&&L.steps&&L.steps.includes('stamp')&&!L.steps.includes('release'))L.steps.splice(L.steps.indexOf('stamp'),0,'release')}
 function finOf(L){const s=L.steps0||L.steps;return s.includes('stamp')?'stamp':s.includes('expose')?'expose':s.includes('power')?'power':s.includes('broom')?'broom':'trowel'}
 function finChoosable(L){const s=L.steps0||L.steps;return s.includes('screed')&&!L.wall&&!L.slip&&!L.tut&&!L.free}
 function finList(L){const o=['broom','trowel','stamp','expose'];if(sqftOf(L)>=180||finOf(L)==='power')o.push('power');return o}
@@ -6209,7 +6211,7 @@ function applyFinish(L){if(!L.steps0){L.steps0=L.steps.slice();L.finish0=L.finis
   L.steps=L.steps0.slice();L.finish=L.finish0;L.hardTrowel=L.hard0;if(L.sawAdded){delete L.saw;delete L.names;if(L.win)delete L.win.joint;if(L.desc)delete L.desc.joint;L.sawAdded=false}if(!finChoosable(L)||(typeof practice!=='undefined'&&practice))return;
   const f=finSel[L.id];if(!f||f===finOf(L)||!finList(L).includes(f))return;
   const s0=L.steps0,pre=s0.includes('tube')?['tube']:[],post=s0.includes('blanket')?['blanket']:[];
-  const tail={broom:s0.includes('trowel')?['edge','trowel','joint','broom']:['edge','joint','broom'],trowel:['edge','trowel','joint'],stamp:L.id==='stamp'?['edge','color','release','stamp','joint']:['edge','color','stamp','joint'],expose:['edge','joint','expose'],power:['power','joint']}[f];
+  const tail={broom:s0.includes('trowel')?['edge','trowel','joint','broom']:['edge','joint','broom'],trowel:['edge','trowel','joint'],stamp:L.stair?['edge','color','stamp','joint']:['edge','color','release','stamp','joint'],expose:['edge','joint','expose'],power:['power','joint']}[f];
   L.steps=[...pre,'pour','screed','float',...tail,...post];if(f==='trowel'||f==='power')L.hardTrowel=true;
   if(f==='stamp'&&!L.saw){L.sawAdded=true;L.saw=true;L.names={joint:'Saw cut'};L.win=Object.assign({},L.win||{},{joint:[.82,9]});L.desc=Object.assign({},L.desc||{},{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'})}
   L.finish={broom:'Broom, tooled edges and joints',trowel:'Steel trowel smooth, tooled edges and joints',stamp:'',expose:'Exposed aggregate, washed, joints',power:'Power trowel, joints'}[f]}
@@ -7077,7 +7079,7 @@ const SP={g:false,on:false,key:'',pat:'',res:16,W:0,H:0,x0:0,z0:0,dep:null,off:n
   mats:[],hold:null,tap:null,lat:null,xl:[],zl:[],relC:new Float32Array(N),prC:new Float32Array(N),prQ:new Float32Array(N),nDbl:0,nOff:0,nStuck:0,nMat:0,dirty:0,tmp:null,sh:null,rc:null,
   U:{spT:{value:null},spD:{value:null},spS:{value:new THREE.Vector2(1,1)},spL:{value:new THREE.Vector2(0,0)},spRl:{value:1},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
 function spOnNow(){try{return SP.on}catch(e){return false}}
-function spWant(){return !!(LV&&LV.steps&&LV.steps.includes('stamp')&&(LV.id==='stamp'||/stamp2/.test(location.search))&&!STR.on)}
+function spWant(){return !!(LV&&LV.steps&&LV.steps.includes('stamp')&&!STR.on)}// v394: every stamped job (not stairs)
 function spRelCol(){const r=RELEASES.find(o=>o.id===stampSel.rel)||RELEASES[0];return (SP.rc||(SP.rc=new THREE.Color())).setStyle(r.c)}
 // box blur with wrap-around, twice (about a gaussian), so the joints get a rounded shoulder instead of a pixel step
 function spBlur(a,w,h,r){const t=new Float32Array(w*h),n=2*r+1;
