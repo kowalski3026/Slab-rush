@@ -6997,9 +6997,9 @@ function cdustPuff(X,Y,Z,c,big){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.age[i]=0;con
   D.life[i]=big?3.2+Math.random()*1.8:2+Math.random()*1.4;D.s0[i]=big?.35:.2;D.s1[i]=big?2.6+Math.random()*1.6:1.2+Math.random()*1.1;D.a0[i]=big?.8:.6;D.sd[i]=Math.random();
   const v=.9+Math.random()*.2;D.col[i*3]=c.r*v;D.col[i*3+1]=c.g*v;D.col[i*3+2]=c.b*v}
 function cdustThrow(x,y,cc){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cc||cdustColor(),D=CDUST;D.gc=c;
-  for(let k=0;k<3;k++){const j=D.gi;D.gi=(j+1)%D.G;D.ga[j]=0;D.gp[j*3]=X+(Math.random()-.5)*.9;D.gp[j*3+1]=Y+2.4+Math.random()*.7;D.gp[j*3+2]=Z+(Math.random()-.5)*.9;D.gv[j*3]=(Math.random()-.5)*1.4;D.gv[j*3+1]=-2-Math.random()*2;D.gv[j*3+2]=(Math.random()-.5)*1.4}
+  for(let k=0;k<3;k++){const j=D.gi;D.gi=(j+1)%D.G;D.ga[j]=0;D.gp[j*3]=X+(Math.random()-.5)*.9*Math.max(1,LS);D.gp[j*3+1]=Y+2.4+Math.random()*.7;D.gp[j*3+2]=Z+(Math.random()-.5)*.9*Math.max(1,LS);D.gv[j*3]=(Math.random()-.5)*1.4;D.gv[j*3+1]=-2-Math.random()*2;D.gv[j*3+2]=(Math.random()-.5)*1.4}
   // a burst where the handful lands: one core billow, a few that skid out along the slab
-  D.k=(D.k||0)+1;if(D.k%2)return;cdustPuff(X,Y,Z,c,true);const n=2+(Math.random()*2|0);for(let k=0;k<n;k++)cdustPuff(X+(Math.random()-.5)*.6,Y,Z+(Math.random()-.5)*.6,c,false)}
+  D.k=(D.k||0)+1;if(D.k%2)return;cdustPuff(X,Y,Z,c,true);const n=2+(Math.random()*2|0);for(let k=0;k<n;k++)cdustPuff(X+(Math.random()-.5)*.6*Math.max(1,LS),Y,Z+(Math.random()-.5)*.6*Math.max(1,LS),c,false)}
 function cdustTick(dt){const D=CDUST;let live=0;
   // grains
   let gl=0;for(let j=0;j<D.G;j++){if(D.ga[j]>=1)continue;gl++;D.ga[j]+=dt*2;D.gv[j*3+1]-=9*dt;D.gp[j*3]+=D.gv[j*3]*dt;D.gp[j*3+1]+=D.gv[j*3+1]*dt;D.gp[j*3+2]+=D.gv[j*3+2]*dt;if(D.ga[j]>=1)D.gp[j*3+1]=-1e4}
@@ -7019,7 +7019,7 @@ function cdustTick(dt){const D=CDUST;let live=0;
   try{const U=D.pts.material.uniforms;U.uSun.value.copy(sun.position).sub(sun.target.position).normalize();U.uSunC.value.copy(sun.color).multiplyScalar(Math.min(1.4,sun.intensity*.35));U.uAmb.value=Math.min(.9,.35+hemi.intensity*.25)}catch(e){}}
 /* ---------- color hardener ---------- */
 function colorAt(x,y){try{cdustThrow(x,y)}catch(e){}
-  const R=3.2/LS,b=bleed(set);let work=0;
+  const R=3.2,b=bleed(set);let work=0;
   for(let cy=Math.max(RY0,Math.floor(y-R));cy<=Math.min(RY1-1,Math.ceil(y+R));cy++)
   for(let cx=Math.max(RX0,Math.floor(x-R));cx<=Math.min(RX1-1,Math.ceil(x+R));cx++){
     const d=Math.hypot(cx+.5-x,cy+.5-y);if(d>R)continue;const i=cy*GW+cx;if(!has(i))continue;
@@ -7193,12 +7193,12 @@ function spPrint(m){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,P=SP
 function spFlat(x,z,dv){{// plain graphics: the old flat print
     const m={x,z},px=(m.x+SLAB_W/2)/SLAB_W*TW,py=(m.z+SLAB_D/2)/SLAB_D*TH,ts=2/SLAB_W*TW;stc.globalAlpha=stb.globalAlpha=dv;stc.drawImage(STILE.col,0,0,128,128,px,py,ts,ts);stb.drawImage(STILE.bump,0,0,128,128,px,py,ts,ts);stc.globalAlpha=stb.globalAlpha=1}
   surfDirty=true}
-function spRelPaint(X,Z,amt){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,rr=1.25*r,s2=2*(rr*.5)*(rr*.5),cx=(X-SP.x0)*r,cz=(Z-SP.z0)*r;
+function spRelPaint(X,Z,amt){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,rr=1.25*Math.max(1,LS)*r,s2=2*(rr*.5)*(rr*.5),cx=(X-SP.x0)*r,cz=(Z-SP.z0)*r;
   for(let j=Math.max(0,Math.floor(cz-rr));j<Math.min(H,Math.ceil(cz+rr));j++)for(let i=Math.max(0,Math.floor(cx-rr));i<Math.min(W,Math.ceil(cx+rr));i++){
     const dx=i+.5-cx,dz=j+.5-cz,d2=dx*dx+dz*dz;if(d2>rr*rr)continue;const k=(j*W+i)*4+1;D[k]=Math.min(255,D[k]+amt*Math.exp(-d2/s2)*(.55+Math.random()*.9)*255)}
   SP.dirty=1}
 function releaseAt(x,y){const X=wx(x),Z=wz(y);try{cdustThrow(x,y,spRelCol())}catch(e){}
-  const R=3.2/LS,b=bleed(set);let work=0,hv=0;
+  const R=3.2,b=bleed(set);let work=0,hv=0;
   for(let cy=Math.max(RY0,Math.floor(y-R));cy<=Math.min(RY1-1,Math.ceil(y+R));cy++)for(let cx=Math.max(RX0,Math.floor(x-R));cx<=Math.min(RX1-1,Math.ceil(x+R));cx++){
     const d=Math.hypot(cx+.5-x,cy+.5-y);if(d>R)continue;const i=cy*GW+cx;if(!has(i))continue;const add=.11*(1-d/R*.6)*(.6+Math.random()*.8);
     work+=Math.min(add,Math.max(0,1.1-SP.relC[i]));SP.relC[i]=Math.min(2,SP.relC[i]+add);if(SP.relC[i]>1.7)hv=1}
