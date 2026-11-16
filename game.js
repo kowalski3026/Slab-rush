@@ -140,7 +140,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{stamp:'Tap the slab to drop a mat (drag to line it up). The first squares up to a straight form, the rest snap edge to edge (green shadow). Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.',joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{stamp:'Tap the slab to drop a mat. It locks square into the grid, and if that spot is already done it slides to the nearest empty one. Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.',joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -7118,11 +7118,16 @@ function spTamperNew(){const g=new THREE.Group(),st=new THREE.MeshStandardMateri
   g.visible=false;scene.add(g);return g}
 function spShadowNew(){const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.3,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=3;m.visible=false;scene.add(m);return m}
 function spMatAt(X,Z){for(const m of SP.mats)if((m.st==='down'||m.st==='drop'||m.st==='lift')&&X>=m.x-.15&&X<=m.x+2.15&&Z>=m.z-.15&&Z<=m.z+2.15)return m;return null}
-function spPlace(m,X,Z){let x=X-1,z=Z-1,snap=false;
-  if(SP.lat){const lx=SP.lat[0]+Math.round((x-SP.lat[0])/2)*2,lz=SP.lat[1]+Math.round((z-SP.lat[1])/2)*2;if(Math.abs(lx-x)<.5&&Math.abs(lz-z)<.5){x=lx;z=lz;snap=true}}
-  else{for(const L of SP.xl){if(Math.abs(x-L)<.6){x=L;snap=true}else if(Math.abs(x+2-L)<.6){x=L-2;snap=true}}
-    for(const L of SP.zl){if(Math.abs(z-L)<.6){z=L;snap=true}else if(Math.abs(z+2-L)<.6){z=L-2;snap=true}}}
-  m.x=x;m.z=z;m.snap=snap}
+/* v392: easy on big fingers. Every mat locks square into the grid that starts at the straight forms, so a mat can't go down crooked;
+   and if the finger lands on a spot that's already printed or has a mat on it, the mat goes to the nearest empty spot beside it. */
+function spLat(){if(!SP.lat)SP.lat=[SP.xl.length?Math.min(...SP.xl):wx(RX0),SP.zl.length?Math.min(...SP.zl):wz(RY0)];return SP.lat}
+function spOnSlab(x,z){for(let y=0;y<GH;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2)return true}return false}
+function spFree(x,z,self){for(const o of SP.mats)if(o!==self&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-x)<.5&&Math.abs(o.z-z)<.5)return false;
+  if(SP.dep){const i=Math.floor((x+1-SP.x0)*SP.res),j=Math.floor((z+1-SP.z0)*SP.res);if(i>=0&&j>=0&&i<SP.W&&j<SP.H&&SP.dep[(j*SP.W+i)*4]>90)return false}
+  return spOnSlab(x,z)}
+function spPlace(m,X,Z){const L=spLat(),bx=L[0]+Math.round((X-1-L[0])/2)*2,bz=L[1]+Math.round((Z-1-L[1])/2)*2;let best=null,bd=1e9;
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=bx+dx*2,z=bz+dz*2,d=Math.hypot(x+1-X,z+1-Z);if(d<bd&&spFree(x,z,m)){bd=d;best=[x,z]}}
+  if(!best)best=[bx,bz];m.x=best[0];m.z=best[1];m.snap=true}
 function spDown(p){const X=p.wx,Z=p.wz,m=spMatAt(X,Z);
   if(m){if(m.st==='down'&&m.lt<0)SP.tap={m,x:X,z:Z};return}
   let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<8){f=spMatNew();SP.mats.push(f)}
@@ -7136,7 +7141,7 @@ function spUp(){const t=SP.tap;SP.tap=null;if(SP.swipe){SP.swipe=false;return}if
   const m=SP.hold;if(!m)return;SP.hold=null;
   let on=false;for(let y=0;y<GH&&!on;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){on=true;break}}
   if(!on){m.st='idle';m.g.visible=false;return}// dragged off the slab: back on the stack
-  if(!SP.lat){SP.lat=[m.x,m.z];m.first=true}else m.first=false;
+  spLat();m.first=false;
   const sl=set+dryOff[cellAt(m.x+1,m.z+1)];m.sl=sl;let q=winQ(sl,STAGES[S.stamp]),dq=1;
   if(sl<.46)say('Too soft. The mat\'s sinking and squeezing paste up the sides.','bad','stSoft');
   else if(sl>.9){dq=Math.max(.15,1-(sl-.9)/.08);say('Too hard. It\'s barely printing.','bad','stHard')}
