@@ -6078,6 +6078,24 @@ const panEnd=e=>{if(e.pointerId===PAN.mid){PAN.mid=null;e.stopImmediatePropagati
   PAN.g=null;if(PAN.ps.size)PAN.c=panMid();else{PAN.on=false;PAN.c=null;panSave()}};
 addEventListener('pointerup',panEnd,true);addEventListener('pointercancel',panEnd,true);
 cv.addEventListener('contextmenu',e=>e.preventDefault());
+/* v401: edge follow. Zoomed in, a finger working near the edge of the view slides the view along with it, so a pass never has to stop
+   for a two-finger pan. The deeper into the edge band, the faster it slides; the tool keeps working under the finger while it moves. */
+const EDGF={id:null,on:0,rT:-1e9,box:null,tip:false};
+cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0},true);
+function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r=cv.getBoundingClientRect();let top=r.top,bot=r.bottom;
+  try{const a=$('hudTop').getBoundingClientRect();if(a.height&&a.bottom>top&&a.bottom<r.top+r.height*.6)top=a.bottom}catch(e){}
+  try{const b=$('hudBot').getBoundingClientRect();if(b.height&&b.top<bot&&b.top>r.top+r.height*.4)bot=b.top}catch(e){}
+  return EDGF.box=[r.left,top,r.right,bot]}
+function edgeTick(dt,t){const live=running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&(ZOOM[view]||1)<.95&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip');
+  if(!live){EDGF.on=0;return}
+  const [L,T,R,B]=edgeBox(t),m=Math.max(44,Math.min(R-L,B-T)*.17),x=rpCX,y=rpCY,band=d=>Math.pow(Math.max(0,Math.min(1,(m-d)/m)),1.4);
+  let vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(!vx&&!vy){EDGF.on=0;return}
+  EDGF.on=Math.min(1,EDGF.on+dt*4);const sp=430*EDGF.on;   // eases in so a finger put down near the edge doesn't jerk the view
+  const px=PAN.x,pz=PAN.z,dx=-vx*sp*dt,dy=-vy*sp*dt;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
+  if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5)return;   // at the pan limit
+  try{cv.dispatchEvent(new PointerEvent('pointermove',{clientX:x,clientY:y,pointerId:EDGF.id,pointerType:'touch',isPrimary:true,bubbles:true}))}catch(e){}
+  if(!EDGF.tip){EDGF.tip=true;try{if(!localStorage.getItem('bts-edgetip')){localStorage.setItem('bts-edgetip','1');say('Zoomed in: work toward the edge and the view slides along with you.','info','edgeTip',3500)}}catch(e){}}
+  clearTimeout(panSave.t);panSave.t=setTimeout(panSave,600)}
 cv.addEventListener('wheel',e=>{if(!panOK())return;e.preventDefault();panZoom(e.deltaY>0?1.06:1/1.06);clearTimeout(panSave.t);panSave.t=setTimeout(panSave,400)},{passive:false});
 cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;rpCY=e.clientY;if(arrive){arriveEnd();e.preventDefault();return}
   if(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip'&&view!==1){e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}SLC.ps.set(e.pointerId,[e.clientX,e.clientY]);if(SLC.ps.size===2){const [a,b]=[...SLC.ps.values()];SLC.pd=Math.hypot(a[0]-b[0],a[1]-b[1])}
@@ -8708,7 +8726,7 @@ function step(t,dt){
   try{if(PERF&&PERF.on)m2Probe()}catch(e){}
   const b=bleed(set),wq=wetness(set-.04);const rw=typeof rainIM!=='undefined'&&rainIM.visible&&!tarpOn?1:0;WETV+=((Math.max(wq,b*.9,rw*.8))-WETV)*Math.min(1,dt*1.5);const nt=weather.night;slabMat.clearcoat=Math.max(.001,Math.min(1,Math.max(wq*.8,b*1.15,rw*.7))*(LV&&LV.wall?.3:1)*(nt?1:WETD.cc)*(stage===S.pour&&mudOn()?.45:1));slabMat.color.setScalar(1-.16*WETV);slabMat.envMapIntensity=nt?.1:1+WETD.env*WETV;if(nt)slabMat.clearcoat*=.4;/* v314: at night the slab self-lights from its own colours (emissive map = the surface texture), so grey mud stays grey and brown forms stay brown */{const em=nt?slabTex:null;if(slabMat.emissiveMap!==em){slabMat.emissiveMap=em;slabMat.needsUpdate=true}if(nt)slabMat.emissive.setRGB(.34,.37,.4);else if(slabMat.emissive.r)slabMat.emissive.setRGB(0,0,0)}slabMat.clearcoatRoughness=Math.max(nt?.06:WETD.rmin,.16-.1*clamp01(b*1.3)-.04*wq-(nt?0:WETD.r));
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
-  updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
+  updateTruck(dt,t);updateTools(dt,t);try{edgeTick(dt,t)}catch(e){}if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);
    sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(BKD.on&&BKD.sunV&&!weather.night)sun.position.copy(BKD.sunV);/* v360: on a photo site the 3D sun stands where that photo's sun is */if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}try{slabRefTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
