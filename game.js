@@ -62,7 +62,7 @@ const DEFS={
   release:{name:'Release',win:[.46,.9],soft:.12,
    desc:'Shake the release powder on by dragging. One even coat, every inch, right before the mats. It keeps them from sticking and leaves the dark antique colour in the joints. Too heavy and it cakes.'},
   stamp:{name:'Stamp',win:[.5,.9],soft:.1,
-   desc:'Tap the slab to drop a mat. It locks square into the grid, and if that spot is already done it slides to the nearest empty one. Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.'},
+   desc:'Draw across the slab to lay mats: one drops square into the grid on every empty spot you pass. Then drag across the mats to tamp them, and they peel up on their own. Taps work too. Too soft and they sink, too hard and they barely print.'},
   break:{name:'Break up',win:[0,1],soft:1,desc:'The hammer is on the excavator. Press and drag over the old asphalt: it cracks into slabs and the machine tracks along to keep up. Work every edge and corner. The bucket comes next.'},
   strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Dig the bucket into the old asphalt. The leading edge crumbles and pops into slabs and the bucket scoops them up as it goes. Drag where you want it and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
   mark:{name:'Lay out',win:[0,1],soft:1,
@@ -7129,6 +7129,8 @@ function spShadowNew(){const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new T
 function spMatAt(X,Z){for(const m of SP.mats)if((m.st==='down'||m.st==='drop'||m.st==='lift')&&X>=m.x-.15&&X<=m.x+2.15&&Z>=m.z-.15&&Z<=m.z+2.15)return m;return null}
 /* v392: easy on big fingers. Every mat locks square into the grid that starts at the straight forms, so a mat can't go down crooked;
    and if the finger lands on a spot that's already printed or has a mat on it, the mat goes to the nearest empty spot beside it. */
+// v396: how a mat may turn: fieldstone never (its random stones show every seam), ashlar and basket a quarter, brick and plank end for end
+function spRot(){const p=stampSel.pat;return p==='field'?0:(p==='ashlar'||p==='basket')&&SP.sp[0]===SP.sp[1]?(Math.random()*4|0):(Math.random()<.5?0:2)}
 function spLat(){if(!SP.lat)SP.lat=[SP.xl.length?Math.min(...SP.xl):wx(RX0),SP.zl.length?Math.min(...SP.zl):wz(RY0)];SP.U.spL.value.set(SP.lat[0],SP.lat[1]);return SP.lat}
 function spOnSlab(x,z){for(let y=0;y<GH;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2)return true}return false}
 function spFree(x,z,self){for(const o of SP.mats)if(o!==self&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-x)<.5&&Math.abs(o.z-z)<.5)return false;
@@ -7136,22 +7138,29 @@ function spFree(x,z,self){for(const o of SP.mats)if(o!==self&&(o.st==='down'||o.
   return spOnSlab(x,z)}
 function spPlace(m,X,Z){const L=spLat(),bx=L[0]+Math.round((X-1-L[0])/2)*2,bz=L[1]+Math.round((Z-1-L[1])/2)*2;let best=null,bd=1e9;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=bx+dx*2,z=bz+dz*2,d=Math.hypot(x+1-X,z+1-Z);if(d<bd&&spFree(x,z,m)){bd=d;best=[x,z]}}
-  if(!best)best=[bx,bz];m.x=best[0];m.z=best[1];m.snap=true}
-/* v393: a tap drops a mat (it locks into the grid), a tap on a mat tamps it, and any drag is a tamping swipe wherever it starts,
-   on a mat, between mats or on bare slab. The swipe is checked every few inches along the finger's path so a fast swipe can't skip a mat. */
-function spDown(p){SP.g0={x:p.wx,z:p.wz,lx:p.wx,lz:p.wz,sw:false,hit:new Set()}}
+  if(!best)return false;m.x=best[0];m.z=best[1];m.snap=true;return true}// v396: no free spot near the finger: no mat (it used to double-stamp)
+/* v396: draw to lay, drag to tamp. A drag that starts on bare slab lays a mat on every empty grid square the finger passes over; a drag
+   that starts on a mat tamps every mat it crosses. Both are checked every few inches along the path. A tap drops one mat, or tamps the
+   mat under it. */
+function spMatUnder(X,Z){for(const o of SP.mats)if((o.st==='down'||o.st==='drop')&&o.lt<0&&X>=o.x-.1&&X<=o.x+2.1&&Z>=o.z-.1&&Z<=o.z+2.1)return o;return null}
+function spDown(p){SP.g0={x:p.wx,z:p.wz,lx:p.wx,lz:p.wz,mode:null,on:!!spMatUnder(p.wx,p.wz),hit:new Set(),full:false}}
 function spSwipeAt(X,Z){const g=SP.g0;for(const m of SP.mats){if(g.hit.has(m)||m.lt>=0||(m.st!=='down'&&m.st!=='drop'))continue;
   if(X>=m.x-.25&&X<=m.x+2.25&&Z>=m.z-.25&&Z<=m.z+2.25){if(m.st==='drop')m.st='down';g.hit.add(m);spTamp(m,X,Z)}}}
+function spGrab(){let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<16){f=spMatNew();SP.mats.push(f)}
+  if(f){Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0,rot:0});f.g.rotation.set(0,0,0);f.inner.rotation.y=0;f.inner.scale.y=1}return f}
+function spLayAt(X,Z){const g=SP.g0,L=spLat(),x=L[0]+Math.floor((X-L[0])/2)*2,z=L[1]+Math.floor((Z-L[1])/2)*2;if(!spFree(x,z,null))return;
+  const f=spGrab();if(!f){if(!g.full){g.full=true;say('All sixteen mats are down. Tamp them in and they come up.','info','spAll')}return}
+  f.x=x;f.z=z;f.snap=true;f.g.visible=true;SP.hold=f;spDrop(f);buzz(6)}
 function spMove(p){const g=SP.g0;if(!g)return;
-  if(!g.sw&&Math.hypot(p.wx-g.x,p.wz-g.z)>.35){g.sw=true;spSwipeAt(g.x,g.z)}
-  if(g.sw){const dx=p.wx-g.lx,dz=p.wz-g.lz,n=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.3));for(let i=1;i<=n;i++)spSwipeAt(g.lx+dx*i/n,g.lz+dz*i/n)}
+  if(!g.mode&&Math.hypot(p.wx-g.x,p.wz-g.z)>.35){g.mode=g.on?'tamp':'lay';g.lx=g.x;g.lz=g.z;(g.mode==='tamp'?spSwipeAt:spLayAt)(g.x,g.z)}
+  if(g.mode){const fn=g.mode==='tamp'?spSwipeAt:spLayAt,dx=p.wx-g.lx,dz=p.wz-g.lz,n=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.3));for(let i=1;i<=n;i++)fn(g.lx+dx*i/n,g.lz+dz*i/n)}
   g.lx=p.wx;g.lz=p.wz}
-function spUp(){const g=SP.g0;SP.g0=null;if(!g||g.sw)return;
-  for(const o of SP.mats)if((o.st==='down'||o.st==='drop')&&g.x>=o.x-.1&&g.x<=o.x+2.1&&g.z>=o.z-.1&&g.z<=o.z+2.1){if(o.lt<0){if(o.st==='drop')o.st='down';spTamp(o,g.x,g.z)}return}
-  let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<8){f=spMatNew();SP.mats.push(f)}
-  if(!f){say('All eight mats are down. Tamp them in and they come up.','info','spAll');return}
-  Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0,rot:0});f.g.rotation.set(0,0,0);f.inner.rotation.y=0;f.inner.scale.y=1;SP.hold=f;spPlace(f,g.x,g.z);f.g.visible=true;buzz(8)
-  const m=SP.hold;if(!m)return;SP.hold=null;
+function spUp(){const g=SP.g0;SP.g0=null;if(!g||g.mode)return;
+  const o=spMatUnder(g.x,g.z);if(o){if(o.st==='drop')o.st='down';spTamp(o,g.x,g.z);return}
+  const f=spGrab();if(!f){say('All sixteen mats are down. Tamp them in and they come up.','info','spAll');return}
+  if(!spPlace(f,g.x,g.z)){f.st='idle';say('That spot\'s already printed.','info','spDone');return}
+  f.g.visible=true;SP.hold=f;buzz(8);spDrop(f)}
+function spDrop(m){SP.hold=null;
   let on=false;for(let y=0;y<GH&&!on;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){on=true;break}}
   if(!on){m.st='idle';m.g.visible=false;return}// dragged off the slab: back on the stack
   spLat();m.first=false;
@@ -7159,7 +7168,7 @@ function spUp(){const g=SP.g0;SP.g0=null;if(!g||g.sw)return;
   if(sl<.46)say('Too soft. The mat\'s sinking and squeezing paste up the sides.','bad','stSoft');
   else if(sl>.9){dq=Math.max(.15,1-(sl-.9)/.08);say('Too hard. It\'s barely printing.','bad','stHard')}
   for(const o of SP.mats)if(o!==m&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-m.x)<1.6&&Math.abs(o.z-m.z)<1.6){q*=.7;say('Mats overlap. Lay them edge to edge.','bad','spOv');break}
-  const sq1=SP.sp[0]===SP.sp[1];m.rot=sq1?(Math.random()*4|0):(Math.random()<.5?0:2);m.inner.rotation.y=m.rot*Math.PI/2;
+  m.rot=spRot();m.inner.rotation.y=m.rot*Math.PI/2;
   Object.assign(m,{q,dq,st:'drop',t:0,d:.18});acc[S.stamp].w+=1;acc[S.stamp].q+=q;
   if(m.tex){const sp=SP.sp,ix=Math.round((m.x-SP.lat[0])/2),iz=Math.round((m.z-SP.lat[1])/2);m.tex.offset.set((((ix%sp[0])+sp[0])%sp[0])/sp[0],(((iz%sp[1])+sp[1])%sp[1])/sp[1])}}
 function spTamp(m,X,Z){if(m.lt>=0)return;m.ta=0;m.hit=0;m.tx=Math.max(m.x+.45,Math.min(m.x+1.55,X));m.tz=Math.max(m.z+.45,Math.min(m.z+1.55,Z));
@@ -7198,8 +7207,8 @@ function releaseAt(x,y){const X=wx(x),Z=wz(y);try{cdustThrow(x,y,spRelCol())}cat
   if(b>.12)say('Bleed water\'s up. The release will cake and blotch.','bad','relWet');else if(hv)say('Easy. Too much release cakes in the joints.','info','relHeavy')}
 function spRelAll(){for(let i=0;i<N;i++)if(inR[i])SP.relC[i]=1;if(SP.dep){for(let k=1;k<SP.dep.length;k+=4)SP.dep[k]=170+Math.random()*60;SP.dirty=1}}
 function spAuto(){if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();spLat();
-  const m={x:0,z:0,d:1,dq:1,q:1,sl:.6,snap:true,first:false,rot:0},sq1=SP.sp[0]===SP.sp[1];
-  for(let z=SP.lat[1]-2*Math.ceil((SP.lat[1]-wz(RY0))/2);z<wz(RY1);z+=2)for(let x=SP.lat[0]-2*Math.ceil((SP.lat[0]-wx(RX0))/2);x<wx(RX1);x+=2){m.x=x;m.z=z;m.rot=sq1?(Math.random()*4|0):(Math.random()<.5?0:2);
+  const m={x:0,z:0,d:1,dq:1,q:1,sl:.6,snap:true,first:false,rot:0};
+  for(let z=SP.lat[1]-2*Math.ceil((SP.lat[1]-wz(RY0))/2);z<wz(RY1);z+=2)for(let x=SP.lat[0]-2*Math.ceil((SP.lat[0]-wx(RX0))/2);x<wx(RX1);x+=2){m.x=x;m.z=z;m.rot=spRot();
     let on=false;for(let y=0;y<GH&&!on;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2){on=true;break}}if(on)spPrint(m)}}
 function spStats(){let n=0,tot=0,q=0;for(let i=0;i<N;i++){if(!inR[i])continue;tot++;if(SP.prC[i]>=.5){n++;q+=SP.prQ[i]*Math.min(1,SP.prC[i]/.85)}}
   return{n,tot,cov:tot?n/tot:0,q:n?q/n:0,dbl:SP.nDbl,off:SP.nOff,stuck:SP.nStuck,mats:SP.nMat}}
@@ -7578,7 +7587,7 @@ $('next').addEventListener('click',e=>{
     if(k==='broom'&&set<.5)say('Too wet to broom yet. Thumb-test first.','info','nBroom',0);
     if(k==='color')say(set<.44?'Bleed water has to be gone first. Thumb-test.':'Drag to broadcast. Two light, even coats.','info','nCol',0);
     if(k==='release')say('Drag to shake the release on. One even coat over all of it.','info','nRel',0);
-    if(k==='stamp')say(SP.g?'Tap to drop mats along the form, then swipe across them to tamp. Work in rows.':'Start at the front form and work in rows.','info','nSt',0);
+    if(k==='stamp')say(SP.g?'Draw along the form to lay a row of mats, then drag across them to tamp. Work in rows.':'Start at the front form and work in rows.','info','nSt',0);
     if(k==='gravel')say(digPct()<.9?'Some of it isn\'t dug out yet. Gravel\'s on site anyway, spread it.':'Pit\'s dug. Gravel\'s dumped, spread it out with the bucket.','info','nGrav',0);
     if(k==='base')say('Gravel\'s spread. Run the plate compactor over all of it.','info','nBase',0);
     if(k==='slip')say('Slide the travel lever to start. The truck feeds itself: go slow enough that the hopper never runs dry.','info','nSlip',0);
