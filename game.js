@@ -3019,12 +3019,21 @@ function gpsSync(){if(!GPS.on)return;
    + tight sparkle core) along the mirror direction from the camera, nudged toward the sun, scaled by the wetness (clearcoat)
    so it dries off with the slab, and broken up by the real surface normals so screed marks and bleed water shimmer. */
 const GLARE={dir:{value:new THREE.Vector3(0,1,0)},col:{value:new THREE.Color(1,1,1)},k:{value:0}};
+/* v391: the same sun on the concrete on every photo job. Wet floated cream catches the sun: on the training pad the sun sits ahead and to
+   the right of the camera, so the floated paste reads darker and smoother than the struck-off; on the pool deck it's low and off to the side,
+   so the cream hazes over and the two looked the same (and on some pads the cream glared beige). The slab is now lit and sheened by the
+   training pad's sun, placed the same way relative to wherever the camera looks: 35 degrees up, 36 degrees right of the view. The real sun
+   still casts the shadows. */
+const SLREF={d:{value:new THREE.Vector3(0,1,0)},g:{value:new THREE.Vector3(0,1,0)},k:{value:0},v:new THREE.Vector3()};
+function slabRefTick(){if(!camera)return;const on=!!(typeof BKD!=='undefined'&&BKD.on&&!weather.night);SLREF.k.value=on?1:0;
+  if(!on){SLREF.g.value.copy(GLARE.dir.value);return}camera.getWorldDirection(SLREF.v);const a=Math.atan2(SLREF.v.z,SLREF.v.x)+.622,el=35*Math.PI/180;
+  SLREF.d.value.set(Math.cos(a)*Math.cos(el),Math.sin(el),Math.sin(a)*Math.cos(el));SLREF.g.value.copy(SLREF.d.value)}
 function glareTick(){if(!camera)return;const night=weather.night,k=night?0:WETD.glare;GLARE.k.value=k;if(!k)return;
   GLARE.dir.value.copy(sun.position).normalize();GLARE.col.value.copy(sun.color).lerp(new THREE.Color(1,1,1),.6)}
 slabMat.onBeforeCompile=sh=>{
-  Object.assign(sh.uniforms,{gGlDir:GLARE.dir,gGlCol:GLARE.col,gGlK:GLARE.k,gRT:REFL.U.t,gRM:REFL.U.m,gRK:REFL.U.k,gLk:SLAB_LK.U},SKYS.U);
+  Object.assign(sh.uniforms,{gGlDir:SLREF.g,gGlCol:GLARE.col,gGlK:GLARE.k,gRT:REFL.U.t,gRM:REFL.U.m,gRK:REFL.U.k,gLk:SLAB_LK.U,gSunW:SLREF.d,gSunR:SLREF.k},SKYS.U);
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vRW;').replace('#include <project_vertex>','#include <project_vertex>\nvRW=(modelMatrix*vec4(transformed,1.)).xyz;');
-  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;uniform sampler2D gRT;uniform mat4 gRM;uniform float gRK;uniform vec3 gLk;varying vec3 vRW;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`outgoingLight*=gLk;${CDBG?'if(gDbg.x>=0.)outgoingLight=gDbg;':''}
+  sh.fragmentShader='uniform vec3 gGlDir;uniform vec3 gGlCol;uniform float gGlK;uniform sampler2D gRT;uniform mat4 gRM;uniform float gRK;uniform vec3 gLk;uniform vec3 gSunW;uniform float gSunR;varying vec3 vRW;\n'+SKYFN+'\n'+sh.fragmentShader.replace('#include <opaque_fragment>',`outgoingLight*=gLk;${CDBG?'if(gDbg.x>=0.)outgoingLight=gDbg;':''}
 #ifdef USE_CLEARCOAT
 if(gGlK>0.){vec3 vd=normalize(vViewPosition),nn=normalize(normal),rv=reflect(-vd,nn),rw=normalize((vec4(rv,0.)*viewMatrix).xyz);
  float fr=.04+.96*pow(1.-clamp(dot(nn,vd),0.,1.),5.),hz=pow(1.-clamp(rw.y,0.,1.),3.),sp=max(dot(rw,gGlDir),0.);
@@ -3187,7 +3196,7 @@ float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=ve
 diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
      .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n{const vec3 Lw=vec3(.299,.587,.114);float l=dot(reflectedLight.indirectDiffuse,Lw);reflectedLight.indirectDiffuse=mix(vec3(l),reflectedLight.indirectDiffuse,.3)*1.15;float l2=dot(reflectedLight.indirectSpecular,Lw);reflectedLight.indirectSpecular=mix(vec3(l2),reflectedLight.indirectSpecular,.3);}')
-     .replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight );\n\t\t#if UNROLLED_LOOP_INDEX == 0\n\t\tdirectLight.color*=gSunK;\n\t\t#endif'))
+     .replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight );\n\t\t#if UNROLLED_LOOP_INDEX == 0\n\t\tdirectLight.color*=gSunK;if(gSunR>.5)directLight.direction=normalize((viewMatrix*vec4(gSunW,0.)).xyz);\n\t\t#endif'))
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
@@ -8220,7 +8229,7 @@ const BKG={k:.62,warm:new THREE.Color(1,.88,.72),c:new THREE.Color(),L:[]};
    sun is 22 degrees up and pinkish, the training pad's 35 degrees and warm), and that alone made the same mud read darker, greyer and
    flatter on one job than another. The slab's light is scaled back to the training pad's: same brightness and colour on a flat slab. */
 function slabLightK(on){const v=SLAB_LK.U.value;if(!on||!BKD.sunV||weather.night||BKG.L.length<3){v.set(1,1,1);return}
-  const el=Math.asin(Math.max(.08,Math.min(1,BKD.sunV.y/BKD.sunV.length()))),sC=Math.sin(el),sR=Math.sin(35*Math.PI/180),W=BKG.warm,T=BKG.tint||BKG.warm,[A,B,C]=BKG.L,o=[];
+  const sC=Math.sin(35*Math.PI/180)/* v391: the slab is lit by the training pad's sun height now */,sR=Math.sin(35*Math.PI/180),W=BKG.warm,T=BKG.tint||BKG.warm,[A,B,C]=BKG.L,o=[];
   for(const c of ['r','g','b']){const sb=A.i*A.c[c],hb=B.i*.85*B.c[c],fb=C.i*.6*C.c[c]*.3,
     cur=sb*(1+(T[c]-1)*.35)*sC+hb*(1+(T[c]-1)*.55)+fb*(1+(T[c]-1)*.35),ref=sb*(1+(W[c]-1)*.35)*sR+hb*(1+(W[c]-1)*.55)+fb*(1+(W[c]-1)*.35);
     o.push(Math.max(.6,Math.min(2.2,ref/Math.max(1e-4,cur))))}
@@ -8365,7 +8374,7 @@ function step(t,dt){
   camDir.set(camPos.x-lookC.x,0,camPos.z-lookC.z);if(camDir.lengthSq()<1e-6)camDir.set(0,0,1);camDir.normalize();camRight.set(camDir.z,0,-camDir.x);
   updateTruck(dt,t);updateTools(dt,t);if(!running)toolsOff();updAudio();evVisual(dt);updateBirds(t);clouds.rotation.y+=dt*.004;TREE.wind.value=t*.001;updatePrep(dt,t);
   {try{dayTick(dt);cloudShadeTick(dt);robinTick(dt,t)}catch(e){console.warn('day',e)}const mins=set*weather.sim,arc=TOD.arc&&!weather.night,dA=arc?Math.max(2.5,58*Math.sin(Math.PI*(DAY.h-6)/14.2)):0;let ang=mins/240*.6,el=TOD.warm<0?Math.max(7,15-mins/240*5):Math.max(3,TOD.el0+(TOD.el1-TOD.el0)*Math.min(1,mins/240));if(arc){ang=(DAY.h-13)/6.5;el=22.85*Math.tan(dA*Math.PI/180)}const cs=Math.cos(ang),sn=Math.sin(ang);
-   sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(BKD.on&&BKD.sunV&&!weather.night)sun.position.copy(BKD.sunV);/* v360: on a photo site the 3D sun stands where that photo's sun is */if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
+   sun.position.set(-9*cs-21*sn,el,(9*sn-21*cs)*sunFlip);if(BKD.on&&BKD.sunV&&!weather.night)sun.position.copy(BKD.sunV);/* v360: on a photo site the 3D sun stands where that photo's sun is */if(!weather.night){const g=arc?clamp01((24-dA)/17)*(DAY.h<12?.7:1):TOD.warm<0?clamp01((15-el)/7):TOD.warm*clamp01((22-el)/14);sun.color.set(weather.sun).lerp(GOLD,g*.75);hemi.color.copy(HEMI0).lerp(GOLD,g*.18);SKYS.U.sWarm.value=g;if(scene.fog&&FOG0.f){const fc=scene.fog.color;fc.copy(SKYS.U.sHor.value).lerp(FOGP,.5*(1-g)).lerp(GOLD,g*.12)}}else SKYS.U.sWarm.value=0;if(waterTex){waterTex.offset.x+=dt*.012;waterTex.offset.y+=dt*.006}sunGlow.position.copy(sun.position).normalize().multiplyScalar(160);try{glareTick()}catch(e){}try{slabRefTick()}catch(e){}if(SKY.key)scene.environmentRotation.y=SKY.az-Math.atan2(sun.position.z,sun.position.x)}
   if(swoopT>0){swoopT-=dt;if(ptr.down)swoopT=0}const k=1-Math.pow(swoopT>0?.22:.02,dt);camPos.lerp(camTarget,k);lookC.lerp(lookT,k);
   camera.position.copy(camPos);camera.position.x+=Math.sin(t*.00041)*.07;camera.position.y+=Math.sin(t*.00057+1)*.05;try{lp3d(dt,t)}catch(e){}camera.lookAt(lookC);
   try{panHideTick(t)}catch(e){}
