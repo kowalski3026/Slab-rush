@@ -6092,11 +6092,11 @@ function edgeTick(dt,t){const live=running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&E
   // v402: keep the thumb near the middle. When the thumb moves away from the centre the view moves with it (more the farther out it is),
   // so the thumb covers less glass and stays central. Moving back in, or holding still, moves nothing, so the tool never creeps on its own.
   let fx=0,fy=0;if(EDGF.lx!=null){const mx=x-EDGF.lx,my=y-EDGF.ly,ox=x-(L+R)/2,oy=y-(T+B)/2,or=Math.hypot(ox,oy),ml=Math.hypot(mx,my);
-    if(or>1&&ml>.3){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=2.3*Math.max(0,Math.min(1,(r-.08)/.37))*out;fx=mx*g;fy=my*g}}}
+    if(or>1&&ml>.3){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=2.3*Math.max(0,Math.min(1,(r-.08)/.37))*out;fx=mx*g;fy=my*g*.25}}}   // v403: mostly side to side; up and down only a little
   EDGF.lx=x;EDGF.ly=y;
   let vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(vx||vy)EDGF.on=Math.min(1,EDGF.on+dt*4);else EDGF.on=0;if(!vx&&!vy&&!fx&&!fy)return;
   const sp=430*EDGF.on;   // edge band: eases in so a finger put down near the edge doesn't jerk the view
-  const px=PAN.x,pz=PAN.z,dx=-vx*sp*dt-fx,dy=-vy*sp*dt-fy;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
+  const px=PAN.x,pz=PAN.z,dx=-vx*sp*dt-fx,dy=-vy*sp*dt*.3-fy;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
   if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5)return;   // at the pan limit
   try{cv.dispatchEvent(new PointerEvent('pointermove',{clientX:x,clientY:y,pointerId:EDGF.id,pointerType:'touch',isPrimary:true,bubbles:true}))}catch(e){}
   if(!EDGF.tip){EDGF.tip=true;try{if(!localStorage.getItem('bts-edgetip')){localStorage.setItem('bts-edgetip','1');say('Zoomed in: work toward the edge and the view slides along with you.','info','edgeTip',3500)}}catch(e){}}
