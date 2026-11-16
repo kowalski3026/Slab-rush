@@ -59,6 +59,8 @@ const DEFS={
    desc:'Run the curb mule along the curb: drag it the whole length, around the radius and down the side. The steel template cuts the top, the face and the gutter to profile and carries extra mud into the lows. Two or three passes. Stiff mix stiffens fast.'},
   color:{name:'Color',win:[.44,.72],soft:.12,
    desc:'Broadcast the color hardener by dragging over the slab. Two even coats once the bleed water is gone, and it floats in on its own. Too early and it streaks. Too late and it won\'t wet out.'},
+  release:{name:'Release',win:[.46,.9],soft:.12,
+   desc:'Shake the release powder on by dragging. One even coat, every inch, right before the mats. It keeps them from sticking and leaves the dark antique colour in the joints. Too heavy and it cakes.'},
   stamp:{name:'Stamp',win:[.5,.9],soft:.1,
    desc:'Release is down. Drag along each row to lay the 2 ft mats and tamp them in. Too soft and they sink. Too hard and they barely print. Don\'t stamp the same spot twice.'},
   break:{name:'Break up',win:[0,1],soft:1,desc:'The hammer is on the excavator. Press and drag over the old asphalt: it cracks into slabs and the machine tracks along to keep up. Work every edge and corner. The bucket comes next.'},
@@ -138,7 +140,7 @@ const LEVELS=[
    scene:()=>{house(0,-8.6,46,0,[['slider',-4],['win',6],['win',-14],['spout',12],['ac',16.5]]);shrub(-6,-5.2,1);shrub(3,4.4,.9);shrub(8,-4.4,1.1);shrub(-12,4,1.2);lawn()},
    lede:'A garden path in exposed aggregate. Retarder goes on after the float so the top paste stays soft. When it\'s firm enough, wash the paste off to bare the river stone underneath.',
    slab:'5 ft curved garden path, {A} sq ft, 4 in thick',finish:'Exposed aggregate, joints every 6 ft'},
-  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
+  {id:'stamp',name:'Pool Deck',paint:{img:'paint/pooldeck.webp',imgPrep:'paint/pooldeck-before.webp',keepOut:[[0,-16,16,-1.5]],koPad:.45,copOut:0,copIn:1.1,copY:.16,cam:[-36,26,6],look:[10,0,-2],fov:70,asp:.75,views:[{},{img:'paint/pooldeck-v1.webp',imgPrep:'paint/pooldeck-v1-before.webp',cam:[6,26,36],look:[-2,0,-10]},{img:'paint/pooldeck-v2.webp',imgPrep:'paint/pooldeck-v2-before.webp',cam:[36,26,-6],look:[-10,0,2],copSolid:2.1},{img:'paint/pooldeck-v3.webp',imgPrep:'paint/pooldeck-v3-before.webp',cam:[-6,26,-36],look:[2,0,10]}]},wx:'mild',tag:'Stamped · 5 designs',shape:roundPoly([[-10,-5],[0,-5,1],[0,-1.5,1],[10,-1.5],[10,5],[-10,5]],2,[4,5]),steps:['pour','screed','float','edge','color','release','stamp','joint'],names:{joint:'Saw cut'},saw:true,win:{joint:[.82,9]},desc:{stamp:'Tap the slab to drop a mat. It locks square into the grid, and if that spot is already done it slides to the nearest empty one. Tap a mat to tamp it in, or swipe across a row of mats to tamp them all. They peel up on their own. Too soft and they sink, too hard and they barely print.',joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'},
    wTxt:'10 ft',pTxt:'10 ft',maxPanel:10.5,minPanel:3.5,color:'rgb(214,186,148)',sunFlip:true,
    scene:()=>{pool(1,-14,14,-2.5);house(4,-20,46,0,[['slider',7],['win',-4],['win',16],['spout',-12],['light',11],['bed',-15,6]]);chair(17.4,-8.6,0);chair(17.4,-12.6,0);shrub(-8,-9,1.2);lawn()},
    lede:'A deck that wraps the corner of the pool. It\'s poured right up to the coping, so there\'s no form on that side. Pick the customer\'s stamp design below.',
@@ -769,9 +771,10 @@ function drawEdgeAO(){eag.clearRect(0,0,TW,TH);eag.save();polyPath(eag);eag.clip
 const [stampC,stc]=mk(TW,TH),[stampB,stb]=mk(TW,TH),[stampR,stx]=mk(TW,TH);
 // ---------- stamp patterns: each mat is a 2 ft tile of shade (multiplied), release mask and bump ----------
 const seeded=s=>{let v=s*7349+11;return()=>(v=(v*16807)%2147483647)/2147483647};
-function tileSet(w,h){w=w||128;h=h||w;const Z=w,[s,sg]=mk(w,h),[m,mg]=mk(w,h),[b,bg]=mk(w,h);
+let TSK=1;// v377: the stamp patterns can be drawn at TSK times the resolution for the real-relief mats
+function tileSet(w,h){w=w||128;h=h||w;const Z=w,K=TSK,[s,sg]=mk(w*K,h*K),[m,mg]=mk(w*K,h*K),[b,bg]=mk(w*K,h*K);if(K!==1)[sg,mg,bg].forEach(c=>c.scale(K,K));
   sg.fillStyle='rgb(206,206,206)';sg.fillRect(0,0,w,h);mg.fillStyle='rgba(0,0,0,.62)';mg.fillRect(0,0,w,h);bg.fillStyle='rgb(50,50,50)';bg.fillRect(0,0,w,h);
-  return{Z,s,sg,m,mg,b,bg}}
+  return{Z,K,s,sg,m,mg,b,bg}}
 // a stone/brick/plank face with its own cleft or sand texture, drawn with wrap-around copies
 function face(T,x0,y0,w,h,G,R,kind){
   const v=224+R()*28|0,ang=R()*Math.PI,{Z,sg,mg,bg}=T;
@@ -845,10 +848,10 @@ const STAMPS={
     for(let t=0;t<400&&pts.length<11;t++){const x=R()*Z,y=R()*Z;if(pts.every(([px,py])=>{let dx=Math.abs(x-px),dy=Math.abs(y-py);dx=Math.min(dx,Z-dx);dy=Math.min(dy,Z-dy);return dx*dx+dy*dy>30*30}))pts.push([x,y,224+R()*28|0])}
     const nz=new Float32Array(16*16).map(()=>R()),noise=(x,y)=>{const fx=x/Z*16,fy=y/Z*16,x0=Math.floor(fx),y0=Math.floor(fy),tx=fx-x0,ty=fy-y0,g=(a,b)=>nz[((b+16)%16)*16+((a+16)%16)];
       return (g(x0,y0)*(1-tx)+g(x0+1,y0)*tx)*(1-ty)+(g(x0,y0+1)*(1-tx)+g(x0+1,y0+1)*tx)*ty};
-    const S=sg.createImageData(Z,Z),M=mg.createImageData(Z,Z),B=bg.createImageData(Z,Z);
-    for(let y=0;y<Z;y++)for(let x=0;x<Z;x++){let d1=1e9,d2=1e9,id=0;
+    const K=T.K||1,ZK=Z*K,S=sg.createImageData(ZK,ZK),M=mg.createImageData(ZK,ZK),B=bg.createImageData(ZK,ZK);
+    for(let yk=0;yk<ZK;yk++)for(let xk=0;xk<ZK;xk++){const x=xk/K,y=yk/K;let d1=1e9,d2=1e9,id=0;
       for(let i=0;i<pts.length;i++){let dx=Math.abs(x-pts[i][0]),dy=Math.abs(y-pts[i][1]);dx=Math.min(dx,Z-dx);dy=Math.min(dy,Z-dy);const d=dx*dx+dy*dy;if(d<d1){d2=d1;d1=d;id=i}else if(d<d2)d2=d}
-      const e=Math.sqrt(d2)-Math.sqrt(d1),o=(y*Z+x)*4,n=noise(x,y),n2=noise(x*3.1,y*3.1);
+      const e=Math.sqrt(d2)-Math.sqrt(d1),o=(yk*ZK+xk)*4,n=noise(x,y),n2=noise(x*3.1,y*3.1);
       if(e<2.6){S.data[o]=S.data[o+1]=S.data[o+2]=206;M.data[o+3]=158;B.data[o]=B.data[o+1]=B.data[o+2]=50}
       else{const bev=Math.min(1,(e-2.6)/6),cl=Math.max(0,n2-.55)*2.2,v=pts[id][2]*(.9+.1*n)-cl*20;S.data[o]=S.data[o+1]=S.data[o+2]=v;
         M.data[o+3]=Math.max(0,(1-bev)*90+cl*60);const bv=90+bev*60+(n2-.5)*36;B.data[o]=B.data[o+1]=B.data[o+2]=bv}
@@ -3053,11 +3056,13 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
     F=F.replace('varying vec2 vDW;','varying vec2 vDW;\nuniform sampler2D dN;uniform sampler2D dM;')
      .replace('#include <map_fragment>','#include <map_fragment>\n{float mt=texture2D(dM,vDW*vec2(.26,.52)).r+texture2D(dM,vDW*vec2(.061,.122)+.37).r-1.;diffuseColor.rgb*=1.+mt*.7;}')
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 du=vDW*vec2(.29,.58);vec3 dn=texture2D(dN,du).xyz*2.-1.;dn.xy*=.55*smoothstep(.25,.85,roughnessFactor);normal=pertD(-vViewPosition,normal,dn,gl_FrontFacing?1.:-1.,du);}')}
-  if(GPS.on){const m2=typeof M2!=='undefined'&&M2.on;Object.assign(sh.uniforms,GPS.U);if(CPH.on)Object.assign(sh.uniforms,CPH.U);if(m2)Object.assign(sh.uniforms,M2.U);
+  let spOn=false;try{spOn=SP.on}catch(e){}
+  if(GPS.on){const m2=typeof M2!=='undefined'&&M2.on;Object.assign(sh.uniforms,GPS.U);if(spOn)Object.assign(sh.uniforms,SP.U);if(CPH.on)Object.assign(sh.uniforms,CPH.U);if(m2)Object.assign(sh.uniforms,M2.U);
     F=F.replace('varying vec2 vDW;',`varying vec2 vDW;
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
 float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;${CPH.on?'uniform sampler2D cPk;uniform float gPh;':'float gPh=0.;'}uniform float gSD;
 uniform sampler2D mA;uniform vec4 mO;uniform vec2 mTx;uniform float mRoll;uniform float mEx;vec4 mM=vec4(0.);float mIn=0.;
+${spOn?'uniform sampler2D spT;uniform sampler2D spD;uniform vec4 spO;uniform vec2 spP;uniform vec2 spR;uniform vec2 spS;uniform vec2 spL;uniform vec3 spRel;uniform float spH;uniform float spRl;':''}
 uniform sampler2D gMR;uniform sampler2D gMK;uniform float gWM;uniform float gCure;uniform float gTm;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
@@ -3193,6 +3198,26 @@ float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=ve
   if(gCure>0.){gCol*=1.+.26*gCure*mi;gRgh+=.18*gCure*mi;}
  }
 }
+${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each spot was printed; release powder dusts the top and stays dark in the lows
+{vec2 sq=vDW,su=(sq-spO.xy)/spO.zw;if(su.x>0.&&su.x<1.&&su.y>0.&&su.y<1.){
+ // one small texture: R depth, G release, B/A the mat's pattern offset. Depth and release blended by hand (4 taps), the offset taken from the nearest
+ vec2 tc=su*spS-.5,f=fract(tc),e=1./spS,i0=(floor(tc)+.5)*e;vec4 a=texture2D(spD,i0),b=texture2D(spD,i0+vec2(e.x,0.)),c=texture2D(spD,i0+vec2(0.,e.y)),d=texture2D(spD,i0+e);
+ vec2 DR=mix(mix(a.rg,b.rg,f.x),mix(c.rg,d.rg,f.x),f.y);float dep=DR.x,rel=DR.y;
+ if(dep>.003||rel>.003){vec4 SN=f.y<.5?(f.x<.5?a:b):(f.x<.5?c:d);
+  /* v393: each mat is turned a random quarter (half for planks) so the pattern doesn't repeat mat after mat. B holds the turn in its low
+     the mats all sit on one grid (spL, its corner), so the mat's own 2 ft square is found from that and its pattern spun about its centre */
+  float rt=floor(SN.b*3.+.5);vec2 off=spL;
+  vec2 mp=(sq-off)*.5,mi=floor(mp),mf=fract(mp)-.5;float cs=rt>.5&&rt<1.5||rt>2.5?0.:rt>1.5?-1.:1.,sn=rt>.5&&rt<1.5?1.:rt>2.5?-1.:0.;mat2 M=mat2(cs,sn,-sn,cs);
+  vec2 pu=2.*(mi+.5+M*mf)/spP,gx=M*dFdx(sq)/spP,gy=M*dFdy(sq)/spP;
+  vec4 T=textureGrad(spT,pu,gx,gy);
+  vec2 sl=transpose(M)*((T.gb-.502)*(255./1200.)*spR/spP)*spH*dep;float dk=min(dep*1.5,1.);
+  gTl*=1.-.75*dk;gTl-=sl*1.6;
+  float lo=1.-smoothstep(.25,.55,T.r);
+  gCol*=mix(1.,.98+.25*(T.r-.59)-.12*lo,dk);
+  float mo=gVN(sq*2.3+3.),ant=rel*mix(.5,.04+.2*smoothstep(.3,.75,mo)+.85*max(lo,T.a*.9),dk);diffuseColor.rgb=mix(diffuseColor.rgb,spRel,clamp(ant,0.,.85));
+  gRgh+=.28*rel*(1.-.5*dk)+.06*dk;gPool*=1.-dk;
+  float tr=dep*spRl*(1.-smoothstep(.12,.3,rel));if(tr>.02){float n=gVN(sq*9.)*.6+gVN(sq*23.)*.4;gCol*=1.-.3*tr*smoothstep(.45,.7,n);gTl+=(vec2(gVN(sq*9.+.3),gVN(sq*9.+5.1))-.5)*tr*3.;gRgh+=.2*tr;}
+ }}}`:''}
 diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
      .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n{const vec3 Lw=vec3(.299,.587,.114);float l=dot(reflectedLight.indirectDiffuse,Lw);reflectedLight.indirectDiffuse=mix(vec3(l),reflectedLight.indirectDiffuse,.3)*1.15;float l2=dot(reflectedLight.indirectSpecular,Lw);reflectedLight.indirectSpecular=mix(vec3(l2),reflectedLight.indirectSpecular,.3);}')
@@ -3204,7 +3229,7 @@ diffuseColor.rgb*=gCol;`)
 ;
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(CDBG?'D':'')+'gl370';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+'gl377';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -3213,6 +3238,7 @@ const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9
 /* v209: if a phone can't build the detailed slab shader (too many textures or too long), fall back to the plain one
    instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
 if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
+  if(spOnNow()){SP.bad=1;spGfx(false);return}
   if(CPH.on){CPH.on=false;CPH.off=true}else if(SLABD.on){SLABD.on=false}else if(GPS.on){GPS.on=false}slabMat.needsUpdate=true}}
 try{if(renderer&&renderer.capabilities.maxTextures<16){SLABD.try=1}}catch(e){}
 function gpsInit(){if(GPS.on||safeGfx||!renderer)return;GPS.on=true;gpsShape();gpsSync();slabMat.needsUpdate=true}
@@ -3273,6 +3299,10 @@ void main(){
    vec2 s=A.zw-A.xy;float L2=max(dot(s,s),1e-6),tt=clamp(dot(p-A.xy,s)/L2,0.,1.),ds=length(p-(A.xy+s*tt));
    if(C.z>.5)ds=(p.y>min(A.y,A.w)&&p.y<max(A.y,A.w))?abs(p.x-A.x):9.;
    if(ds<B.y){float k=B.z*inK*smoothstep(B.y,B.y*(C.z>.5?.96:.75),ds);d=mix(d,textureLod(tA,uv,6.).r*.15,k);c=mix(c,max(c,B.w),k);w=min(1.,w+C.x*k);if(C.y>.5)b*=1.-k;}
+  }else if(t==6){// stamp mat: pressed flat under it; soft mud squeezes up into a lip around the edge
+   vec2 q=abs(p-A.xy)-A.zw;float od=max(q.x,q.y);
+   if(od<0.){float k=B.z*inK*(1.-smoothstep(-.04,0.,od));d=mix(d,textureLod(tA,uv,5.).r*.25,k);b*=1.-k;}
+   else if(B.w>.5&&od<.14)d+=.09*inK*(1.-od/.14)*smoothstep(0.,.03,od);
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
    if(al>-.05&&al<L+.05&&abs(q)<B.y){float alw=dot(p,dv);
@@ -4727,7 +4757,7 @@ function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.vi
   REB.chs.forEach((c,k)=>{c.on=1;rebM(REB.ch,k,c.x,-.255,c.z,0,Math.random()*3,0,1,1,1)});REB.runs.forEach((b,k)=>{b.on=0;b.a=0;rebBar(k,0)});rebMarks()}
 function rebarTrace(){}// kept for old callers
 /* ---------- state init ---------- */
-function reset(){try{M2.clr=1}catch(e){}setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
+function reset(){try{M2.clr=1}catch(e){}try{spClear()}catch(e){}setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
   h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);DUST.fill(0);TEAR.fill(0);PST.fill(0);MKS.dirty=1;try{payReset()}catch(e){console.warn('pay',e)}
   for(let i=0;i<N;i++)mott[i]=(Math.random()-.5)*10;
   {const nz=new Float32Array(N);for(let i=0;i<N;i++)nz[i]=Math.random();
@@ -6058,7 +6088,8 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   else if(k==='soffit')brgSoffitAt(p.wx,p.wz);
   else if(k==='screed'){scrTip();if(scrStrip()){const [LA,LB]=SCR.lanes[0];boardY=Math.max(LA-1.5,Math.min(LB+1.5,p.y));SCR.bx=p.x;lastRow=null;carryC.fill(0)}else{boardX=Math.max(RX0-1,Math.min(RX1+1,p.x));lastCol=null}scr.ok=scrOk()}
   else if(k==='color')colorAt(p.x,p.y);
-  else if(k==='stamp'){stampDrag=new Set();stampAt(p.wx,p.wz)}
+  else if(k==='release')releaseAt(p.x,p.y);
+  else if(k==='stamp'){if(SP.g)spDown(p);else{stampDrag=new Set();stampAt(p.wx,p.wz)}}
   else if(k==='blanket'){blk.minx=blk.maxx=blk.lastx=p.x;blk.sy=p.y;blk.n=1}
   else if(k==='edge')edgeTrace(p.x,p.y);
   else if(k==='joint')jointDown(p,toCell(e,true)||p);
@@ -6081,7 +6112,8 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='demo')brgHammer(wx(ptr.x),wz(ptr.y),p.wx,p.wz);
   else if(k==='soffit'){const ox=wx(ptr.x),oz=wz(ptr.y),n=Math.max(1,Math.ceil(Math.hypot(p.wx-ox,p.wz-oz)/.8));for(let q=1;q<=n;q++)brgSoffitAt(ox+(p.wx-ox)*q/n,oz+(p.wz-oz)*q/n)}
   else if(k==='screed'){if(scrStrip()){const [LA,LB]=SCR.lanes[0];const nb=SCR.bx+(p.x-ptr.x)*.85;if(Math.abs(Math.round(nb-scrBL()/2)-Math.round(SCR.bx-scrBL()/2))>=1){lastRow=null}SCR.bx=nb;if(scr.ok)screedMoveY(ptr.y,Math.max(LA-2,Math.min(LB+2,p.y)))}else screedMove(ptr.x,Math.max(RX0-1.5,Math.min(RX1+1.5,p.x)))}
-  else if(k==='stamp')stampAt(p.wx,p.wz);
+  else if(k==='stamp'){if(SP.g)spMove(p);else stampAt(p.wx,p.wz)}
+  else if(k==='release'){const st=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.8));for(let i=1;i<=st;i++)releaseAt(ptr.x+dx*i/st,ptr.y+dy*i/st)}
   else if(k==='blanket'){blk.minx=Math.min(blk.minx,p.x);blk.maxx=Math.max(blk.maxx,p.x);blk.lastx=p.x;blk.sy+=p.y;blk.n++}
   else if(k==='color'){const st=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.8));for(let i=1;i<=st;i++)colorAt(ptr.x+dx*i/st,ptr.y+dy*i/st)}
   else if(k==='broom')broomDrag(p);
@@ -6109,6 +6141,7 @@ function up(){
   if(k==='blanket'&&running)layBlanket();
   if(k==='joint'&&running)jointUp();
   if(k==='rebar')rebUp();
+  if(k==='stamp'&&SP.g)spUp();
   if(!TRD.on){closeLook.set(wx(ptr.x),0,wz(ptr.y));if(view===3)computeCam()}
 }
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
@@ -6176,7 +6209,7 @@ function applyFinish(L){if(!L.steps0){L.steps0=L.steps.slice();L.finish0=L.finis
   L.steps=L.steps0.slice();L.finish=L.finish0;L.hardTrowel=L.hard0;if(L.sawAdded){delete L.saw;delete L.names;if(L.win)delete L.win.joint;if(L.desc)delete L.desc.joint;L.sawAdded=false}if(!finChoosable(L)||(typeof practice!=='undefined'&&practice))return;
   const f=finSel[L.id];if(!f||f===finOf(L)||!finList(L).includes(f))return;
   const s0=L.steps0,pre=s0.includes('tube')?['tube']:[],post=s0.includes('blanket')?['blanket']:[];
-  const tail={broom:s0.includes('trowel')?['edge','trowel','joint','broom']:['edge','joint','broom'],trowel:['edge','trowel','joint'],stamp:['edge','color','stamp','joint'],expose:['edge','joint','expose'],power:['power','joint']}[f];
+  const tail={broom:s0.includes('trowel')?['edge','trowel','joint','broom']:['edge','joint','broom'],trowel:['edge','trowel','joint'],stamp:L.id==='stamp'?['edge','color','release','stamp','joint']:['edge','color','stamp','joint'],expose:['edge','joint','expose'],power:['power','joint']}[f];
   L.steps=[...pre,'pour','screed','float',...tail,...post];if(f==='trowel'||f==='power')L.hardTrowel=true;
   if(f==='stamp'&&!L.saw){L.sawAdded=true;L.saw=true;L.names={joint:'Saw cut'};L.win=Object.assign({},L.win||{},{joint:[.82,9]});L.desc=Object.assign({},L.desc||{},{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'})}
   L.finish={broom:'Broom, tooled edges and joints',trowel:'Steel trowel smooth, tooled edges and joints',stamp:'',expose:'Exposed aggregate, washed, joints',power:'Power trowel, joints'}[f]}
@@ -6961,14 +6994,14 @@ function cdustPuff(X,Y,Z,c,big){const D=CDUST,i=D.i;D.i=(i+1)%D.N;D.age[i]=0;con
   D.off[i*3]=X+Math.cos(a)*.15;D.off[i*3+1]=Y+.08;D.off[i*3+2]=Z+Math.sin(a)*.15;D.vel[i*3]=Math.cos(a)*sp;D.vel[i*3+1]=big?1.4+Math.random()*1:.25+Math.random()*.5;D.vel[i*3+2]=Math.sin(a)*sp;
   D.life[i]=big?3.2+Math.random()*1.8:2+Math.random()*1.4;D.s0[i]=big?.35:.2;D.s1[i]=big?2.6+Math.random()*1.6:1.2+Math.random()*1.1;D.a0[i]=big?.8:.6;D.sd[i]=Math.random();
   const v=.9+Math.random()*.2;D.col[i*3]=c.r*v;D.col[i*3+1]=c.g*v;D.col[i*3+2]=c.b*v}
-function cdustThrow(x,y){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cdustColor(),D=CDUST;
+function cdustThrow(x,y,cc){const X=wx(x),Z=wz(y),Y=surfY(X,Z),c=cc||cdustColor(),D=CDUST;D.gc=c;
   for(let k=0;k<3;k++){const j=D.gi;D.gi=(j+1)%D.G;D.ga[j]=0;D.gp[j*3]=X+(Math.random()-.5)*.9;D.gp[j*3+1]=Y+2.4+Math.random()*.7;D.gp[j*3+2]=Z+(Math.random()-.5)*.9;D.gv[j*3]=(Math.random()-.5)*1.4;D.gv[j*3+1]=-2-Math.random()*2;D.gv[j*3+2]=(Math.random()-.5)*1.4}
   // a burst where the handful lands: one core billow, a few that skid out along the slab
   D.k=(D.k||0)+1;if(D.k%2)return;cdustPuff(X,Y,Z,c,true);const n=2+(Math.random()*2|0);for(let k=0;k<n;k++)cdustPuff(X+(Math.random()-.5)*.6,Y,Z+(Math.random()-.5)*.6,c,false)}
 function cdustTick(dt){const D=CDUST;let live=0;
   // grains
   let gl=0;for(let j=0;j<D.G;j++){if(D.ga[j]>=1)continue;gl++;D.ga[j]+=dt*2;D.gv[j*3+1]-=9*dt;D.gp[j*3]+=D.gv[j*3]*dt;D.gp[j*3+1]+=D.gv[j*3+1]*dt;D.gp[j*3+2]+=D.gv[j*3+2]*dt;if(D.ga[j]>=1)D.gp[j*3+1]=-1e4}
-  D.grains.visible=gl>0;if(gl){D.gm.color.copy(D.c);D.grains.geometry.attributes.position.needsUpdate=true}
+  D.grains.visible=gl>0;if(gl){D.gm.color.copy(D.gc||D.c);D.grains.geometry.attributes.position.needsUpdate=true}
   // billows: shove out fast and low, then drag slows them, they lift and swell; fade in quick, thin out slow
   let n=0;for(let i=0;i<D.N;i++){if(D.age[i]>=D.life[i])continue;D.age[i]+=dt;const t=Math.min(1,D.age[i]/D.life[i]),j=i*3;
     const dh=Math.exp(-dt*2.6),dv=Math.exp(-dt*1.1);D.vel[j]=D.vel[j]*dh+.25*(1-dh);D.vel[j+2]*=dh;D.vel[j+1]=D.vel[j+1]*dv+(t<.5?.18:-.05)*dt;
@@ -7030,10 +7063,171 @@ function updateMats(dt){
     const y=t<.14?y0+.9*(1-t/.14):t<.62?y0+.035+(t<.24?Math.sin((t-.14)/.1*Math.PI)*.05:0):y0+.035+(t-.62)*3;
     o.m.position.set(o.x,y,o.z);if(t>.95){o.t=-1;o.m.visible=false}}
 }
-function stampStats(){let n=0,q=0,dbl=0,tot=0;for(let i=0;i<stampHits.length;i++){if(!tileOk[i])continue;tot++;if(stampHits[i]){n++;q+=stampQ[i]}if(stampHits[i]>1)dbl++}
+function stampStats(){if(SP.g)return spStats();let n=0,q=0,dbl=0,tot=0;for(let i=0;i<stampHits.length;i++){if(!tileOk[i])continue;tot++;if(stampHits[i]){n++;q+=stampQ[i]}if(stampHits[i]>1)dbl++}
   return{n,tot,cov:tot?n/tot:0,q:n?q/n:0,dbl}}
 function thump(){shake(.1);if(performance.now()>HAP.until)hap(22,2);if(!AC||!soundOn)return;try{const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(42,t+.16);
   g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g);g.connect(au.master);o.start(t);o.stop(t+.22)}catch(e){}}
+
+/* ---------- v377 stamping with real mats (Lakeside test) ----------
+   Release powder goes on first. Then you drag a 2 ft mat onto the slab: the first one squares up to a straight form and
+   the rest snap edge to edge with it. Tap a mat to tamp it; once it's in, it peels up and leaves the print.
+   The print is real relief in the slab shader: a high-res height map of the pattern, locked to the mat's position,
+   pressed as deep as that spot was printed. The release stays dark in the joints and texture. */
+const SP={g:false,on:false,key:'',pat:'',res:16,W:0,H:0,x0:0,z0:0,dep:null,off:null,tD:null,tF:null,tT:null,P:[2,2],sp:[1,1],topC:null,
+  mats:[],hold:null,tap:null,lat:null,xl:[],zl:[],relC:new Float32Array(N),prC:new Float32Array(N),prQ:new Float32Array(N),nDbl:0,nOff:0,nStuck:0,nMat:0,dirty:0,tmp:null,sh:null,rc:null,
+  U:{spT:{value:null},spD:{value:null},spS:{value:new THREE.Vector2(1,1)},spL:{value:new THREE.Vector2(0,0)},spRl:{value:1},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
+function spOnNow(){try{return SP.on}catch(e){return false}}
+function spWant(){return !!(LV&&LV.steps&&LV.steps.includes('stamp')&&(LV.id==='stamp'||/stamp2/.test(location.search))&&!STR.on)}
+function spRelCol(){const r=RELEASES.find(o=>o.id===stampSel.rel)||RELEASES[0];return (SP.rc||(SP.rc=new THREE.Color())).setStyle(r.c)}
+// box blur with wrap-around, twice (about a gaussian), so the joints get a rounded shoulder instead of a pixel step
+function spBlur(a,w,h,r){const t=new Float32Array(w*h),n=2*r+1;
+  for(let pass=0;pass<2;pass++){
+    for(let y=0;y<h;y++){const row=y*w;let s=0;for(let k=-r;k<=r;k++)s+=a[row+((k%w)+w)%w];for(let x=0;x<w;x++){t[row+x]=s/n;s+=a[row+(x+r+1)%w]-a[row+(((x-r)%w)+w)%w]}}
+    for(let x=0;x<w;x++){let s=0;for(let k=-r;k<=r;k++)s+=t[(((k%h)+h)%h)*w+x];for(let y=0;y<h;y++){a[y*w+x]=s/n;s+=t[((y+r+1)%h)*w+x]-t[((((y-r)%h)+h)%h)*w+x]}}}
+  return a}
+function spPatBuild(){const id=stampSel.pat;if(SP.pat===id&&SP.tT)return;SP.pat=id;let T;TSK=4;try{T=STAMPS[id].gen()}finally{TSK=1}
+  const w=T.b.width,h=T.b.height,n=w*h,B=T.b.getContext('2d').getImageData(0,0,w,h).data,M=T.m.getContext('2d').getImageData(0,0,w,h).data,Sd=T.s.getContext('2d').getImageData(0,0,w,h).data;
+  // the stone-face texture (slate cleft, sand pits, wood grain) sits shallower than the joints: real mats print it at a fraction of the joint depth
+  const hf=new Float32Array(n);for(let i=0;i<n;i++){const v=B[i*4];hf[i]=v>96?150+(v-150)*.42:v}spBlur(hf,w,h,3);
+  // R height, G/B its slope across and along (so the shader needs one fetch, and the mipmaps filter the normals properly), A where release collects
+  const out=new Uint8Array(n*4),E=v=>Math.max(0,Math.min(255,Math.round(128+v*1200)));for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x,o=i*4;
+    out[o]=hf[i];out[o+1]=E((hf[y*w+(x+1)%w]-hf[y*w+(x+w-1)%w])/510);out[o+2]=E((hf[((y+1)%h)*w+x]-hf[((y+h-1)%h)*w+x])/510);out[o+3]=Math.max(M[o+3],(255-Sd[o])*.6)}
+  if(SP.tT)SP.tT.dispose();const t=new THREE.DataTexture(out,w,h,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=8;t.needsUpdate=true;
+  SP.tT=t;const sp=STAMPS[id].span||[1,1];SP.sp=sp;SP.P=[2*sp[0],2*sp[1]];SP.U.spT.value=t;SP.U.spP.value.set(SP.P[0],SP.P[1]);SP.U.spR.value.set(w,h);
+  // the mat's own face: the same design in blue-grey urethane, the stone faces sitting low (it's the negative)
+  const tw=Math.max(64,w/2|0),th=Math.max(64,h/2|0),[c,g]=mk(tw,th),im=g.createImageData(tw,th);
+  for(let y=0;y<th;y++)for(let x=0;x<tw;x++){const v=hf[(y*2)*w+x*2]/255,o=(y*tw+x)*4,k=.78+.9*(.6-v);im.data[o]=96*k;im.data[o+1]=116*k;im.data[o+2]=132*k;im.data[o+3]=255}
+  g.putImageData(im,0,0);SP.topC=c;SP.mats.forEach(spMatTex)}
+function spSetup(){const r=SP.res=Math.min(16,1024/Math.max(SLAB_W,SLAB_D));SP.W=Math.round(SLAB_W*r);SP.H=Math.round(SLAB_D*r);SP.x0=-SLAB_W/2;SP.z0=-SLAB_D/2;
+  const n=SP.W*SP.H*4;SP.dep=new Uint8Array(n);if(SP.tD)SP.tD.dispose();
+  const mkT=(a,lin)=>{const t=new THREE.DataTexture(a,SP.W,SP.H,THREE.RGBAFormat);t.magFilter=t.minFilter=lin?THREE.LinearFilter:THREE.NearestFilter;t.needsUpdate=true;return t};
+  SP.tD=mkT(SP.dep,0);SP.U.spD.value=SP.tD;SP.U.spS.value.set(SP.W,SP.H);SP.U.spO.value.set(SP.x0,SP.z0,SLAB_W,SLAB_D);
+  // straight form lines the first mat can square up to
+  SP.xl=[];SP.zl=[];const P=LV.shape||[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];if(!a||!b)continue;
+    if(Math.abs(a[0]-b[0])<.02&&Math.abs(a[1]-b[1])>1.5)SP.xl.push(a[0]);if(Math.abs(a[1]-b[1])<.02&&Math.abs(a[0]-b[0])>1.5)SP.zl.push(a[1])}
+  SP.key=[LV.id,SLAB_W,SLAB_D].join();spClear()}
+function spClear(){SP.done=[];if(SP.dep){SP.dep.fill(0);SP.dirty=1}SP.relC.fill(0);SP.prC.fill(0);SP.prQ.fill(0);SP.nDbl=SP.nOff=SP.nStuck=SP.nMat=0;SP.lat=null;SP.hold=SP.tap=SP.g0=null;
+  SP.mats.forEach(m=>{m.st='idle';m.g.visible=false});if(SP.tmp)SP.tmp.visible=false;if(SP.sh)SP.sh.visible=false}
+const SPM={side:new THREE.MeshStandardMaterial({color:0x2c3a44,roughness:.62,transparent:true}),hand:new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.85})};
+function spMatNew(){const g=new THREE.Group(),inner=new THREE.Group();inner.position.x=1;g.add(inner);
+  const top=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.5,transparent:true}),side=SPM.side.clone();
+  const box=new THREE.Mesh(new THREE.BoxGeometry(2,.09,2),[side,side,top,side,side,side]);box.castShadow=true;box.position.y=.045;inner.add(box);
+  for(const s of[-1,1]){const hd=new THREE.Mesh(new THREE.TorusGeometry(.17,.03,6,14,Math.PI),SPM.hand);hd.position.set(s*.72,.09,0);hd.rotation.y=Math.PI/2;hd.castShadow=true;inner.add(hd)}
+  g.visible=false;scene.add(g);const m={g,inner,box,top,side,tex:null,st:'idle',x:0,z:0,d:0,dq:1,q:1,sl:0,t:0,ta:9,hit:1,tx:0,tz:0,lt:-1,snap:false,first:false};spMatTex(m);return m}
+function spMatTex(m){if(!SP.topC)return;if(m.tex)m.tex.dispose();const t=new THREE.CanvasTexture(SP.topC);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.flipY=false;t.repeat.set(1/SP.sp[0],1/SP.sp[1]);t.anisotropy=4;
+  m.tex=t;m.top.map=t;m.top.needsUpdate=true}
+function spTamperNew(){const g=new THREE.Group(),st=new THREE.MeshStandardMaterial({color:0x8a8f94,roughness:.38,metalness:.75});
+  const pl=new THREE.Mesh(new THREE.BoxGeometry(.9,.045,.9),st);pl.position.y=.023;pl.castShadow=true;g.add(pl);
+  const hd=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,3.4,8),new THREE.MeshStandardMaterial({color:0xc9a26a,roughness:.7}));hd.position.y=1.74;hd.castShadow=true;g.add(hd);
+  const gr=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.7,8),SPM.hand);gr.rotation.z=Math.PI/2;gr.position.y=3.44;g.add(gr);
+  g.visible=false;scene.add(g);return g}
+function spShadowNew(){const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.3,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=3;m.visible=false;scene.add(m);return m}
+function spMatAt(X,Z){for(const m of SP.mats)if((m.st==='down'||m.st==='drop'||m.st==='lift')&&X>=m.x-.15&&X<=m.x+2.15&&Z>=m.z-.15&&Z<=m.z+2.15)return m;return null}
+/* v392: easy on big fingers. Every mat locks square into the grid that starts at the straight forms, so a mat can't go down crooked;
+   and if the finger lands on a spot that's already printed or has a mat on it, the mat goes to the nearest empty spot beside it. */
+function spLat(){if(!SP.lat)SP.lat=[SP.xl.length?Math.min(...SP.xl):wx(RX0),SP.zl.length?Math.min(...SP.zl):wz(RY0)];SP.U.spL.value.set(SP.lat[0],SP.lat[1]);return SP.lat}
+function spOnSlab(x,z){for(let y=0;y<GH;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2)return true}return false}
+function spFree(x,z,self){for(const o of SP.mats)if(o!==self&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-x)<.5&&Math.abs(o.z-z)<.5)return false;
+  if(SP.dep){const i=Math.floor((x+1-SP.x0)*SP.res),j=Math.floor((z+1-SP.z0)*SP.res);if(i>=0&&j>=0&&i<SP.W&&j<SP.H&&SP.dep[(j*SP.W+i)*4]>90)return false}
+  return spOnSlab(x,z)}
+function spPlace(m,X,Z){const L=spLat(),bx=L[0]+Math.round((X-1-L[0])/2)*2,bz=L[1]+Math.round((Z-1-L[1])/2)*2;let best=null,bd=1e9;
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=bx+dx*2,z=bz+dz*2,d=Math.hypot(x+1-X,z+1-Z);if(d<bd&&spFree(x,z,m)){bd=d;best=[x,z]}}
+  if(!best)best=[bx,bz];m.x=best[0];m.z=best[1];m.snap=true}
+/* v393: a tap drops a mat (it locks into the grid), a tap on a mat tamps it, and any drag is a tamping swipe wherever it starts,
+   on a mat, between mats or on bare slab. The swipe is checked every few inches along the finger's path so a fast swipe can't skip a mat. */
+function spDown(p){SP.g0={x:p.wx,z:p.wz,lx:p.wx,lz:p.wz,sw:false,hit:new Set()}}
+function spSwipeAt(X,Z){const g=SP.g0;for(const m of SP.mats){if(g.hit.has(m)||m.lt>=0||(m.st!=='down'&&m.st!=='drop'))continue;
+  if(X>=m.x-.25&&X<=m.x+2.25&&Z>=m.z-.25&&Z<=m.z+2.25){if(m.st==='drop')m.st='down';g.hit.add(m);spTamp(m,X,Z)}}}
+function spMove(p){const g=SP.g0;if(!g)return;
+  if(!g.sw&&Math.hypot(p.wx-g.x,p.wz-g.z)>.35){g.sw=true;spSwipeAt(g.x,g.z)}
+  if(g.sw){const dx=p.wx-g.lx,dz=p.wz-g.lz,n=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.3));for(let i=1;i<=n;i++)spSwipeAt(g.lx+dx*i/n,g.lz+dz*i/n)}
+  g.lx=p.wx;g.lz=p.wz}
+function spUp(){const g=SP.g0;SP.g0=null;if(!g||g.sw)return;
+  for(const o of SP.mats)if((o.st==='down'||o.st==='drop')&&g.x>=o.x-.1&&g.x<=o.x+2.1&&g.z>=o.z-.1&&g.z<=o.z+2.1){if(o.lt<0){if(o.st==='drop')o.st='down';spTamp(o,g.x,g.z)}return}
+  let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<8){f=spMatNew();SP.mats.push(f)}
+  if(!f){say('All eight mats are down. Tamp them in and they come up.','info','spAll');return}
+  Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0,rot:0});f.g.rotation.set(0,0,0);f.inner.rotation.y=0;f.inner.scale.y=1;SP.hold=f;spPlace(f,g.x,g.z);f.g.visible=true;buzz(8)
+  const m=SP.hold;if(!m)return;SP.hold=null;
+  let on=false;for(let y=0;y<GH&&!on;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){on=true;break}}
+  if(!on){m.st='idle';m.g.visible=false;return}// dragged off the slab: back on the stack
+  spLat();m.first=false;
+  const sl=set+dryOff[cellAt(m.x+1,m.z+1)];m.sl=sl;let q=winQ(sl,STAGES[S.stamp]),dq=1;
+  if(sl<.46)say('Too soft. The mat\'s sinking and squeezing paste up the sides.','bad','stSoft');
+  else if(sl>.9){dq=Math.max(.15,1-(sl-.9)/.08);say('Too hard. It\'s barely printing.','bad','stHard')}
+  for(const o of SP.mats)if(o!==m&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-m.x)<1.6&&Math.abs(o.z-m.z)<1.6){q*=.7;say('Mats overlap. Lay them edge to edge.','bad','spOv');break}
+  const sq1=SP.sp[0]===SP.sp[1];m.rot=sq1?(Math.random()*4|0):(Math.random()<.5?0:2);m.inner.rotation.y=m.rot*Math.PI/2;
+  Object.assign(m,{q,dq,st:'drop',t:0,d:.18});acc[S.stamp].w+=1;acc[S.stamp].q+=q;
+  if(m.tex){const sp=SP.sp,ix=Math.round((m.x-SP.lat[0])/2),iz=Math.round((m.z-SP.lat[1])/2);m.tex.offset.set((((ix%sp[0])+sp[0])%sp[0])/sp[0],(((iz%sp[1])+sp[1])%sp[1])/sp[1])}}
+function spTamp(m,X,Z){if(m.lt>=0)return;m.ta=0;m.hit=0;m.tx=Math.max(m.x+.45,Math.min(m.x+1.55,X));m.tz=Math.max(m.z+.45,Math.min(m.z+1.55,Z));
+  m.d=Math.min(1.2,m.d+.85);if(m.d>=1)m.lt=.36}
+function spPuff(m){let r=0,n=0;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){r+=Math.min(1,SP.relC[i]);n++}}
+  if(!n||r/n<.2)return;const c=spRelCol();for(let k=0;k<3;k++){const s=Math.random()*4|0,u=Math.random()*2,X=m.x+(s===0?-.05:s===1?2.05:u),Z=m.z+(s===2?-.05:s===3?2.05:u);try{cdustPuff(X,surfY(X,Z),Z,c,false)}catch(e){}}}
+function spLift(m){m.st='lift';m.t=0;spPrint(m);SP.nMat++;try{m2Stamp({t:6,A:[m.x+1,m.z+1,1,1],B:[6,0,Math.min(1,.4+.6*m.dq),m.sl<.46?1:0],C:[0,0,0,0]})}catch(e){}}
+function spPrint(m){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,P=SP.P,rel=S.release!=null,lat=SP.lat||[m.x,m.z];
+  const ox=m.snap||m.first?lat[0]:m.x,oz=m.snap||m.first?lat[1]:m.z,R8=(Math.round((((ox%P[0])+P[0])%P[0])/P[0]*63)&63)*4+((m.rot|0)&3),G8=Math.round((((oz%P[1])+P[1])%P[1])/P[1]*255)&255;
+  const ax=(m.x-SP.x0)*r,az=(m.z-SP.z0)*r,bx=ax+2*r,bz=az+2*r,i0=Math.max(0,Math.floor(ax)),i1=Math.min(W,Math.ceil(bx)),j0=Math.max(0,Math.floor(az)),j1=Math.min(H,Math.ceil(bz));
+  const dv=Math.min(1,m.d)*m.dq;let ov=0,tot=0,stuck=0;
+  for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){tot++;if(D[(j*W+i)*4]>90)ov++}
+  if(tot&&ov/tot>.2){SP.nDbl++;m.q*=.4;say('Double stamp. That leaves ghost lines.','bad','stDbl')}
+  for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){const k=(j*W+i)*4,e=Math.min(i+.5-ax,bx-i-.5,j+.5-az,bz-j-.5),a=Math.max(0,Math.min(1,(e+.5)/1.5));if(a<=0)continue;
+    D[k]=Math.max(D[k],Math.round(dv*255*a));D[k+2]=((m.rot|0)&3)*85;D[k+3]=0;
+    if(rel&&D[k+1]<77)stuck++}
+  SP.dirty=1;if(rel&&tot&&stuck/tot>.12){SP.nStuck++;m.q*=.6;say('No release there. The mat stuck and tore the face.','bad','spStuck')}
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(!inR[i])continue;const cx=wx(x+.5),cz=wz(y+.5);if(cx<m.x||cx>m.x+2||cz<m.z||cz>m.z+2)continue;
+    const pv=SP.prC[i];SP.prC[i]=Math.max(pv,dv);SP.prQ[i]=pv>.3?Math.min(SP.prQ[i],m.q):m.q;if(m.sl<.46)weak[i]=Math.min(1,weak[i]+.06)}
+  SP.done.push({x:m.x,z:m.z,dv});if(!SP.on)spFlat(m.x,m.z,dv);
+  surfDirty=true}
+function spFlat(x,z,dv){{// plain graphics: the old flat print
+    const m={x,z},px=(m.x+SLAB_W/2)/SLAB_W*TW,py=(m.z+SLAB_D/2)/SLAB_D*TH,ts=2/SLAB_W*TW;stc.globalAlpha=stb.globalAlpha=dv;stc.drawImage(STILE.col,0,0,128,128,px,py,ts,ts);stb.drawImage(STILE.bump,0,0,128,128,px,py,ts,ts);stc.globalAlpha=stb.globalAlpha=1}
+  surfDirty=true}
+function spRelPaint(X,Z,amt){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,rr=1.25*r,s2=2*(rr*.5)*(rr*.5),cx=(X-SP.x0)*r,cz=(Z-SP.z0)*r;
+  for(let j=Math.max(0,Math.floor(cz-rr));j<Math.min(H,Math.ceil(cz+rr));j++)for(let i=Math.max(0,Math.floor(cx-rr));i<Math.min(W,Math.ceil(cx+rr));i++){
+    const dx=i+.5-cx,dz=j+.5-cz,d2=dx*dx+dz*dz;if(d2>rr*rr)continue;const k=(j*W+i)*4+1;D[k]=Math.min(255,D[k]+amt*Math.exp(-d2/s2)*(.55+Math.random()*.9)*255)}
+  SP.dirty=1}
+function releaseAt(x,y){const X=wx(x),Z=wz(y);try{cdustThrow(x,y,spRelCol())}catch(e){}
+  const R=3.2/LS,b=bleed(set);let work=0,hv=0;
+  for(let cy=Math.max(RY0,Math.floor(y-R));cy<=Math.min(RY1-1,Math.ceil(y+R));cy++)for(let cx=Math.max(RX0,Math.floor(x-R));cx<=Math.min(RX1-1,Math.ceil(x+R));cx++){
+    const d=Math.hypot(cx+.5-x,cy+.5-y);if(d>R)continue;const i=cy*GW+cx;if(!has(i))continue;const add=.11*(1-d/R*.6)*(.6+Math.random()*.8);
+    work+=Math.min(add,Math.max(0,1.1-SP.relC[i]));SP.relC[i]=Math.min(2,SP.relC[i]+add);if(SP.relC[i]>1.7)hv=1}
+  spRelPaint(X,Z,.16);surfDirty=true;
+  const ci=cellAt(X,Z);acc[S.release].w+=work;acc[S.release].q+=work*winQ(set+dryOff[ci],STAGES[S.release]);
+  if(b>.12)say('Bleed water\'s up. The release will cake and blotch.','bad','relWet');else if(hv)say('Easy. Too much release cakes in the joints.','info','relHeavy')}
+function spRelAll(){for(let i=0;i<N;i++)if(inR[i])SP.relC[i]=1;if(SP.dep){for(let k=1;k<SP.dep.length;k+=4)SP.dep[k]=170+Math.random()*60;SP.dirty=1}}
+function spAuto(){if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();spLat();
+  const m={x:0,z:0,d:1,dq:1,q:1,sl:.6,snap:true,first:false,rot:0},sq1=SP.sp[0]===SP.sp[1];
+  for(let z=SP.lat[1]-2*Math.ceil((SP.lat[1]-wz(RY0))/2);z<wz(RY1);z+=2)for(let x=SP.lat[0]-2*Math.ceil((SP.lat[0]-wx(RX0))/2);x<wx(RX1);x+=2){m.x=x;m.z=z;m.rot=sq1?(Math.random()*4|0):(Math.random()<.5?0:2);
+    let on=false;for(let y=0;y<GH&&!on;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2){on=true;break}}if(on)spPrint(m)}}
+function spStats(){let n=0,tot=0,q=0;for(let i=0;i<N;i++){if(!inR[i])continue;tot++;if(SP.prC[i]>=.5){n++;q+=SP.prQ[i]*Math.min(1,SP.prC[i]/.85)}}
+  return{n,tot,cov:tot?n/tot:0,q:n?q/n:0,dbl:SP.nDbl,off:SP.nOff,stuck:SP.nStuck,mats:SP.nMat}}
+function spGfx(on){const was=SP.on;SP.on=on;slabMat.clearcoatMap=on?null:ccTex;slabMat.needsUpdate=true;surfDirty=true;
+  if(was&&!on&&SP.done)SP.done.forEach(o=>spFlat(o.x,o.z,o.dv))}
+function spTick(dt){const g=spWant();if(g!==SP.g){SP.g=g;if(!g)spClear()}
+  // the relief shader only from the release step on: phones allow 16 textures in a shader and the slab already uses them all,
+  // so while it's on the wet-sheen map and the site shading on the slab are dropped (the slab is past bleed water by then)
+  const s0=S.release!=null?S.release:S.stamp,on=g&&!SP.bad&&!!(GPS.on&&renderer)&&stage>=s0;if(on!==SP.on)spGfx(on);
+  if(!g)return;
+  if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();
+  if(SP.pat!==stampSel.pat||!SP.tT)spPatBuild();
+  if(SP.dirty){SP.dirty=0;SP.tD.needsUpdate=true}
+  SP.U.spRel.value.copy(spRelCol());
+  if(!SP.tmp){SP.tmp=spTamperNew();SP.sh=spShadowNew()}
+  const stp=curK()==='stamp';let tm=null;
+  // left the stamp step with mats still down: they print as they are and come up
+  if(!stp)for(const m of SP.mats){if(m.st==='drop')m.st='down';if(m.st==='down')spLift(m)}
+  for(const m of SP.mats){if(m.st==='idle')continue;const y0=Math.max(0,surfY(m.x+1,m.z+1));
+    if(m.st==='hold'){if(!stp){m.st='idle';m.g.visible=false;continue}m.t+=dt;m.g.position.set(m.x,y0+.5+Math.sin(m.t*5)*.03,m.z+1);m.top.opacity=m.side.opacity=.85}
+    else if(m.st==='drop'){m.t+=dt;const k=Math.min(1,m.t/.11);m.g.position.set(m.x,y0+.5*(1-k*k),m.z+1);m.top.opacity=m.side.opacity=1;if(k>=1){m.st='down';buzz(10)}}
+    else if(m.st==='down'){m.ta+=dt;let sq=0;
+      if(m.ta<.34){if(!tm||m.ta<tm.ta)tm=m;if(m.ta>=.1&&!m.hit){m.hit=1;thump();buzz(16);spPuff(m)}sq=m.ta>.1?Math.sin(Math.min(1,(m.ta-.1)/.2)*Math.PI):0}
+      m.g.position.set(m.x,y0-.012*Math.min(1,m.d)-sq*.015,m.z+1);m.inner.scale.y=1-sq*.3;
+      if(m.lt>=0){m.lt-=dt;if(m.lt<0)spLift(m)}}
+    else if(m.st==='lift'){m.t+=dt;const k=Math.min(1,m.t/.5);m.g.rotation.z=k*k*1.25;m.g.position.y=y0+k*k*.9;m.top.opacity=m.side.opacity=1-Math.max(0,(k-.6)/.4);
+      if(k>=1){m.st='idle';m.g.visible=false;m.g.rotation.z=0}}}
+  // the hand tamper rides the latest tap: slams down, bounces back up
+  if(tm){const a=tm.ta,y0=Math.max(0,surfY(tm.tx,tm.tz))+.09,k=a<.1?a/.1:1-(a-.1)/.24;SP.tmp.visible=true;SP.tmp.position.set(tm.tx,y0+(a<.1?1.3*(1-k*k):1.1*(1-k)),tm.tz+.15);SP.tmp.rotation.x=.22}
+  else SP.tmp.visible=false;
+  // where the held mat will land: a shadow on the slab, green when it's square with the others
+  const h=SP.hold;if(h&&stp){SP.sh.visible=true;SP.sh.position.set(h.x+1,Math.max(0,surfY(h.x+1,h.z+1))+.02,h.z+1);SP.sh.material.color.setHex(h.snap?0x2fa84a:0x000000);SP.sh.material.opacity=h.snap?.38:.28}else SP.sh.visible=false}
 
 /* ---------- insulated blankets (Beat the Freeze) ---------- */
 const covered=new Uint8Array(N),blankets=[],blk={minx:0,maxx:0,sy:0,n:0};
@@ -7165,7 +7359,7 @@ function updateTools(dt,t){
     dummy.rotation.set(0,0,0);mound.instanceMatrix.needsUpdate=true;mound.visible=false;
     SROLL.m.visible=false;
   }
-  updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{updateXT(dt)}catch(e){}
+  updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{spTick(dt)}catch(e){console.warn('sp',e)}try{updateXT(dt)}catch(e){}
   blob.visible=false;
   if(!ptr.down){TFEEL.suck*=.8;TFEEL.chat*=.8;if(k==='joint'&&jArmed&&jArmed.o===jMode){const run=jRun(jMode,jArmed.p,jArmed.at!=null?jArmed.at:(jMode==='x'?(RY0+RY1)/2:(RX0+RX1)/2));if(run){guide.visible=true;guide.material.opacity=.95;
       if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false}}return}
@@ -7276,7 +7470,7 @@ function broomStats(){const P=panelLab(),sx=new Float32Array(P.n+1),sy=new Float
   return{cov:cov/RN,cons:W?S2/W:0,align:S2?A/S2:0}}
 let hudT=0;
 function stageProg(k){try{if(STR.on&&STRPROG[k])return STRPROG[k]();if(BRG.on&&BRGPROG[k])return BRGPROG[k]();switch(k){case'pour':return placed/NEED_M3;case'screed':return clamp01(1-(rms()-.15)/1.4);case'float':return avg(closed);case'edge':return avg(edged,band);
-  case'trowel':return avg(trow,band,true);case'broom':return broomStats().cov;case'color':return avg(hard);case'stamp':{const st=stampStats();return st.tot?st.n/st.tot:0}
+  case'trowel':return avg(trow,band,true);case'broom':return broomStats().cov;case'color':return avg(hard);case'release':return clamp01(avg(SP.relC));case'stamp':{const st=stampStats();return st.tot?st.n/st.tot:0}
   case'mark':return markPct();case'break':return breakPct();case'strip':return stripPct();case'dig':return digPct();case'gravel':return gravPct();case'base':return compPct();case'form':return formPct();case'rebar':return rebProg();case'tube':return tubeCovPct();case'expose':return avg(expo);case'power':return avg(trow);
   case'slip':return slipStats().cov;case'cure':return cureStats().cov;case'shape':return shapeStats().c;default:return 0}}catch(e){return 0}}
 const POPS=[[.25,'Good start'],[.5,'Halfway there'],[.75,'Almost there'],[.97,'Nailed it ✓']];let popStage=-1,popLvl=0,popT=0;
@@ -7308,7 +7502,8 @@ function hud(t){
     else{const R=regions(),mL=Math.max(...R.map(q=>q.L));r=`${R.length} panel${R.length>1?'s':''} · longest ${fmtFt(mL*12)} · keep under ${LV.pTxt}`}}
   else if(k==='color')r=`Color coverage ${Math.round(avg(hard)*100)}% · two even coats · ${b>.05?'bleed water up':set>.78?'drying out':'good to go'}`;
   else if(k==='blanket'){let cv=0;for(let i=0;i<N;i++)if(inR[i]&&covered[i])cv++;r=`Covered ${Math.round(cv/RN*100)}% · ${set<.72?'still soft, thumb-test':'firm enough to cover'}`}
-  else if(k==='stamp'){const st=stampStats();r=`Mats printed ${st.n} of ${st.tot}`+(st.dbl?` · ${st.dbl} double`:'')}
+  else if(k==='stamp'){const st=stampStats();r=SP.g?`Printed ${Math.round(st.cov*100)}% · ${st.mats} mats`+(st.dbl?` · ${st.dbl} double`:'')+(st.off?` · ${st.off} off line`:''):`Mats printed ${st.n} of ${st.tot}`+(st.dbl?` · ${st.dbl} double`:'')}
+  else if(k==='release'){const b=bleed(set);r=`Release ${Math.round(clamp01(avg(SP.relC))*100)}% covered · ${b>.05?'bleed water up':set>.86?'getting stiff':'shake it on even'}`}
   else if(k==='break')r=`Broken up ${Math.round(breakPct()*100)}% · hold the hammer on the asphalt`;
   else if(k==='strip')r=`Stripped ${Math.round(stripPct()*100)}% · spoil ${(spoilVol/27).toFixed(1)} yd³`;
   else if(k==='mark')r=`Painted ${Math.round(markPct()*100)}% of the outline · trace the dotted line`;
@@ -7344,7 +7539,7 @@ $('thumb').addEventListener('click',()=>{
   else{msg='No print. It\'s set.';k='bad'}
   say(msg,k,'thumb'+Math.random(),0);
 });
-const wb=$('wait');const AUTOFFK=new Set(['edge','joint','broom','trowel','power','color','stamp','expose']);
+const wb=$('wait');const AUTOFFK=new Set(['edge','joint','broom','trowel','power','color','release','stamp','expose']);
 let holdT=0;const hold=v=>{waitHeld=v&&running&&!(STAGES[stage]&&STAGES[stage].key==='pour');holdT=0;wb.classList.toggle('held',waitHeld)};
 wb.addEventListener('pointerdown',e=>{e.preventDefault();hold(true)});
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>wb.addEventListener(ev,()=>hold(false)));
@@ -7354,7 +7549,7 @@ $('back').addEventListener('click',()=>{if(!running||stage<=0)return;if(ptr.down
   stage--;try{unwindPrep()}catch(e){console.warn('unwind',e)}setStageUI();showBanner();buzz(10);say('Back to '+STAGES[stage].name.toLowerCase()+(isPrep()&&placed<=0?'. That step starts over.':'. The clock keeps running.'),'info','back',0)});
 function nextLabel(){if(practice&&STAGES[stage]&&STAGES[stage].key===practice.st)return'Finish ✓';return stage<STAGES.length-1?STAGES[stage+1].name+' →':'Cure it ✓'}
 function nextDisarm(){clearTimeout(nextDisarm.t);nextArm=0;const b=$('next');if(b.classList.contains('arm')){b.classList.remove('arm');b.textContent=nextLabel()}}
-const GUARDK=new Set(['demo','soffit','sform','riser','sbar','vibe','tread','rebar','mark','break','strip','dig','gravel','base','form','tube','pour','float','edge','trowel','broom','color','stamp','expose','power','slip','cure','shape']);
+const GUARDK=new Set(['demo','soffit','sform','riser','sbar','vibe','tread','rebar','mark','break','strip','dig','gravel','base','form','tube','pour','float','edge','trowel','broom','color','release','stamp','expose','power','slip','cure','shape']);
 $('next').addEventListener('click',e=>{
   if(!running)return;if(arrive){arriveEnd();return}
   if(practice&&STAGES[stage]&&STAGES[stage].key===practice.st){practiceFinish();return}// v330: practice is one step: Finish stops the clock instead of playing on into the next step
@@ -7378,7 +7573,8 @@ $('next').addEventListener('click',e=>{
     if(k==='joint')say('Blue chalk lines show the joints. The first one is set: drag anywhere to run the groover.','info','nJoint',0);
     if(k==='broom'&&set<.5)say('Too wet to broom yet. Thumb-test first.','info','nBroom',0);
     if(k==='color')say(set<.44?'Bleed water has to be gone first. Thumb-test.':'Drag to broadcast. Two light, even coats.','info','nCol',0);
-    if(k==='stamp')say('Start at the front form and work in rows.','info','nSt',0);
+    if(k==='release')say('Drag to shake the release on. One even coat over all of it.','info','nRel',0);
+    if(k==='stamp')say(SP.g?'Tap to drop mats along the form, then swipe across them to tamp. Work in rows.':'Start at the front form and work in rows.','info','nSt',0);
     if(k==='gravel')say(digPct()<.9?'Some of it isn\'t dug out yet. Gravel\'s on site anyway, spread it.':'Pit\'s dug. Gravel\'s dumped, spread it out with the bucket.','info','nGrav',0);
     if(k==='base')say('Gravel\'s spread. Run the plate compactor over all of it.','info','nBase',0);
     if(k==='slip')say('Slide the travel lever to start. The truck feeds itself: go slow enough that the hopper never runs dry.','info','nSlip',0);
@@ -7568,10 +7764,12 @@ function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){
       setJMode(c.o);jDrag={pos:c.p,at,moved:0,t:new Float32Array(48)};lockJoint();if(!curJ)return;for(let q=curJ.a;q<curJ.b;q++)curJ.cells[q]=1.15;curJ.q=curJ.w=1;curJ.set=set;curJ.done=true;curJ=null});jDrag=null;jArmed=null;surfDirty=true}
   else if(k==='broom'){const W=3.2/LS;for(let y=RY0+W*.5;y<RY1+W*.4;y+=W*.95)broomSeg(RX0,y,RX1,y)}
   else if(k==='power'){for(let pass=0;pass<6;pass++)for(let y=RY0+.5;y<RY1;y+=1.5)powerSeg(RX0,y,RX1,y)}
+  else if(k==='release')spRelAll();
+  else if(k==='stamp'&&spWant())spAuto();
   else if(STR.on&&STRAUTO[k])STRAUTO[k]();
   // let the slab sit a little before the next step, like on a real pour
   if(STAGES[stage+1]){const w=STAGES[stage+1].win;set=Math.max(set,w[0]+Math.min(.04,(w[1]-w[0])*.1))}}
-const AUTOSET={float:.1,edge:.56,trowel:.62,joint:.6,broom:.58,color:.5,power:.66};
+const AUTOSET={float:.1,edge:.56,trowel:.62,joint:.6,broom:.58,color:.5,release:.52,stamp:.6,power:.66};
 function startPractice(p){if(!practiceSave)practiceSave={prepOn,mode,cabOn,jobIdx};practice=p;daily=null;
   const i=LEVELS.findIndex(L=>L.id===p.lv);if(i<0)return;jobIdx=i;prepOn=!!p.prep;mode='free';if(p.cab)cabOn=true;
   applyLevel(LEVELS[jobIdx]);reset();setStageUI();try{startJob()}catch(e){window.__showErr('practice: '+e.message);return}careerRun=false;ev=null;lateT=null;
@@ -7609,7 +7807,7 @@ const BARKS={
   idle:['We getting paid to stand around?','She ain\'t gonna finish herself!','Clock\'s ticking, boss.','Coffee break\'s over!','Truck driver\'s laughing at us...'],
   bleed:['Bleed water\'s up. Hands off!','Let it bleed. Don\'t you touch it.'],ready:['Thumb print\'s holding. Go go go!','She\'s ready, let\'s get on it!'],
   late:['She\'s getting hard, move it!','We\'re losing her! Hustle!'],rain:['Grab the poly! Rain\'s coming!']};
-const IDLEK=new Set(['screed','float','edge','trowel','joint','broom','power','stamp','color','cure','expose']);
+const IDLEK=new Set(['screed','float','edge','trowel','joint','broom','power','stamp','color','release','cure','expose']);
 function bark(text,ms,who,obj){if(!running||!text)return;const e=$('bark');$('barkT').textContent=text;BK.obj=obj||null;BK.who=who||'';$('barkWho').textContent=BK.who||speaker().n;BK.t=0;BK.dur=(ms||0)/1000||Math.min(4.2,1.8+text.length*.035);BK.last=performance.now();e.classList.add('on');barkPos()}
 function barkStage(k){if(!running||practice)return;const L=BARKS[k];if(!L||BK.said['st'+k])return;BK.said['st'+k]=1;bark(pick(L))}
 function speaker(){if(BK.obj&&BK.obj.visible)return{o:BK.obj,n:BK.who};
@@ -7702,8 +7900,12 @@ function buildSC(){
     expose:()=>{const c=avg(expo);let ov=0;for(let i=0;i<N;i++)if(inR[i]&&expo[i]>1.25)ov++;ov/=RN;return['Wash off',c*(.3+.7*q('expose'))*(1-ov),`${Math.round(c*100)}% of the stone bared. `+(ov>.05?'Some spots got blasted too deep. ':'')+tm('expose')]},
     rebar:()=>{const p=rebProg(),t=rebTied(),n=rebNeed(),ex=rebN-t;return['Rebar',clamp01(p),`${REB?REB.runs.filter(b=>b.on).length+'/'+REB.runs.length+' bars, ':''}${t} of ${n} ties`+(ex>0?` (+${ex} extra)`:'')+'. '+(p>=.97?'Mat\'s locked in.':p>=.7?'Some bars will drift during the pour.':'The mat will shift when the mud hits it.')]},
     power:()=>{const c=avg(trow);return['Power trowel',c*(.3+.7*q('power')),`${Math.round(c*100)}% of the floor troweled. `+tm('power')]},
-    stamp:()=>{const st=stampStats();return['Stamp',st.cov*(.3+.7*st.q)*Math.max(.4,1-st.dbl*.06),
-      `${st.n} of ${st.tot} mats printed`+(st.dbl?`, ${st.dbl} double-stamped.`:'.')+' '+(st.n===0?'':st.q>.85?'Crisp imprint.':st.q>.5?'Imprint is uneven.':'Poor timing on the mats.')]}
+    stamp:()=>{const st=stampStats();if(SP.g)return['Stamp',st.cov*(.3+.7*st.q)*Math.max(.4,1-st.dbl*.06-st.off*.04-st.stuck*.05),
+      `${Math.round(st.cov*100)}% printed with ${st.mats} mats`+(st.dbl?`, ${st.dbl} double-stamped`:'')+(st.off?`, ${st.off} off line`:'')+(st.stuck?`, ${st.stuck} stuck`:'')+'. '+(st.n===0?'':st.q>.85?'Crisp imprint.':st.q>.5?'Imprint is uneven.':'Poor timing on the mats.')];
+      return['Stamp',st.cov*(.3+.7*st.q)*Math.max(.4,1-st.dbl*.06),
+      `${st.n} of ${st.tot} mats printed`+(st.dbl?`, ${st.dbl} double-stamped.`:'.')+' '+(st.n===0?'':st.q>.85?'Crisp imprint.':st.q>.5?'Imprint is uneven.':'Poor timing on the mats.')]},
+    release:()=>{let s=0,s2=0;for(let i=0;i<N;i++)if(inR[i]){const v=Math.min(1.6,SP.relC[i]);s+=v;s2+=v*v}const m=s/RN,sd=Math.sqrt(Math.max(0,s2/RN-m*m)),c=Math.min(1,m);
+      return['Release',c*(.6+.4*(1-Math.min(1,sd*2)))*(.3+.7*q('release')),`${Math.round(c*100)}% covered, ${sd<.2?'even':sd<.35?'a little patchy':'patchy'}. `+tm('release')]}
   };
   Object.assign(SC,strSC(q,tm));Object.assign(SC,brgSC(q,tm));
   return {SC,q,w,tm,ratio,r,RG,maxP}}
@@ -8360,7 +8562,7 @@ function step(t,dt){
     if(waitHeld)holdT+=dt;const sk=STAGES[stage]&&STAGES[stage].key,autoFF=!waitHeld&&!practice&&!coachOpen&&!arrive&&AUTOFFK.has(sk)&&set<.43;
     if(autoFF&&!flags.aff){flags.aff=1;say('Bleed water\'s still coming up. Skipping ahead, get ready to thumb-test.','info','aff',0)}if(!autoFF&&flags.aff===1&&set>=.43){flags.aff=2;buzz(25);say('Close now. Thumb-test it.','good','aff2',0)}
     wb.classList.toggle('held',waitHeld||autoFF);const ff=waitHeld?Math.min(60,12+holdT*30):autoFF?40:1,s0=set;
-    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
+    const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?.4:1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
     if(set>=1&&!(LV.saw&&STAGES[stage].key==='joint')){if(!flags.endT){flags.endT=t;say('It\'s set up. That\'s the job, let\'s walk it.','bad','setup',0);buzz(80)}else if(t-flags.endT>2400){flags.endT=0;finish(STAGES[stage].key!=='blanket')}}
     if(waitHeld&&[.46,.72].some(m=>s0<m&&set>=m)){holdT=0;buzz(25)}
     if(pouring)pourStep(dt);try{runTick(dt,t)}catch(e){console.warn('run',e)}
@@ -9053,7 +9255,7 @@ function mergeInto(root,list){const inv=new THREE.Matrix4().copy(root.matrixWorl
 const AO={hk:new WeakSet(),N:22,S:512,U:{aoMap:{value:null},aoBox:{value:new THREE.Vector4(-90,-90,180,180)},aoK:{value:0}},done:false};
 function aoHook(m){if(!m||AO.hk.has(m)||!(m.isMeshStandardMaterial||m.isMeshLambertMaterial||m.isMeshPhongMaterial))return;AO.hk.add(m);
   const ob=m.onBeforeCompile,ck=m.customProgramCacheKey;
-  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);Object.assign(sh.uniforms,AO.U);if(sh.vertexShader.indexOf('vAoW')>=0)return;/* v332: a photo-site clone of an AO material chains the original's patch and got hooked again: double declarations, the shader failed and the dug pit vanished on retry */
+  m.onBeforeCompile=function(sh,r){if(ob)ob.call(this,sh,r);if(this===slabMat&&spOnNow())return;Object.assign(sh.uniforms,AO.U);if(sh.vertexShader.indexOf('vAoW')>=0)return;/* v332: a photo-site clone of an AO material chains the original's patch and got hooked again: double declarations, the shader failed and the dug pit vanished on retry */
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vAoW;').replace('#include <project_vertex>','#include <project_vertex>\n{vec4 aoP=vec4(transformed,1.);\n#ifdef USE_INSTANCING\naoP=instanceMatrix*aoP;\n#endif\nvAoW=(modelMatrix*aoP).xyz;}');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vAoW;uniform sampler2D aoMap;uniform vec4 aoBox;uniform float aoK;')
       .replace('#include <aomap_fragment>','#include <aomap_fragment>\nif(aoK>0.){vec2 q=(vAoW.xz-aoBox.xy)/aoBox.zw;if(q.x>0.&&q.x<1.&&q.y>0.&&q.y<1.){float a=min(1.,texture2D(aoMap,q).r*1.04),hf=smoothstep(.2,5.,vAoW.y+.3),o=mix(1.,mix(a*a*(3.-2.*a),1.,hf),aoK);reflectedLight.indirectDiffuse*=o;reflectedLight.indirectSpecular*=mix(1.,o,.75);}}')};
@@ -11411,7 +11613,7 @@ async function shareCard(){const blob=await makeCard();if(!blob)return;const sc=
   try{if(navigator.share){await navigator.share({text:txt+' https://kowalskicc.ca',title:'Slab Rush'});return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(txt+' https://kowalskicc.ca');say('Copied your score. Paste it anywhere, and save the photo to post with it.','good','shr',0)}catch(e){say('Sharing isn\'t available here. Save the photo instead.','info','shr',0)}}
 const REPLAY=[];let capT=0,capEvery=1100,rpCX=0,rpCY=0,burst=null,burstDone={};const [capC,capG]=mk(240,426);
-const BURST_K=new Set(['dig','gravel','base','pour','screed','float','edge','trowel','broom','power','stamp','expose','slip','cure','joint','blanket','tube','color']);
+const BURST_K=new Set(['dig','gravel','base','pour','screed','float','edge','trowel','broom','power','stamp','expose','slip','cure','joint','blanket','tube','color','release']);
 function capFrame(slow){try{const W=cv.width,H=cv.height,port=H>=W,cw0=port?240:426,ch0=port?426:240;if(capC.width!==cw0||capC.height!==ch0){capC.width=cw0;capC.height=ch0}
   if(slow){// close-up crop around the finger so the slow-mo shows the tool working
     const r=cv.getBoundingClientRect(),sx=W/r.width,sy=H/r.height,cw=W*.62,ch=H*.62,cx=Math.max(cw/2,Math.min(W-cw/2,(rpCX-r.left)*sx)),cy=Math.max(ch/2,Math.min(H-ch/2,(rpCY-r.top)*sy-H*.06));
