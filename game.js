@@ -3062,7 +3062,7 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
 float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;${CPH.on?'uniform sampler2D cPk;uniform float gPh;':'float gPh=0.;'}uniform float gSD;
 uniform sampler2D mA;uniform vec4 mO;uniform vec2 mTx;uniform float mRoll;uniform float mEx;vec4 mM=vec4(0.);float mIn=0.;
-${spOn?'uniform sampler2D spT;uniform sampler2D spD;uniform vec4 spO;uniform vec2 spP;uniform vec2 spR;uniform vec2 spS;uniform vec3 spRel;uniform float spH;uniform float spRl;':''}
+${spOn?'uniform sampler2D spT;uniform sampler2D spD;uniform vec4 spO;uniform vec2 spP;uniform vec2 spR;uniform vec2 spS;uniform vec2 spL;uniform vec3 spRel;uniform float spH;uniform float spRl;':''}
 uniform sampler2D gMR;uniform sampler2D gMK;uniform float gWM;uniform float gCure;uniform float gTm;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
 vec2 gH2(vec2 v){return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453);}
@@ -3203,9 +3203,14 @@ ${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each
  // one small texture: R depth, G release, B/A the mat's pattern offset. Depth and release blended by hand (4 taps), the offset taken from the nearest
  vec2 tc=su*spS-.5,f=fract(tc),e=1./spS,i0=(floor(tc)+.5)*e;vec4 a=texture2D(spD,i0),b=texture2D(spD,i0+vec2(e.x,0.)),c=texture2D(spD,i0+vec2(0.,e.y)),d=texture2D(spD,i0+e);
  vec2 DR=mix(mix(a.rg,b.rg,f.x),mix(c.rg,d.rg,f.x),f.y);float dep=DR.x,rel=DR.y;
- if(dep>.003||rel>.003){vec4 SN=f.y<.5?(f.x<.5?a:b):(f.x<.5?c:d);vec2 pw=sq/spP,pu=pw-SN.ba;vec2 gx=dFdx(pw),gy=dFdy(pw);
+ if(dep>.003||rel>.003){vec4 SN=f.y<.5?(f.x<.5?a:b):(f.x<.5?c:d);
+  /* v393: each mat is turned a random quarter (half for planks) so the pattern doesn't repeat mat after mat. B holds the turn in its low
+     the mats all sit on one grid (spL, its corner), so the mat's own 2 ft square is found from that and its pattern spun about its centre */
+  float rt=floor(SN.b*3.+.5);vec2 off=spL;
+  vec2 mp=(sq-off)*.5,mi=floor(mp),mf=fract(mp)-.5;float cs=rt>.5&&rt<1.5||rt>2.5?0.:rt>1.5?-1.:1.,sn=rt>.5&&rt<1.5?1.:rt>2.5?-1.:0.;mat2 M=mat2(cs,sn,-sn,cs);
+  vec2 pu=2.*(mi+.5+M*mf)/spP,gx=M*dFdx(sq)/spP,gy=M*dFdy(sq)/spP;
   vec4 T=textureGrad(spT,pu,gx,gy);
-  vec2 sl=(T.gb-.502)*(255./1200.)*spR/spP*spH*dep;float dk=min(dep*1.5,1.);
+  vec2 sl=transpose(M)*((T.gb-.502)*(255./1200.)*spR/spP)*spH*dep;float dk=min(dep*1.5,1.);
   gTl*=1.-.75*dk;gTl-=sl*1.6;
   float lo=1.-smoothstep(.25,.55,T.r);
   gCol*=mix(1.,.98+.25*(T.r-.59)-.12*lo,dk);
@@ -7070,7 +7075,7 @@ function thump(){shake(.1);if(performance.now()>HAP.until)hap(22,2);if(!AC||!sou
    pressed as deep as that spot was printed. The release stays dark in the joints and texture. */
 const SP={g:false,on:false,key:'',pat:'',res:16,W:0,H:0,x0:0,z0:0,dep:null,off:null,tD:null,tF:null,tT:null,P:[2,2],sp:[1,1],topC:null,
   mats:[],hold:null,tap:null,lat:null,xl:[],zl:[],relC:new Float32Array(N),prC:new Float32Array(N),prQ:new Float32Array(N),nDbl:0,nOff:0,nStuck:0,nMat:0,dirty:0,tmp:null,sh:null,rc:null,
-  U:{spT:{value:null},spD:{value:null},spS:{value:new THREE.Vector2(1,1)},spRl:{value:1},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
+  U:{spT:{value:null},spD:{value:null},spS:{value:new THREE.Vector2(1,1)},spL:{value:new THREE.Vector2(0,0)},spRl:{value:1},spO:{value:new THREE.Vector4(0,0,1,1)},spP:{value:new THREE.Vector2(2,2)},spR:{value:new THREE.Vector2(512,512)},spRel:{value:new THREE.Color(.06,.055,.05)},spH:{value:.09}}};
 function spOnNow(){try{return SP.on}catch(e){return false}}
 function spWant(){return !!(LV&&LV.steps&&LV.steps.includes('stamp')&&(LV.id==='stamp'||/stamp2/.test(location.search))&&!STR.on)}
 function spRelCol(){const r=RELEASES.find(o=>o.id===stampSel.rel)||RELEASES[0];return (SP.rc||(SP.rc=new THREE.Color())).setStyle(r.c)}
@@ -7101,7 +7106,7 @@ function spSetup(){const r=SP.res=Math.min(16,1024/Math.max(SLAB_W,SLAB_D));SP.W
   SP.xl=[];SP.zl=[];const P=LV.shape||[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];if(!a||!b)continue;
     if(Math.abs(a[0]-b[0])<.02&&Math.abs(a[1]-b[1])>1.5)SP.xl.push(a[0]);if(Math.abs(a[1]-b[1])<.02&&Math.abs(a[0]-b[0])>1.5)SP.zl.push(a[1])}
   SP.key=[LV.id,SLAB_W,SLAB_D].join();spClear()}
-function spClear(){SP.done=[];if(SP.dep){SP.dep.fill(0);SP.dirty=1}SP.relC.fill(0);SP.prC.fill(0);SP.prQ.fill(0);SP.nDbl=SP.nOff=SP.nStuck=SP.nMat=0;SP.lat=null;SP.hold=SP.tap=null;
+function spClear(){SP.done=[];if(SP.dep){SP.dep.fill(0);SP.dirty=1}SP.relC.fill(0);SP.prC.fill(0);SP.prQ.fill(0);SP.nDbl=SP.nOff=SP.nStuck=SP.nMat=0;SP.lat=null;SP.hold=SP.tap=SP.g0=null;
   SP.mats.forEach(m=>{m.st='idle';m.g.visible=false});if(SP.tmp)SP.tmp.visible=false;if(SP.sh)SP.sh.visible=false}
 const SPM={side:new THREE.MeshStandardMaterial({color:0x2c3a44,roughness:.62,transparent:true}),hand:new THREE.MeshStandardMaterial({color:0x1d1d1d,roughness:.85})};
 function spMatNew(){const g=new THREE.Group(),inner=new THREE.Group();inner.position.x=1;g.add(inner);
@@ -7120,7 +7125,7 @@ function spShadowNew(){const m=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new T
 function spMatAt(X,Z){for(const m of SP.mats)if((m.st==='down'||m.st==='drop'||m.st==='lift')&&X>=m.x-.15&&X<=m.x+2.15&&Z>=m.z-.15&&Z<=m.z+2.15)return m;return null}
 /* v392: easy on big fingers. Every mat locks square into the grid that starts at the straight forms, so a mat can't go down crooked;
    and if the finger lands on a spot that's already printed or has a mat on it, the mat goes to the nearest empty spot beside it. */
-function spLat(){if(!SP.lat)SP.lat=[SP.xl.length?Math.min(...SP.xl):wx(RX0),SP.zl.length?Math.min(...SP.zl):wz(RY0)];return SP.lat}
+function spLat(){if(!SP.lat)SP.lat=[SP.xl.length?Math.min(...SP.xl):wx(RX0),SP.zl.length?Math.min(...SP.zl):wz(RY0)];SP.U.spL.value.set(SP.lat[0],SP.lat[1]);return SP.lat}
 function spOnSlab(x,z){for(let y=0;y<GH;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2)return true}return false}
 function spFree(x,z,self){for(const o of SP.mats)if(o!==self&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-x)<.5&&Math.abs(o.z-z)<.5)return false;
   if(SP.dep){const i=Math.floor((x+1-SP.x0)*SP.res),j=Math.floor((z+1-SP.z0)*SP.res);if(i>=0&&j>=0&&i<SP.W&&j<SP.H&&SP.dep[(j*SP.W+i)*4]>90)return false}
@@ -7128,16 +7133,20 @@ function spFree(x,z,self){for(const o of SP.mats)if(o!==self&&(o.st==='down'||o.
 function spPlace(m,X,Z){const L=spLat(),bx=L[0]+Math.round((X-1-L[0])/2)*2,bz=L[1]+Math.round((Z-1-L[1])/2)*2;let best=null,bd=1e9;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=bx+dx*2,z=bz+dz*2,d=Math.hypot(x+1-X,z+1-Z);if(d<bd&&spFree(x,z,m)){bd=d;best=[x,z]}}
   if(!best)best=[bx,bz];m.x=best[0];m.z=best[1];m.snap=true}
-function spDown(p){const X=p.wx,Z=p.wz,m=spMatAt(X,Z);
-  if(m){if(m.st==='down'&&m.lt<0)SP.tap={m,x:X,z:Z};return}
+/* v393: a tap drops a mat (it locks into the grid), a tap on a mat tamps it, and any drag is a tamping swipe wherever it starts,
+   on a mat, between mats or on bare slab. The swipe is checked every few inches along the finger's path so a fast swipe can't skip a mat. */
+function spDown(p){SP.g0={x:p.wx,z:p.wz,lx:p.wx,lz:p.wz,sw:false,hit:new Set()}}
+function spSwipeAt(X,Z){const g=SP.g0;for(const m of SP.mats){if(g.hit.has(m)||m.lt>=0||(m.st!=='down'&&m.st!=='drop'))continue;
+  if(X>=m.x-.25&&X<=m.x+2.25&&Z>=m.z-.25&&Z<=m.z+2.25){if(m.st==='drop')m.st='down';g.hit.add(m);spTamp(m,X,Z)}}}
+function spMove(p){const g=SP.g0;if(!g)return;
+  if(!g.sw&&Math.hypot(p.wx-g.x,p.wz-g.z)>.35){g.sw=true;spSwipeAt(g.x,g.z)}
+  if(g.sw){const dx=p.wx-g.lx,dz=p.wz-g.lz,n=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.3));for(let i=1;i<=n;i++)spSwipeAt(g.lx+dx*i/n,g.lz+dz*i/n)}
+  g.lx=p.wx;g.lz=p.wz}
+function spUp(){const g=SP.g0;SP.g0=null;if(!g||g.sw)return;
+  for(const o of SP.mats)if((o.st==='down'||o.st==='drop')&&g.x>=o.x-.1&&g.x<=o.x+2.1&&g.z>=o.z-.1&&g.z<=o.z+2.1){if(o.lt<0){if(o.st==='drop')o.st='down';spTamp(o,g.x,g.z)}return}
   let f=SP.mats.find(o=>o.st==='idle');if(!f&&SP.mats.length<8){f=spMatNew();SP.mats.push(f)}
   if(!f){say('All eight mats are down. Tamp them in and they come up.','info','spAll');return}
-  Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0});f.g.rotation.set(0,0,0);f.inner.scale.y=1;SP.hold=f;spPlace(f,X,Z);f.g.visible=true;buzz(8)}
-// v379: a drag that starts on a mat that's down is a tamping run: every mat the finger crosses gets tamped
-function spMove(p){const t=SP.tap;if(t&&!SP.hold&&Math.hypot(p.wx-t.x,p.wz-t.z)>.3){SP.tap=null;SP.swipe=true;spTamp(t.m,t.x,t.z)}
-  if(SP.swipe){const m=spMatAt(p.wx,p.wz);if(m&&m.st==='down'&&m.lt<0)spTamp(m,p.wx,p.wz)}
-  if(SP.hold)spPlace(SP.hold,p.wx,p.wz)}
-function spUp(){const t=SP.tap;SP.tap=null;if(SP.swipe){SP.swipe=false;return}if(t&&t.m.st==='down'){spTamp(t.m,t.x,t.z);return}
+  Object.assign(f,{st:'hold',d:0,lt:-1,ta:9,hit:1,t:0,rot:0});f.g.rotation.set(0,0,0);f.inner.rotation.y=0;f.inner.scale.y=1;SP.hold=f;spPlace(f,g.x,g.z);f.g.visible=true;buzz(8)
   const m=SP.hold;if(!m)return;SP.hold=null;
   let on=false;for(let y=0;y<GH&&!on;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(inR[i]&&wx(x+.5)>m.x&&wx(x+.5)<m.x+2&&wz(y+.5)>m.z&&wz(y+.5)<m.z+2){on=true;break}}
   if(!on){m.st='idle';m.g.visible=false;return}// dragged off the slab: back on the stack
@@ -7145,8 +7154,8 @@ function spUp(){const t=SP.tap;SP.tap=null;if(SP.swipe){SP.swipe=false;return}if
   const sl=set+dryOff[cellAt(m.x+1,m.z+1)];m.sl=sl;let q=winQ(sl,STAGES[S.stamp]),dq=1;
   if(sl<.46)say('Too soft. The mat\'s sinking and squeezing paste up the sides.','bad','stSoft');
   else if(sl>.9){dq=Math.max(.15,1-(sl-.9)/.08);say('Too hard. It\'s barely printing.','bad','stHard')}
-  if(!m.snap&&!m.first){q*=.6;SP.nOff++;say('That one\'s off line. The pattern won\'t match the mat beside it.','bad','spOff')}
   for(const o of SP.mats)if(o!==m&&(o.st==='down'||o.st==='drop')&&Math.abs(o.x-m.x)<1.6&&Math.abs(o.z-m.z)<1.6){q*=.7;say('Mats overlap. Lay them edge to edge.','bad','spOv');break}
+  const sq1=SP.sp[0]===SP.sp[1];m.rot=sq1?(Math.random()*4|0):(Math.random()<.5?0:2);m.inner.rotation.y=m.rot*Math.PI/2;
   Object.assign(m,{q,dq,st:'drop',t:0,d:.18});acc[S.stamp].w+=1;acc[S.stamp].q+=q;
   if(m.tex){const sp=SP.sp,ix=Math.round((m.x-SP.lat[0])/2),iz=Math.round((m.z-SP.lat[1])/2);m.tex.offset.set((((ix%sp[0])+sp[0])%sp[0])/sp[0],(((iz%sp[1])+sp[1])%sp[1])/sp[1])}}
 function spTamp(m,X,Z){if(m.lt>=0)return;m.ta=0;m.hit=0;m.tx=Math.max(m.x+.45,Math.min(m.x+1.55,X));m.tz=Math.max(m.z+.45,Math.min(m.z+1.55,Z));
@@ -7155,13 +7164,13 @@ function spPuff(m){let r=0,n=0;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const 
   if(!n||r/n<.2)return;const c=spRelCol();for(let k=0;k<3;k++){const s=Math.random()*4|0,u=Math.random()*2,X=m.x+(s===0?-.05:s===1?2.05:u),Z=m.z+(s===2?-.05:s===3?2.05:u);try{cdustPuff(X,surfY(X,Z),Z,c,false)}catch(e){}}}
 function spLift(m){m.st='lift';m.t=0;spPrint(m);SP.nMat++;try{m2Stamp({t:6,A:[m.x+1,m.z+1,1,1],B:[6,0,Math.min(1,.4+.6*m.dq),m.sl<.46?1:0],C:[0,0,0,0]})}catch(e){}}
 function spPrint(m){if(!SP.dep)return;const r=SP.res,W=SP.W,H=SP.H,D=SP.dep,P=SP.P,rel=S.release!=null,lat=SP.lat||[m.x,m.z];
-  const ox=m.snap||m.first?lat[0]:m.x,oz=m.snap||m.first?lat[1]:m.z,R8=Math.round((((ox%P[0])+P[0])%P[0])/P[0]*255)&255,G8=Math.round((((oz%P[1])+P[1])%P[1])/P[1]*255)&255;
+  const ox=m.snap||m.first?lat[0]:m.x,oz=m.snap||m.first?lat[1]:m.z,R8=(Math.round((((ox%P[0])+P[0])%P[0])/P[0]*63)&63)*4+((m.rot|0)&3),G8=Math.round((((oz%P[1])+P[1])%P[1])/P[1]*255)&255;
   const ax=(m.x-SP.x0)*r,az=(m.z-SP.z0)*r,bx=ax+2*r,bz=az+2*r,i0=Math.max(0,Math.floor(ax)),i1=Math.min(W,Math.ceil(bx)),j0=Math.max(0,Math.floor(az)),j1=Math.min(H,Math.ceil(bz));
   const dv=Math.min(1,m.d)*m.dq;let ov=0,tot=0,stuck=0;
   for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){tot++;if(D[(j*W+i)*4]>90)ov++}
   if(tot&&ov/tot>.2){SP.nDbl++;m.q*=.4;say('Double stamp. That leaves ghost lines.','bad','stDbl')}
   for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){const k=(j*W+i)*4,e=Math.min(i+.5-ax,bx-i-.5,j+.5-az,bz-j-.5),a=Math.max(0,Math.min(1,(e+.5)/1.5));if(a<=0)continue;
-    D[k]=Math.max(D[k],Math.round(dv*255*a));D[k+2]=R8;D[k+3]=G8;
+    D[k]=Math.max(D[k],Math.round(dv*255*a));D[k+2]=((m.rot|0)&3)*85;D[k+3]=0;
     if(rel&&D[k+1]<77)stuck++}
   SP.dirty=1;if(rel&&tot&&stuck/tot>.12){SP.nStuck++;m.q*=.6;say('No release there. The mat stuck and tore the face.','bad','spStuck')}
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(!inR[i])continue;const cx=wx(x+.5),cz=wz(y+.5);if(cx<m.x||cx>m.x+2||cz<m.z||cz>m.z+2)continue;
@@ -7184,9 +7193,9 @@ function releaseAt(x,y){const X=wx(x),Z=wz(y);try{cdustThrow(x,y,spRelCol())}cat
   const ci=cellAt(X,Z);acc[S.release].w+=work;acc[S.release].q+=work*winQ(set+dryOff[ci],STAGES[S.release]);
   if(b>.12)say('Bleed water\'s up. The release will cake and blotch.','bad','relWet');else if(hv)say('Easy. Too much release cakes in the joints.','info','relHeavy')}
 function spRelAll(){for(let i=0;i<N;i++)if(inR[i])SP.relC[i]=1;if(SP.dep){for(let k=1;k<SP.dep.length;k+=4)SP.dep[k]=170+Math.random()*60;SP.dirty=1}}
-function spAuto(){if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();if(!SP.lat){const x=SP.xl.length?Math.min(...SP.xl):wx(RX0),z=SP.zl.length?Math.min(...SP.zl):wz(RY0);SP.lat=[x,z]}
-  const m={x:0,z:0,d:1,dq:1,q:1,sl:.6,snap:true,first:false};
-  for(let z=SP.lat[1]-2*Math.ceil((SP.lat[1]-wz(RY0))/2);z<wz(RY1);z+=2)for(let x=SP.lat[0]-2*Math.ceil((SP.lat[0]-wx(RX0))/2);x<wx(RX1);x+=2){m.x=x;m.z=z;
+function spAuto(){if(SP.key!==[LV.id,SLAB_W,SLAB_D].join())spSetup();spLat();
+  const m={x:0,z:0,d:1,dq:1,q:1,sl:.6,snap:true,first:false,rot:0},sq1=SP.sp[0]===SP.sp[1];
+  for(let z=SP.lat[1]-2*Math.ceil((SP.lat[1]-wz(RY0))/2);z<wz(RY1);z+=2)for(let x=SP.lat[0]-2*Math.ceil((SP.lat[0]-wx(RX0))/2);x<wx(RX1);x+=2){m.x=x;m.z=z;m.rot=sq1?(Math.random()*4|0):(Math.random()<.5?0:2);
     let on=false;for(let y=0;y<GH&&!on;y++)for(let c=0;c<GW;c++){const i=y*GW+c;if(inR[i]&&wx(c+.5)>x&&wx(c+.5)<x+2&&wz(y+.5)>z&&wz(y+.5)<z+2){on=true;break}}if(on)spPrint(m)}}
 function spStats(){let n=0,tot=0,q=0;for(let i=0;i<N;i++){if(!inR[i])continue;tot++;if(SP.prC[i]>=.5){n++;q+=SP.prQ[i]*Math.min(1,SP.prC[i]/.85)}}
   return{n,tot,cov:tot?n/tot:0,q:n?q/n:0,dbl:SP.nDbl,off:SP.nOff,stuck:SP.nStuck,mats:SP.nMat}}
