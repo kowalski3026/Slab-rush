@@ -78,7 +78,7 @@ const DEFS={
   tube:{name:'Heat tubing',win:[0,1],soft:1,
    desc:'Before the truck backs in, lay the PEX snowmelt loop on the rebar. Drag your finger over the slab: each amber square you touch snaps in a section of loop at 12 in on center. Cover every square so there are no cold strips. The clock doesn\'t start until you tap Next.'},
   expose:{name:'Wash off',win:[.52,.76],soft:.1,
-   desc:'Retarder kept the top paste soft. Drag the wand over the slab to wash the paste off and bare the stone. Too early and stones wash out of the slab. Too late and the paste won\'t come off. Don\'t blast one spot.'},
+   desc:'Retarder kept the top paste soft. Hold the wand down and sweep it over the slab to wash the paste off and bare the stone. Start on the side nearest you and work away so the slurry is pushed ahead and off the far edge; slurry left to dry on washed stone leaves a haze. Too early and stones wash out of the slab. Too late and the paste won\'t come off. Parked in one spot, the wand blasts the stones out.'},
   power:{name:'Power trowel',win:[.54,.95],soft:.1,
    desc:'Walk the 36 in power trowel over the whole floor in overlapping passes. Start when your thumb barely prints. Too early and it gouges and swirls. Late passes burnish it to a hard shine.'},
   blanket:{name:'Blankets',win:[.72,1],soft:.25,
@@ -965,7 +965,7 @@ function updateSurface(){
   const m2b=typeof M2!=='undefined'&&M2.on;
   if(!m2b){sx.drawImage(screedC,0,0);sx.drawImage(floatC,0,0);sx.drawImage(trowC,0,0);}
   if(!m2b)sx.drawImage(broomC,0,0);
-  if(S.expose!=null)maskDraw(sx,i=>Math.min(1,expo[i]),pebbles);
+  if(S.expose!=null&&!EXW.on)maskDraw(sx,i=>Math.min(1,expo[i]),pebbles);
   const L=baseL()+3;
   if(!GPS.on){maskDraw(sx,i=>band[i]?Math.min(1,edged[i])*.9:0,`rgb(${L+8|0},${L+5|0},${L-3|0})`);drawEdgeLines()}
   if(LV.color){maskDraw(sx,i=>Math.min(1,hard[i])*.8,LV.color);maskDraw(sx,i=>Math.min(1,hard[i])*.35,LV.color,'multiply');sx.globalCompositeOperation='multiply';sx.drawImage(stampC,0,0);sx.globalCompositeOperation='source-over'}
@@ -1003,7 +1003,7 @@ function updateSurface(){
   const rip=set<.5?1:Math.max(.25,1-(set-.5)*3);
   maskDraw(bpx,i=>Math.max(0,1-Math.min(1,trow[i])*.9-closed[i]*.95)*rip*(STR.on?1-.85*Math.min(1,STR.vib[i]):1),ripple);// v291: the bull float closes the surface; no ripple left under it
   maskDraw(bpx,i=>(1-Math.min(1,closed[i]))*.95*(STR.on?1-.85*Math.min(1,STR.vib[i]):1),rough);// v376: vibrated mud has settled, the rock is under the paste
-  if(!m2b){bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);}if(S.expose!=null)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
+  if(!m2b){bpx.drawImage(screedC,0,0);bpx.drawImage(floatC,0,0);bpx.drawImage(floatB,0,0);bpx.drawImage(broomC,0,0);bpx.drawImage(broomC,0,0);}if(S.expose!=null&&!EXW.on)maskDraw(bpx,i=>Math.min(1,expo[i])*.9,rough);if(LV.color)bpx.drawImage(stampB,0,0);
   if(!GPS.on)maskDraw(bpx,i=>band[i]?Math.min(1,edged[i])*.9:0,'rgb(132,132,132)');
   if(!GPS.on)for(const j of joints){const [lo,hi]=jRange(j),c=j.p*CPX;for(let k=lo;k<hi;k++){const d=Math.min(1,j.cells[k]);if(d>0){bpx.fillStyle=`rgba(20,20,20,${d})`;j.o==='x'?bpx.fillRect(c-3,k*CPX,6,CPX+.6):bpx.fillRect(k*CPX,c-3,CPX+.6,6)}}}
 }
@@ -3033,6 +3033,7 @@ function slabRefTick(){if(!camera)return;const on=!!(typeof BKD!=='undefined'&&B
   SLREF.d.value.set(Math.cos(a)*Math.cos(el),Math.sin(el),Math.sin(a)*Math.cos(el));SLREF.g.value.copy(SLREF.d.value)}
 function glareTick(){if(!camera)return;const night=weather.night,k=night?0:WETD.glare;GLARE.k.value=k;if(!k)return;
   GLARE.dir.value.copy(sun.position).normalize();GLARE.col.value.copy(sun.color).lerp(new THREE.Color(1,1,1),.6)}
+var EXGLSL='// v398 exposed aggregate: river rock bared by the wash. Field: R paste washed off (x1.5), G water, B slurry, A stones blasted out\n{vec2 eu=(vDW-gExO.xy)/gExO.zw;vec4 EW=(eu.x>0.&&eu.x<1.&&eu.y>0.&&eu.y<1.)?texture2D(gEX,eu):vec4(0.);\n float ex=EW.r*1.5,wt=EW.g,sl=EW.b,bo=EW.a;\n if(ex>.004||sl>.01||wt>.01){vec2 p=vDW;vec3 base=diffuseColor.rgb;float fwS=fwidth(p.x)+fwidth(p.y),pk=smoothstep(.04,.45,ex);\n  // the washed matrix: paste cut down between the stones, sandy and darker than the floated cream\n  float sA=clamp(1.4-fwS*90.,0.,1.),sand=gH1(floor(p*190.))*.6+gH1(floor(p*83.)+.5)*.4;\n  vec3 col=mix(base,base*(.72+(sand-.5)*.34*sA)*vec3(1.,.98,.95),pk);\n  vec3 cT=vec3(.45,.32,.19),cB=vec3(.6,.51,.34),cG=vec3(.29,.29,.28),cC=vec3(.08,.08,.085),cR=vec3(.37,.15,.08),cW=vec3(.75,.71,.64);\n  // far off a stone is smaller than a pixel: the bed reads as a pebbly speckle at whatever scale the screen can hold\n  // (two turned octaves of soft noise, no hard thresholds, so it never goes blocky; it fades to the bed average colour)\n  vec2 q1=mat2(.8,-.6,.6,.8)*p,q2=mat2(.28,.96,-.96,.28)*p;float a2=clamp(1.5-fwS*16.,0.,1.),aC=clamp(1.6-fwS*5.,0.,1.);\n  float n1=gVN(q1*13.),n2=gVN(q2*29.+3.3),n3=gVN(q1*4.3+7.1);\n  vec3 spk=mix(vec3(.33,.32,.3),vec3(.5,.38,.24),smoothstep(.25,.75,n3*.55+n1*.45))*(1.+((n1-.5)*.9+(n2-.5)*.8*a2)*aC);\n  spk*=1.+(smoothstep(.72,.9,n2)*.35-smoothstep(.1,.25,n2)*.3+(1.-smoothstep(.15,.3,n1))*-.25)*a2;\n  float cov=.68*clamp((ex-.08)/.82,0.,1.)*(1.-.6*bo);vec3 far=mix(col,mix(vec3(.42,.345,.265),spk,aC),cov);\n  float aF=clamp(1.6-fwS*21.5,0.,1.),mS=0.;vec2 tl=vec2(0.);\n  if(aF>.001){vec2 g=p/.058,id=floor(g),f=fract(g);float d1=9.,d2=9.;vec2 c1=vec2(0.),w1=vec2(0.);\n   for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y)),dv=o+.12+gH2(id+o)*.76-f,ca=normalize(gH2(id+o+4.7)-.5+.001);\n    float el=.68+.32*gH1(id+o+8.3),d=length(vec2(dot(dv,ca),dot(dv,vec2(-ca.y,ca.x))/el));if(d<d1){d2=d1;d1=d;c1=id+o;w1=dv;}else if(d<d2)d2=d;}\n   float hs=gH1(c1+1.3),rad=.44+.16*gH1(c1+2.9),hc=gH1(c1+6.1),gone=step(gH1(c1+9.9)*.85+.1,bo);\n   float rv=clamp((ex-hs*.5)/.4,0.,1.),rr=rad*sqrt(rv),aa=fwidth(g.x)*1.1+.02,s=min(rr-d1,(d2-d1)*.5-.022);mS=smoothstep(-aa,aa,s)*step(.02,rv)*(1.-gone);\n   vec3 sc=hc<.22?cT:hc<.4?cB:hc<.58?cG:hc<.68?cC:hc<.75?cR:hc<.87?cW:hc<.93?vec3(.46,.26,.21):vec3(.19,.12,.075);\n   float hn=clamp(s/max(rr,.05),0.,1.);sc*=(.85+.3*gH1(c1+3.7))*(1.+(gH1(floor(p*260.))-.5)*.24*clamp(1.4-fwS*130.,0.,1.))*(.8+.28*sqrt(hn));\n   // the paste sits low around each bared stone (a dark ring); sockets where a stone was blasted out\n   float ring=(1.-smoothstep(-.22,0.,s))*step(s,0.)*smoothstep(.1,.6,rv)*clamp(ex,0.,1.3)*(1.-gone),sk=gone*smoothstep(-aa,aa,rad-d1);\n   vec3 nr=col*(1.-.34*ring);nr=mix(nr,base*.4,sk*.85);nr=mix(nr,sc,mS);col=mix(far,nr,aF);\n   vec2 nd=w1/max(rad,.05);tl=(nd*mS*(.6+1.4*(1.-hn))*1.3-nd*sk*1.6)*aF;\n  }else col=far;\n  gTl=gTl*(1.-.85*pk)+tl;gRgh+=.16*pk-.06*mS*aF;\n  // slurry: the washed-off fines, grey and milky, settle where the water runs; dried on the stone they leave a haze\n  float su=clamp(sl*1.3,0.,1.);col=mix(col,vec3(.4,.38,.35)*(1.-.4*wt),su*mix(.8,.55,mS*aF)*(1.-.3*wt));gRgh+=.22*su*(1.-wt);gTl*=1.-.55*su;\n  // water: wet stone goes dark and rich and shines; a thin sheet lies in the low paste between\n  col=mix(col,pow(col,vec3(1.18))*.78,wt*.9);gRgh-=.55*wt;gShn=max(gShn,wt*.95);gPool=max(gPool,wt*.6*(1.-mS*aF)*pk);\n  diffuseColor.rgb=col;}}';
 slabMat.onBeforeCompile=sh=>{
   Object.assign(sh.uniforms,{gGlDir:SLREF.g,gGlCol:GLARE.col,gGlK:GLARE.k,gRT:REFL.U.t,gRM:REFL.U.m,gRK:REFL.U.k,gLk:SLAB_LK.U,gSunW:SLREF.d,gSunR:SLREF.k},SKYS.U);
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vRW;').replace('#include <project_vertex>','#include <project_vertex>\nvRW=(modelMatrix*vec4(transformed,1.)).xyz;');
@@ -3057,11 +3058,12 @@ vec3 pertD(vec3 ep,vec3 N,vec3 mN,float fd,vec2 uv){vec3 q0=dFdx(ep),q1=dFdy(ep)
      .replace('#include <map_fragment>','#include <map_fragment>\n{float mt=texture2D(dM,vDW*vec2(.26,.52)).r+texture2D(dM,vDW*vec2(.061,.122)+.37).r-1.;diffuseColor.rgb*=1.+mt*.7;}')
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 du=vDW*vec2(.29,.58);vec3 dn=texture2D(dN,du).xyz*2.-1.;dn.xy*=.55*smoothstep(.25,.85,roughnessFactor);normal=pertD(-vViewPosition,normal,dn,gl_FrontFacing?1.:-1.,du);}')}
   let spOn=false;try{spOn=SP.on}catch(e){}
-  if(GPS.on){const m2=typeof M2!=='undefined'&&M2.on;Object.assign(sh.uniforms,GPS.U);if(spOn)Object.assign(sh.uniforms,SP.U);if(CPH.on)Object.assign(sh.uniforms,CPH.U);if(m2)Object.assign(sh.uniforms,M2.U);
+  if(GPS.on){const m2=typeof M2!=='undefined'&&M2.on,exO=typeof EXW!=='undefined'&&EXW.on;Object.assign(sh.uniforms,GPS.U);if(exO)Object.assign(sh.uniforms,EXW.U);if(spOn)Object.assign(sh.uniforms,SP.U);if(CPH.on)Object.assign(sh.uniforms,CPH.U);if(m2)Object.assign(sh.uniforms,M2.U);
     F=F.replace('varying vec2 vDW;',`varying vec2 vDW;
 uniform vec4 gJL[${GPS.JN}];uniform vec4 gES[${GPS.EN}];uniform int gJN;uniform int gEN;uniform sampler2D gJT;uniform sampler2D gED;uniform sampler2D gBD;
 float gH1(vec2 v){return fract(sin(dot(v,vec2(127.1,311.7)))*43758.5453);}uniform float gSW;${CPH.on?'uniform sampler2D cPk;uniform float gPh;':'float gPh=0.;'}uniform float gSD;
 uniform sampler2D mA;uniform vec4 mO;uniform vec2 mTx;uniform float mRoll;uniform float mEx;vec4 mM=vec4(0.);float mIn=0.;
+${exO?'uniform sampler2D gEX;uniform vec4 gExO;':''}
 ${spOn?'uniform sampler2D spT;uniform sampler2D spD;uniform vec4 spO;uniform vec2 spP;uniform vec2 spR;uniform vec2 spS;uniform vec2 spL;uniform vec3 spRel;uniform float spH;uniform float spRl;':''}
 uniform sampler2D gMR;uniform sampler2D gMK;uniform float gWM;uniform float gCure;uniform float gTm;uniform vec2 gSdir;uniform sampler2D gHM;uniform float gRel;uniform float gBl;uniform float gFr;uniform float gCs;
 float gPool=0.;
@@ -3218,6 +3220,7 @@ ${spOn?`// v377 stamped: the mat's pattern pressed into the slab as deep as each
   gRgh+=.28*rel*(1.-.5*dk)+.06*dk;gPool*=1.-dk;
   float tr=dep*spRl*(1.-smoothstep(.12,.3,rel));if(tr>.02){float n=gVN(sq*9.)*.6+gVN(sq*23.)*.4;gCol*=1.-.3*tr*smoothstep(.45,.7,n);gTl+=(vec2(gVN(sq*9.+.3),gVN(sq*9.+5.1))-.5)*tr*3.;gRgh+=.2*tr;}
  }}}`:''}
+${exO?EXGLSL:''}
 diffuseColor.rgb*=gCol;`)
      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor+gRgh,.04,1.);')
      .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n{const vec3 Lw=vec3(.299,.587,.114);float l=dot(reflectedLight.indirectDiffuse,Lw);reflectedLight.indirectDiffuse=mix(vec3(l),reflectedLight.indirectDiffuse,.3)*1.15;float l2=dot(reflectedLight.indirectSpecular,Lw);reflectedLight.indirectSpecular=mix(vec3(l2),reflectedLight.indirectSpecular,.3);}')
@@ -3229,7 +3232,7 @@ diffuseColor.rgb*=gCol;`)
 ;
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+'gl377';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+(typeof EXW!=='undefined'&&EXW.on?'X':'')+'gl398';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -3239,6 +3242,7 @@ const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9
    instead of drawing nothing: first drop the photo detail maps, then the GPU surface layer. */
 if(renderer){renderer.debug.checkShaderErrors=true;renderer.debug.onShaderError=(gl,prog,vs,fs)=>{try{console.warn('shader error',gl.getProgramInfoLog(prog),gl.getShaderInfoLog(fs))}catch(e){}
   if(spOnNow()){SP.bad=1;spGfx(false);return}
+  if(typeof EXW!=='undefined'&&EXW.on){EXW.bad=1;exwGfx(false);surfDirty=true;return}
   if(CPH.on){CPH.on=false;CPH.off=true}else if(SLABD.on){SLABD.on=false}else if(GPS.on){GPS.on=false}slabMat.needsUpdate=true}}
 try{if(renderer&&renderer.capabilities.maxTextures<16){SLABD.try=1}}catch(e){}
 function gpsInit(){if(GPS.on||safeGfx||!renderer)return;GPS.on=true;gpsShape();gpsSync();slabMat.needsUpdate=true}
@@ -4559,7 +4563,7 @@ function exSfxLoad(){if(!AC||au.exLoading)return;au.exLoading=1;const out={};
 function exSfxStart(){hap([70,40,120],2);shake(.05);if(!au.exb||!soundOn||!AC)return;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=au.exb.start;g.gain.value=.95;s.connect(g);g.connect(au.master);s.start();au.exStartT=AC.currentTime}catch(e){}}
 const FREQ={slip:140,shape:600,dig:110,gravel:95,base:75,form:900,tube:320,expose:6500,power:140,blanket:220,pour:420,screed:650,float:480,edge:2300,trowel:2900,joint:1900,broom:5200,color:3800,stamp:300},GAIN={slip:.45,shape:.25,dig:.5,gravel:.45,base:.55,form:.06,tube:.05,expose:.3,power:.5,blanket:.1,pour:.38,screed:.4,float:.28,edge:.22,trowel:.26,joint:.2,broom:.32,color:.12,stamp:0};
 function updAudio(){
-  if(!AC)return;const t=AC.currentTime,on=soundOn&&running?1:0,k=STAGES[stage].key,sp=Math.min(1,toolSpeed/10);
+  if(!AC)return;const t=AC.currentTime,on=soundOn&&running?1:0,k=STAGES[stage].key,sp=k==='expose'&&ptr.down?.72+.28*Math.min(1,toolSpeed/10):Math.min(1,toolSpeed/10);
   au.scrape.f.frequency.setTargetAtTime((FREQ[k]||1000)*(.85+sp*.3)*(1-.45*TFEEL.suck+.5*TFEEL.chat),t,.05);
   au.scrape.g.gain.setTargetAtTime(on*(ptr.down&&(k!=='pour'||pourTool==='rake')?sp*(GAIN[k]||.2)*(TFEEL.chat>.15?.3+Math.random()*1.2:1)*(1+.5*TFEEL.suck*Math.abs(Math.sin(t*7))):0),t,.04);
   au.ring.g.gain.setTargetAtTime(on*(ptr.down&&k==='trowel'?sp*.05:0),t,.05);
@@ -4652,6 +4656,7 @@ function rumbleTarget(){
   if(rollG.visible&&d&&toolSpeed>.5)add(.08,.65,6);
   if(k==='vibe'&&d)add(.05,.85,14);
   if(k==='power'&&d&&toolSpeed>1)add(.05,.7,10);
+  if(k==='expose'&&d&&wandG.visible)add(.008+.03*EXW.blast,.3+.35*EXW.blast,11);
   if(typeof sl!=='undefined'&&k==='slip'&&sl.v>.1)add(.06,.55,6);
   if(typeof BW!=='undefined'&&BW.auto&&!BW.done&&k==='screed')add(.045,.5,7);
   return[c,h,hz]}
@@ -4769,7 +4774,7 @@ function reset(){try{M2.clr=1}catch(e){}try{spClear()}catch(e){}setStageUI.sawT=
   joints=[];curJ=null;jDrag=null;jArmed=null;set=0;chalk=[];stowChute=false;stage=0;acc=STAGES.map(()=>({w:0,q:0}));boardX=-2;lastCol=null;flags={};placed=0;wasted=0;placedAtLeave=0;pouring=false;
   [bctx,brx,tcx,trx,fcx,fbx,scx,stb,stx].forEach(c=>c.clearRect(0,0,TW,TH));clearBlankets();stc.fillStyle='#fff';stc.fillRect(0,0,TW,TH);
   stampHits.fill(0);stampQ.fill(0);stampDrag=new Set();mats.forEach(o=>{o.t=-1;o.applied=true;o.m.visible=false});
-  rk.used=false;rk.load=0;rk.lpx=rk.lpz=1e9;expo.fill(0);tubeReset();prepReset();if(typeof planEvent==='function'&&ev){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true}setJMode('x');setPourTool('chute',true);
+  rk.used=false;rk.load=0;rk.lpx=rk.lpz=1e9;expo.fill(0);try{exwClear()}catch(e){}tubeReset();prepReset();if(typeof planEvent==='function'&&ev){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true}setJMode('x');setPourTool('chute',true);
   truck.visible=chute.visible=lumps.visible=splash.visible=true;bands.forEach(b=>b.visible=true);try{spatClear()}catch(e){}
   tip.set(RCX+4,1.6,RCZ);tipTarget.copy(tip);
   surfDirty=geoDirty=true;userView=false;closeLook.set(0,0,1);setView(0);
@@ -6128,7 +6133,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='rebar')rebMove(p.wx,p.wz);
   else if(k==='sform'||k==='riser'||k==='sbar'){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.6));for(let q=1;q<=n;q++)strTrace({wx:wx(ptr.x+dx*q/n),wz:wz(ptr.y+dy*q/n)})}
   else if(k==='vibe'){}
-  else if(k==='expose')washSeg(ptr.x,ptr.y,p.x,p.y);
+  else if(k==='expose'){}
   else if(k==='power'){if(!(RIDE.drive&&rideLive()))powerSeg(ptr.x,ptr.y,p.x,p.y)}
   else{const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.5));
     if(k==='float')floatSweep(ptr.x,ptr.y,p.x,p.y);else for(let s=1;s<=steps;s++)edgeTrace(ptr.x+dx*s/steps,ptr.y+dy*s/steps)}
@@ -6385,16 +6390,81 @@ const pebbles=(()=>{const[c,g]=mk(TW,TH);g.fillStyle='#6a6257';g.fillRect(0,0,TW
     g.fillStyle='rgba(28,24,20,.55)';g.beginPath();g.ellipse(x+.7,y+.9,r,r*.8,a,0,6.283);g.fill();
     g.fillStyle=`rgb(${k[0]+v|0},${k[1]+v|0},${k[2]+v|0})`;g.beginPath();g.ellipse(x,y,r,r*.78,a,0,6.283);g.fill();
     g.fillStyle='rgba(255,255,255,.22)';g.beginPath();g.ellipse(x-r*.3,y-r*.3,r*.35,r*.24,a,0,6.283);g.fill()}return c})();
-function washSeg(x0,y0,x1,y1){
-  const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.05)return;
-  const W=1.3*12/CELL_IN,ux=dx/len,uy=dy/len,eff=set<.45?1.25:set<=.76?1:Math.max(.05,1-(set-.76)/.1),early=set<.5;let work=0;
-  for(let cy=Math.max(RY0,Math.floor(Math.min(y0,y1)-W));cy<=Math.min(RY1-1,Math.ceil(Math.max(y0,y1)+W));cy++)for(let cx=Math.max(RX0,Math.floor(Math.min(x0,x1)-W));cx<=Math.min(RX1-1,Math.ceil(Math.max(x0,x1)+W));cx++){
-    const i=cy*GW+cx;if(!has(i))continue;let t=((cx+.5-x0)*ux+(cy+.5-y0)*uy)/len;t=Math.max(0,Math.min(1,t));const d=Math.hypot(cx+.5-(x0+ux*len*t),cy+.5-(y0+uy*len*t));if(d>W)continue;
-    const f=1-d/W*.5,add=.08*Math.min(len,1.5)*f*eff;work+=Math.min(add,Math.max(0,1-expo[i]));expo[i]=Math.min(1.5,expo[i]+add);
-    if(early)weak[i]=Math.min(1,weak[i]+.02*f);if(expo[i]>1.25)weak[i]=Math.min(1,weak[i]+.006)}
-  acc[S.expose].w+=work;acc[S.expose].q+=work*winQ(set,STAGES[S.expose]);surfDirty=true;
+/* v398: exposed aggregate wash, rebuilt. The wand washes where its spray lands (it used to wash wherever the finger was, out ahead of
+   the wand) and for as long as the trigger is held, so a wand parked in one spot blasts the stones out. A fine field (about 1/2 in a
+   point) holds the paste washed off, the water and the slurry the spray pushes ahead of it; the slab shader turns that into real river
+   rock (wet and shiny, then drying). The score cells are read from the same field, so what you see is what's scored. */
+var EXW={on:false,bad:0,key:'',W:0,H:0,e:null,w:null,s:null,b:null,d:null,tex:null,cell:null,x0:0,z0:0,dx:1,dz:1,ppx:1,ppz:1,
+  r0:1e9,r1:-1,wr0:1e9,wr1:-1,dryT:0,aggT:0,chg:0,pd:false,lx:0,lz:0,bl:new Float32Array(N),haze:0,yaw:0,lean:0,pitch:0,kick:0,blast:0,spd:0,full:0,
+  U:{gEX:{value:null},gExO:{value:new THREE.Vector4(0,0,1,1)}}};
+function exwSetup(key){const A=EXW,x0=wx(RX0)-.5,x1=wx(RX1)+.5,z0=wz(RY0)-.5,z1=wz(RY1)+.5,dx=x1-x0,dz=z1-z0;
+  const L=Math.max(256,Math.min(1024,Math.round(Math.max(dx,dz)*26)));const W=dx>=dz?L:Math.max(16,Math.round(L*dx/dz)),H=dx>=dz?Math.max(16,Math.round(L*dz/dx)):L;
+  if(!A.tex||A.W!==W||A.H!==H){if(A.tex)A.tex.dispose();const n=W*H;A.e=new Float32Array(n);A.w=new Float32Array(n);A.s=new Float32Array(n);A.b=new Float32Array(n);A.d=new Uint8Array(n*4);A.cell=new Int16Array(n);
+    A.tex=new THREE.DataTexture(A.d,W,H,THREE.RGBAFormat);A.tex.magFilter=A.tex.minFilter=THREE.LinearFilter;A.tex.wrapS=A.tex.wrapT=THREE.ClampToEdgeWrapping;A.W=W;A.H=H;A.U.gEX.value=A.tex}
+  A.x0=x0;A.z0=z0;A.dx=dx;A.dz=dz;A.ppx=W/dx;A.ppz=H/dz;A.U.gExO.value.set(x0,z0,dx,dz);A.key=key;
+  // only points on the slab itself count toward the score (a cell on a curved edge is partly lawn); scanline fill of the outline
+  const P=SHAPE,xs=[];for(let v=0;v<H;v++){const z=z0+(v+.5)/A.ppz,cy=Math.floor((z+SLAB_D/2)/SLAB_D*GH);xs.length=0;
+    for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>z)!==(b[1]>z))xs.push(a[0]+(b[0]-a[0])*(z-a[1])/(b[1]-a[1]))}xs.sort((p,q)=>p-q);
+    for(let u=0;u<W;u++)A.cell[v*W+u]=-1;
+    if(cy<0||cy>=GH)continue;for(let k=0;k+1<xs.length;k+=2){const ua=Math.max(0,Math.ceil((xs[k]-x0)*A.ppx-.5)),ub=Math.min(W-1,Math.floor((xs[k+1]-x0)*A.ppx-.5));
+      for(let u=ua;u<=ub;u++){const x=x0+(u+.5)/A.ppx,cx=Math.floor((x+SLAB_W/2)/SLAB_W*GW);if(cx>=0&&cx<GW&&inR[cy*GW+cx])A.cell[v*W+u]=cy*GW+cx}}}
+  exwClear()}
+function exwClear(){const A=EXW;if(A.e){A.e.fill(0);A.w.fill(0);A.s.fill(0);A.b.fill(0);A.d.fill(0);A.tex.clearUpdateRanges();A.tex.needsUpdate=true;A.full=1}A.bl.fill(0);A.haze=0;A.r0=A.wr0=1e9;A.r1=A.wr1=-1;A.chg=0;A.pd=false;A.blast=0}
+function exwPx(i){const A=EXW,o=i*4;A.d[o]=Math.min(255,A.e[i]*170);A.d[o+1]=A.w[i]*255;A.d[o+2]=A.s[i]*255;A.d[o+3]=A.b[i]*255}
+// one moment of spray: an ellipse across the fan (HW) by along the spray (HL), strongest in the middle
+function exwStamp(X,Z,ax,az,HW,HL,dt,eff,early){const A=EXW,W=A.W,H=A.H,e=A.e,w=A.w,sl=A.s,b=A.b;let rem=0,hit=0;
+  const R=HW+.05,u0=Math.max(0,Math.floor((X-R-A.x0)*A.ppx)),u1=Math.min(W-1,Math.ceil((X+R-A.x0)*A.ppx)),v0=Math.max(0,Math.floor((Z-R-A.z0)*A.ppz)),v1=Math.min(H-1,Math.ceil((Z+R-A.z0)*A.ppz));
+  const k=4.5*dt*eff,cl=Math.min(1,dt*9);
+  for(let v=v0;v<=v1;v++){const oz=A.z0+(v+.5)/A.ppz-Z;for(let u=u0;u<=u1;u++){const ox=A.x0+(u+.5)/A.ppx-X,al=(ox*ax+oz*az)/HL,ac=(oz*ax-ox*az)/HW,r2=al*al+ac*ac;if(r2>=1)continue;
+    const f=1-r2*r2,i=v*W+u,ei=e[i],ne=Math.min(1.5,ei+k*f*(ei<1?1:.045));rem+=Math.min(ne,1)-Math.min(ei,1);e[i]=ne;
+    if(ne>1.2){const bb=(ne-1.2)/.3;if(bb>b[i])b[i]=Math.min(1,bb);if(ei<=1.25&&ne>1.25)hit=1}
+    if(early)b[i]=Math.min(1,b[i]+k*f*.35);
+    w[i]=Math.max(w[i],Math.min(1,f*2.5));sl[i]*=1-cl*f;exwPx(i)}}
+  if(v0<=v1){A.r0=Math.min(A.r0,v0);A.r1=Math.max(A.r1,v1);A.wr0=Math.min(A.wr0,v0);A.wr1=Math.max(A.wr1,v1)}
+  // the slurry rides out ahead of the fan and settles there (pushed off the slab if you work toward an edge)
+  if(rem>0){const sc=Math.max(1,Math.sqrt(LS)),DL=.55*sc,DW=HW*1.12,cx=X+ax*(HL+DL*.7),cz=Z+az*(HL+DL*.7),R2=DW+.05;
+    const dep=Math.min(.2,rem*.6/(Math.PI*DW*DL*A.ppx*A.ppz*.5));
+    const a0=Math.max(0,Math.floor((cx-R2-A.x0)*A.ppx)),a1=Math.min(W-1,Math.ceil((cx+R2-A.x0)*A.ppx)),c0=Math.max(0,Math.floor((cz-R2-A.z0)*A.ppz)),c1=Math.min(H-1,Math.ceil((cz+R2-A.z0)*A.ppz));
+    for(let v=c0;v<=c1;v++){const oz=A.z0+(v+.5)/A.ppz-cz;for(let u=a0;u<=a1;u++){const ox=A.x0+(u+.5)/A.ppx-cx,al=(ox*ax+oz*az)/DL,ac=(oz*ax-ox*az)/DW,r2=al*al+ac*ac;if(r2>=1)continue;
+      const f=1-r2,i=v*W+u;sl[i]=Math.min(1,sl[i]+dep*f*(.6+.4*Math.min(1,e[i])));w[i]=Math.max(w[i],.75*f);exwPx(i)}}
+    if(c0<=c1){A.r0=Math.min(A.r0,c0);A.r1=Math.max(A.r1,c1);A.wr0=Math.min(A.wr0,c0);A.wr1=Math.max(A.wr1,c1)}}
+  if(hit)A.blast=1;return rem}
+function exwWash(X,Z,dt){const A=EXW;if(!A.e||S.expose==null)return;const ax=-camDir.x,az=-camDir.z,sc=Math.max(1,Math.sqrt(LS)),HW=1.0*sc,HL=.62*sc;
+  const eff=set<.45?1.25:set<=.76?1:Math.max(.05,1-(set-.76)/.1),early=set<.5;
+  let x0=A.pd?A.lx:X,z0=A.pd?A.lz:Z;if(Math.hypot(X-x0,Z-z0)>4*sc){x0=X;z0=Z}
+  const L=Math.hypot(X-x0,Z-z0),n=Math.max(1,Math.min(14,Math.ceil(L/(HL*.5))));let rem=0;
+  for(let q=1;q<=n;q++){const t=q/n;rem+=exwStamp(x0+(X-x0)*t,z0+(Z-z0)*t,ax,az,HW,HL,dt/n,eff,early)}
+  A.spd+=((dt>0?L/dt:0)-A.spd)*Math.min(1,dt*8);A.lx=X;A.lz=Z;A.pd=true;A.chg=1;
+  const work=rem/(A.ppx*A.ppz)/((SLAB_W/GW)*(SLAB_D/GH));acc[S.expose].w+=work;acc[S.expose].q+=work*winQ(set,STAGES[S.expose]);
+  if(early){const cw=SLAB_W/GW,ch=SLAB_D/GH;for(let cy=Math.max(0,Math.floor(gv(Z-HW)));cy<=Math.min(GH-1,Math.floor(gv(Z+HW)));cy++)for(let cx=Math.max(0,Math.floor(gu(X-HW)));cx<=Math.min(GW-1,Math.floor(gu(X+HW)));cx++){
+    const i=cy*GW+cx;if(!inR[i])continue;const d=Math.hypot(wx(cx+.5)-X,wz(cy+.5)-Z)/HW;if(d<1)weak[i]=Math.min(1,weak[i]+dt*1.1*(1-d)*eff)}}
   if(early)say('Too soon. The stones are washing right out.','bad','exEarly');else if(set>.8)say('The paste has set up. It won\'t wash off now.','bad','exLate');
-}
+  else if(A.blast>.9)say('Keep it moving. You\'re blasting the stones out.','bad','exBlast')}
+// score cells and the hints, read from the field a few times a second
+function exwAgg(){const A=EXW,c=A.cell,e=A.e,b=A.b,n=A.W*A.H;const sm=A.sm||(A.sm=new Float32Array(N)),ct=A.ct||(A.ct=new Float32Array(N)),bc=A.bc||(A.bc=new Float32Array(N));
+  sm.fill(0);ct.fill(0);bc.fill(0);let hzN=0,hzT=0;
+  for(let i=0;i<n;i++){const k=c[i];if(k<0)continue;const x=e[i];sm[k]+=x>=.9?1:x/.9;ct[k]++;if(x>1.25||b[i]>.5)bc[k]++;if(x>.6){hzT++;if(A.s[i]>.35&&A.w[i]<.2)hzN++}}
+  let wk=0;for(let k=0;k<N;k++)if(!ct[k]){if(inR[k])expo[k]=1}else{expo[k]=sm[k]/ct[k];A.bl[k]=bc[k]/ct[k];const t=.6*A.bl[k];if(t>weak[k]+.02){weak[k]=t;wk=1}}
+  A.haze=hzT>200?hzN/hzT:0;if(A.haze>.06&&STAGES[stage]&&STAGES[stage].key==='expose')say('Slurry is drying on the washed stone. Rinse it off.','info','exHaze');
+  if(!A.on||wk)surfDirty=true}
+function exwGfx(on){EXW.on=on;let sp=false;try{sp=SP.on}catch(e){}slabMat.clearcoatMap=on||sp?null:ccTex;slabMat.needsUpdate=true;surfDirty=true}
+function exwTick(dt){const A=EXW;if(!ptr.down)A.pd=false;A.blast*=Math.max(0,1-dt*3);
+  try{exfxTick(dt)}catch(e){}
+  if(!LV||S.expose==null){if(A.on)exwGfx(false);return}
+  const key=[LV.id,RX0,RX1,RY0,RY1,SLAB_W,SLAB_D].join();if(A.key!==key)exwSetup(key);
+  // the river-rock shader from the wash step on: like the stamp relief it needs a texture slot, so the wet-sheen map comes off the slab then
+  const g=!A.bad&&!!(GPS.on&&renderer)&&stage>=S.expose;if(g!==A.on)exwGfx(g);
+  A.dryT+=dt;if(A.dryT>.25&&A.wr1>=A.wr0){const st=A.dryT/26,W=A.W;A.dryT=0;let r0=1e9,r1=-1;
+    for(let v=A.wr0;v<=A.wr1;v++){let any=0;for(let u=0,i=v*W;u<W;u++,i++){const x=A.w[i];if(x>0){const y=Math.max(0,x-st);A.w[i]=y;A.d[i*4+1]=y*255;any=1}}if(any){if(v<r0)r0=v;r1=v}}
+    A.r0=Math.min(A.r0,A.wr0);A.r1=Math.max(A.r1,A.wr1);A.wr0=r0;A.wr1=r1;A.chg=1}
+  A.aggT+=dt;if(A.chg&&A.aggT>.2){A.aggT=0;A.chg=0;exwAgg()}
+  if(A.r1>=A.r0&&A.tex){exwUpload(A.r0,A.r1);A.r0=1e9;A.r1=-1}}
+// the changed rows go up in one texSubImage call (three.js can only send partial updates a row at a time, ~80 calls a frame here)
+function exwUpload(r0,r1){const A=EXW;let p=null;try{p=renderer.properties.get(A.tex)}catch(e){}
+  if(A.full||!p||!p.__webglTexture||A.tex.version!==p.__version){A.full=0;A.tex.clearUpdateRanges();A.tex.needsUpdate=true;return}
+  try{const gl=renderer.getContext();renderer.state.bindTexture(gl.TEXTURE_2D,p.__webglTexture);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.pixelStorei(gl.UNPACK_ROW_LENGTH,0);gl.pixelStorei(gl.UNPACK_SKIP_PIXELS,0);gl.pixelStorei(gl.UNPACK_SKIP_ROWS,0);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,0,r0,A.W,r1-r0+1,gl.RGBA,gl.UNSIGNED_BYTE,A.d,r0*A.W*4)}catch(e){A.full=1;A.tex.needsUpdate=true}}
 function powerSeg(x0,y0,x1,y1,wFt,gain){
   const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.05)return;
   const W=wFt?wFt*12/CELL_IN:1.5*12/CELL_IN*(rideLive()?1.7:1),ux=dx/len,uy=dy/len,early=set<.5,late=set>.96,eff=early?.5:late?.05:1;let work=0;
@@ -6414,30 +6484,68 @@ function powerSeg(x0,y0,x1,y1,wFt,gain){
 }
 // tool models
 const wandG=new THREE.Group();
-// v210: a real wash wand: aluminium wand with a trigger grip, brass fan nozzle, hose trailing back, and a flat fan of water with
-// streaks, flying droplets and a splash on the slab (it used to be a solid cone)
-{const al=new THREE.MeshStandardMaterial({color:0xc4c8cc,roughness:.35,metalness:.8}),blk=new THREE.MeshStandardMaterial({color:0x1d1e20,roughness:.6}),
-   brass=new THREE.MeshStandardMaterial({color:0xc9a24a,roughness:.35,metalness:.85}),hose=new THREE.MeshStandardMaterial({color:0x2f6b3a,roughness:.6});
- const tube=(a,b,r,m,seg)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),seg||10),m);c.position.copy(A).add(B).multiplyScalar(.5);c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());wandG.add(c);return c};
- tube([0,.34,.06],[0,2.9,3.1],.032,al);
- tube([0,.24,0],[0,.36,.07],.05,brass,12);{const tip=new THREE.Mesh(new THREE.BoxGeometry(.16,.05,.06),brass);tip.position.set(0,.22,0);wandG.add(tip)}
- {const g=tube([0,2.75,2.95],[0,2.45,3.35],.06,blk,10);const tr=new THREE.Mesh(new THREE.BoxGeometry(.05,.22,.06),blk);tr.position.set(0,2.75,3.05);tr.rotation.x=.4;wandG.add(tr)}
- {const pts=[new THREE.Vector3(0,2.45,3.35),new THREE.Vector3(.2,1.8,4.2),new THREE.Vector3(.6,.4,5.2),new THREE.Vector3(1.4,-.25,7)],cv=new THREE.CatmullRomCurve3(pts);
-  const h=new THREE.Mesh(new THREE.TubeGeometry(cv,24,.055,8,false),hose);h.castShadow=true;wandG.add(h)}
- // the fan: a thin sheet from the nozzle to the slab, streaky and brighter near the nozzle
- const fanTex=(()=>{const[c,g]=mk(128,128);g.clearRect(0,0,128,128);for(let k=0;k<70;k++){const x=Math.random()*128,a=.15+Math.random()*.5;const gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,`rgba(255,255,255,${a})`);gr.addColorStop(1,'rgba(255,255,255,0)');g.strokeStyle=gr;g.lineWidth=.6+Math.random()*1.4;g.beginPath();g.moveTo(64+(x-64)*.04,0);g.lineTo(x,128);g.stroke()}
-   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t})();
- const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute([0,.2,0, -.85,.01,-.28, .85,.01,-.28],3));fg.setAttribute('uv',new THREE.Float32BufferAttribute([.5,0, 0,1, 1,1],2));
- const fan=new THREE.Mesh(fg,new THREE.MeshBasicMaterial({map:fanTex,color:0xe8f4ff,transparent:true,opacity:.75,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));wandG.add(fan);
- const splashTex=softTex([[0,'rgba(255,255,255,.6)'],[.6,'rgba(220,235,255,.25)'],[1,'rgba(255,255,255,0)']],1,64,64);
- const sp=new THREE.Mesh(new THREE.PlaneGeometry(2,.9).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:splashTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.position.set(0,.02,-.28);wandG.add(sp);
- // flying droplets along the fan
- const ND=36,dr=new THREE.InstancedMesh(new THREE.SphereGeometry(.02,5,4),new THREE.MeshBasicMaterial({color:0xf2f8ff,transparent:true,opacity:.85}),ND),D=[],dm=new THREE.Object3D();
- for(let k=0;k<ND;k++)D.push({t:Math.random(),u:Math.random()*2-1,v:.9+Math.random()*.4});dr.frustumCulled=false;wandG.add(dr);
- dr.onBeforeRender=()=>{const now=performance.now()/1000,dt=Math.min(.05,now-(dr.userData.t||now));dr.userData.t=now;D.forEach((q,k)=>{q.t+=dt*3.2*q.v;if(q.t>1){q.t-=1;q.u=Math.random()*2-1}
-   const t=q.t;dm.position.set(q.u*.85*t,.2-.19*t+Math.sin(t*3.1)*.01,-.28*t);dm.scale.set(1,1+3*t,1);dm.updateMatrix();dr.setMatrixAt(k,dm.matrix)});dr.instanceMatrix.needsUpdate=true};
- const spray=new THREE.Group();spray.add(fan,sp);wandG.add(spray);wandG.userData.spray=spray}
-wandG.visible=false;shadowAll(wandG);scene.add(wandG);
+/* v398: the wash wand rebuilt. The group sits where the spray lands; the arm pivots about that spot, so the operator can lean and sweep
+   and the spray still lands where the wash happens. Nozzle a foot up and back, lance up to the gun, hose trailing off. The fan is a live
+   sheet of streaming jets, foam churns where it hits, mist drifts off and slurry droplets fly ahead. */
+{const al=new THREE.MeshStandardMaterial({color:0xb9bec4,roughness:.32,metalness:.85}),blk=new THREE.MeshStandardMaterial({color:0x1b1c1e,roughness:.62}),
+   brass=new THREE.MeshStandardMaterial({color:0xc39a45,roughness:.3,metalness:.9}),hose=new THREE.MeshStandardMaterial({color:0x1f2226,roughness:.55}),
+   red=new THREE.MeshStandardMaterial({color:0xb3261e,roughness:.45}),foam=new THREE.MeshStandardMaterial({color:0x2a2c2e,roughness:.95});
+ const arm=new THREE.Group();wandG.add(arm);wandG.userData.arm=arm;
+ const tube=(a,b,r,m,seg,par)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),seg||10),m);c.position.copy(A).add(B).multiplyScalar(.5);c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());(par||arm).add(c);return c};
+ const NZ=[0,1.02,.64],GUN=[0,3.1,3.62],D=new THREE.Vector3(GUN[0]-NZ[0],GUN[1]-NZ[1],GUN[2]-NZ[2]).normalize(),at=t=>[NZ[0]+D.x*t,NZ[1]+D.y*t,NZ[2]+D.z*t];
+ tube(at(.1),GUN,.028,al,10);                                   // lance
+ tube(at(-.02),at(.12),.05,brass,12);tube(at(.12),at(.2),.042,brass,6);// quick coupler + nozzle body
+ tube(at(-.09),at(-.02),.035,red,8);                           // the coloured fan tip
+ tube(at(1.5),at(2.1),.055,foam,10);                            // front hand grip
+ {const g=new THREE.Group();g.position.set(...GUN);g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),D);arm.add(g);
+  const bd=new THREE.Mesh(new THREE.BoxGeometry(.13,.42,.1),blk);bd.position.y=.12;g.add(bd);
+  const gr=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.34),blk);gr.position.set(0,.05,.2);gr.rotation.x=.25;g.add(gr);
+  const tr=new THREE.Mesh(new THREE.BoxGeometry(.04,.05,.18),red);tr.position.set(0,.16,.14);g.add(tr);
+  const gd=new THREE.Mesh(new THREE.TorusGeometry(.09,.012,6,12,Math.PI),blk);gd.position.set(0,.2,.14);gd.rotation.y=Math.PI/2;g.add(gd)}
+ {const p0=new THREE.Vector3(...GUN).addScaledVector(D,.32),pts=[p0,p0.clone().add(new THREE.Vector3(.15,-.5,.5)),new THREE.Vector3(.5,.9,5),new THREE.Vector3(1.1,.05,6.6),new THREE.Vector3(2.4,.05,9)];
+  const h=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),40,.05,8,false),hose);arm.add(h)}
+ shadowAll(arm);
+ // the fan: a sheet of streaming jets from the tip to a line across the slab
+ const vs='varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
+ const nz='float hh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hh(i),hh(i+vec2(1,0)),f.x),mix(hh(i+vec2(0,1)),hh(i+vec2(1,1)),f.x),f.y);}';
+ const U={uT:{value:0},uK:{value:1}};wandG.userData.U=U;
+ const fanM=new THREE.ShaderMaterial({uniforms:U,vertexShader:vs,transparent:true,depthWrite:false,side:THREE.DoubleSide,fragmentShader:'varying vec2 vUv;uniform float uT;uniform float uK;'+nz+
+   'void main(){float u=vUv.x,v=vUv.y;float j=vn(vec2(u*44.,v*3.-uT*9.))*.6+vn(vec2(u*105.,v*6.-uT*16.))*.4,br=vn(vec2(u*7.+uT*.8,v*2.5-uT*6.));'+
+   'float ed=smoothstep(0.,.14,u)*smoothstep(1.,.86,u),a=(.18+.82*smoothstep(.35,.8,j))*(.55+.45*br)*ed;a*=mix(.95,.45,v)+.7*smoothstep(.82,1.,v);a*=smoothstep(0.,.05,v);'+
+   'gl_FragColor=vec4(vec3(.94,.97,1.),clamp(a*.62*uK,0.,1.));}'});
+ const NU=10,NV=8,fp=[],fu=[],fi=[],T=new THREE.Vector3(...at(-.09));
+ for(let j=0;j<=NV;j++)for(let i=0;i<=NU;i++){const u=i/NU,v=j/NV,x=(u*2-1),gx=x,gz=-.08*(1-x*x);fp.push(T.x+(gx-T.x)*v,T.y+(.02-T.y)*v,T.z+(gz-T.z)*v);fu.push(u,v)}
+ for(let j=0;j<NV;j++)for(let i=0;i<NU;i++){const a=j*(NU+1)+i,b=a+1,c=a+NU+1,d=c+1;fi.push(a,c,b,b,c,d)}
+ const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute(fp,3));fg.setAttribute('uv',new THREE.Float32BufferAttribute(fu,2));fg.setIndex(fi);
+ const fan=new THREE.Mesh(fg,fanM);fan.renderOrder=7;
+ // foam churning where the fan hits
+ const foamM=new THREE.ShaderMaterial({uniforms:U,vertexShader:vs,transparent:true,depthWrite:false,fragmentShader:'varying vec2 vUv;uniform float uT;uniform float uK;'+nz+
+   'void main(){vec2 q=vUv*2.-1.;float r=length(q*vec2(1.,1.));if(r>1.)discard;float n=vn(vec2(q.x*9.+uT*3.,q.y*5.-uT*7.))*.55+vn(vec2(q.x*23.-uT*5.,q.y*13.+uT*9.))*.45;'+
+   'float core=1.-smoothstep(.1,.35,abs(q.y+.1)),a=(1.-smoothstep(.45,1.,r))*(.25+.75*smoothstep(.35,.75,n))*(.45+.55*core);gl_FragColor=vec4(vec3(.95,.97,1.),a*.6*uK);}'});
+ const fm=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.35).rotateX(-Math.PI/2),foamM);fm.position.set(0,.03,-.02);fm.renderOrder=6;
+ const spray=new THREE.Group();spray.add(fan,fm);arm.add(spray);wandG.userData.spray=spray;wandG.userData.tip=T}
+wandG.visible=false;scene.add(wandG);
+// mist and slurry droplets live in the world, so they drift off and fall where they fly instead of following the wand
+const UPV=new THREE.Vector3(0,1,0),EXFX=new THREE.Group();EXFX.visible=false;scene.add(EXFX);
+{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,.9)');gr.addColorStop(.45,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
+ const MN=56,mg=new THREE.BufferGeometry(),mp=new Float32Array(MN*3),mc=new Float32Array(MN*4);mg.setAttribute('position',new THREE.BufferAttribute(mp,3));mg.setAttribute('color',new THREE.BufferAttribute(mc,4));
+ const mist=new THREE.Points(mg,new THREE.PointsMaterial({size:.75,map:new THREE.CanvasTexture(c),vertexColors:true,transparent:true,depthWrite:false,sizeAttenuation:true}));mist.frustumCulled=false;mist.renderOrder=8;EXFX.add(mist);
+ const DN=64,drop=new THREE.InstancedMesh(new THREE.SphereGeometry(.022,5,4),new THREE.MeshBasicMaterial({color:0xd9dcdc,transparent:true,opacity:.85}),DN);drop.frustumCulled=false;drop.count=0;EXFX.add(drop);
+ EXFX.userData={mist,mp,mc,MN,M:[...Array(MN)].map(()=>({t:9,L:1,x:0,y:0,z:0,vx:0,vy:0,vz:0})),drop,DN,D:[...Array(DN)].map(()=>({t:9,x:0,y:0,z:0,vx:0,vy:0,vz:0})),mi:0,di:0,ma:0,da:0}}
+function exfxTick(dt){const F=EXFX.userData,on=running&&ptr.down&&wandG.visible&&STAGES[stage]&&STAGES[stage].key==='expose';let live=false;
+  const ax=-camDir.x,az=-camDir.z,rx=-az,rz=ax,X=wandG.position.x,Y=wandG.position.y,Z=wandG.position.z,sc=Math.max(1,Math.sqrt(LS));
+  if(on){F.ma+=dt*46;F.da+=dt*(70+60*EXW.blast);
+    while(F.ma>=1){F.ma--;const m=F.M[F.mi=(F.mi+1)%F.MN],a=(Math.random()*2-1)*sc;m.x=X+rx*a+ax*(Math.random()*.4-.1);m.z=Z+rz*a+az*(Math.random()*.4-.1);m.y=Y+.05;
+      m.vx=ax*(.6+Math.random()*1.4)+(Math.random()-.5)*.6;m.vz=az*(.6+Math.random()*1.4)+(Math.random()-.5)*.6;m.vy=1.2+Math.random()*1.8;m.t=0;m.L=.6+Math.random()*.6}
+    while(F.da>=1){F.da--;const d=F.D[F.di=(F.di+1)%F.DN],a=(Math.random()*2-1)*.9*sc,sp=3+Math.random()*5;d.x=X+rx*a;d.z=Z+rz*a;d.y=Y+.04;
+      d.vx=ax*sp+rx*(Math.random()-.5)*4+(-camDir.x)*0;d.vz=az*sp+rz*(Math.random()-.5)*4;d.vy=2.5+Math.random()*6;d.t=0}}
+  const p=F.mp,c=F.mc;for(let k=0;k<F.MN;k++){const m=F.M[k];if(m.t<m.L){m.t+=dt;m.x+=m.vx*dt;m.y+=m.vy*dt;m.z+=m.vz*dt;m.vy*=1-dt*1.5;const f=Math.min(1,m.t/m.L);
+      p[k*3]=m.x;p[k*3+1]=m.y;p[k*3+2]=m.z;c[k*4]=c[k*4+1]=c[k*4+2]=1;c[k*4+3]=.3*Math.sin(Math.PI*f)*(1-f*.4);live=true}else c[k*4+3]=0}
+  F.mist.geometry.attributes.position.needsUpdate=true;F.mist.geometry.attributes.color.needsUpdate=true;
+  let n=0;const M=tdm;for(let k=0;k<F.DN;k++){const d=F.D[k];if(d.t>2)continue;d.t+=dt;d.vy-=32*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
+    if(d.y<Y-.02){d.t=9;continue}const v=Math.hypot(d.vx,d.vy,d.vz);M.position.set(d.x,d.y,d.z);tv2.set(d.vx/v,d.vy/v,d.vz/v);M.quaternion.setFromUnitVectors(UPV,tv2);M.scale.set(1,1+v*.07,1);M.updateMatrix();F.drop.setMatrixAt(n++,M.matrix)}
+  F.drop.count=n;if(n){F.drop.instanceMatrix.needsUpdate=true;live=true}EXFX.visible=live}
+
 const muleG=new THREE.Group();
 {const m=new THREE.MeshStandardMaterial({color:0x9ea2a6,roughness:.3,metalness:.9}),hm=new THREE.MeshStandardMaterial({color:0x2a2b2d,roughness:.5});
  const pr=new THREE.Shape();[[-1.25,-.62],[1.25,-.55],[1.25,-.3],[-.08,-.52],[-.33,-.05],[-1.25,-.03]].forEach((p,i)=>i?pr.lineTo(p[0],p[1]+.6):pr.moveTo(p[0],p[1]+.6));
@@ -7372,13 +7480,14 @@ function updateTools(dt,t){
     dummy.rotation.set(0,0,0);mound.instanceMatrix.needsUpdate=true;mound.visible=false;
     SROLL.m.visible=false;
   }
-  updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{spTick(dt)}catch(e){console.warn('sp',e)}try{updateXT(dt)}catch(e){}
+  updateRake(dt);try{cdustTick(dt)}catch(e){}updateMats(dt);try{spTick(dt)}catch(e){console.warn('sp',e)}try{exwTick(dt)}catch(e){console.warn('exw',e)}try{updateXT(dt)}catch(e){}
   blob.visible=false;
   if(!ptr.down){TFEEL.suck*=.8;TFEEL.chat*=.8;if(k==='joint'&&jArmed&&jArmed.o===jMode){const run=jRun(jMode,jArmed.p,jArmed.at!=null?jArmed.at:(jMode==='x'?(RY0+RY1)/2:(RX0+RX1)/2));if(run){guide.visible=true;guide.material.opacity=.95;
       if(jMode==='x'){guide.rotation.y=0;guide.scale.z=(run[1]-run[0])*SLAB_D/GH;guide.position.set(wx(jArmed.p),.06+ELV(),(wz(run[0])+wz(run[1]))/2)}else{guide.rotation.y=Math.PI/2;guide.scale.z=(run[1]-run[0])*SLAB_W/GW;guide.position.set((wx(run[0])+wx(run[1]))/2,.06+ELV(),wz(jArmed.p))}if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false}}return}
   {const bs={float:[4.3,1],edge:[.7,.9],trowel:[1.7,.9],joint:[.7,.9],broom:[3.1,.9],power:[3.4,3.4],expose:[2.2,1.4]}[k];
    if(bs){blob.visible=true;blob.position.set(toolPos.x,Math.max(0,surfY(toolPos.x,toolPos.z))+.012,toolPos.z);blob.scale.set(bs[0],bs[1],1);blob.rotation.z=k==='trowel'?-trYaw:k==='float'?-fYaw:0;if(k==='joint')blob.position.copy(grooverG.position).setY(blob.position.y)}}
   const TF=toolFeel(k);
+  if(k==='expose'&&!EXW.pd){toolPos.set(wx(ptr.x),0,wz(ptr.y));EXW.kick=1}
   toolTarget.set(wx(ptr.x),0,wz(ptr.y));if(!(RIDE.drive&&rideLive()))toolPos.lerp(toolTarget,1-Math.pow(.0005,dt*(1-.72*TF.suck)));
   const X=toolPos.x,Z=toolPos.z,Y=Math.max(0,surfY(X,Z));
   const vz=ptr.vy,mvx=ptr.vx;
@@ -7404,7 +7513,16 @@ function updateTools(dt,t){
   }
   muleG.visible=k==='shape'&&ptr.down;if(muleG.visible){const sp=Math.hypot(ptr.vx,ptr.vy);if(sp>1)muleYaw=lerpAng(muleYaw,Math.atan2(ptr.vx,ptr.vy),1-Math.pow(.01,dt));muleG.position.set(X,ELV()-.05,Z);muleG.rotation.y=muleYaw+Math.PI/2}
   if(k==='power'&&!rideLive()){powerG.position.set(X,Y,Z);powerG.rotation.y=Math.atan2(camDir.x,camDir.z);pBlades.rotation.y+=dt*28}
-  if(k==='expose'){wandG.position.set(X,Y,Z);wandG.rotation.y=Math.atan2(camDir.x,camDir.z);wandG.userData.spray.scale.setScalar(.9+Math.random()*.2)}
+  if(k==='expose'){const sc=Math.max(1,Math.sqrt(LS)),u=wandG.userData,arm=u.arm,yaw=Math.atan2(camDir.x,camDir.z);
+    wandG.position.set(X,Y,Z);wandG.rotation.y=yaw;
+    // the operator leans the wand into the sweep and pulls it back on a push; a little buzz from the pump, a kick when the trigger opens
+    const fk=1-Math.pow(.004,dt),ik=EXW.pd&&dt>0?1/dt:0,vfx=(X-EXW.lx)*ik,vfz=(Z-EXW.lz)*ik;EXW.vx=(EXW.vx||0)+(vfx-(EXW.vx||0))*fk;EXW.vz=(EXW.vz||0)+(vfz-(EXW.vz||0))*fk;
+    const lat=EXW.vx*camRight.x+EXW.vz*camRight.z,fwd=-(EXW.vx*camDir.x+EXW.vz*camDir.z);
+    EXW.lean+=(Math.max(-.2,Math.min(.2,-lat*.035))-EXW.lean)*fk;EXW.pitch+=(Math.max(-.12,Math.min(.12,fwd*.025))-EXW.pitch)*fk;EXW.kick*=Math.max(0,1-dt*7);
+    const bz=.004+.01*EXW.blast;arm.rotation.set(EXW.pitch-.07*EXW.kick+(Math.random()-.5)*bz,0,EXW.lean+(Math.random()-.5)*bz);
+    u.spray.scale.set(sc,1,sc);u.U.uT.value=performance.now()/1000;u.U.uK.value=Math.min(1,.35+(1-EXW.kick)*.65)*(set>.8?.85:1);
+    if(running)exwWash(X,Z,dt);
+    blob.visible=false}
   if(k==='trowel'){
     // yaw: blade long axis perpendicular to travel; blade is symmetric so choose the nearer of the two headings
     if(sp>.6){let target=Math.atan2(mvx,vz);if(Math.abs(((target-trYaw+3*Math.PI)%(2*Math.PI))-Math.PI)>Math.PI/2)target+=Math.PI;trYaw=lerpAng(trYaw,target,.18);trYaw=Math.atan2(Math.sin(trYaw),Math.cos(trYaw))}
@@ -7529,7 +7647,7 @@ function hud(t){
   else if(k==='shape'){const st=shapeStats();r=`Profile ±${st.r.toFixed(2)} in · ran ${Math.round(st.c*100)}% of the curb`}
   else if(k==='form')r=`Forms set ${formPieces.filter(f=>f.placed).length} of ${formPieces.length} boards · trace around the outside`;
   else if(k==='tube')r=`Loop ${Math.round(tubeLen)} ft laid · heats ${Math.round(tubeCovPct()*100)}% of the slab`+(tubeCross?` · crossed ${tubeCross}×`:'');
-  else if(k==='expose')r=`Stone bared ${Math.round(avg(expo)*100)}% · ${set<.5?'too soft yet':set>.78?'paste setting up':'washing clean'}`;
+  else if(k==='expose')r=`Stone bared ${Math.round(avg(expo)*100)}% · ${set<.5?'too soft yet':set>.78?'paste setting up':EXW.haze>.08?'slurry drying on it':'washing clean'}`;
   else if(k==='power')r=`Floor troweled ${Math.round(avg(trow)*100)}% · ${set<.5?'too soft, wait':set>.9?'last burnish passes':'pans and blades'}`;
   else{const s=broomStats();r=`Textured ${Math.round(s.cov*100)}% · strokes ${Math.round(s.cons*100)}% consistent`}
   {const sr=strHud(STAGES[stage].key)||brgHud(STAGES[stage].key);if(sr)r=sr}
@@ -7597,7 +7715,7 @@ $('next').addEventListener('click',e=>{
     if(k==='pour'&&isPrep()&&S.tube==null)say('Rebar\'s tied on chairs. Truck\'s backing in.','good','nPrepPour',0);
     if(k==='tube'&&isPrep())say('Forms are set and the rebar\'s tied. Lay the heating loop.','good','nPrepTube',0);
     if(k==='pour'&&S.tube!=null)say('Loop\'s tied off at the manifold. Truck\'s backing in.','good','nTube',0);
-    if(k==='expose')say(set<.5?'Let it firm up first. Thumb-test.':'Drag the wand over the slab. Keep it moving.','info','nEx',0);
+    if(k==='expose')say(set<.5?'Let it firm up first. Thumb-test.':'Start on the side nearest you and work away, pushing the slurry off the far edge. Keep the wand moving.','info','nEx',0);
     if(k==='power')say(set<.52?'Too soft for the machine yet. Hold fast-forward and thumb-test.':'Fire it up. Overlapping passes, cover the whole floor.','info','nPw',0);
     if(k==='blanket')say(set<.72?'Wait until it won\'t mark. Thumb-test first.':'Drag along the slab to roll out each blanket.','info','nBl',0);
   }else finish(false);
@@ -7672,7 +7790,7 @@ function prepRow(SC){const sp=prepSpeed();if(!sp)return null;const q=prepQual(SC
   PREPT.res={q,gate,r:sp.r,par:sp.par,v};return['Prep time',v,note,.12]}
 function prepCash(crew){const r=PREPT.res;if(!r||!PREPT.on)return 0;const k=Math.max(-.5,Math.min(1,(1-r.r)*2.5));return Math.round(crew*.15*(k>0?k*r.gate:k))}
 // v218: between jobs (job list, plan, results) no hand tools, screed, rake or concrete roll are left standing on the lawn
-function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
+function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,EXFX,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
 function startJob(){try{if(typeof BKD!=='undefined'&&BKD.on){bkdOff();BKD.farDone=false}}catch(e){}/* v332: rebuild the photo layer every start/retry; its clip planes were left over from the last run and hid the dug pit behind the photo's driveway */
   stage=0;toolsOff();rk.used=false;rk.load=0;
   applyLevel(LEVELS[jobIdx]);try{bkdLoad(LV)}catch(e){}try{MUD.age.fill(99)}catch(e){}
@@ -7910,7 +8028,8 @@ function buildSC(){
     base:()=>{const c=compPct();return['Compact',c,`${Math.round(c*100)}% compacted.`+(c<.85?' Soft spots will settle under the slab.':' Tight and hard.')]},
     form:()=>{const c=formPct();return['Forms',c,`${Math.round(c*100)}% of the form boards set.`+(c<1?' Concrete ran out under the gaps.':' Square and staked.')]},
     tube:()=>{const c=tubeCovPct();return['Heat tubing',c*(1-Math.min(.5,tubeCross*.05)),`${Math.round(c*100)}% of the slab is within reach of the loop, ${Math.round(tubeLen)} ft laid.`+(tubeCross?` It crosses itself ${tubeCross} times.`:'')+(c<.9?' Cold strips will stay icy.':'')]},
-    expose:()=>{const c=avg(expo);let ov=0;for(let i=0;i<N;i++)if(inR[i]&&expo[i]>1.25)ov++;ov/=RN;return['Wash off',c*(.3+.7*q('expose'))*(1-ov),`${Math.round(c*100)}% of the stone bared. `+(ov>.05?'Some spots got blasted too deep. ':'')+tm('expose')]},
+    expose:()=>{try{exwAgg()}catch(e){}const c=avg(expo);let ov=0,n=0;for(let i=0;i<N;i++)if(inR[i]){ov+=EXW.bl[i];n++}ov=n?ov/n:0;const hz=EXW.haze;
+      return['Wash off',c*(.3+.7*q('expose'))*(1-Math.min(.6,ov*1.5))*(1-.25*hz),`${Math.round(c*100)}% of the stone bared. `+(ov>.03?'Some spots got blasted too deep. ':'')+(hz>.08?'Slurry dried on the stone in spots. ':'')+tm('expose')]},
     rebar:()=>{const p=rebProg(),t=rebTied(),n=rebNeed(),ex=rebN-t;return['Rebar',clamp01(p),`${REB?REB.runs.filter(b=>b.on).length+'/'+REB.runs.length+' bars, ':''}${t} of ${n} ties`+(ex>0?` (+${ex} extra)`:'')+'. '+(p>=.97?'Mat\'s locked in.':p>=.7?'Some bars will drift during the pour.':'The mat will shift when the mud hits it.')]},
     power:()=>{const c=avg(trow);return['Power trowel',c*(.3+.7*q('power')),`${Math.round(c*100)}% of the floor troweled. `+tm('power')]},
     stamp:()=>{const st=stampStats();if(SP.g)return['Stamp',st.cov*(.3+.7*st.q)*Math.max(.4,1-st.dbl*.06-st.off*.04-st.stuck*.05),
@@ -11590,7 +11709,7 @@ function yrRing(tex){if(!tex||!BKD.o||LV.wall||LV.bridge||LV.slip||ELV()>.5||!la
   const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:tex,vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false,toneMapped:false}));m.renderOrder=2;m.raycast=()=>{};scene.add(m);return m}
 function snapPaint(pre){const c=camera,yr=!!BKD.yr;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,EXFX,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o&&o.visible]);vis.forEach(([o])=>{if(o)o.visible=false});
   const tk=[truck,chute,lumps,splash].concat(typeof CHF!=='undefined'?[CHF.fun,CHF.fl]:[]).concat(typeof CHS!=='undefined'&&CHS.g?[CHS.g]:[]).filter(Boolean).map(o=>[o,o.visible]);if(yr)tk.forEach(([o])=>o.visible=false);
   const yt=yr&&BKD.yrTex&&BKD.yrSrc!==(BKD.load&&BKD.load.src)?BKD.yrTex:null,qm=BKD.quad.material.map,cm=BKD.cop&&BKD.cop.material.map;
   if(yt){BKD.quad.material.map=yt;if(BKD.cop)BKD.cop.material.map=yt}
@@ -11612,7 +11731,7 @@ function snapPhoto0(pre){if(!renderer)return null;try{
   updateSurface();if(pre)pre();slabTex.needsUpdate=roughTex.needsUpdate=bumpTex.needsUpdate=ccTex.needsUpdate=true;if(geoDirty){updateGeo();geoDirty=false}
   const p=camera.position.clone(),q=camera.quaternion.clone(),portrait=cssW<cssH,th=Math.tan(camera.fov*Math.PI/360),asp=camera.aspect;
   const hv=(portrait?RW:RD)/2+2.5,hh=(portrait?RD:RW)/2+2.5,d=Math.max(hv/th,hh/(th*asp));
-  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
+  const vis=[blob,handG,forearm,wrist,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,EXFX,powerG,rakeG,workerG,screedG,mound,stripBand,msBands,tarpMesh,rainIM,RRING.im,RRING.sp,CDUST.pts].concat(STR.vg?[STR.vg.G,STR.vg.hose,STR.vg.mot,STR.vg.rip]:[]).map(o=>[o,o.visible]);vis.forEach(([o])=>o.visible=false);
   camera.up.set(portrait?1:0,0,portrait?0:-1);camera.position.set(RCX,d+ELV(),RCZ);camera.lookAt(RCX,ELV(),RCZ);
   drawFrame();const url=cv.toDataURL('image/jpeg',.86);
   camera.up.set(0,1,0);camera.position.copy(p);camera.quaternion.copy(q);vis.forEach(([o,v])=>o.visible=v);return url}catch(e){return null}}
