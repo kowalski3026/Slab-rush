@@ -3085,7 +3085,10 @@ float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=ve
    vec4 mx=textureLod(mA,mu+vec2(mTx.x*msc,0.),mlod),mz=textureLod(mA,mu+vec2(0.,mTx.y*msc),mlod);
    vec2 mg=vec2(mx.r+mx.a*mRoll-h0,mz.r+mz.a*mRoll-h0)/(mTx*msc*mO.zw*12.);gTl-=mg*mEx*1.25;
    vec4 mlo=textureLod(mA,mu,mlod+3.);float cav=h0-mlo.r-mlo.a*mRoll;gCol*=1.+clamp(cav*4.,-.26,.13);
-   float mb=mM.a*(1.-mRoll),bk=smoothstep(.25,.45,mb);gRgh+=.2*bk-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(.05+(mb-.55)*.25)*bk);}}`:''}
+   float mb=mM.a*(1.-mRoll),bk=smoothstep(.25,.45,mb);gRgh+=.2*bk-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(.05+(mb-.55)*.25)*bk);
+   // v405 steel trowel: cream above 1 is burnish. Each pass smoother, a touch darker, a soft sheen; overworked late it goes to dark blotchy trowel burn
+   {float pol=clamp(mM.b-1.,0.,1.);if(pol>.005){float bu=smoothstep(0.,.45,pol),bn=smoothstep(.55,.95,pol)*(.5+.5*gVN(p*1.6+2.7))*(.7+.3*gVN(p*6.1));
+    gRgh-=.3*bu+.12*bn;gCol*=(1.-.06*bu)*(1.-.34*bn);gShn=max(gShn,.25*bu+.35*bn);}}}}`:''}
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
@@ -3230,11 +3233,11 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
      .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
-    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;')
+    F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;').replace('gTl-=dir*nose*1.8*E;','gTl-=dir*nose*1.8*E*(1.-.6*mIn);').replace('gTl-=ac*sg*bev*2.2*d;','gTl-=ac*sg*bev*2.2*d*(1.-.5*mIn);')
 ;
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+(typeof EXW!=='undefined'&&EXW.on?'X':'')+'gl398';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+(typeof EXW!=='undefined'&&EXW.on?'X':'')+'gl405';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -3309,6 +3312,35 @@ void main(){
    vec2 q=abs(p-A.xy)-A.zw;float od=max(q.x,q.y);
    if(od<0.){float k=B.z*inK*(1.-smoothstep(-.04,0.,od));d=mix(d,textureLod(tA,uv,5.).r*.25,k);b*=1.-k;}
    else if(B.w>.5&&od<.14)d+=.09*inK*(1.-od/.14)*smoothstep(0.,.03,od);
+  }else if(t==7||t==10){// v405 steel trowel (7 hand, 10 power). In the window it planes the small stuff, closes the top and burnishes it a little more
+   // every pass (cream above 1 is the burnish). Too wet it drags ripples and pulls water up into blisters; too late it burns dark.
+   vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L;float tq=clamp(dot(p-A.xy,dv),0.,L);float ds=length(p-(A.xy+dv*tq));
+   if(ds<B.y){float kk=B.z*inK*smoothstep(B.y,B.y*.8,ds),er=C.x,lt=C.y,al=dot(p,dv),aq=dot(p,vec2(-dv.y,dv.x));
+    d=mix(d,textureLod(tA,uv,2.).r*(.35+.5*er),.55*kk*(1.-lt));
+    if(t==7)d+=(sin(al*48.+vn(p*2.3+uSeed)*5.)*.016+(vn(vec2(al*9.,aq*2.))-.5)*.02)*er*kk;
+    d+=.045*smoothstep(.8,.93,vn(p*10.+uSeed))*C.z*kk;
+    d+=sin(al*150.)*.004*lt*kk;
+    if(t==7){float e=smoothstep(B.y*.86,B.y*.95,ds)*(1.-smoothstep(B.y*.95,B.y,ds));d=mix(d,max(d,.008*(.4+er)),e*kk*.6);}
+    w=min(1.,w+(.35*er+.45*C.z)*kk);
+    c=max(c,mix(c,1.,kk));float cap=mix(1.6,2.,lt);
+    if(t==10){float r=length(p-A.zw),sw=sin(r*30.+vn(p*1.7+uSeed)*3.);d+=sw*.018*er*kk;c=min(cap,c+.04*kk*(1.-er)*(.5+.5*sw));}
+    c=min(cap,c+(.09*B.w*(1.-er)+.3*lt)*kk);}
+  }else if(t==8){// v405 edger: rolls a 3/8 in radius at the form, irons a smooth band behind it, and pushes a bead of paste up at the band's inside edge.
+   // Too soft it sinks and the bead is big and wet; too hard it won't cut the radius and chatters.
+   vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,o=p-A.xy;float al=dot(o,dv),x=dot(o,C.xy);
+   if(al>-.03&&al<L+.03&&x>-.02&&x<.33){float hd=C.z,sf=B.w,kk=B.z*inK,xi=max(x,0.)*12.,rr=.375*(1.-.6*hd);
+    if(xi<rr){float q=rr-xi;d=mix(d,-(rr-sqrt(max(rr*rr-q*q,0.)))*(1.+.5*sf),kk*(1.-.7*hd));c=max(c,mix(c,1.,kk));}
+    else if(x<.25){d=mix(d,textureLod(tA,uv,2.).r*.3-.05*sf+sin(al*95.)*.012*hd,.8*kk*(1.-.5*hd));c=max(c,mix(c,1.05,kk*(1.-hd)));w=min(1.,w+(.3*sf+.5*C.w)*kk);}
+    else{float tb=min((x-.25)/.08,1.);d=mix(d,max(d,(.014+.05*sf)*sin(tb*3.1416)),kk*(1.-hd));}}
+  }else if(t==9){// v405 groover: cuts the slot, irons the plate either side and beads paste at the plate edges.
+   // Too soft the slot slumps shallow and ragged; too late it tears stone out of the slot edges.
+   vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr),aq=abs(q);
+   if(al>-.04&&al<L+.04&&aq<B.y+.04){float sf=C.x,lt=C.y,kk=B.z*inK,gw=.022*(1.+.4*sf),pw=B.y,sd=-.3*(1.-.55*sf);
+    if(aq<gw){d=mix(d,sd+(vn(vec2(al*20.,q*40.))-.5)*.06*sf,kk);c=max(c,mix(c,1.,kk));}
+    else if(aq<gw+.014){float t2=1.-(aq-gw)/.014;d=mix(d,sd*t2*t2,kk*.9);}
+    else if(aq<pw){d=mix(d,textureLod(tA,uv,2.).r*.3+sin(al*120.)*.01*lt,.8*kk*(1.-.6*lt));c=max(c,mix(c,1.04,kk*(1.-lt)));w=min(1.,w+.3*sf*kk);}
+    else{float tb=min((aq-pw)/.035,1.);d=mix(d,max(d,(.012+.045*sf)*sin(tb*3.1416)),kk*(1.-lt));}
+    if(lt>0.&&aq<gw+.04){float to=smoothstep(.62,.8,vn(vec2(al*26.+uSeed,sign(q)*5.+uSeed)))*lt*kk;d=mix(d,min(d,-.14),to);c=mix(c,c*.3,to);}}
   }else if(t==4){// broom: bristles cut real grooves. Too wet and they tear and slump shut; too late and they only scratch
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr);
    if(al>-.05&&al<L+.05&&abs(q)<B.y){float alw=dot(p,dv);
@@ -3345,10 +3377,15 @@ function m2Pass(){const u=M2.sim.uniforms,src=M2.rt[M2.i],dst=M2.rt[1-M2.i];u.tA
 /* v386: a screed strike is struck however far the finger moved in one step (it used to be skipped past 6 cells, so on a big pad
    seen zoomed out most of the strike never happened and the mud stayed raw), and back-to-back strikes on the same lane are
    joined into one so a fast pass can't overflow the queue */
-function m2Stamp(s){if(!M2.on)return;const l=M2.q[M2.q.length-1];
+/* v405: when the queue is full (auto-finished steps push a lot at once), run it through the sim right away instead of dropping stamps */
+function m2Flush(){if(!M2.on||!M2.sim||!M2.rt.length||M2.clr||!LV||M2.key!==[LV.id,RX0,RX1,RY0,RY1].join())return false;
+  const u=M2.sim.uniforms,sv=[u.uDt.value,u.uDtS.value,u.uClrA.value];u.uDt.value=0;u.uDtS.value=0;u.uClrA.value=0;
+  try{while(M2.q.length){const n=Math.min(4,M2.q.length);for(let i=0;i<n;i++){const q=M2.q.shift();u.uTA.value[i].fromArray(q.A);u.uTB.value[i].fromArray(q.B);u.uTC.value[i].fromArray(q.C||[0,0,0,0])}u.uN.value=n;m2Pass()}}
+  finally{u.uN.value=0;u.uDt.value=sv[0];u.uDtS.value=sv[1];u.uClrA.value=sv[2]}return true}
+function m2Stamp(s){if(!M2.on||M2.mute)return;const l=M2.q[M2.q.length-1];
   if(s.t===2&&l&&l.t===2&&s.C&&l.C&&s.C[0]>.5&&l.C[0]>.5&&l.C[1]===s.C[1]&&l.B[1]===s.B[1]&&l.B[2]===s.B[2]){
     l.A=[Math.min(l.A[0],l.A[1],s.A[0],s.A[1]),Math.max(l.A[0],l.A[1],s.A[0],s.A[1]),s.A[2],Math.max(l.A[3],s.A[3])];return}
-  M2.nS=(M2.nS|0)+1;if(M2.q.length<24)M2.q.push(s);else M2.nD=(M2.nD|0)+1}
+  M2.nS=(M2.nS|0)+1;if(M2.q.length<24)M2.q.push(s);else if(m2Flush())M2.q.push(s);else M2.nD=(M2.nD|0)+1}
 function m2Tick(dt){const want=m2Want();if(want!==M2.on){M2.on=want;slabMat.needsUpdate=true;try{surfDirty=true}catch(e){}if(!want)return;M2.key=''}
   if(!M2.on)return;if(M2.key!==[LV.id,RX0,RX1,RY0,RY1].join())m2Setup();
   const u=M2.sim.uniforms,k=STAGES[stage]&&STAGES[stage].key,pour=k==='pour';M2.fr++;
@@ -5765,9 +5802,16 @@ function floatSweep0(x0,y0,x1,y1){
 let edgeVis=null;
 function edgeSnap(x,y){const X=wx(x),Z=wz(y);let bs=null,bd=1e9,bx=0,bz=0;
   for(const s of (STR.on?SEGS.concat(STR.rsegs):SEGS)){let t=((X-s.a[0])*s.dx+(Z-s.a[1])*s.dz)/(s.L*s.L);t=Math.max(0,Math.min(1,t));const px=s.a[0]+s.dx*t,pz=s.a[1]+s.dz*t,d=(px-X)**2+(pz-Z)**2;if(d<bd){bd=d;bs=s;bx=px;bz=pz}}
-  if(!bs||Math.sqrt(bd)>3.2)return null;const ix=bx-bs.nx*.28,iz=bz-bs.nz*.28;edgeVis=[ix,iz,Math.atan2(bs.dx,bs.dz)];
+  if(!bs||Math.sqrt(bd)>3.2)return null;const ix=bx-bs.nx*.28,iz=bz-bs.nz*.28;edgeVis=[ix,iz,Math.atan2(bs.dx,bs.dz)];edgeSeg=bs;edgeSegT=((bx-bs.a[0])*bs.dx+(bz-bs.a[1])*bs.dz)/(bs.L*bs.L);
   return[gu(ix),gv(iz)]}
-function edgeTrace(x,y){const e=edgeSnap(x,y);if(e)edgeAt(e[0],e[1]);else{edgeVis=null;say('Trace along the outside edge. It snaps to the form.','info','edgeMid')}}
+let edgeSeg=null,edgeSegT=0;
+/* v405: the edger in the mud sim, along the form it snapped to: 3/8 in radius, ironed band, bead of paste at the band's inside edge.
+   Back-to-back stamps on the same form are joined so a fast trace can't overflow the queue. */
+function m2Edge(s,t,hl){if(!M2.on||!s||!s.L||STR.on)return;const ux=s.dx/s.L,uz=s.dz/s.L,lo=Math.max(0,t*s.L-hl),hi=Math.min(s.L,t*s.L+hl);
+  const soft=set<.42?Math.min(1,.5+(.42-set)/.15):0,hard=set>.9?Math.min(1,(set-.9)/.06):0,k=Math.min(1,.35+.5*edgeEff()),A=(a,b)=>[s.a[0]+ux*a,s.a[1]+uz*a,s.a[0]+ux*b,s.a[1]+uz*b];
+  const l=M2.q[M2.q.length-1];if(l&&l.t===8&&l.seg===s){l.lo=Math.min(l.lo,lo);l.hi=Math.max(l.hi,hi);l.A=A(l.lo,l.hi);l.B[2]=Math.max(l.B[2],k);return}
+  m2Stamp({t:8,seg:s,lo,hi,A:A(lo,hi),B:[8,0,k,soft],C:[-s.nx,-s.nz,hard,bleed(set)]})}
+function edgeTrace(x,y){const e=edgeSnap(x,y);if(e){edgeAt(e[0],e[1]);try{m2Edge(edgeSeg,edgeSegT,.4)}catch(er){}}else{edgeVis=null;say('Trace along the outside edge. It snaps to the form.','info','edgeMid')}}
 function edgeEff(){return set<.42?.5:set<=.9?1:Math.max(.05,1-(set-.9)/.08)}
 function edgeAt0(x,y){
   const R=Math.max(1.3,2/LS),eff=edgeEff(),b=bleed(set);let work=0,touched=false;
@@ -5787,7 +5831,9 @@ function trowelEff(){const lim=LV.hardTrowel?.96:.9;return set<(TRD.on?.12:.44)?
 function trowelSeg0(x0,y0,x1,y1){
   const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.04)return;
   const ux=dx/len,uy=dy/len,W=Math.max(.9,1.6/LS),eff=trowelEff(),b=bleed(set),late=set>.88&&!LV.hardTrowel,early=(TRD.on?false:set<.44)||b>.12;let work=0,healed=0;
-  try{const cs=SLAB_W/GW;m2Stamp({t:5,A:[wx(x0),wz(y0),wx(x1),wz(y1)],B:[5,W*cs,Math.min(1,.3+eff),1],C:[b>.12?.5:.12,1,0,0]})}catch(e){}
+  // v405: the trowel works the mud sim: early = drag ripples and blisters, window = closes and burnishes more each pass, late = burn
+  try{const cs=SLAB_W/GW,e0=TRD.on?.12:.44,er=early?Math.min(1,.45+Math.max(0,e0-set)/.15+(b>.12?.2:0)):0,lt=late?Math.min(1,.3+(set-.88)/.06):0,
+    pr=.6+(LV.hardTrowel?.9:.6)*Math.max(0,Math.min(1,(set-.55)/.3));m2Stamp({t:7,A:[wx(x0),wz(y0),wx(x1),wz(y1)],B:[7,W*cs,Math.min(1,.3+eff),pr],C:[er,lt,b,0]})}catch(e){}
   const minx=Math.max(RX0,Math.floor(Math.min(x0,x1)-W)),maxx=Math.min(RX1-1,Math.ceil(Math.max(x0,x1)+W));
   const miny=Math.max(RY0,Math.floor(Math.min(y0,y1)-W)),maxy=Math.min(RY1-1,Math.ceil(Math.max(y0,y1)+W));
   for(let cy=miny;cy<=maxy;cy++)for(let cx=minx;cx<=maxx;cx++){
@@ -5934,6 +5980,11 @@ function jointCut(a0,a1){
   for(let k=a;k<=b;k++){if(now-jDrag.t[k]<160)continue;jDrag.t[k]=now;    // one bite per cell per pass, no matter how much you wiggle
     const add=Math.min(.32*TK.fin(),1.15-curJ.cells[k]);if(add<=0)continue;curJ.cells[k]+=add;cut+=add;
     if(set<.42){const i=curJ.o==='x'?k*GW+Math.min(GW-1,curJ.p):Math.min(GH-1,curJ.p)*GW+k;weak[i]=Math.min(1,weak[i]+.05)}}
+  // v405: the groover in the mud sim (tooled joints only; a saw cut is next-morning work on hard concrete)
+  try{if(M2.on&&!LV.saw&&!curJ.saw){const g0=Math.min(a0,a1),g1=Math.max(a0,a1),pos=curJ.o==='x'?wx(curJ.p):wz(curJ.p),P=al=>curJ.o==='x'?[pos,wz(al)]:[wx(al),pos],
+    soft=set<.42?Math.min(1,.5+(.42-set)/.15):0,late=set>.85?Math.min(1,(set-.85)/.1):0,l=M2.q[M2.q.length-1];
+    if(l&&l.t===9&&l.j===curJ){l.lo=Math.min(l.lo,g0);l.hi=Math.max(l.hi,g1);l.A=[...P(l.lo),...P(l.hi)]}
+    else m2Stamp({t:9,j:curJ,lo:g0,hi:g1,A:[...P(g0),...P(g1)],B:[9,.115,.75,0],C:[soft,late,0,0]})}}catch(e){}
   if(cut<=0)return;curJ.q+=cut*q;curJ.w+=cut;curJ.set=set;surfDirty=true;
   if(set<.42)say(LV.saw?'Too green to saw. It ravels the edges.':'Too soft. The groove slumps closed behind you.','bad','jSoft');
   else if(set>.92&&!LV.saw)say('Too hard to tool. That joint would need a saw tomorrow.','bad','jHard');
@@ -6501,6 +6552,8 @@ function powerSeg(x0,y0,x1,y1,wFt,gain){
     if(early){h[i]+=(Math.random()-.5)*.12;weak[i]=Math.min(1,weak[i]+.008*f)}
     else{const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;h[i]+=(avg-h[i])*.25*f;if(weak[i]>0)weak[i]=Math.max(0,weak[i]-.04*f)}}
   acc[S.power].w+=work;acc[S.power].q+=work*winQ(set,STAGES[S.power]);
+  // v405: the pans in the mud sim: early they gouge swirl rings, then every pass burnishes harder (late passes shine)
+  try{const cs=SLAB_W/GW;m2Stamp({t:10,A:[wx(x0),wz(y0),wx(x1),wz(y1)],B:[10,W*cs,Math.min(1,.35+eff),.8+.9*Math.max(0,Math.min(1,(set-.5)/.4))],C:[early?Math.min(1,.5+(.5-set)/.15):0,0,bleed(set),0]})}catch(e){}
   const P0x=x0*CPX,P0y=y0*CPX,P1x=x1*CPX,P1y=y1*CPX,hw=W*CPX;
   tcx.save();tcx.lineCap='round';tcx.globalCompositeOperation='destination-out';tcx.strokeStyle=`rgba(0,0,0,${.18*eff})`;tcx.lineWidth=hw*1.6;tcx.beginPath();tcx.moveTo(P0x,P0y);tcx.lineTo(P1x,P1y);tcx.stroke();tcx.restore();
   [fcx,scx].forEach(c=>{c.save();c.globalCompositeOperation='destination-out';c.strokeStyle=`rgba(0,0,0,${.25*eff})`;c.lineCap='round';c.lineWidth=hw*2;c.beginPath();c.moveTo(P0x,P0y);c.lineTo(P1x,P1y);c.stroke();c.restore()});
@@ -7916,12 +7969,15 @@ function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){
   else if(k==='color'){for(let i=0;i<N;i++)if(inR[i])hard[i]=1}else if(k==='slip'){}
   // finishing steps are done with the real tools, at a good time in their window, so the next drill starts on a proper surface
   else if(k==='float'){const fy=fYaw;fYaw=0;const HL=4.8/LS;for(let pass=0;pass<10;pass++)for(let x=RX0+HL*.5+(pass%2)*HL*.5;x<RX1+HL*.5;x+=HL*.9)floatSweep(x,RY0,x,RY1);fYaw=fy}
-  else if(k==='edge'){for(let r=0;r<6;r++)for(let i=0;i<N;i++)if(band[i])edgeAt(i%GW+.5,((i/GW)|0)+.5);edgeVis=null}
-  else if(k==='trowel'){const W=Math.max(.9,1.6/LS);for(let pass=0;pass<8;pass++)for(let y=RY0+.5;y<RY1;y+=W)for(let x=RX0;x<RX1;x+=1.5)trowelSeg(x,y,Math.min(RX1,x+1.5),y)}
+  else if(k==='edge'){for(let r=0;r<6;r++)for(let i=0;i<N;i++)if(band[i])edgeAt(i%GW+.5,((i/GW)|0)+.5);edgeVis=null;try{SEGS.forEach(s=>{if(!s.nf)m2Edge(s,.5,s.L)})}catch(e){}}
+  else if(k==='trowel'){const W=Math.max(.9,1.6/LS);for(let pass=0;pass<8;pass++)for(let y=RY0+.5;y<RY1;y+=W)for(let x=RX0;x<RX1;x+=1.5){M2.mute=1;try{trowelSeg(x,y,Math.min(RX1,x+1.5),y)}finally{M2.mute=0}}
+    try{const zc=(wz(RY0)+wz(RY1))/2;for(let r=0;r<3;r++)m2Stamp({t:7,A:[wx(RX0),zc,wx(RX1),zc],B:[7,SLAB_D,1,1],C:[0,0,0,0]})}catch(e){}}
   else if(k==='joint'){try{if(!chalk.length)planChalk()}catch(e){}chalk.forEach(c=>{const M=c.o==='x'?GH:GW;let at=-1;for(let q=0;q<M;q++)if(jValid(c.o,c.p,q)){at=q+.5;break}if(at<0)return;
-      setJMode(c.o);jDrag={pos:c.p,at,moved:0,t:new Float32Array(48)};lockJoint();if(!curJ)return;for(let q=curJ.a;q<curJ.b;q++)curJ.cells[q]=1.15;curJ.q=curJ.w=1;curJ.set=set;curJ.done=true;curJ=null});jDrag=null;jArmed=null;surfDirty=true}
+      setJMode(c.o);jDrag={pos:c.p,at,moved:0,t:new Float32Array(48)};lockJoint();if(!curJ)return;for(let q=curJ.a;q<curJ.b;q++)curJ.cells[q]=1.15;curJ.q=curJ.w=1;curJ.set=set;curJ.done=true;
+      try{if(M2.on&&!LV.saw){const pos=curJ.o==='x'?wx(curJ.p):wz(curJ.p),P=al=>curJ.o==='x'?[pos,wz(al)]:[wx(al),pos];m2Stamp({t:9,A:[...P(curJ.a),...P(curJ.b)],B:[9,.115,1,0],C:[0,0,0,0]})}}catch(e){}curJ=null});jDrag=null;jArmed=null;surfDirty=true}
   else if(k==='broom'){const W=3.2/LS;for(let y=RY0+W*.5;y<RY1+W*.4;y+=W*.95)broomSeg(RX0,y,RX1,y)}
-  else if(k==='power'){for(let pass=0;pass<6;pass++)for(let y=RY0+.5;y<RY1;y+=1.5)powerSeg(RX0,y,RX1,y)}
+  else if(k==='power'){for(let pass=0;pass<6;pass++)for(let y=RY0+.5;y<RY1;y+=1.5){M2.mute=1;try{powerSeg(RX0,y,RX1,y)}finally{M2.mute=0}}
+    try{const zc=(wz(RY0)+wz(RY1))/2;for(let r=0;r<3;r++)m2Stamp({t:10,A:[wx(RX0),zc,wx(RX1),zc],B:[10,SLAB_D,1,1.4],C:[0,0,0,0]})}catch(e){}}
   else if(k==='release')spRelAll();
   else if(k==='stamp'&&spWant())spAuto();
   else if(STR.on&&STRAUTO[k])STRAUTO[k]();
