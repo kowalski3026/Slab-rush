@@ -5606,12 +5606,15 @@ function runTick(dt,t){if(RUN.on&&((stage!==S.pour&&!runCarry())||!placeMode()))
    holds comes from the slump: a stiff 3-4 in mix stands up in piles, a 6-7 in mix flattens a lot more. Only fresh mud creeps; once it's
    sat ~10 s it stays where it is (rake marks stay too). Stairs, walls, curbs, bridges and big floors keep the old model. */
 const MUD={age:new Float32Array(N).fill(99),slump:5};
-function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge&&!(typeof STR!=='undefined'&&STR.on))}
+function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge)}// v413: stairs pour the real mud too
 function mudBig(){return LS>1.5}
 function mudSlump(){return (LV&&LV.slump)||MUD.slump}
 function mudFlow(dt){const A=MUD.age,Y=mudBig()?Math.max(.3,.02*(9-mudSlump())*CELL_IN):Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;/* v368: on big pads the yield is per foot of slope, not per cell, so a pumped pile spreads into a low mound */dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
   let moved=0;const rate=a=>a<1.2?3.2:a<4?1.4:a<10?.5*(1-(a-4)/6):0;
-  const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
+  const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;
+    if(STR.on&&STR.tid[a]!==STR.tid[b]){/* v413: each tread is its own form; overfill an upper step and it runs over the riser board onto the step below */
+      const ta=STR.tid[a],tb=STR.tid[b];if(Math.abs(ta-tb)!==1)return;const u=ta>tb?a:b,l=u===a?b:a,e=h[u]-.35;if(e>0&&has(u)){const m=Math.min(e*.45,e*1.6*dt);h[u]-=m;h[l]+=m;moved+=m}return}
+    let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
     const m=Math.min((d-y)*.45,(d-y)*r*dt);h[hi]-=m;h[lo]+=m;moved+=m;if(A[lo]>A[hi]+.6)A[lo]=A[hi]+.6};
   for(let it=0;it<2;it++){const fl=it&1;for(let y=0;y<GH;y++)for(let x0=0;x0<GW;x0++){const x=fl?GW-1-x0:x0,i=y*GW+x;
     if(x<GW-1)flow(i,i+1,Y);if(y<GH-1){flow(i,i+GW,Y);if(x<GW-1)flow(i,i+GW+1,Yd);if(x>0)flow(i,i+GW-1,Yd)}}}
@@ -5807,7 +5810,7 @@ function edgeSnap(x,y){const X=wx(x),Z=wz(y);let bs=null,bd=1e9,bx=0,bz=0;
 let edgeSeg=null,edgeSegT=0;
 /* v405: the edger in the mud sim, along the form it snapped to: 3/8 in radius, ironed band, bead of paste at the band's inside edge.
    Back-to-back stamps on the same form are joined so a fast trace can't overflow the queue. */
-function m2Edge(s,t,hl){if(!M2.on||!s||!s.L||STR.on)return;const ux=s.dx/s.L,uz=s.dz/s.L,lo=Math.max(0,t*s.L-hl),hi=Math.min(s.L,t*s.L+hl);
+function m2Edge(s,t,hl){if(!M2.on||!s||!s.L)return;/* v413: stair nosings and sides too */const ux=s.dx/s.L,uz=s.dz/s.L,lo=Math.max(0,t*s.L-hl),hi=Math.min(s.L,t*s.L+hl);
   const soft=set<.42?Math.min(1,.5+(.42-set)/.15):0,hard=set>.9?Math.min(1,(set-.9)/.06):0,k=Math.min(1,.35+.5*edgeEff()),A=(a,b)=>[s.a[0]+ux*a,s.a[1]+uz*a,s.a[0]+ux*b,s.a[1]+uz*b];
   const l=M2.q[M2.q.length-1];if(l&&l.t===8&&l.seg===s){l.lo=Math.min(l.lo,lo);l.hi=Math.max(l.hi,hi);l.A=A(l.lo,l.hi);l.B[2]=Math.max(l.B[2],k);return}
   m2Stamp({t:8,seg:s,lo,hi,A:A(lo,hi),B:[8,0,k,soft],C:[-s.nx,-s.nz,hard,bleed(set)]})}
