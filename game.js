@@ -6143,7 +6143,8 @@ function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r
    It also works in the Close view (the trowel's view), which is already zoomed in. */
 function edgeLive(){return running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip')}
 function edgeScrub(){const k=curK();return k==='trowel'||k==='power'||(k==='pour'&&typeof pourTool!=='undefined'&&pourTool==='rake')}
-function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),scrub=live&&edgeScrub();
+function edgePrec(){const k=curK();return k==='edge'||k==='joint'}   // v409: tools that follow a line: the view holds steady until you're well off centre
+function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),scrub=live&&edgeScrub(),prec=edgePrec();
   let ax=0,ay=0;
   if(!live){EDGF.on=0;EDGF.lx=null;EDGF.sx=null;EDGF.rx=null;EDGF.ac=0}
   else{
@@ -6156,16 +6157,16 @@ function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),
   // v402: keep the thumb near the middle. When the (smoothed) thumb moves away from the centre the view moves with it, more the farther out
   // it is. Moving back in, or holding still, moves nothing, so the tool never creeps on its own.
   let fx=0,fy=0;if(EDGF.lx!=null){const mx=x-EDGF.lx,my=y-EDGF.ly,ox=x-(L+R)/2,oy=y-(T+B)/2,or=Math.hypot(ox,oy),ml=Math.hypot(mx,my);
-    if(or>1&&ml>.05){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=(scrub?1:2.3)*Math.max(0,Math.min(1,(r-.05)/.3))*out;fx=mx*g;fy=my*g*.25}}}   // v403: mostly side to side
+    if(or>1&&ml>.05&&!prec){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=(scrub?1:2.3)*Math.max(0,Math.min(1,(r-.05)/.3))*out;fx=mx*g;fy=my*g*.25}}}   // v403: mostly side to side
   EDGF.lx=x;EDGF.ly=y;
-  const vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(vx||vy)EDGF.on=Math.min(1,EDGF.on+dt*(scrub?3:4));else EDGF.on=0;
+  const vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(vx||vy)EDGF.on=Math.min(1,EDGF.on+dt*(prec?2:scrub?3:4));else EDGF.on=0;
   // v407: steady pull toward keeping the working thumb central: starts gently just outside the middle fifth, firmer the farther out
-  {const ox=x-(L+R)/2,oy=y-(T+B)/2,hr=Math.min(R-L,B-T)/2,r=Math.hypot(ox,oy)/hr;if(r>.2&&EDGF.ac>.05){const pv=Math.pow(Math.min(1,(r-.2)/.7),1.3)*(scrub?620:760)*EDGF.ac*dt/Math.max(1e-3,r*hr);fx+=ox*pv;fy+=oy*pv*.25}}
-  const sp=(scrub?380:430)*EDGF.on;   // edge band: eases in so a finger put down near the edge doesn't jerk the view
+  {const ox=x-(L+R)/2,oy=y-(T+B)/2,hr=Math.min(R-L,B-T)/2,r=Math.hypot(ox,oy)/hr;const r0=prec?.45:.2;if(r>r0&&EDGF.ac>.05){const pv=Math.pow(Math.min(1,(r-r0)/(.9-r0)),prec?1.6:1.3)*(prec?380:scrub?620:760)*EDGF.ac*dt/Math.max(1e-3,r*hr);fx+=ox*pv;fy+=oy*pv*.25}}
+  const sp=(prec?260:scrub?380:430)*EDGF.on;   // edge band: eases in so a finger put down near the edge doesn't jerk the view
   ax=-vx*sp*dt-fx;ay=-vy*sp*dt*.3-fy}
   // ease the view toward where it should be, capped, instead of moving it the instant the thumb moves
   EDGF.px=(EDGF.px||0)+ax;EDGF.py=(EDGF.py||0)+ay;const pm=Math.hypot(EDGF.px,EDGF.py);if(pm<.2){EDGF.px=EDGF.py=0;return}
-  const tau=scrub?.16:.12,cap=(scrub?900:1100)*dt;let fr=1-Math.exp(-dt/tau),dx=EDGF.px*fr,dy=EDGF.py*fr;const dm=Math.hypot(dx,dy);if(dm>cap){dx*=cap/dm;dy*=cap/dm}
+  const tau=prec?.28:scrub?.16:.12,cap=(prec?500:scrub?900:1100)*dt;let fr=1-Math.exp(-dt/tau),dx=EDGF.px*fr,dy=EDGF.py*fr;const dm=Math.hypot(dx,dy);if(dm>cap){dx*=cap/dm;dy*=cap/dm}
   EDGF.px-=dx;EDGF.py-=dy;
   const px=PAN.x,pz=PAN.z;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
   if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5){EDGF.px=EDGF.py=0;return}   // at the pan limit
