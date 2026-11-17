@@ -6144,8 +6144,8 @@ function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r
 function edgeLive(){return running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip')}
 function edgeScrub(){const k=curK();return k==='trowel'||k==='power'||(k==='pour'&&typeof pourTool!=='undefined'&&pourTool==='rake')}
 function edgePrec(){const k=curK();return k==='edge'||k==='joint'}
-function edgeGlide(){return curK()==='float'}   // v411: the bull float's long sweeps: follow in a slow glide, not stroke by stroke   // v409: tools that follow a line: the view holds steady until you're well off centre
-function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),scrub=live&&edgeScrub(),prec=edgePrec(),gl=!prec&&edgeGlide();
+function edgeGlide(){return true}   // v411: bull float glides; v412: so does every other tool that isn't a scrubbing or line tool (chute pour, screed, broom, prep work)   // v409: tools that follow a line: the view holds steady until you're well off centre
+function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),scrub=live&&edgeScrub(),prec=edgePrec(),gl=!prec&&!scrub&&edgeGlide();
   let ax=0,ay=0;
   if(!live){EDGF.on=0;EDGF.lx=null;EDGF.sx=null;EDGF.rx=null;EDGF.ac=0}
   else{
@@ -8652,8 +8652,8 @@ function mixPChutePose(on){mixPChuteParts();CHF.fun.visible=CHF.fl.visible=on&&c
   const k=Math.min(CHF.L,len*.5);chute.position.copy(PIVOT).addScaledVector(d,k);chute.scale.z=Math.max(.5,len-k);
   // funnel sits upright on the mouth, turning with the chute
   CHF.fun.position.copy(PIVOT).addScaledVector(d,.55);CHF.fun.position.y+=CHF.R0*.35;CHF.fun.rotation.set(0,Math.atan2(d.x,d.z),0);chsPose(true,chute.scale.z)}
-function mixPChuteTex(){if(MIXP.chM)return;const t=new THREE.TextureLoader().load('tex/chute-photo.webp');t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1.2,3);t.anisotropy=8;
-  MIXP.chM=new THREE.MeshStandardMaterial({map:t,roughness:.78,metalness:.3,envMapIntensity:.6,side:THREE.DoubleSide})}
+function mixPChuteTex(){if(MIXP.chM)return;const t=new THREE.TextureLoader().load('tex/chute-photo.webp',()=>{try{const m=MIXP.chM;if(m&&!m.map){m.map=t;m.color.set(0xffffff);m.needsUpdate=true}}catch(e){}});/* v412: plain steel until the photo arrives, not black */t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1.2,3);t.anisotropy=8;
+  const ok=t.image&&t.image.complete&&t.image.naturalWidth;MIXP.chM=new THREE.MeshStandardMaterial({map:ok?t:null,color:ok?0xffffff:0x8d8b86,roughness:.78,metalness:.3,envMapIntensity:.6,side:THREE.DoubleSide})}
 function mixPTick(on){if(on)mixPLoad();const use=on&&!!MIXP.obj;if(MIXP.obj)MIXP.obj.visible=use;MX.root.visible=!use;revL.forEach(m=>m.visible=!use);// the old truck's reverse lights; the photo truck has its own
   if(use){if(MIXP.drum){const q=mixPTick.q||(mixPTick.q=new THREE.Quaternion());MIXP.drum.quaternion.copy(MIXP.dq).multiply(q.setFromAxisAngle(new THREE.Vector3(1,0,0),-drumAng))}
     // the pour chute hangs from this truck's own collector outlet
@@ -8729,9 +8729,10 @@ function loadCurtain(on){let d=loadCurtain.d;if(!d){d=loadCurtain.d=document.cre
 const APR={m:null,L:null};
 function aprTick(){const C=BKD.on&&LV&&LV.paint&&LV.paint.base;if(!C){if(APR.m)APR.m.visible=false;return}
   if(!APR.m||APR.L!==LV){if(APR.m){scene.remove(APR.m);APR.m.geometry.dispose();APR.m.material.dispose()}
-    const tx=new THREE.TextureLoader().load('tex/gravel.jpg');tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.45,.45);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
+    // v412: no map until the photo has arrived; an unloaded map draws black (first visit to a new link)
+    const tx=new THREE.TextureLoader().load('tex/gravel.jpg',()=>{try{const mm=APR.m&&APR.m.material;if(mm&&mm.userData.tx===tx){mm.map=tx;mm.color.set(0xd9d2c6);mm.needsUpdate=true}}catch(e){}});tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.45,.45);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
     const sh=new THREE.Shape(SHAPE.map(q=>new THREE.Vector2(q[0],-q[1]))),gm=new THREE.ShapeGeometry(sh);gm.rotateX(-Math.PI/2);
-    const m=new THREE.Mesh(gm,new THREE.MeshStandardMaterial({map:tx,color:0xd9d2c6,roughness:.95}));
+    const m=new THREE.Mesh(gm,new THREE.MeshStandardMaterial({map:tx.image&&tx.image.complete&&tx.image.naturalWidth?tx:null,color:tx.image&&tx.image.complete&&tx.image.naturalWidth?0xd9d2c6:0x8f8a82,roughness:.95}));m.material.userData.tx=tx;
     m.position.y=ELV()-DEPTH/12+.012;m.receiveShadow=true;m.userData.live=true;scene.add(m);APR.m=m;APR.L=LV}
   APR.m.visible=true}
 // v371: something standing in the photo between the camera and the pad (the training pad's wheelbarrow) covers the slab. A flat piece
