@@ -6141,7 +6141,7 @@ function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r
    every stroke. Now the follow tracks a smoothed thumb position (scrubbing tools average their strokes out, so the view only drifts
    as you work across the slab), and the view eases toward where it should be with a speed cap instead of jumping.
    It also works in the Close view (the trowel's view), which is already zoomed in. */
-function edgeLive(){return running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&((ZOOM[view]||1)<.95||view===3)&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip')}
+function edgeLive(){return running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip')}
 function edgeScrub(){const k=curK();return k==='trowel'||k==='power'||(k==='pour'&&typeof pourTool!=='undefined'&&pourTool==='rake')}
 function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),scrub=live&&edgeScrub();
   let ax=0,ay=0;
@@ -6170,7 +6170,7 @@ function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),
   const px=PAN.x,pz=PAN.z;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
   if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5){EDGF.px=EDGF.py=0;return}   // at the pan limit
   if(live)try{cv.dispatchEvent(new PointerEvent('pointermove',{clientX:rpCX,clientY:rpCY,pointerId:EDGF.id,pointerType:'touch',isPrimary:true,bubbles:true}))}catch(e){}
-  if(!EDGF.tip){EDGF.tip=true;try{if(!localStorage.getItem('bts-edgetip')){localStorage.setItem('bts-edgetip','1');say('Zoomed in: work toward the edge and the view slides along with you.','info','edgeTip',3500)}}catch(e){}}
+  if(!EDGF.tip){EDGF.tip=true;try{if(!localStorage.getItem('bts-edgetip')){localStorage.setItem('bts-edgetip','1');say('Work toward the edge and the view slides along with you.','info','edgeTip',3500)}}catch(e){}}
   clearTimeout(panSave.t);panSave.t=setTimeout(panSave,600)}
 cv.addEventListener('wheel',e=>{if(!panOK())return;e.preventDefault();panZoom(e.deltaY>0?1.06:1/1.06);clearTimeout(panSave.t);panSave.t=setTimeout(panSave,400)},{passive:false});
 cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;rpCY=e.clientY;if(arrive){arriveEnd();e.preventDefault();return}
