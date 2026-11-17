@@ -6244,6 +6244,8 @@ function applyFinish(L){if(!L.steps0){L.steps0=L.steps.slice();L.finish0=L.finis
   const tail={broom:s0.includes('trowel')?['edge','trowel','joint','broom']:['edge','joint','broom'],trowel:['edge','trowel','joint'],stamp:L.stair?['edge','color','stamp','joint']:['edge','color','release','stamp','joint'],expose:['edge','joint','expose'],power:['power','joint']}[f];
   L.steps=[...pre,'pour','screed','float',...tail,...post];if(f==='trowel'||f==='power')L.hardTrowel=true;
   if(f==='stamp'&&!L.saw){L.sawAdded=true;L.saw=true;L.names={joint:'Saw cut'};L.win=Object.assign({},L.win||{},{joint:[.82,9]});L.desc=Object.assign({},L.desc||{},{joint:'Next morning. Saw-cut the control joints along the blue chalk lines, about a quarter of the slab deep, and keep them in the stamp\'s grout lines where you can. Then run your finger along the line: the saw follows it.'})}
+  // v404: a saw cut is next-morning work (the clock jumps to set), so it goes after every finishing step: wash or broom today, saw tomorrow
+  if(L.saw&&L.steps.includes('joint')){L.steps=L.steps.filter(k=>k!=='joint');const bi=L.steps.indexOf('blanket');L.steps.splice(bi<0?L.steps.length:bi,0,'joint')}
   L.finish={broom:'Broom, tooled edges and joints',trowel:'Steel trowel smooth, tooled edges and joints',stamp:'',expose:'Exposed aggregate, washed, joints',power:'Power trowel, joints'}[f]}
 function renderFinish(L){const fb=$('finBox');fb.hidden=!finChoosable(L);if(fb.hidden)return;const cur=finSel[L.id]&&finList(L).includes(finSel[L.id])?finSel[L.id]:finOf(L);
   $('finOpts').innerHTML=finList(L).map(k=>`<button class="opt" data-f="${k}" aria-pressed="${k===cur}">${FINS[k]}${k===finOf(L)?'<small>Job spec</small>':''}</button>`).join('');
