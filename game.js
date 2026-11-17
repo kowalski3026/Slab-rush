@@ -9942,7 +9942,7 @@ function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&ST
      for(let i=0;i<markPts.length;i++){if(!markDone[i])continue;markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
   const on=k==='mark'&&ptr.down&&running;sprayCan.visible=on;if(on&&markLast){sprayCan.position.set(markLast[0],prepSurfY(markLast[0],markLast[1])+1.1,markLast[1]);sprayCan.userData.mist.material.opacity=.25+Math.random()*.2}}
 
-function prepReset(){digD.fill(0);stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>f.placed=!isPrep());
+function prepReset(){digD.fill(0);stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed});
   pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});
   layerInit();slipReset();exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{markBuild()}catch(e){console.warn(e)}}
 // v97: going back a step in prep restarts that step and everything after it (forms come off, gravel goes back to the pile, and so on)
@@ -9964,7 +9964,9 @@ function siteVis(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,dug=!P||s
     else if(u.kind==='base')o.visible=based&&!soil&&!P;
     else if(u.kind==='rebar')o.visible=formed||(P&&k==='rebar');else if(u.kind==='rebdot')o.visible=P&&k==='rebar';else if(u.kind==='rebhold')o.visible=o.visible&&P&&k==='rebar';
     else if(u.kind==='wall')o.visible=P&&(S.dig==null||stage>=S.dig)});
-  formPieces.forEach(f=>f.m.visible=f.placed);formStakes.forEach(st=>st.m.visible=!P||segDone[st.seg]!==false&&(formed||k==='form'));
+  /* v410: a pour-only job always has its forms set. A board could stay hidden (stakes showing, no boards) when an earlier full-job reset had
+     marked it unplaced and the job then started pour-only, e.g. on a fresh browser where the full-job setting was on. */
+  formPieces.forEach(f=>{if(!P)f.placed=true;f.m.visible=f.placed});formStakes.forEach(st=>st.m.visible=!P||segDone[st.seg]!==false&&(formed||k==='form'));
   slab.material=slabMat;slab.visible=!soil;slab.position.y=ELV();pitMesh.visible=P;if(P)lotGround.material=SURF()==='dirt'&&lawnOn?dirtM:ground.material;geoDirty=true;layerDirty=true;updateLayers()}
 // the pit itself: the slab mesh, dropped to the dug depth and coloured from dark topsoil down to clay
 function soilGeo(){const pg=pitMesh.geometry;if(!pg.attributes||!pg.attributes.position||!pg.attributes.color)return;
