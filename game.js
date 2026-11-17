@@ -6132,24 +6132,40 @@ cv.addEventListener('contextmenu',e=>e.preventDefault());
 /* v401: edge follow. Zoomed in, a finger working near the edge of the view slides the view along with it, so a pass never has to stop
    for a two-finger pan. The deeper into the edge band, the faster it slides; the tool keeps working under the finger while it moves. */
 const EDGF={id:null,on:0,rT:-1e9,box:null,tip:false};
-cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0;EDGF.lx=null},true);
+cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0;EDGF.lx=null;EDGF.sx=null},true);
 function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r=cv.getBoundingClientRect();let top=r.top,bot=r.bottom;
   try{const a=$('hudTop').getBoundingClientRect();if(a.height&&a.bottom>top&&a.bottom<r.top+r.height*.6)top=a.bottom}catch(e){}
   try{const b=$('hudBot').getBoundingClientRect();if(b.height&&b.top<bot&&b.top>r.top+r.height*.4)bot=b.top}catch(e){}
   return EDGF.box=[r.left,top,r.right,bot]}
-function edgeTick(dt,t){const live=running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&(ZOOM[view]||1)<.95&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip');
-  if(!live){EDGF.on=0;EDGF.lx=null;return}
-  const [L,T,R,B]=edgeBox(t),m=Math.max(44,Math.min(R-L,B-T)*.17),x=rpCX,y=rpCY,band=d=>Math.pow(Math.max(0,Math.min(1,(m-d)/m)),1.4);
-  // v402: keep the thumb near the middle. When the thumb moves away from the centre the view moves with it (more the farther out it is),
-  // so the thumb covers less glass and stays central. Moving back in, or holding still, moves nothing, so the tool never creeps on its own.
+/* v406: smoothed follow. The view used to move the instant the thumb did, so fast back-and-forth tools (rake, trowel) swung it
+   every stroke. Now the follow tracks a smoothed thumb position (scrubbing tools average their strokes out, so the view only drifts
+   as you work across the slab), and the view eases toward where it should be with a speed cap instead of jumping.
+   It also works in the Close view (the trowel's view), which is already zoomed in. */
+function edgeLive(){return running&&ptr.down&&!PAN.on&&PAN.ps.size<=1&&EDGF.id!=null&&panOK()&&((ZOOM[view]||1)<.95||view===3)&&!(typeof RIDE!=='undefined'&&RIDE.drive&&rideLive())&&!(LV&&LV.slip&&STAGES[stage]&&STAGES[stage].key==='slip')}
+function edgeScrub(){const k=curK();return k==='trowel'||k==='power'||(k==='pour'&&typeof pourTool!=='undefined'&&pourTool==='rake')}
+function edgeTick(dt,t){dt=Math.min(.1,Math.max(0,dt||0));const live=edgeLive(),scrub=live&&edgeScrub();
+  let ax=0,ay=0;
+  if(!live){EDGF.on=0;EDGF.lx=null;EDGF.sx=null}
+  else{
+  const [L,T,R,B]=edgeBox(t),m=Math.max(44,Math.min(R-L,B-T)*.17),band=d=>Math.pow(Math.max(0,Math.min(1,(m-d)/m)),1.4);
+  // smoothed thumb: scrubbing tools average out their back-and-forth strokes; long-pass tools follow closely
+  const ka=1-Math.exp(-dt/(scrub?.75:.12));if(EDGF.sx==null){EDGF.sx=rpCX;EDGF.sy=rpCY}else{EDGF.sx+=(rpCX-EDGF.sx)*ka;EDGF.sy+=(rpCY-EDGF.sy)*ka}
+  const x=EDGF.sx,y=EDGF.sy;
+  // v402: keep the thumb near the middle. When the (smoothed) thumb moves away from the centre the view moves with it, more the farther out
+  // it is. Moving back in, or holding still, moves nothing, so the tool never creeps on its own.
   let fx=0,fy=0;if(EDGF.lx!=null){const mx=x-EDGF.lx,my=y-EDGF.ly,ox=x-(L+R)/2,oy=y-(T+B)/2,or=Math.hypot(ox,oy),ml=Math.hypot(mx,my);
-    if(or>1&&ml>.3){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=2.3*Math.max(0,Math.min(1,(r-.08)/.37))*out;fx=mx*g;fy=my*g*.25}}}   // v403: mostly side to side; up and down only a little
+    if(or>1&&ml>.05){const out=(mx*ox+my*oy)/(ml*or);if(out>0){const r=or/(Math.min(R-L,B-T)/2),g=(scrub?1.6:2.3)*Math.max(0,Math.min(1,(r-.08)/.37))*out;fx=mx*g;fy=my*g*.25}}}   // v403: mostly side to side
   EDGF.lx=x;EDGF.ly=y;
-  let vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(vx||vy)EDGF.on=Math.min(1,EDGF.on+dt*4);else EDGF.on=0;if(!vx&&!vy&&!fx&&!fy)return;
-  const sp=430*EDGF.on;   // edge band: eases in so a finger put down near the edge doesn't jerk the view
-  const px=PAN.x,pz=PAN.z,dx=-vx*sp*dt-fx,dy=-vy*sp*dt*.3-fy;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
-  if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5)return;   // at the pan limit
-  try{cv.dispatchEvent(new PointerEvent('pointermove',{clientX:x,clientY:y,pointerId:EDGF.id,pointerType:'touch',isPrimary:true,bubbles:true}))}catch(e){}
+  const vx=band(R-x)-band(x-L),vy=band(B-y)-band(y-T);if(vx||vy)EDGF.on=Math.min(1,EDGF.on+dt*(scrub?1.5:3));else EDGF.on=0;
+  const sp=(scrub?240:380)*EDGF.on;   // edge band: eases in so a finger put down near the edge doesn't jerk the view
+  ax=-vx*sp*dt-fx;ay=-vy*sp*dt*.3-fy}
+  // ease the view toward where it should be, capped, instead of moving it the instant the thumb moves
+  EDGF.px=(EDGF.px||0)+ax;EDGF.py=(EDGF.py||0)+ay;const pm=Math.hypot(EDGF.px,EDGF.py);if(pm<.2){EDGF.px=EDGF.py=0;return}
+  const tau=scrub?.4:.22,cap=(scrub?300:560)*dt;let fr=1-Math.exp(-dt/tau),dx=EDGF.px*fr,dy=EDGF.py*fr;const dm=Math.hypot(dx,dy);if(dm>cap){dx*=cap/dm;dy*=cap/dm}
+  EDGF.px-=dx;EDGF.py-=dy;
+  const px=PAN.x,pz=PAN.z;if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);
+  if(Math.abs(PAN.x-px)+Math.abs(PAN.z-pz)<1e-5){EDGF.px=EDGF.py=0;return}   // at the pan limit
+  if(live)try{cv.dispatchEvent(new PointerEvent('pointermove',{clientX:rpCX,clientY:rpCY,pointerId:EDGF.id,pointerType:'touch',isPrimary:true,bubbles:true}))}catch(e){}
   if(!EDGF.tip){EDGF.tip=true;try{if(!localStorage.getItem('bts-edgetip')){localStorage.setItem('bts-edgetip','1');say('Zoomed in: work toward the edge and the view slides along with you.','info','edgeTip',3500)}}catch(e){}}
   clearTimeout(panSave.t);panSave.t=setTimeout(panSave,600)}
 cv.addEventListener('wheel',e=>{if(!panOK())return;e.preventDefault();panZoom(e.deltaY>0?1.06:1/1.06);clearTimeout(panSave.t);panSave.t=setTimeout(panSave,400)},{passive:false});
@@ -6223,7 +6239,7 @@ function up(){
   if(k==='joint'&&running)jointUp();
   if(k==='rebar')rebUp();
   if(k==='stamp'&&SP.g)spUp();
-  if(!TRD.on){closeLook.set(wx(ptr.x),0,wz(ptr.y));if(view===3)computeCam()}
+  if(!TRD.on&&!(view===3&&panOK())){closeLook.set(wx(ptr.x),0,wz(ptr.y));if(view===3)computeCam()}   // v406: in Close view the smoothed follow keeps the view with you instead of jumping to where the finger lifted
 }
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 
