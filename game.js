@@ -35,7 +35,7 @@ const DEFS={
   riser:{name:'Form treads',win:[0,1],soft:1,desc:'Hang the riser boards that shape each step: 2x8s across the front of every tread, bevelled on the bottom so you can finish the tread right under them. Drag across each orange line. The bottom one sits on grade, the rest hang off cleats on the side forms.'},
   sbar:{name:'Rebar',win:[0,1],soft:1,desc:'Bend the bar to follow the steps. Sweep across the long orange lanes first: those bars run from the landing down every step, 12 in apart. Then sweep the short lanes across each tread and the landing. Everything sits 2 in down from the top.'},
   vibe:{name:'Vibrate',win:[0,.32],soft:.2,desc:'Press and hold the vibrator in each step for a few seconds. The whole step settles flat and the rake lines disappear. Drag it along the riser board and the sides for the best faces, then move to the next step.'},
-  tread:{name:'Hand finish',win:[.3,.92],soft:.15,desc:'One tread at a time, landing first, top down. Pick the tread, then the tool. Hand trowel it level to the forms while it\'s fresh, wait out the bleed water, then edge the nose and the sides, trowel it smooth, and pull a light broom across so nobody slips. A ✓ means that tread is done.'},
+  tread:{name:'Hand finish',win:[.3,.92],soft:.15,desc:'One tread at a time, landing first, top down. Touch the tread you want to work and pick the tool. Hand trowel it level to the forms while it\'s fresh, wait out the bleed water, then edge the nose and the sides, trowel it smooth, and pull a light broom across so nobody slips.'},
   rebar:{name:'Rebar',win:[0,1],soft:1,desc:'The chairs are set. Sweep your finger across the glowing lanes to drop the bars, 18 in on center: bottom layer first, then the top layer the other way. Then drag along the bars: every orange ring you pass gets a wire tie. Edges get every crossing, inside gets every other one.'},
   pour:{name:'Pour',win:[0,.2],soft:.2,
    desc:'Press and drag to swing the chute and pour. Switch to the rake to pull mud into the corners and lows. Aim a little proud of the forms. Don\'t waste the load.'},
@@ -1764,7 +1764,7 @@ function trdCheck(){if(!TRD.on)return;STR.T.forEach((T,t)=>{if(t!==TRD.sel&&!TRD
 function trdPick(t,quiet){TRD.sel=t;const T=STR.T[t];closeLook.set((wx(T.c0)+wx(T.c1))/2,0,RCZ);if(view===3)computeCam();trdUI();if(!quiet)buzz(8)}
 function trdTool(k){TRD.tool=k;const w=trdWin(k),el=$('win');el.style.left=w[0]*100+'%';el.style.width=(w[1]-w[0])*100+'%';trdUI();buzz(8);
   const tip={edge:'Edger: run the nose and both sides once the shine is gone.',trowel:'Hand trowel: strike it level to the forms and close it up, then come back and smooth it once the bleed water\'s gone.',broom:'Light broom across the tread, so it isn\'t slippery when it\'s wet.'}[k];say(tip,'info','trdT'+k,4000)}
-function trdUI(st){const ts=$('trdSeg'),tt=$('trdTool');if(!ts||!tt)return;if(!TRD.on){ts.hidden=tt.hidden=true;return}ts.hidden=tt.hidden=false;
+function trdUI(st){const ts=$('trdSeg'),tt=$('trdTool');if(!ts||!tt)return;if(!TRD.on){ts.hidden=tt.hidden=true;return}ts.hidden=true;tt.hidden=false;   /* v417: no step buttons: the step you touch is the one you work (v416) */
   st=st||trdStats(TRD.sel);
   if(ts.dataset.n!==String(STR.T.length)){ts.dataset.n=String(STR.T.length);ts.style.gridTemplateColumns=`repeat(${STR.T.length},1fr)`;
     ts.innerHTML=[...STR.T.keys()].reverse().map(t=>`<button data-t="${t}" aria-pressed="false">${STR.T[t].name.replace('Step ','Step&nbsp;')}<i></i></button>`).join('');
