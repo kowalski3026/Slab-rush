@@ -649,7 +649,11 @@ let buzzT=0;
 function winQ(s,st){const[a,b]=st.win;if(s<a)return clamp01(1-(a-s)/st.soft);if(s>b)return clamp01(1-(s-b)/st.soft);return 1}
 function wetness(s){return s<.28?1:s<.5?1-(s-.28)/.22:0}
 function bleed(s){if(s<.28)return 0;if(s<.34)return (s-.28)/.06;if(s<.4)return 1;if(s<.46)return 1-(s-.4)/.06;return 0}
-const has=i=>h[i]>-DEPTH+.08;
+/* v415: per-cell floor (inches below the form top). Pads: -DEPTH. Steps: a set of steps is solid concrete down to the base, so each tread's
+   cells go down its full rise plus the slab depth. */
+let FL=null;const FLo=i=>FL?FL[i]:-DEPTH;
+function flInit(){if(!FL||FL.length!==N)FL=new Float32Array(N);FL.fill(-DEPTH);if(typeof STR!=='undefined'&&STR.on)for(let i=0;i<N;i++){const t=STR.tid[i];if(t>=0)FL[i]=-DEPTH-STR.T[t].rise}}
+const has=i=>h[i]>FLo(i)+.08;
 const TG=new Float32Array(N),shaped=new Float32Array(N);let shCarry=0;
 /* ---------- slab outlines: polygons in feet (x -10..10, z -5..5); a 3rd value of 1 on a point means the edge
    from that point to the next is poured against something (pool coping, a wall), so it gets no form ---------- */
@@ -1588,11 +1592,11 @@ function strVerts(){const p=slabGeo.attributes.position,uv=slabGeo.attributes.uv
 function strSample(u,v,t){const fx=u-.5,fy=v-.5,x0=Math.floor(fx),y0=Math.floor(fy),tx=fx-x0,ty=fy-y0;let sm=0,ws=0;
   const f=(cx,cy,w)=>{if(w<=0||cx<0||cy<0||cx>=GW||cy>=GH)return;const i=cy*GW+cx;if(!inR[i]||STR.tid[i]!==t)return;sm+=h[i]*w;ws+=w};
   f(x0,y0,(1-tx)*(1-ty));f(x0+1,y0,tx*(1-ty));f(x0,y0+1,(1-tx)*ty);f(x0+1,y0+1,tx*ty);if(ws>1e-4)return sm/ws;
-  let best=-DEPTH-1,bd=99;const cx=Math.floor(u),cy=Math.floor(v);
+  let best=strFl(t)-1,bd=99;const cx=Math.floor(u),cy=Math.floor(v);
   for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=GW||y>=GH)continue;const i=y*GW+x;if(!inR[i]||STR.tid[i]!==t)continue;const d=dx*dx+dy*dy;if(d<bd){bd=d;best=h[i]}}
   return best}
 function strGeo(){const p=slabGeo.attributes.position,n=p.count,z0=wz(RY0),z1=wz(RY1);
-  for(let k=0;k<n;k++){const t=STR.vT[k];let y;if(!vMode[k]||t<0)y=-DEPTH/12-.06;else{const v=strSample(vU[k],vV[k],t);y=v<-DEPTH+.1?-DEPTH/12-.06:yOf(v)+STR.vOff[k];
+  for(let k=0;k<n;k++){const t=STR.vT[k];let y;if(!vMode[k]||t<0)y=-DEPTH/12-.06;else{const v=strSample(vU[k],vV[k],t);y=v<strFl(t)+.1?-DEPTH/12-.06:yOf(v)+STR.vOff[k];
     /* v367: mud above the form top slumps back from the riser and side boards instead of standing up as a cliff */const X=p.getX(k),Z=p.getZ(k),d=Math.max(0,Math.min(X-wx(STR.T[t].c0)+.004,Z-z0,z1-Z)),cap=STR.vOff[k]+.015+d*.55;if(y>cap)y=cap+(y-cap)*.15*Math.min(1,d/.6)}p.setY(k,y)}
   p.needsUpdate=true;slabGeo.computeVertexNormals();slabGeo.computeBoundingSphere()}
 // what a tarp lies on: the form tops (risers, strongbacks, side panels) and the braces sloping out to their stakes
@@ -1610,7 +1614,8 @@ function strTarpPin(pin,NX,NZ){const TP=TC.P,bagM=new THREE.MeshStandardMaterial
   const bag=i=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.26,.07,.15),bagM);m.position.set(TP[i*3],TP[i*3+1]+.03,TP[i*3+2]);m.rotation.y=Math.random()*.6-.3;m.castShadow=true;tarpMesh.add(m)};
   for(let x=0;x<NX;x++){[0,1,NZ-1,NZ-2].forEach(z=>pin(z*NX+x));if(x%4===0){bag(x);bag((NZ-1)*NX+x)}}
   for(let z=0;z<NZ;z++){pin(z*NX+NX-1);pin(z*NX);if(z%4===1){bag(z*NX+NX-1);bag(z*NX)}}}
-function strSurfY(u,v){const t=strColT(u),s=strSample(u,v,t);return s<-DEPTH-.5?-.27:s<-DEPTH+.1?-DEPTH/12:yOf(s)+strOffT(t)}
+function strFl(t){return t>=0&&STR.T[t]?-DEPTH-STR.T[t].rise:-DEPTH}
+function strSurfY(u,v){const t=strColT(u),s=strSample(u,v,t),f=strFl(t);return s<f-.5?-.27:s<f+.1?-DEPTH/12:yOf(s)+strOffT(t)}
 // pointer: try each tread's plane from the top down, keep the first hit that lands on that tread
 const strPl=new THREE.Plane(new THREE.Vector3(0,1,0),0),strHit=new THREE.Vector3();
 function strPick(){if(TRD.on){const T=STR.T[TRD.sel];strPl.constant=-(T.rise/12+.04);if(ray.ray.intersectPlane(strPl,strHit))return{x:gu(strHit.x),y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z};return null}
@@ -4802,7 +4807,7 @@ function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.vi
 function rebarTrace(){}// kept for old callers
 /* ---------- state init ---------- */
 function reset(){try{M2.clr=1}catch(e){}try{spClear()}catch(e){}setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
-  h.fill(-DEPTH);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);DUST.fill(0);TEAR.fill(0);PST.fill(0);MKS.dirty=1;try{payReset()}catch(e){console.warn('pay',e)}
+  flInit();h.set(FL);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);DUST.fill(0);TEAR.fill(0);PST.fill(0);MKS.dirty=1;try{payReset()}catch(e){console.warn('pay',e)}
   for(let i=0;i<N;i++)mott[i]=(Math.random()-.5)*10;
   {const nz=new Float32Array(N);for(let i=0;i<N;i++)nz[i]=Math.random();
    for(let k=0;k<4;k++)for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;let a=0,c=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=GW||yy>=GH)continue;a+=nz[yy*GW+xx];c++}dryOff[i]=a/c}
@@ -4828,7 +4833,7 @@ function say(msg,kind='info',key=msg,gap=2600){if(say.mute)return;
 }
 
 /* ---------- pour + slump ---------- */
-const m3=()=>{let s=0;for(let i=0;i<N;i++)s+=h[i]+DEPTH;return s*CELL_IN*CELL_IN*1.6387e-5};
+const m3=()=>{let s=0;for(let i=0;i<N;i++)s+=h[i]-FLo(i);return s*CELL_IN*CELL_IN*1.6387e-5};
 function pourAim(p){if(LV&&LV.snap){let bd=1e9,bi=-1;const R=10;for(let y=Math.max(0,Math.floor(p.y-R));y<=Math.min(GH-1,Math.ceil(p.y+R));y++)for(let x=Math.max(0,Math.floor(p.x-R));x<=Math.min(GW-1,Math.ceil(p.x+R));x++){const i=y*GW+x;if(!inR[i])continue;const d=(x+.5-p.x)**2+(y+.5-p.y)**2;if(d<bd){bd=d;bi=i}}
   if(bi>=0){tipTarget.set(wx(bi%GW+.5),0,wz(((bi/GW)|0)+.5));return}}if(!inR[cellAt(p.wx,p.wz)]||!pointInPoly(p.wx,p.wz,SHAPE)){let bd=1e9,bi=-1;const R=12;for(let y=Math.max(0,Math.floor(p.y-R));y<=Math.min(GH-1,Math.ceil(p.y+R));y++)for(let x=Math.max(0,Math.floor(p.x-R));x<=Math.min(GW-1,Math.ceil(p.x+R));x++){const i=y*GW+x;if(!inR[i])continue;const d=(x+.5-p.x)**2+(y+.5-p.y)**2;if(d<bd){bd=d;bi=i}}
   if(bi>=0){tipTarget.set(wx(bi%GW+.5),0,wz(((bi/GW)|0)+.5));return}}tipTarget.set(p.wx,0,p.wz)}
@@ -4840,7 +4845,7 @@ function pourStep(dt){
   // the chute swings to where you tapped before the gate opens, so mud doesn't land all along the way
   {const lag=Math.hypot(tip.x-tipTarget.x,tip.z-tipTarget.z);if(pourStep.hold){if(lag>.8)return;pourStep.hold=false}else if(lag>3)return}
   if(placed+wasted>=LOAD_M3){pouring=false;if(!stowChute){stowChute=true;say(placed<NEED_M3*.97?`Drum's empty and you're about ${Math.max(.25,NEED_M3-placed).toFixed(2)} m³ short. Tap Truck to call another one, or rake it out.`:'Drum\'s empty. Chute\'s swung clear. Rake it out, then hit Next.','info','empty',0)}return}
-  const rate=.075*(LS>2.6?Math.min(Math.pow(LS,1.6),2.2):Math.min(Math.pow(LS,.35),1.25))*dt*(usePump()?1.35:1)*(gear('truck')?1.25:1)*planPourK(); // m3 per step. v157: capped for big lots, a pump puts out about a yard every few seconds, not cubic metres a second
+  const rate=.075*(LS>2.6?Math.min(Math.pow(LS,1.6),2.2):Math.min(Math.pow(LS,.35),1.25))*dt*(usePump()?1.35:1)*(gear('truck')?1.25:1)*planPourK()*(STR.on&&STR.vol>1?STR.vol:1); // m3 per step. v157: capped for big lots, a pump puts out about a yard every few seconds, not cubic metres a second
   const cx=(tip.x+SLAB_W/2)/SLAB_W*GW,cy=(tip.z+SLAB_D/2)/SLAB_D*GH;
   if(formLeak(tip.x,tip.z)){wasted+=rate*.6;say('No form there! Concrete\'s running out under the gap.','bad','leak')}
   if(STR.on&&strLeak(tip.x,tip.z)){wasted+=rate*.6;say('No form there! It\'s running out of the steps.','bad','leak')}
@@ -5608,21 +5613,29 @@ function runTick(dt,t){if(RUN.on&&((stage!==S.pour&&!runCarry())||!placeMode()))
 const MUD={age:new Float32Array(N).fill(99),slump:5};
 function mudOn(){return !!(LV&&!LV.wall&&!LV.slip&&!LV.strips&&!LV.bridge)}// v413: stairs pour the real mud too
 function mudBig(){return LS>1.5}
+/* v415: the inside of a set of steps is one form. The riser boards hang off the side forms with open space under them, so mud placed in an upper
+   tread runs down under the riser into the step below until that step is full: a landing poured first fills the bottom steps first, and there is
+   never a free-standing wall of concrete under a step. */
+function strUnder(u,l){return STR.on&&(stage===S.pour||STAGES[stage]&&STAGES[stage].key==='vibe')&&has(u)&&h[l]<-.15&&strLvl(u)>strLvl(l)+.1}
+const strLvl=i=>STR.T[STR.tid[i]].rise+h[i];   // mud level in inches above the base of the steps (well, above the treads' common floor)
+function strUnderM(u,l,cap){return Math.max(0,Math.min(h[u]-FLo(u)-.08,(strLvl(u)-strLvl(l))*.5,-.15-h[l],cap))}
 function mudSlump(){return (LV&&LV.slump)||MUD.slump}
 function mudFlow(dt){const A=MUD.age,Y=mudBig()?Math.max(.3,.02*(9-mudSlump())*CELL_IN):Math.max(.25,.22*(9-mudSlump())),Yd=Y*1.414;/* v368: on big pads the yield is per foot of slope, not per cell, so a pumped pile spreads into a low mound */dt=Math.min(dt,.05);for(let i=0;i<N;i++)A[i]+=dt;
   let moved=0;const rate=a=>a<1.2?3.2:a<4?1.4:a<10?.5*(1-(a-4)/6):0;
   const flow=(a,b,y)=>{if(!inR[a]||!inR[b])return;
     if(STR.on&&STR.tid[a]!==STR.tid[b]){/* v413: each tread is its own form; overfill an upper step and it runs over the riser board onto the step below */
-      const ta=STR.tid[a],tb=STR.tid[b];if(Math.abs(ta-tb)!==1)return;const u=ta>tb?a:b,l=u===a?b:a,e=h[u]-.35;if(e>0&&has(u)){const m=Math.min(e*.45,e*1.6*dt);h[u]-=m;h[l]+=m;moved+=m}return}
-    let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}if(d<=y||!has(hi))return;const r=rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
+      const ta=STR.tid[a],tb=STR.tid[b];if(Math.abs(ta-tb)!==1)return;const u=ta>tb?a:b,l=u===a?b:a,e=h[u]-.35;if(e>0&&has(u)){const m=Math.min(e*.45,e*1.6*dt);h[u]-=m;h[l]+=m;moved+=m}
+      else if(strUnder(u,l)){const m=strUnderM(u,l,30*dt);if(m>0){h[u]-=m;h[l]+=m;moved+=m}}return}
+    let d=h[a]-h[b],hi=a,lo=b;if(d<0){d=-d;hi=b;lo=a}const deep=STR.on&&h[lo]<-DEPTH;/* v415: inside the steps, below the tread slab, mud drops and runs out over the base; it only holds a pile up top */if(deep)y=Math.min(y,.3);if(d<=y||!has(hi))return;const r=deep?3.2:rate(A[hi])||(d>y*2.5?1.6:0);if(!r)return;// a face steeper than mud can stand always slumps
     const m=Math.min((d-y)*.45,(d-y)*r*dt);h[hi]-=m;h[lo]+=m;moved+=m;if(A[lo]>A[hi]+.6)A[lo]=A[hi]+.6};
   for(let it=0;it<2;it++){const fl=it&1;for(let y=0;y<GH;y++)for(let x0=0;x0<GW;x0++){const x=fl?GW-1-x0:x0,i=y*GW+x;
     if(x<GW-1)flow(i,i+1,Y);if(y<GH-1){flow(i,i+GW,Y);if(x<GW-1)flow(i,i+GW+1,Yd);if(x>0)flow(i,i+GW-1,Yd)}}}
   if(moved>.001)geoDirty=surfDirty=true}
 function relax(iters,k){
   let moved=0;const thr=LV&&LV.stiff?3.5:LV&&LV.strips?.5*LS:.55; // v147: big-floor cells are 25 in, so a strip holds its shape like real mud
-  const flow=(a,b)=>{if(!inR[a]||!inR[b])return;if(STR.on&&STR.tid[a]!==STR.tid[b]){const ta=STR.tid[a],tb=STR.tid[b];if(Math.abs(ta-tb)!==1||stage!==S.pour)return;const u=ta>tb?a:b,l=u===a?b:a,e=h[u]-.35;
-      /* v368: overfill an upper step and it runs over the riser board onto the step below */if(e>0&&has(u)){const m=e*k*.8;h[u]-=m;h[l]+=m;moved+=m}return}const d=h[a]-h[b];if(d>thr){if(!has(a))return;const m=(d-thr)*k;h[a]-=m;h[b]+=m;moved+=m}
+  const flow=(a,b)=>{if(!inR[a]||!inR[b])return;if(STR.on&&STR.tid[a]!==STR.tid[b]){const ta=STR.tid[a],tb=STR.tid[b];if(Math.abs(ta-tb)!==1||(stage!==S.pour&&!(STAGES[stage]&&STAGES[stage].key==='vibe')))return;const u=ta>tb?a:b,l=u===a?b:a,e=h[u]-.35;
+      /* v368: overfill an upper step and it runs over the riser board onto the step below */if(e>0&&has(u)){const m=e*k*.8;h[u]-=m;h[l]+=m;moved+=m}
+      else if(strUnder(u,l)){const m=strUnderM(u,l,k*4);if(m>0){h[u]-=m;h[l]+=m;moved+=m}}return}const d=h[a]-h[b];if(d>thr){if(!has(a))return;const m=(d-thr)*k;h[a]-=m;h[b]+=m;moved+=m}
     else if(-d>thr){if(!has(b))return;const m=(-d-thr)*k;h[b]-=m;h[a]+=m;moved+=m}};
   for(let it=0;it<iters;it++){
     const flip=it%2;
@@ -6276,7 +6289,7 @@ function applyLevel(L){
   setShape(typeof L.shape==='function'?L.shape():L.shape);buildMask();strSetup(L);buildVerts();strVerts();
   TG.fill(0);if(L.profile)for(let i=0;i<N;i++)if(inR[i])TG[i]=L.profile(wx(i%GW+.5),wz(((i/GW)|0)+.5));
   RW=(RX1-RX0)*CELL_IN/12;RD=(RY1-RY0)*CELL_IN/12;RCX=(wx(RX0)+wx(RX1))/2;RCZ=(wz(RY0)+wz(RY1))/2;PER=Math.round(SEGS.reduce((a,s)=>a+(s.nf&&SEGS.some(g=>!g.nf)?0:s.L),0));
-  {let sm=0;for(let i=0;i<N;i++)if(inR[i])sm+=DEPTH+TG[i];NEED_M3=sm*CELL_IN*CELL_IN*1.6387e-5}LOAD_M3=Math.ceil((NEED_M3*1.12+.2)*4)/4;XT.n=0;XT.m3=0;XT.fee=0;XT.wait=0;XT.ask=0;
+  flInit();{let sm=0,s0=0;for(let i=0;i<N;i++)if(inR[i]){sm+=-FL[i]+TG[i];s0+=DEPTH+TG[i]}NEED_M3=sm*CELL_IN*CELL_IN*1.6387e-5;STR.vol=s0>0?sm/s0:1}LOAD_M3=Math.ceil((NEED_M3*1.12+.2)*4)/4;XT.n=0;XT.m3=0;XT.fee=0;XT.wait=0;XT.ask=0;
   TXN=Math.ceil(RW/2-.01);TZN=Math.ceil(RD/2-.01);stampQ=new Float32Array(TXN*TZN);stampHits=new Uint8Array(TXN*TZN);
   {const cnt=new Uint8Array(TXN*TZN);for(let i=0;i<N;i++){if(!inR[i])continue;const ti=Math.floor((wx(i%GW+.5)-wx(RX0))/2),tj=Math.floor((wz(((i/GW)|0)+.5)-wz(RY0))/2);if(ti>=0&&tj>=0&&ti<TXN&&tj<TZN)cnt[tj*TXN+ti]++}
    tileOk=cnt.map(c=>c>=1?1:0)}
