@@ -1618,10 +1618,15 @@ function strFl(t){return t>=0&&STR.T[t]?-DEPTH-STR.T[t].rise:-DEPTH}
 function strSurfY(u,v){const t=strColT(u),s=strSample(u,v,t),f=strFl(t);return s<f-.5?-.27:s<f+.1?-DEPTH/12:yOf(s)+strOffT(t)}
 // pointer: try each tread's plane from the top down, keep the first hit that lands on that tread
 const strPl=new THREE.Plane(new THREE.Vector3(0,1,0),0),strHit=new THREE.Vector3();
-function strPick(){if(TRD.on){const T=STR.T[TRD.sel];strPl.constant=-(T.rise/12+.04);if(ray.ray.intersectPlane(strPl,strHit))return{x:gu(strHit.x),y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z};return null}
+/* v416: hand finishing steps: putting a finger down on another step picks that step, so the tool is worked on the step it's on (the pick
+   plane was the last chosen step's, so lower steps put the finger ahead of the tool). A drag keeps the step it started on. */
+function strPick(){if(TRD.on){if(TRD.dn){TRD.dn=0;const a=strPickAll();if(a){const t=strColT(a.x);if(t>=0&&t!==TRD.sel&&STR.T[t]){TRD.sel=t;try{trdUI();buzz(6)}catch(e){}}}}const T=STR.T[TRD.sel];strPl.constant=-(T.rise/12+.04);if(ray.ray.intersectPlane(strPl,strHit))return{x:gu(strHit.x),y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z};return null}
+  return strPickAll()}
+function strPickAll(){
   try{slab.updateMatrixWorld();const hs=ray.intersectObject(slab,false);if(hs.length){const P=hs[0].point;return{x:gu(P.x),y:(P.z+SLAB_D/2)/SLAB_D*GH,wx:P.x,wz:P.z}}}catch(e){}
   for(let t=STR.T.length-1;t>=0;t--){const T=STR.T[t];strPl.constant=-(T.rise/12+.04);if(!ray.ray.intersectPlane(strPl,strHit))continue;const u=gu(strHit.x);
-    if(u>=T.c0-.05&&(u<=T.c1+.05||t===STR.T.length-1))return{x:u,y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z}}return null}
+    if(u>=T.c0-.05&&(u<=T.c1+.05||t===STR.T.length-1))return{x:u,y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z}}
+  strPl.constant=0;if(ray.ray.intersectPlane(strPl,strHit))return{x:gu(strHit.x),y:(strHit.z+SLAB_D/2)/SLAB_D*GH,wx:strHit.x,wz:strHit.z};return null}   // v416: off the front of the steps: the ground, so a rake can be dragged off
 
 /* forms, riser boards and bent bars, built into siteG */
 function strBuild(){REB=null;REBX=[];STR.pieces=[];STR.risers=[];STR.bars=[];
@@ -6148,7 +6153,7 @@ cv.addEventListener('contextmenu',e=>e.preventDefault());
 /* v401: edge follow. Zoomed in, a finger working near the edge of the view slides the view along with it, so a pass never has to stop
    for a two-finger pan. The deeper into the edge band, the faster it slides; the tool keeps working under the finger while it moves. */
 const EDGF={id:null,on:0,rT:-1e9,box:null,tip:false};
-cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0;EDGF.lx=null;EDGF.sx=null},true);
+cv.addEventListener('pointerdown',e=>{EDGF.id=e.pointerId;EDGF.on=0;EDGF.lx=null;EDGF.sx=null;TRD.dn=1},true);
 function edgeBox(t){if(EDGF.box&&t-EDGF.rT<500)return EDGF.box;EDGF.rT=t;const r=cv.getBoundingClientRect();let top=r.top,bot=r.bottom;
   try{const a=$('hudTop').getBoundingClientRect();if(a.height&&a.bottom>top&&a.bottom<r.top+r.height*.6)top=a.bottom}catch(e){}
   try{const b=$('hudBot').getBoundingClientRect();if(b.height&&b.top<bot&&b.top>r.top+r.height*.4)bot=b.top}catch(e){}
@@ -6439,6 +6444,8 @@ function rakeMove(x,y){liveRake(x,y);
     if(rk.load>0&&def>0){const dep=Math.min(rk.load*give,def),k=dep/def;for(const i of lows){const f=-(h[i]-T)*.85*k;h[i]+=f}rk.load-=dep;moved+=dep}
     lows.length=0;def=0;
     // v300: more than the blade can hold rolls off around its ends and leaves a ridge each side
+    // v416: on steps the excess rides on the rake (no ridges rolling off its ends) and drops off when you drag it past the forms
+    if(STR.on){const cx=Math.floor(px),cy=Math.floor(py);if(rk.load>0&&(cx<RX0||cx>=RX1||cy<RY0||cy>=RY1||!inR[cy*GW+cx])){moved+=rk.load;STR.off=(STR.off||0)+rk.load;rk.load=0}continue}
     const cap=2*HW*48/CELL_IN;if(rk.load>cap){const sp=(rk.load-cap)*.35;let ns=0;const ends=[];
       for(const sd of[-1,1]){const ex=px+nx*sd*(HW+.9),ey=py+ny*sd*(HW+.9),cx=Math.floor(ex),cy=Math.floor(ey);if(cx>=RX0&&cx<RX1&&cy>=RY0&&cy<RY1&&inR[cy*GW+cx])ends.push(cy*GW+cx)}
       if(ends.length){ends.forEach(i=>{h[i]+=sp/ends.length;try{MUD.age[i]=0}catch(_){}});rk.load-=sp;moved+=sp}}}
