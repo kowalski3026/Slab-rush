@@ -4547,9 +4547,11 @@ function computeCam(){panReset();
   const fullH=cssH+Math.abs(viewPad),usable=Math.max(140,cssH-topH-botH-10),th0=Math.tan(camera.fov*Math.PI/360);
   const tv=th0*(usable/fullH),th=th0*(cssW/fullH),e=v.elev*Math.PI/180;
   let across=portrait?RD+1.6:RW+2,along=portrait?RW+1.6:RD+2,lx=RCX,lz=RCZ+(portrait?0:.4);
-  if(stage===S.pour&&view!==3){if(LV.truck){if(portrait){across=Math.max(15,RD+8);along=RW+16;lx=RCX-4;lz=RCZ+2}else{across=RW+16;along=Math.max(14,RD+9);lx=RCX-4;lz=RCZ+3}}
+  /* v418: every step frames the slab the same way, centred (the pour used to widen and slide toward the truck, the screed to widen), so the
+     view never jumps or zooms between steps */
+  if(false&&stage===S.pour&&view!==3){if(LV.truck){if(portrait){across=Math.max(15,RD+8);along=RW+16;lx=RCX-4;lz=RCZ+2}else{across=RW+16;along=Math.max(14,RD+9);lx=RCX-4;lz=RCZ+3}}
     else if(portrait){across=Math.max(15,RD+5);along=RW+20;lx=RCX+5*LS}else{across=RW+14;along=Math.max(14,RD+4);lx=RCX+5*LS}}
-  if(typeof S!=='undefined'&&stage===S.screed&&view!==3){across*=1.2;along*=1.12}
+
   if(view===3){across=portrait?6.5:8;along=6;lx=Math.max(wx(RX0)+3,Math.min(wx(RX1)-3,closeLook.x));lz=Math.max(wz(RY0)+Math.min(2,RD/2),Math.min(wz(RY1)-Math.min(1.5,RD/2),closeLook.z))}
   if(LV&&LV.slip&&stage===S.slip&&view!==1&&typeof sl!=='undefined'){const P=curbAt(Math.min(CLT,sl.s)),tx=P[2],tz=P[3],nx=-tz,nz=tx,k=portrait?1:.8,lk=[P[0]+nx*1.6-tx*1.5,P[1]+nz*1.6-tz*1.5];
     lookT.set(lk[0]-tx*9,ELV()+1,lk[1]-tz*9);{const ox=-tx*32*k-nx*30*k,oz=-tz*32*k-nz*30*k,oy=view===2?9:32,hd=Math.hypot(ox,oz),d=Math.hypot(hd,oy),yaw=Math.atan2(oz,ox)+SLC.yaw+PAN.yaw,el=Math.max(.06,Math.min(1.45,Math.atan2(oy,hd)+SLC.pitch+PAN.pitch));
@@ -6060,7 +6062,7 @@ const ptr={down:false,x:0,y:0,minx:0,maxx:0,miny:0,maxy:0,vx:0,vy:0,t:0};
 
 // v165: two-finger pan + pinch zoom on every step (mouse: right-drag pans, wheel zooms). Tap the zoom % to recentre.
 const PAN={yaw:0,pitch:0,x:0,z:0,st:-1,lv:null,ps:new Map(),on:false,c:null,pd:0,n:0,tip:false,mid:null};
-function panReset(){if(PAN.lv!==LV){PAN.lv=LV;PAN.st=stage;PAN.x=PAN.z=PAN.yaw=PAN.pitch=0}else if(PAN.st!==stage){PAN.st=stage;PAN.x=PAN.z=0}}
+function panReset(){if(PAN.lv!==LV){PAN.lv=LV;PAN.st=stage;PAN.x=PAN.z=PAN.yaw=PAN.pitch=0}else if(PAN.st!==stage){PAN.st=stage}}   // v418: a new step keeps where you've framed it
 function panOrbit(){if(!PAN.yaw&&!PAN.pitch)return;const dx=camTarget.x-lookT.x,dy=camTarget.y-lookT.y,dz=camTarget.z-lookT.z,hd=Math.hypot(dx,dz),d=Math.hypot(hd,dy);if(d<.1)return;
   const el0=Math.atan2(dy,hd),el=Math.max(.26,Math.min(1.53,el0+PAN.pitch)),az=Math.atan2(dz,dx)+PAN.yaw;PAN.pitch=el-el0;camTarget.set(lookT.x+Math.cos(az)*Math.cos(el)*d,lookT.y+Math.sin(el)*d,lookT.z+Math.sin(az)*Math.cos(el)*d)}
 function panAdd(){camTarget.x+=PAN.x;camTarget.z+=PAN.z;lookT.x+=PAN.x;lookT.z+=PAN.z}
@@ -7708,8 +7710,8 @@ function setStageUI(){
   {const pk=PREPK.has(s.key),np=s.key==='pour';$('wait').hidden=$('thumb').hidden=pk;if(np&&!pk)$('wait').hidden=true;if(np)hold(false);$('next').parentElement.classList.toggle('prep',pk);$('next').parentElement.classList.toggle('nowait',np&&!pk)}
   buildChips();$('stepNo').textContent=`STEP ${stage+1} / ${STAGES.length}`;
   {const d=$('sdesc');d.classList.remove('open');d.classList.add('show');clearTimeout(setStageUI.dt);setStageUI.dt=setTimeout(()=>{d.classList.remove('show');resize()},7000);setTimeout(resize,30)}
-  if(!userView)setView(stage===S.trowel?3:0,true);else computeCam();try{gestHint()}catch(e){}
-  if(running&&!arrive&&setStageUI.ls!==stage&&setStageUI.ls!=null){try{camSwoop()}catch(e){}}setStageUI.ls=running?stage:null;
+  computeCam();try{gestHint()}catch(e){}   // v418: keep the player's view and zoom from step to step: no switch to Close for the trowel, no swoop
+  setStageUI.ls=running?stage:null;
   if(running&&LV.saw&&STAGES[stage].key==='joint'&&setStageUI.sawT!==stage){setStageUI.sawT=stage;set=Math.max(set,.97);say('Next morning. Saw the joints before it cracks on its own.','info','sawNext',0)}
   if(running){showBanner();hideHint();clearTimeout(hintTimer);hintTimer=setTimeout(showHint,1700);buzz(10)}
   try{strStageUI()}catch(e){console.warn('strUI',e)}try{brgVis()}catch(e){console.warn('brgUI',e)}
@@ -8787,6 +8789,13 @@ function bkdAim(L,z,par){const c=camera;
   const t0=Math.tan(c.fov*Math.PI/360),asp=c.aspect,mg=.035;
   // never show past the edge of the painting: limit how wide the lens can open, then how far it can turn
   const zMin=Math.max(t0/Math.tan(BKD.PV-mg),t0*asp/Math.tan(BKD.PH-mg));if(z<zMin)z=zMin;
+  /* v418: the slab starts in the middle of the screen. Where the photo has the slab off to one side, the lens can't turn that far without
+     showing past the photo's edge, so it closes in just enough (at most 1.45x) that the slab's centre can sit in the middle. Worked out once
+     per job from the slab centre, so it never changes as you pan. */
+  if(BKD.zcL!==LV||BKD.zcA!==asp){BKD.zcL=LV;BKD.zcA=asp;const C=new THREE.Vector3(RCX,ELV(),RCZ).sub(BKD.P).applyQuaternion(new THREE.Quaternion().copy(BKD.Q).invert()),
+    y0=Math.abs(Math.atan2(C.x,-C.z)),p0=Math.abs(Math.atan2(C.y,Math.hypot(C.x,C.z)));
+    BKD.zc=Math.max(t0*asp/Math.tan(Math.max(.05,BKD.PH-mg-y0)),t0/Math.tan(Math.max(.05,BKD.PV-mg-p0)))}
+  if(BKD.zc>z)z=Math.min(BKD.zc,z*1.45);
   const hv=Math.atan(t0/z),hh=Math.atan(t0*asp/z);
   BKD.Qi.copy(BKD.Q).invert();const d=BKD.f.copy(L.sub(BKD.P)),dl=Math.max(1,d.length());d.applyQuaternion(BKD.Qi);
   let yaw=Math.atan2(d.x,-d.z),pit=Math.atan2(d.y,Math.hypot(d.x,d.z));const ly=Math.max(0,BKD.PH-hh-mg),lp=Math.max(0,BKD.PV-hv-mg);
