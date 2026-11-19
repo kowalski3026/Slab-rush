@@ -4828,7 +4828,7 @@ function reset(){try{M2.clr=1}catch(e){}try{spClear()}catch(e){}setStageUI.sawT=
   rk.used=false;rk.load=0;rk.lpx=rk.lpz=1e9;expo.fill(0);try{exwClear()}catch(e){}tubeReset();prepReset();if(typeof planEvent==='function'&&ev){ev=null;tarpOn=false;tarpMesh.visible=false;rainIM.visible=false;try{RRING.im.count=0;RRING.sp.count=0;RRING.L.forEach(r=>r.t=9);RRING.S.forEach(q=>q.t=9)}catch(e){}$('evBtn').hidden=true}setJMode('x');setPourTool('chute',true);
   truck.visible=chute.visible=lumps.visible=splash.visible=true;bands.forEach(b=>b.visible=true);try{spatClear()}catch(e){}
   tip.set(RCX+4,1.6,RCZ);tipTarget.copy(tip);
-  surfDirty=geoDirty=true;userView=false;closeLook.set(0,0,1);setView(0);
+  surfDirty=geoDirty=true;userView=false;closeLook.set(0,0,1);for(let i=0;i<ZOOM.length;i++)ZOOM[i]=1;setView(0);   // v418: every job starts framed to fit, not at the last job's zoom
 }
 
 /* ---------- toasts ---------- */
@@ -8783,7 +8783,19 @@ function bkdTick(){try{aprTick()}catch(e){}try{fgoTick()}catch(e){}try{bkdViewTi
   // where the game wanted to look this frame, and how much of the ground it wanted to see there
   const c=camera,f=BKD.f.set(0,0,-1).applyQuaternion(c.quaternion);let L;
   if(f.y<-.04){const k=(ELV()-c.position.y)/f.y;L=BKD.v.copy(c.position).addScaledVector(f,k)}else L=BKD.v.copy(lookC);
-  const dG=Math.max(1,c.position.distanceTo(L)),dP=Math.max(1,BKD.P.distanceTo(L));try{lpTick()}catch(e){}bkdAim(L,dP/dG,true)}
+  const dG=Math.max(1,c.position.distanceTo(L)),dP=Math.max(1,BKD.P.distanceTo(L));try{lpTick()}catch(e){}
+  /* v418: at 100% the photo lens is set so the whole slab fits the play area as seen from the photo's own camera (the 3D framing's distance
+     ratio alone missed: the photo camera sits lower and off to one side, so steps came out cut off). Zooming and the other views scale from there. */
+  let z=dP/dG;try{if(BKD.fzL!==LV||BKD.fzA!==c.aspect||BKD.fzH!==botH+topH){BKD.fzL=LV;BKD.fzA=c.aspect;BKD.fzH=botH+topH;BKD.zf=bkdFit()}
+    if(view===0&&BKD.zf){const dGt=Math.max(1,camTarget.distanceTo(lookT)),dPt=Math.max(1,BKD.P.distanceTo(lookT));BKD.kz=BKD.zf/(dPt/(dGt/(ZOOM[0]||1)))}
+    if(BKD.kz)z*=BKD.kz}catch(e){}
+  bkdAim(L,z,true)}
+function bkdFit(){const c=camera,t0=Math.tan(c.fov*Math.PI/360),asp=c.aspect,fullH=cssH+Math.abs(viewPad),fr=Math.max(.3,(cssH-topH-botH-10)/Math.max(1,fullH)),
+    C=new THREE.Vector3(RCX,ELV(),RCZ),M=new THREE.Matrix4().lookAt(BKD.P,C,new THREE.Vector3(0,1,0)),Qi=new THREE.Quaternion().setFromRotationMatrix(M).invert(),v=new THREE.Vector3();
+  let top=0;try{if(STR.on)top=Math.max(...STR.T.map(T=>T.rise))/12}catch(e){}
+  let z=99;for(const x of [wx(RX0),wx(RX1)])for(const zz of [wz(RY0),wz(RY1)])for(const y of [ELV(),ELV()+top]){v.set(x,y,zz).sub(BKD.P).applyQuaternion(Qi);const f=Math.max(.1,-v.z);
+    z=Math.min(z,t0*asp*.86/Math.max(1e-3,Math.abs(v.x)/f),t0*fr*.86/Math.max(1e-3,Math.abs(v.y)/f))}
+  return z<99?z:null}
 // point the real camera from the painting's spot at ground point L with lens zoom z, kept inside the painting
 function bkdAim(L,z,par){const c=camera;
   const t0=Math.tan(c.fov*Math.PI/360),asp=c.aspect,mg=.035;
