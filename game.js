@@ -80,7 +80,7 @@ const DEFS={
   expose:{name:'Wash off',win:[.52,.76],soft:.1,
    desc:'Retarder kept the top paste soft. Hold the wand down and sweep it over the slab to wash the paste off and bare the stone. Start on the side nearest you and work away so the slurry is pushed ahead and off the far edge; slurry left to dry on washed stone leaves a haze. Too early and stones wash out of the slab. Too late and the paste won\'t come off. Parked in one spot, the wand blasts the stones out.'},
   power:{name:'Power trowel',win:[.54,.95],soft:.1,
-   desc:'Walk the 36 in power trowel over the whole floor in overlapping passes. Start when your thumb barely prints. Too early and it gouges and swirls. Late passes burnish it to a hard shine.'},
+   desc:'Pans on first, when your thumb barely prints: they float it flat and work the cream up (swirls are normal). Then pull the pans and go to blades, more pitch each pass as it firms up, to burnish it to a mirror. Too much pitch too soon digs in; too flat when it\'s hard just skates.'},
   blanket:{name:'Blankets',win:[.72,1],soft:.25,
    desc:'Frost tonight. Once the finish is firm enough not to mark, drag along the slab to roll out each insulated blanket. Each one unrolls the full length in its own row, overlapping the last. Cover every row.'}
 };
@@ -3086,7 +3086,7 @@ vec4 gBS(vec2 uv){vec2 ts=vec2(${GW}.,${GH}.),st=uv*ts-.5,i=floor(st),f=st-i;vec
  return (texture2D(gHM,vec2(h0.x,h0.y))*g0.x+texture2D(gHM,vec2(h1.x,h0.y))*g1.x)*g0.y+(texture2D(gHM,vec2(h0.x,h1.y))*g0.x+texture2D(gHM,vec2(h1.x,h1.y))*g1.x)*g1.y;}
 ${exO?EXFN:''}`)
      .replace('#include <map_fragment>',`#include <map_fragment>
-float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;float gSunK=1.,gShn=0.;
+float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=vec3(0.);float gRK=0.;float gSunK=1.,gShn=0.,gMir=0.;
 {vec2 p=vDW,uvG=vec2(p.x/gSW+.5,p.y/gSD+.5);
  ${m2?`// v370 fine-grained mud: relief, water and cream at every point come from the simulation
  {vec2 mu=(p-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){mIn=1.;
@@ -3097,8 +3097,9 @@ float gCol=1.,gRgh=0.,gBand=0.;vec3 gDbg=vec3(-1.);vec2 gTl=vec2(0.);vec3 gRN=ve
    vec4 mlo=textureLod(mA,mu,mlod+3.);float cav=h0-mlo.r-mlo.a*mRoll;gCol*=1.+clamp(cav*4.,-.26,.13);
    float mb=mM.a*(1.-mRoll),bk=smoothstep(.25,.45,mb);gRgh+=.2*bk-.5*mM.g;gCol*=(1.-.14*mM.g)*(1.+(.05+(mb-.55)*.25)*bk);
    // v405 steel trowel: cream above 1 is burnish. Each pass smoother, a touch darker, a soft sheen; overworked late it goes to dark blotchy trowel burn
-   {float pol=clamp(mM.b-1.,0.,1.);if(pol>.005){float bu=smoothstep(0.,.45,pol),bn=smoothstep(.55,.95,pol)*(.5+.5*gVN(p*1.6+2.7))*(.7+.3*gVN(p*6.1));
-    gRgh-=.3*bu+.12*bn;gCol*=(1.-.06*bu)*(1.-.34*bn);gShn=max(gShn,.25*bu+.35*bn);}}}}`:''}
+   // v419: burnished all the way (pitched power-trowel blades) it goes to a hard mirror: clear-coat reflection of the sky, tight sun glint, a touch darker and mottled
+   {float pol=clamp(mM.b-1.,0.,1.);if(pol>.005){float bu=smoothstep(0.,.45,pol),mt=(.5+.5*gVN(p*1.6+2.7))*(.7+.3*gVN(p*6.1)),bn=smoothstep(.55,.95,pol)*mt,mr=smoothstep(.6,1.,pol);
+    gRgh-=.3*bu+.12*bn+.3*mr;gCol*=(1.-.06*bu)*(1.-.34*bn*(1.-.45*mr))*(1.-.05*mr);gShn=max(gShn,.25*bu+.35*bn);gMir=mr*(1.-.25*mt*mr);}}}}`:''}
  // v186 real concrete
  {vec4 C=gBS(uvG);float inK=smoothstep(.2,.5,C.a);
   if(inK>.01){vec2 e=vec2(1./${GW}.,1./${GH}.)*.6;
@@ -3241,13 +3242,14 @@ diffuseColor.rgb*=gCol;`)
      .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n{const vec3 Lw=vec3(.299,.587,.114);float l=dot(reflectedLight.indirectDiffuse,Lw);reflectedLight.indirectDiffuse=mix(vec3(l),reflectedLight.indirectDiffuse,.3)*1.15;float l2=dot(reflectedLight.indirectSpecular,Lw);reflectedLight.indirectSpecular=mix(vec3(l2),reflectedLight.indirectSpecular,.3);}')
      .replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight );\n\t\t#if UNROLLED_LOOP_INDEX == 0\n\t\tdirectLight.color*=gSunK;if(gSunR>.5)directLight.direction=normalize((viewMatrix*vec4(gSunW,0.)).xyz);\n\t\t#endif'))
      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nif(gRK>0.){normal=normalize(normal+(viewMatrix*vec4(gRN*gRK*(1.-gPool),0.)).xyz);normal=normalize(mix(normal,nonPerturbedNormal,gPool*.85));}\n{vec3 tv=(viewMatrix*vec4(gTl.x,0.,gTl.y,0.)).xyz;normal=normalize(normal+tv);}')
-     .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);\n#endif')}
+     .replace('#include <lights_physical_fragment>','#include <lights_physical_fragment>\n#ifdef USE_CLEARCOAT\nmaterial.clearcoat=mix(material.clearcoat,1.,gPool);material.clearcoatRoughness=mix(material.clearcoatRoughness,.02,gPool);material.clearcoat=max(material.clearcoat,gShn*(gWM>.5?1.:.45))*(1.-.92*gCure);material.clearcoatRoughness=mix(material.clearcoatRoughness,gWM>.5?.035:.09,gShn);material.clearcoat=max(material.clearcoat,gMir*(1.-.92*gCure));material.clearcoatRoughness=mix(material.clearcoatRoughness,.025,gMir);material.roughness=mix(material.roughness,max(.12,material.roughness*.35),gMir);\n#endif')
+     .replace('#include <clearcoat_normal_fragment_maps>','#include <clearcoat_normal_fragment_maps>\n#ifdef USE_CLEARCOAT\nclearcoatNormal=normalize(mix(clearcoatNormal,normal,min(1.,gMir*1.6)));\n#endif')}
   if(GPS.on&&typeof M2!=='undefined'&&M2.on){// the drawn marks (rake, screed streaks, broom, tear) are off: the simulation makes them
     F=F.split('texture2D(gMR,uvG)').join('vec4(0.)').split('texture2D(gBD,uvG).a').join('0.').replace('float bc=clamp(BD.r*1.11,0.,1.)*(1.-gBand);','float bc=smoothstep(.3,.5,mM.a*(1.-mRoll))*mIn*(1.-gBand);').replace('gTl+=pr*(bAc-bA)*3.5*bc*pull*aa;','gTl+=pr*(bAc-bA)*6.*bc*pull*aa;').replace('float tk=MK.b*mi;','float tk=0.;').replace('gTl-=dir*nose*1.8*E;','gTl-=dir*nose*1.8*E*(1.-.6*mIn);').replace('gTl-=ac*sg*bev*2.2*d;','gTl-=ac*sg*bev*2.2*d*(1.-.5*mIn);')
 ;
     sh.vertexShader='uniform sampler2D mA;uniform vec4 mO;uniform float mRoll;uniform float mEx;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 mu=(position.xz-mO.xy)/mO.zw;if(mu.x>0.&&mu.x<1.&&mu.y>0.&&mu.y<1.){vec4 M=textureLod(mA,mu,4.);transformed.y+=(M.r+M.a*mRoll)*mEx/12.;}}')}
   sh.fragmentShader=F};
-slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+(typeof EXW!=='undefined'&&EXW.on?'X':'')+'gl405';
+slabMat.customProgramCacheKey=()=>(SLABD.on?'slabD':'slab')+(GPS.on?'G':'')+(CPH.on?'P':'')+(typeof M2!=='undefined'&&M2.on?'M':'')+(()=>{try{return SP.on?'S':''}catch(e){return ''}})()+(CDBG?'D':'')+(typeof EXW!=='undefined'&&EXW.on?'X':'')+'gl419';
 // v281: on a painted site, before the dig the photo's lawn shows instead of the slab surface; a cell appears once it's dug below grade (bkdTick sets the height)
 const BKSLAB={value:1e9},BKLID={value:1e9},BKKO={value:new THREE.Vector4(1e9,1e9,1e9,1e9)},BKE={value:0};{const ob=slabMat.onBeforeCompile;slabMat.onBeforeCompile=(sh,r)=>{ob.call(slabMat,sh,r);sh.uniforms.bkSY=BKSLAB;sh.uniforms.bkKO=BKKO;sh.uniforms.bkE=BKE;
   sh.vertexShader='varying vec3 vBkP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBkP=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -3269,6 +3271,31 @@ const M2={on:false,cap:null,rt:[],i:0,W:0,H:0,q:[],hp:new Float32Array(N),J:null
   U:{mA:{value:null},mO:{value:new THREE.Vector4(0,0,1,1)},mTx:{value:new THREE.Vector2(1,1)},mRoll:{value:0},mEx:{value:1.35}}};
 function m2Cap(){if(M2.cap!==null)return M2.cap;try{const gl=renderer.getContext();M2.cap=!!(gl.getExtension('EXT_color_buffer_float')||gl.getExtension('EXT_color_buffer_half_float'))}catch(e){M2.cap=false}return M2.cap}
 function m2Want(){return !!(LV&&GPS.on&&renderer&&!safeGfx&&m2Cap())}
+/* v419 power trowel in the mud. A = the pan's path, B = [10, reach ft, mix per stamp, P] with P 0 = float pans, 1 flat blades, 2-4 more pitch,
+   C = [too wet, too much pitch for how soft it is (the blades dig), shine added this stamp, too flat for how hard it is (skates)].
+   The marks are the arcs the trailing edge leaves: circles of the pan's radius centred on the path, one every couple of inches of travel,
+   anchored to the ground so passes in the same direction line up. Pans float the mud flat, pull the cream up and leave big soft swirls;
+   blades plane the swirls down pass by pass, and pitched blades burnish it (cream above 1) toward a mirror. More pitch, more shine, but
+   pitch into soft mud and the blades dig in and tear it. */
+const M2_POWER=`vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L,pr=vec2(-dv.y,dv.x),o=p-A.xy;float al=dot(o,dv),q=dot(o,pr),R=B.y;
+   float ds=length(o-dv*clamp(al,0.,L));
+   if(ds<R&&inK>.01){float ke=inK*smoothstep(R,R*.86,ds),kk=B.z*ke,P=B.w,er=C.x,dg=C.y,sk=C.w,pan=1.-step(.5,P),pol=clamp(c-1.,0.,1.);
+    float aw=dot(p,dv)+sqrt(max(R*R-q*q,0.)),wob=vn(vec2(dot(p,pr)*.7,aw*.35)+uSeed)*1.4;
+    float base=textureLod(tA,uv,2.).r,tg;
+    if(pan>.5){float ph=aw/(.3+.08*er)+wob,wv=sin(ph*6.2832),sh=pow(.5+.5*wv,4.);
+     float amp=(.045+.07*er)*(1.-.75*sk);
+     tg=base*.35+(sh-.2)*amp+(vn(p*3.1+uSeed)-.5)*.015*er;
+     d=mix(d,tg,kk*(1.-.6*sk));
+     d+=.035*smoothstep(.82,.94,vn(p*10.+uSeed))*er*kk*.25;
+     c=mix(c,1.-.14*(1.-sh)*(1.-sk),min(1.,kk*1.6));
+     w=min(1.,w+(.12+.5*er)*kk*(.6+.4*sh));}
+    else{float ph=aw/.14+wob*.6,fr=abs(fract(ph)-.5)*2.,ln=1.-smoothstep(.0,.22,fr);
+     float amp=.014*(1.-pol)*(1.-.5*sk);
+     tg=base*.25+ln*amp-ln*.07*dg-.035*dg*smoothstep(.6,.85,vn(vec2(aw*5.,q*2.5)+uSeed));
+     d=mix(d,tg,kk*(1.-.7*sk));
+     c=max(c,mix(c,1.,kk));c=mix(c,min(c,.75),dg*kk*.5);
+     float cap=1.+min(1.,.25+.19*P);if(c<cap)c=min(cap,c+C.z*ke*(1.-.8*sk)*(1.-dg));
+     w=min(1.,w+.3*er*kk);w*=1.-.25*kk*(1.-er);}}`;
 const M2FS=`precision highp float;
 uniform sampler2D tA;uniform sampler2D tJ;uniform sampler2D tH;uniform vec2 uTx;uniform vec2 uOrg;uniform vec2 uSize;
 uniform float uSW;uniform float uSD;uniform float uDt;uniform float uDtS;uniform float uBl;uniform float uSeed;uniform float uClear;uniform float uClrA;uniform float uF;uniform float uGk;
@@ -3322,7 +3349,8 @@ void main(){
    vec2 q=abs(p-A.xy)-A.zw;float od=max(q.x,q.y);
    if(od<0.){float k=B.z*inK*(1.-smoothstep(-.04,0.,od));d=mix(d,textureLod(tA,uv,5.).r*.25,k);b*=1.-k;}
    else if(B.w>.5&&od<.14)d+=.09*inK*(1.-od/.14)*smoothstep(0.,.03,od);
-  }else if(t==7||t==10){// v405 steel trowel (7 hand, 10 power). In the window it planes the small stuff, closes the top and burnishes it a little more
+  }else if(t==10){${M2_POWER}
+  }else if(t==7){// v405 steel trowel (7 hand; v419: the power trowel has its own branch below). In the window it planes the small stuff, closes the top and burnishes it a little more
    // every pass (cream above 1 is the burnish). Too wet it drags ripples and pulls water up into blisters; too late it burns dark.
    vec2 s=A.zw-A.xy;float L=max(length(s),1e-4);vec2 dv=s/L;float tq=clamp(dot(p-A.xy,dv),0.,L);float ds=length(p-(A.xy+dv*tq));
    if(ds<B.y){float kk=B.z*inK*smoothstep(B.y,B.y*.8,ds),er=C.x,lt=C.y,al=dot(p,dv),aq=dot(p,vec2(-dv.y,dv.x));
@@ -3333,7 +3361,6 @@ void main(){
     if(t==7){float e=smoothstep(B.y*.86,B.y*.95,ds)*(1.-smoothstep(B.y*.95,B.y,ds));d=mix(d,max(d,.008*(.4+er)),e*kk*.6);}
     w=min(1.,w+(.35*er+.45*C.z)*kk);
     c=max(c,mix(c,1.,kk));float cap=mix(1.6,2.,lt);
-    if(t==10){float r=length(p-A.zw),sw=sin(r*30.+vn(p*1.7+uSeed)*3.);d+=sw*.018*er*kk;c=min(cap,c+.04*kk*(1.-er)*(.5+.5*sw));}
     c=min(cap,c+(.09*B.w*(1.-er)+.3*lt)*kk);}
   }else if(t==8){// v405 edger: rolls a 3/8 in radius at the form, irons a smooth band behind it, and pushes a bead of paste up at the band's inside edge.
    // Too soft it sinks and the bead is big and wet; too hard it won't cut the radius and chatters.
@@ -6259,7 +6286,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='sform'||k==='riser'||k==='sbar'){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.6));for(let q=1;q<=n;q++)strTrace({wx:wx(ptr.x+dx*q/n),wz:wz(ptr.y+dy*q/n)})}
   else if(k==='vibe'){}
   else if(k==='expose'){}
-  else if(k==='power'){if(!(RIDE.drive&&rideLive()))powerSeg(ptr.x,ptr.y,p.x,p.y)}
+  else if(k==='power'){}   // v419: the trowel works where the machine goes (pwWork), not under the finger
   else{const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.5));
     if(k==='float')floatSweep(ptr.x,ptr.y,p.x,p.y);else for(let s=1;s<=steps;s++)edgeTrace(ptr.x+dx*s/steps,ptr.y+dy*s/steps)}
   ptr.x=p.x;ptr.y=p.y;
@@ -6596,15 +6623,30 @@ function exwUpload(r0,r1){const A=EXW;let p=null;try{p=renderer.properties.get(A
     gl.texSubImage2D(gl.TEXTURE_2D,0,0,r0,A.W,r1-r0+1,gl.RGBA,gl.UNSIGNED_BYTE,A.d,r0*A.W*4)}catch(e){A.full=1;A.tex.needsUpdate=true}}
 function powerSeg(x0,y0,x1,y1,wFt,gain){
   const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.05)return;
-  const W=wFt?wFt*12/CELL_IN:1.5*12/CELL_IN*(rideLive()?1.7:1),ux=dx/len,uy=dy/len,early=set<.5,late=set>.96,eff=early?.5:late?.05:1;let work=0;
+  const W=wFt?wFt*12/CELL_IN:1.5*12/CELL_IN*(rideLive()?1.7:1),ux=dx/len,uy=dy/len,early=set<.5,late=set>.96;
+  // v419: pans or blades, and how far the pitch is from what the mud wants right now
+  const P=PWT.p,pan=P===0,mis=P-pwIdeal(),dig=pan?0:Math.max(0,Math.min(1,(mis-.9)/1.6))*(set<.8?1:.4),
+    skate=pan?Math.max(0,Math.min(1,(set-.72)/.14)):Math.max(0,Math.min(1,(-mis-1.2)/1.6)),
+    er=early?Math.min(1,.4+(.5-set)/.12):Math.max(0,Math.min(.4,(.6-set)/.25))*(pan?1:.5),
+    cs=SLAB_W/GW,Rft=W*cs,frac=Math.min(1,len*cs/(2*Rft)),
+    hard=.4+.6*Math.max(0,Math.min(1,(set-.56)/.3)),rate=pan?0:[0,.2,.3,.4,.52][P]*hard*(1-.8*skate)*(1-dig)*(late?.4:1),
+    pmix=pan?.85:[0,.35,.45,.55,.65][P],mixS=1-Math.pow(1-pmix*(1-.7*skate),frac),cap=pan?.04:Math.min(1,.25+.19*P);
+  const eff=(early?.5:late?.05:1)*(pan?1:1-.5*dig)*(1-.6*skate),pq=1-.6*dig-.35*skate-(pan&&set>.8?.3:0);let work=0;
   for(let cy=Math.max(RY0,Math.floor(Math.min(y0,y1)-W));cy<=Math.min(RY1-1,Math.ceil(Math.max(y0,y1)+W));cy++)for(let cx=Math.max(RX0,Math.floor(Math.min(x0,x1)-W));cx<=Math.min(RX1-1,Math.ceil(Math.max(x0,x1)+W));cx++){
     const i=cy*GW+cx;if(!has(i))continue;let t=((cx+.5-x0)*ux+(cy+.5-y0)*uy)/len;t=Math.max(0,Math.min(1,t));const d=Math.hypot(cx+.5-(x0+ux*len*t),cy+.5-(y0+uy*len*t));if(d>W)continue;
-    const f=1-d/W*.4,add=.2*Math.min(len,1.6)*f*eff*(gain||1);work+=Math.min(add,Math.max(0,1-trow[i]));trow[i]=Math.min(1.3,trow[i]+add);closed[i]=Math.min(1,closed[i]+add);
-    if(early){h[i]+=(Math.random()-.5)*.12;weak[i]=Math.min(1,weak[i]+.008*f)}
-    else{const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;h[i]+=(avg-h[i])*.25*f;if(weak[i]>0)weak[i]=Math.max(0,weak[i]-.04*f)}}
-  acc[S.power].w+=work;acc[S.power].q+=work*winQ(set,STAGES[S.power]);
-  // v405: the pans in the mud sim: early they gouge swirl rings, then every pass burnishes harder (late passes shine)
-  try{const cs=SLAB_W/GW;m2Stamp({t:10,A:[wx(x0),wz(y0),wx(x1),wz(y1)],B:[10,W*cs,Math.min(1,.35+eff),.8+.9*Math.max(0,Math.min(1,(set-.5)/.4))],C:[early?Math.min(1,.5+(.5-set)/.15):0,0,bleed(set),0]})}catch(e){}
+    // pans only get the floor so far (a first pass); the blades finish it
+    const f=1-d/W*.4,lim=pan?.62:1.3,add=.2*Math.min(len,1.6)*f*eff*(gain||1);work+=Math.max(0,Math.min(add,Math.min(1,lim)-trow[i]));trow[i]=Math.max(trow[i],Math.min(lim,trow[i]+add));closed[i]=Math.min(1,closed[i]+add);
+    if(pan)PWT.pol[i]*=1-.5*f*Math.min(1,frac*3);else if(PWT.pol[i]<cap)PWT.pol[i]=Math.min(cap,PWT.pol[i]+rate*frac*f*(gain?Math.min(2,gain):1));else if(dig>0)PWT.pol[i]*=1-.3*dig*f;
+    if(early||dig>.2){h[i]+=(Math.random()-.5)*(early?.12:.08*dig);weak[i]=Math.min(1,weak[i]+.008*f*(early?1:dig))}
+    else{const nb=j=>inR[j]?h[j]:h[i],avg=(nb(cy*GW+Math.max(0,cx-1))+nb(cy*GW+Math.min(GW-1,cx+1))+nb(Math.max(0,cy-1)*GW+cx)+nb(Math.min(GH-1,cy+1)*GW+cx))/4;h[i]+=(avg-h[i])*.25*f*(pan?1.2:.8);if(weak[i]>0)weak[i]=Math.max(0,weak[i]-.04*f)}}
+  acc[S.power].w+=work;acc[S.power].q+=work*winQ(set,STAGES[S.power])*Math.max(.1,pq);
+  try{m2Stamp({t:10,A:[wx(x0),wz(y0),wx(x1),wz(y1)],B:[10,Rft,mixS,P],C:[er,dig,rate*frac*1.15,skate]})}catch(e){}
+  if(running&&!say.mute){
+    if(dig>.35)say('Too much pitch for this mud. The blades are digging in.','bad','pwDig',6000);
+    else if(pan&&set>.76)say('The pans are just skating now. Pull them and go to the blades.','info','pwPanL',9000);
+    else if(!pan&&skate>.4)say('Blades are skating on it. Give them more pitch.','info','pwSk',9000);
+    else if(!pan&&set<.56)say('Still soft. Pans first, or it tears up.','bad','pwBl',7000);
+    else if(!pan&&pwShine()>.85)say('That’s a mirror. Nice.','good','pwMir',60000)}
   const P0x=x0*CPX,P0y=y0*CPX,P1x=x1*CPX,P1y=y1*CPX,hw=W*CPX;
   tcx.save();tcx.lineCap='round';tcx.globalCompositeOperation='destination-out';tcx.strokeStyle=`rgba(0,0,0,${.18*eff})`;tcx.lineWidth=hw*1.6;tcx.beginPath();tcx.moveTo(P0x,P0y);tcx.lineTo(P1x,P1y);tcx.stroke();tcx.restore();
   [fcx,scx].forEach(c=>{c.save();c.globalCompositeOperation='destination-out';c.strokeStyle=`rgba(0,0,0,${.25*eff})`;c.lineCap='round';c.lineWidth=hw*2;c.beginPath();c.moveTo(P0x,P0y);c.lineTo(P1x,P1y);c.stroke();c.restore()});
@@ -6683,7 +6725,7 @@ const muleG=new THREE.Group();
  const pl=new THREE.Mesh(new THREE.ExtrudeGeometry(pr,{depth:.9,bevelEnabled:false}),m);pl.position.z=-.45;pl.castShadow=true;muleG.add(pl);
  const h1=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,4.2,8),hm);h1.rotation.x=Math.PI/2-.6;h1.position.set(0,1.6,1.6);muleG.add(h1)}
 muleG.visible=false;scene.add(muleG);let muleYaw=0;
-const powerG=new THREE.Group(),pBlades=new THREE.Group();powerG.add(pBlades);
+const powerG=new THREE.Group(),pBlades=new THREE.Group(),PW_PV=[],PW_PAN=[];powerG.add(pBlades);
 { // walk-behind power trowel: orange guard ring, four steel blades, black engine and gearbox, long handle with a T bar
  const Lc=x=>new THREE.Color(x),orM=new THREE.MeshStandardMaterial({color:Lc(0xe8601a),map:metalTex,roughness:.42}),blM=new THREE.MeshStandardMaterial({color:Lc(0x18191b),roughness:.5,metalness:.25}),
    stM=new THREE.MeshStandardMaterial({color:Lc(0x3b3d40),roughness:.35,metalness:.85}),rbM=new THREE.MeshStandardMaterial({color:0x101010,roughness:.9});
@@ -6694,7 +6736,13 @@ const powerG=new THREE.Group(),pBlades=new THREE.Group();powerG.add(pBlades);
  for(let k=0;k<16;k++){const a=k/16*Math.PI*2,c=Math.cos(a),s=Math.sin(a);tube([c*1.52,.13,s*1.52],[c*1.44,.4,s*1.44],.03,orM)}
  for(let k=0;k<4;k++){const a=k/4*Math.PI*2+Math.PI/4,c=Math.cos(a),s=Math.sin(a);tube([c*1.44,.4,s*1.44],[c*.42,.66,s*.42],.035,orM)}
  // blades on a spider, spun by the gearbox
- for(let k=0;k<4;k++){const g=new THREE.Group();g.rotation.y=k*Math.PI/2;pBlades.add(g);bx(1.15,.02,.36,stM,.82,.03,0,g);bx(.06,.03,.38,stM,1.38,.05,0,g);bx(.9,.06,.08,blM,.55,.12,0,g)}
+ // v419: each blade sits on its own pitch pivot (the arm's long axis), and a float pan clips on under them
+ for(let k=0;k<4;k++){const g=new THREE.Group();g.rotation.y=k*Math.PI/2;pBlades.add(g);const pv=new THREE.Group();pv.position.y=.03;g.add(pv);PW_PV.push(pv);bx(1.15,.02,.36,stM,.82,0,.1,pv);bx(.06,.03,.38,stM,1.38,.02,.1,pv);bx(.9,.06,.08,blM,.55,.09,0,pv)}
+ {const pm=new THREE.MeshStandardMaterial({color:Lc(0x55585c),roughness:.38,metalness:.8}),pan=new THREE.Group();
+  const d=new THREE.Mesh(new THREE.CylinderGeometry(1.47,1.42,.025,56),pm);d.position.y=.012;pan.add(d);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.45,.03,6,56),pm);rim.rotation.x=Math.PI/2;rim.position.y=.035;pan.add(rim);
+  for(let k=0;k<4;k++){const c=new THREE.Mesh(new THREE.BoxGeometry(.18,.05,.12),blM);const a=k*Math.PI/2+.4;c.position.set(Math.cos(a)*1.1,.05,Math.sin(a)*1.1);c.rotation.y=-a;pan.add(c)}
+  pBlades.add(pan);PW_PAN.push(pan)}
  cy(.36,.42,blM,0,.36,0);cy(.22,.18,stM,0,.62,0);
  // engine on the gearbox: crankcase, fuel tank, recoil start, air cleaner, muffler
  bx(.78,.52,.64,blM,0,.98,-.05);bx(.58,.24,.44,blM,0,1.36,-.08);cy(.05,.06,stM,.15,1.5,-.08);
@@ -7118,7 +7166,57 @@ const RIDE_RC=2.1,RIDE_GR=2.2,RIDE_BR=2.3,RIDE_PTS=(()=>{const o=[[0,0]];for(con
 // local (lx forward, lz to the right side) to world for the machine at x,z facing yaw
 const rideW=(x,z,yaw,lx,lz)=>[x+lx*Math.cos(yaw)+lz*Math.sin(yaw),z-lx*Math.sin(yaw)+lz*Math.cos(yaw)];
 function rideFits(x,z,yaw){return RIDE_PTS.every(([lx,lz])=>{const p=rideW(x,z,yaw,lx,lz);return pointInPoly(p[0],p[1],SHAPE)})}
+/* ---------- v419: power trowel, done like the real thing. The pans go on first: they float the fresh mud flat, pull the cream up
+   and leave big swirl marks. Then pans off, blades flat, and more pitch on every pass as it firms up: the swirls plane out and
+   it burnishes to a mirror. Pitch too much while it's soft and the blades dig in; too flat once it's hard and they just skate.
+   The machine is kept on the pour: its guard ring never leaves the slab (the ride-on: both rotors), it slides along the forms. ---------- */
+const PWT={p:0,armed:null,anc:null,last:null,down:false,key:'',uiT:0,pol:new Float32Array(N),said:0};
+const PWT_N=['Pans','Flat','Low','Med','High'],PWT_DEG=[0,0,7,13,20],PW_R=1.52;
+const pwOn=()=>!!(running&&STAGES[stage]&&STAGES[stage].key==='power');
+// where the pitch should be for how hard it is: pans till about .64, flat about .68, then up a notch every .075 of the set (high from .9)
+const pwIdeal=()=>Math.max(0,Math.min(4.4,(set-.6)/.075));
+function pwFits(x,z){if(!pointInPoly(x,z,SHAPE))return false;for(let k=0;k<16;k++){const a=k/16*Math.PI*2;if(!pointInPoly(x+Math.cos(a)*PW_R,z+Math.sin(a)*PW_R,SHAPE))return false}return true}
+function pwFitFn(){return rideLive()?(x,z)=>rideFits(x,z,RIDE.yaw):pwFits}
+// nearest spot (rings outward from x,z) where the whole machine sits on the pour
+function pwPushIn(x,z,fit){if(fit(x,z))return[x,z];
+  for(let r=.2;r<=12;r+=.2){const n=Math.max(10,Math.ceil(Math.PI*2*r/.2));for(let k=0;k<n;k++){const a=k/n*Math.PI*2,qx=x+Math.cos(a)*r,qz=z+Math.sin(a)*r;if(fit(qx,qz))return[qx,qz]}}
+  return fit(RCX,RCZ)?[RCX,RCZ]:null}
+// keep toolPos where it fits: from the last good spot, go as far as it can toward the finger, else slide along the form on one axis
+function pwClamp(){const fit=pwFitFn(),x=toolPos.x,z=toolPos.z;
+  if(fit(x,z)){PWT.last=[x,z];PWT.nf=false;return}if(PWT.nf)return;
+  let L=PWT.last;if(!L||!fit(L[0],L[1])){L=pwPushIn(x,z,fit);PWT.last=L;if(L)toolPos.set(L[0],0,L[1]);else PWT.nf=true;return}
+  let best=L,bd=Math.hypot(L[0]-x,L[1]-z);
+  for(const c of[[x,z],[x,L[1]],[L[0],z]]){let lo=0,hi=1;for(let i=0;i<12;i++){const m=(lo+hi)/2;if(fit(L[0]+(c[0]-L[0])*m,L[1]+(c[1]-L[1])*m))lo=m;else hi=m}
+    const q=[L[0]+(c[0]-L[0])*lo,L[1]+(c[1]-L[1])*lo],d=Math.hypot(q[0]-x,q[1]-z);if(d<bd-1e-4){bd=d;best=q}}
+  toolPos.set(best[0],0,best[1]);PWT.last=best}
+// the work is done where the machine actually goes (not under the finger), piece by piece along its path
+function pwWork(){if(!pwOn()||!ptr.down||(RIDE.drive&&rideLive()))return;
+  const cx=(toolPos.x+SLAB_W/2)/SLAB_W*GW,cy=(toolPos.z+SLAB_D/2)/SLAB_D*GH;
+  if(!PWT.anc){PWT.anc=[cx,cy];return}
+  if(Math.hypot(cx-PWT.anc[0],cy-PWT.anc[1])>=.08){powerSeg(PWT.anc[0],PWT.anc[1],cx,cy);PWT.anc=[cx,cy]}}
+function pwTick(dt){const on=pwOn();
+  if(!on){PWT.armed=null;pwUI();return}
+  const key=(LV&&LV.id)+'|'+(practice?practice.k:'')+'|'+stage;
+  if(PWT.armed!==key){PWT.armed=key;PWT.p=0;PWT.pol.fill(0);PWT.anc=null;PWT.last=null;pwUI(true)}
+  if(ptr.down&&!PWT.down){PWT.last=null;PWT.anc=null;PWT.nf=false}PWT.down=ptr.down;if(!ptr.down)PWT.anc=null;
+  // the machines show what's on: pans clipped on, or the blades pitched up
+  const P=PWT.p,pk=P+'|'+(RIDE.built?1:0);if(PWT.key!==pk){PWT.key=pk;const a=PWT_DEG[P]*Math.PI/180;
+    PW_PV.forEach(v=>{v.rotation.x=-a;v.position.y=P?.03+Math.sin(a)*.12:.06});PW_PAN.forEach(m=>m.visible=P===0);
+    if(RIDE.built){try{RIDE.built.setPans(P===0);RIDE.built.setPitch(PWT_DEG[P])}catch(e){}}}
+  pwUI()}
+function pwUI(force){const now=performance.now();if(!force&&now-PWT.uiT<150)return;PWT.uiT=now;const seg=$('pitSeg');if(!seg)return;
+  const show=pwOn()&&!coachOpen;if(seg.hidden===show)seg.hidden=!show;if(!show)return;
+  seg.querySelectorAll('button').forEach((b,i)=>{b.setAttribute('aria-pressed',String(i===PWT.p));b.classList.toggle('ok',i===Math.round(Math.max(0,Math.min(4,pwIdeal()))))})}
+document.querySelectorAll('#pitSeg button').forEach((b,i)=>b.addEventListener('click',e=>{e.stopPropagation();buzz(8);PWT.p=i;pwUI(true);
+  if(i===0)say('Pans on. Float it flat and work the cream up.','info','pwPick',1200);else if(i===1)say('Pans off. Blades flat to knock the swirls down.','info','pwPick',1200);
+  else say(PWT_N[i]+' pitch. More pitch, more shine, if the mud can take it.','info','pwPick',1200)}));
+// share of the floor burnished to a shine (what the sim is doing, kept on the grid for the readout and the score)
+function pwShine(){let s2=0,n=0;for(let i=0;i<N;i++){if(!inR[i])continue;s2+=Math.min(1,PWT.pol[i]);n++}return n?s2/n:0}
+function pwRead(){const sh=Math.round(pwShine()*100),tw=Math.round(avg(trow)*100),P=PWT.p,id=pwIdeal(),d=P-id;
+  const st=set<.5?'too soft, wait':P===0?(set>.72?'pans skating, go to blades':'floating, cream coming up'):d>1.1?'too much pitch, it’s digging':d<-1.4?'skating, add pitch':sh>=85?'mirror':sh<25?'knocking the swirls down':'burnishing';
+  return`${PWT_N[P]} · troweled ${tw}% · shine ${sh}% · ${st}`}
 function rideTick(dt,t){
+  try{pwTick(dt)}catch(e){console.warn('pw',e)}
   const R=RIDE,can=rideCan();
   // each time a power stage opens: ride-on by default, straight onto the seat in the ride-on drill
   const key=can?(LV&&LV.id)+'|'+(practice?practice.k:'')+'|'+stage:false;
@@ -7620,6 +7718,7 @@ function updateTools(dt,t){
   const TF=toolFeel(k);
   if(k==='expose'&&!EXW.pd){toolPos.set(wx(ptr.x),0,wz(ptr.y));EXW.kick=1}
   toolTarget.set(wx(ptr.x),0,wz(ptr.y));if(!(RIDE.drive&&rideLive()))toolPos.lerp(toolTarget,1-Math.pow(.0005,dt*(1-(TRD.on?.15:.35)*TF.suck)));
+  if(k==='power'&&!(RIDE.drive&&rideLive())){try{pwClamp();pwWork()}catch(e){console.warn('pw',e)}}   // v419: the machine stays on the slab and trowels where it goes
   const X=toolPos.x,Z=toolPos.z,Y=Math.max(0,surfY(X,Z));
   const vz=ptr.vy,mvx=ptr.vx;
   if(k==='float'){
@@ -7779,7 +7878,7 @@ function hud(t){
   else if(k==='form')r=`Forms set ${formPieces.filter(f=>f.placed).length} of ${formPieces.length} boards · trace around the outside`;
   else if(k==='tube')r=`Loop ${Math.round(tubeLen)} ft laid · heats ${Math.round(tubeCovPct()*100)}% of the slab`+(tubeCross?` · crossed ${tubeCross}×`:'');
   else if(k==='expose')r=`Stone bared ${Math.round(avg(expo)*100)}% · ${set<.5?'too soft yet':set>.78?'paste setting up':EXW.haze>.08?'slurry drying on it':'washing clean'}`;
-  else if(k==='power')r=`Floor troweled ${Math.round(avg(trow)*100)}% · ${set<.5?'too soft, wait':set>.9?'last burnish passes':'pans and blades'}`;
+  else if(k==='power')r=pwRead();
   else{const s=broomStats();r=`Textured ${Math.round(s.cov*100)}% · strokes ${Math.round(s.cons*100)}% consistent`}
   {const sr=strHud(STAGES[stage].key)||brgHud(STAGES[stage].key);if(sr)r=sr}
   $('readout').textContent=r;
@@ -7847,7 +7946,7 @@ $('next').addEventListener('click',e=>{
     if(k==='tube'&&isPrep())say('Forms are set and the rebar\'s tied. Lay the heating loop.','good','nPrepTube',0);
     if(k==='pour'&&S.tube!=null)say('Loop\'s tied off at the manifold. Truck\'s backing in.','good','nTube',0);
     if(k==='expose')say(set<.5?'Let it firm up first. Thumb-test.':'Start on the side nearest you and work away, pushing the slurry off the far edge. Keep the wand moving.','info','nEx',0);
-    if(k==='power')say(set<.52?'Too soft for the machine yet. Hold fast-forward and thumb-test.':'Fire it up. Overlapping passes, cover the whole floor.','info','nPw',0);
+    if(k==='power')say(set<.52?'Too soft for the machine yet. Hold fast-forward and thumb-test.':'Pans on first. Float it and work the cream up, then pull the pans and step the pitch up each pass. The green dot shows what the mud wants.','info','nPw',0);
     if(k==='blanket')say(set<.72?'Wait until it won\'t mark. Thumb-test first.':'Drag along the slab to roll out each blanket.','info','nBl',0);
   }else finish(false);
 });
@@ -7965,7 +8064,7 @@ const PRACTICE=[
  {k:'trowel',sec:'Finishing',ic:'trowel',n:'Hand trowel',d:'Sweeping arcs, no marks',lv:'patio',st:'trowel',goal:'Trowel 100%',tgt:1,gold:30,silver:50},
  {k:'joint',sec:'Finishing',ic:'groover',n:'Groover',d:'Straight control joints',lv:'drive1',st:'joint',goal:'Cut 3 joints',tgt:1,gold:20,silver:40,prog:()=>Math.min(1,doneJoints().length/3)},
  {k:'broom',sec:'Finishing',ic:'broom',n:'Broom',d:'Clean even passes',lv:'drive1',st:'broom',goal:'Broom 100%',tgt:1,gold:20,silver:35},
- {k:'power',sec:'Finishing',ic:'power',n:'Power trowel',d:'Burnish a garage floor',lv:'garage',st:'power',goal:'Trowel the whole floor',tgt:1,gold:40,silver:70},
+ {k:'power',sec:'Finishing',ic:'power',n:'Power trowel',d:'Burnish a garage floor',lv:'garage',st:'power',goal:'Pans, then blades: burnish it to a shine',tgt:1,gold:60,silver:100,prog:()=>Math.min(1,.4*Math.min(1,avg(trow)/.97)+.6*Math.min(1,pwShine()/.8))},
  {k:'ride',sec:'Finishing',ic:'power',n:'Ride-on trowel',d:'Drive the twin-rotor over a big pad',lv:'night',st:'power',ride:1,goal:'Trowel 90% of the floor',tgt:1,gold:45,silver:75,prog:()=>Math.min(1,stageProg('power')/.9)},
  {k:'stamp',sec:'Decorative',ic:'stamp',n:'Stamping',d:'Lay the mats in order',lv:'stamp',st:'stamp',goal:'Print every mat',tgt:1,gold:45,silver:80},
  {k:'expose',sec:'Decorative',ic:'wash',n:'Exposed wash',d:'Bare the stone, don\'t blast it',lv:'exposed',st:'expose',goal:'Bare all the stone',tgt:1,gold:30,silver:50},
@@ -8027,8 +8126,10 @@ function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){
       setJMode(c.o);jDrag={pos:c.p,at,moved:0,t:new Float32Array(48)};lockJoint();if(!curJ)return;for(let q=curJ.a;q<curJ.b;q++)curJ.cells[q]=1.15;curJ.q=curJ.w=1;curJ.set=set;curJ.done=true;
       try{if(M2.on&&!LV.saw){const pos=curJ.o==='x'?wx(curJ.p):wz(curJ.p),P=al=>curJ.o==='x'?[pos,wz(al)]:[wx(al),pos];m2Stamp({t:9,A:[...P(curJ.a),...P(curJ.b)],B:[9,.115,1,0],C:[0,0,0,0]})}}catch(e){}curJ=null});jDrag=null;jArmed=null;surfDirty=true}
   else if(k==='broom'){const W=3.2/LS;for(let y=RY0+W*.5;y<RY1+W*.4;y+=W*.95)broomSeg(RX0,y,RX1,y)}
-  else if(k==='power'){for(let pass=0;pass<6;pass++)for(let y=RY0+.5;y<RY1;y+=1.5){M2.mute=1;try{powerSeg(RX0,y,RX1,y)}finally{M2.mute=0}}
-    try{const zc=(wz(RY0)+wz(RY1))/2;for(let r=0;r<3;r++)m2Stamp({t:10,A:[wx(RX0),zc,wx(RX1),zc],B:[10,SLAB_D,1,1.4],C:[0,0,0,0]})}catch(e){}}
+  else if(k==='power'){const sv=PWT.p,ss=set;   // v419: pans, then the blades up through the pitches as it firms up
+    for(const [P,st,n] of[[0,.6,1],[1,.66,1],[2,.74,1],[3,.82,1],[4,.9,2]]){PWT.p=P;set=Math.max(ss,st);for(let pass=0;pass<n;pass++)for(let y=RY0+.5;y<RY1;y+=1.5){M2.mute=1;try{powerSeg(RX0,y,RX1,y)}finally{M2.mute=0}}}
+    PWT.p=sv;set=ss;
+    try{const zc=(wz(RY0)+wz(RY1))/2,A=[wx(RX0),zc,wx(RX1),zc];m2Stamp({t:10,A,B:[10,SLAB_D,1,0],C:[0,0,0,0]});for(let r=0;r<4;r++)m2Stamp({t:10,A,B:[10,SLAB_D,.7,r<1?2:4],C:[0,0,.3,0]})}catch(e){}}
   else if(k==='release')spRelAll();
   else if(k==='stamp'&&spWant())spAuto();
   else if(STR.on&&STRAUTO[k])STRAUTO[k]();
@@ -8165,7 +8266,7 @@ function buildSC(){
     expose:()=>{try{exwAgg()}catch(e){}const c=avg(expo);let ov=0,n=0;for(let i=0;i<N;i++)if(inR[i]){ov+=EXW.bl[i];n++}ov=n?ov/n:0;const hz=EXW.haze;
       return['Wash off',c*(.3+.7*q('expose'))*(1-Math.min(.6,ov*1.5))*(1-.25*hz),`${Math.round(c*100)}% of the stone bared. `+(ov>.03?'Some spots got blasted too deep. ':'')+(hz>.08?'Slurry dried on the stone in spots. ':'')+tm('expose')]},
     rebar:()=>{const p=rebProg(),t=rebTied(),n=rebNeed(),ex=rebN-t;return['Rebar',clamp01(p),`${REB?REB.runs.filter(b=>b.on).length+'/'+REB.runs.length+' bars, ':''}${t} of ${n} ties`+(ex>0?` (+${ex} extra)`:'')+'. '+(p>=.97?'Mat\'s locked in.':p>=.7?'Some bars will drift during the pour.':'The mat will shift when the mud hits it.')]},
-    power:()=>{const c=avg(trow);return['Power trowel',c*(.3+.7*q('power')),`${Math.round(c*100)}% of the floor troweled. `+tm('power')]},
+    power:()=>{const c=avg(trow),sh=pwShine();return['Power trowel',c*(.3+.7*q('power'))*(.8+.2*Math.min(1,sh/.7)),`${Math.round(c*100)}% of the floor troweled, ${Math.round(sh*100)}% burnished to a shine. `+tm('power')]},
     stamp:()=>{const st=stampStats();if(SP.g)return['Stamp',st.cov*(.3+.7*st.q)*Math.max(.4,1-st.dbl*.06-st.off*.04-st.stuck*.05),
       `${Math.round(st.cov*100)}% printed with ${st.mats} mats`+(st.dbl?`, ${st.dbl} double-stamped`:'')+(st.off?`, ${st.off} off line`:'')+(st.stuck?`, ${st.stuck} stuck`:'')+'. '+(st.n===0?'':st.q>.85?'Crisp imprint.':st.q>.5?'Imprint is uneven.':'Poor timing on the mats.')];
       return['Stamp',st.cov*(.3+.7*st.q)*Math.max(.4,1-st.dbl*.06),
