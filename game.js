@@ -7153,8 +7153,8 @@ function buildTrowel(THREE, o) {
 
 
 /* ---------- v158: ride-on trowel. The KT-46 model from the viewer. Finger mode follows your touch; Drive mode puts you on the seat (two rotor sticks, keys, four camera angles) ---------- */
-const RIDE={on:false,armed:false,bigL:null,big:false,drive:false,yaw:0,v:0,w:0,js:[{x:0,y:0},{x:0,y:0}],key:{u:false,d:false,l:false,r:false},pov:'seat',cp:null,cl:null,fov:null,uiT:0,built:null};
-const RIDE_POV=['seat','chase','side','top'],RIDE_POVN={seat:'Seat',chase:'Chase',side:'Side',top:'Top'};
+const RIDE={on:false,armed:false,bigL:null,big:false,drive:false,yaw:0,v:0,w:0,js:[{x:0,y:0},{x:0,y:0}],key:{u:false,d:false,l:false,r:false},pov:'third',cp:null,cl:null,fov:null,uiT:0,built:null,fx:0,fy:0};
+const RIDE_POV=['third','site','seat','side','top'],RIDE_POVN={third:'3rd person',site:'Site photo',seat:'Seat',side:'Side',top:'Top'};   // v420: drive seat opens in 3rd person (behind the machine, centred); Site photo keeps the job's photo view and follows the machine
 // the ride-on is on offer in the power stage when you rent or own it, in the ride-on drill, or (outside Career) on any slab of 300 sq ft or more
 function rideCan(){if(!(running&&STAGES[stage]&&STAGES[stage].key==='power'))return false;
   if(gear('ride')||(practice&&practice.ride))return true;if(mode==='career')return false;
@@ -7256,8 +7256,25 @@ function rideTick(dt,t){
   T.root.position.set(X,Y,Z);T.root.rotation.y=R.yaw;
 }
 // first-person and outside cameras on the machine; returns true when it took the camera
+/* v420: 3rd person (default): camera up behind the machine, looking at it, eased so turns swing the view gently; the machine sits centred in the
+   clear space between the top bars and the joysticks. Site photo: keeps the job's own camera (and its photo) and steers the view so the machine
+   stays centred there. Calm: a small dead zone, eased, speed-capped, so spinning the machine in place moves nothing. */
+function rideOwnCam(){const R=RIDE;return !!(R.drive&&R.pov!=='site'&&rideLive()&&R.built&&R.built.root.visible)}
+// where the machine should sit on screen: centred across, halfway between the top bars and the speed / camera readout between the sticks
+function rideBand(r){let top=r.top,bot=r.bottom;for(const id of['hudTop','drillHud']){const el=$(id);if(!el||el.hidden)continue;const b=el.getBoundingClientRect();if(b.height&&b.bottom>top&&b.bottom<r.top+r.height*.6)top=b.bottom}
+  {const m=document.querySelector('#ridePad .bmid'),b=m&&m.getBoundingClientRect();if(b&&b.height&&b.top>top+60)bot=b.top;else{const h=$('hudBot').getBoundingClientRect();if(h.height)bot=h.top}}
+  return[r.left+r.width/2,(top+bot)/2,top,bot]}
+function rideFollow(dt){const T=RIDE.built;dt=Math.min(.1,Math.max(0,dt||0));if(!T||!running)return;const r=cv.getBoundingClientRect();if(!r.width)return;
+  const v=new THREE.Vector3(toolPos.x,Math.max(0,surfY(toolPos.x,toolPos.z))+.6,toolPos.z).project(camera);if(v.z>1)return;
+  const sx=r.left+(v.x+1)/2*r.width,sy=r.top+(1-v.y)/2*r.height;
+  const [tx,ty,top,bot]=rideBand(r),ox=sx-tx,oy=sy-ty,dz=Math.min(r.width,bot-top)*.06,om=Math.hypot(ox,oy);
+  if(om<=dz&&Math.hypot(RIDE.fx,RIDE.fy)<.5){RIDE.fx=RIDE.fy=0;return}
+  const k=om>dz?(om-dz)/om:0,fr=1-Math.exp(-dt/.3),cap=420*dt;let dx=-ox*k*fr,dy=-oy*k*fr;const dm=Math.hypot(dx,dy);if(dm>cap){dx*=cap/dm;dy*=cap/dm}
+  RIDE.fx=dx;RIDE.fy=dy;if(Math.abs(dx)+Math.abs(dy)<.05)return;
+  if(typeof BKD!=='undefined'&&BKD.on)bkdPanBy(dx,dy);else panBy(dx,dy);try{clearTimeout(panSave.t);panSave.t=setTimeout(panSave,600)}catch(e){}}
 function rideCamera(dt){
-  const R=RIDE,T=R.built,on=!!(R.drive&&rideLive()&&T&&T.root.visible);
+  const R=RIDE,T=R.built,on=rideOwnCam();
+  if(R.drive&&R.pov==='site'&&rideLive()&&T&&T.root.visible)try{rideFollow(dt)}catch(e){console.warn('ridefollow',e)}
   if(!on){if(R.fov!=null){camera.fov=R.fov;camera.near=.5;camera.updateProjectionMatrix();R.fov=null;R.cp=null}return false}
   if(R.fov==null)R.fov=camera.fov;
   const pov=R.pov,wantF=pov==='seat'?(cssW<cssH?80:66):(cssW<cssH?66:55);
@@ -7265,13 +7282,16 @@ function rideCamera(dt){
   T.root.updateMatrixWorld(true);
   const E=new THREE.Vector3(),Lk=new THREE.Vector3();
   if(pov==='seat'){E.copy(T.eye);Lk.set(3.6,.15,0)}
-  else if(pov==='chase'){E.set(-5.6,2.7,0);Lk.set(1.6,.3,0)}
+  else if(pov==='third'){E.set(-9.5,5.6,0);Lk.set(0,.5,0)}   // v420: up behind, looking at the machine
   else if(pov==='side'){E.set(0,1.6,4.6);Lk.set(0,.2,0)}
   else{E.set(0,11,.01);Lk.set(0,0,0)}
   T.root.localToWorld(E);T.root.localToWorld(Lk);
   if(!R.cp){R.cp=E.clone();R.cl=Lk.clone()}
-  const sm=pov==='seat'?1:1-Math.pow(.02,dt);R.cp.lerp(E,sm);R.cl.lerp(Lk,sm);
-  camera.position.copy(R.cp);camera.lookAt(R.cl);return true;
+  const sm=pov==='seat'?1:1-Math.pow(pov==='third'?.12:.02,dt);R.cp.lerp(E,sm);R.cl.lerp(Lk,sm);
+  camera.position.copy(R.cp);camera.lookAt(R.cl);
+  if(pov==='third'){try{const r=cv.getBoundingClientRect(),ty=rideBand(r)[1],hb=$('hudBot').getBoundingClientRect(),ht=$('hudTop').getBoundingClientRect(),c0=(ht.bottom+(hb.height?hb.top:r.bottom))/2,fullH=cssH+Math.abs(viewPad);
+    camera.rotateX(Math.atan((ty-c0)/(fullH/2)*Math.tan(camera.fov*Math.PI/360)))}catch(e){}}
+  return true;
 }
 function rideCycle(){RIDE.pov=RIDE_POV[(RIDE_POV.indexOf(RIDE.pov)+1)%RIDE_POV.length];RIDE.cp=null;rideUI(true)}
 function rideUI(force){const now=performance.now();if(!force&&now-RIDE.uiT<150)return;RIDE.uiT=now;
@@ -8878,7 +8898,7 @@ function fgoTick(){const C=BKD.on&&!BKD.yr&&BKD.L&&bkdC(BKD.L);if(!C||!C.fgOcc||
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(tri.flat());
     const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,depthTest:false,depthWrite:false,transparent:true}));m.renderOrder=999;m.raycast=()=>{};m.frustumCulled=false;scene.add(m);FGO.m=m;FGO.L=BKD.L}
   FGO.m.visible=true}
-function bkdTick(){try{aprTick()}catch(e){}try{fgoTick()}catch(e){}try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible));/* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
+function bkdTick(){try{aprTick()}catch(e){}try{fgoTick()}catch(e){}try{bkdViewTick()}catch(e){}if(loadCurtain.on&&((BKD.on&&BKD.L===LV&&++loadCurtain.n>3)||(typeof cabOn!=='undefined'&&cabOn)))loadCurtain(false);const want=!!(LV&&LV.paint&&BKD.load&&BKD.load.L===LV&&BKD.load.ok&&introEl.hidden&&!(running&&typeof cabOn!=='undefined'&&cabOn&&cabAvail()&&exG.visible)&&!(typeof rideOwnCam==='function'&&rideOwnCam()));   /* v420: seat / chase / side / top on the ride-on move the camera, so they get the 3D world like the cab *//* v324: the photo backdrop only matches the fixed site camera; the excavator cab / chase cams move, so they get the full 3D world */
   if(want&&(!BKD.on||BKD.L!==LV)){bkdOff();BKD.farDone=false;bkdOn()}else if(!want&&BKD.on)bkdOff();
   if(!BKD.on)return;bkdHideTick();
   // where the game wanted to look this frame, and how much of the ground it wanted to see there
