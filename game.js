@@ -1,7 +1,7 @@
 try{BOOT.at(.3,'Building the site')}catch(e){}
 setTimeout(()=>{
 try{(()=>{
-const GW=48, GH=24, N=GW*GH;
+const GW=48, GH=24, N=GW*GH;const FRESH={t:0,sT:0,sP:0};/* v421: fresh-soil drying clock and pit rebuild throttle */
 /* v364: per-cell extras for the slab shader (one small texture, GPS.mk): R = the yard photo's own shade on the pour, G = dusting (finished over
    bleed water), B = broom tear (broomed too wet), A = fresh wet sheen (mud just flowed, paste just pulled up) or, during the hose test, water depth */
 const PSH=new Float32Array(N),DUST=new Float32Array(N),TEAR=new Float32Array(N),PST=new Float32Array(N),MKS={t:0,live:0,dirty:1};
@@ -68,9 +68,9 @@ const DEFS={
   mark:{name:'Lay out',win:[0,1],soft:1,
    desc:'Lay it out. The dotted line shows where the pad goes. Trace it with your finger to spray orange marking paint all the way around, so you can see where to dig on the grass. The clock doesn\'t start until the truck shows.'},
   dig:{name:'Excavate',win:[0,1],soft:1,
-   desc:'Dig it out. Drag where you want the bucket: it strips the {SURF} and digs down to subgrade, and the machine tracks along to keep up. Get every corner. Anything left under a slab rots and settles. Let go and it dumps on the spoil pile. The clock doesn\'t start until the truck shows.'},
+   desc:'Dig it out. Drag where you want the bucket: the teeth bite where the bucket goes, stripping the {SURF} down to subgrade, and the machine tracks along to keep up. When the bucket\'s full it swings over the truck, dumps and comes back to your finger. Let go and it dumps what it\'s carrying. Get every corner. Anything left under a slab rots and settles. The clock doesn\'t start until the truck shows.'},
   gravel:{name:'Spread gravel',win:[0,1],soft:1,
-   desc:'The truck dumped {GT} of Granular A beside the pit. Drag the loaded bucket over the pit to spread an even lift out to the walls. Let go and it scoops another bucket. Thin spots settle, and the pile is only so big.'},
+   desc:'The truck dumped {GT} of Granular A beside the pit. Hold on the pit and the machine scoops a bucket off the pile, then drag it around: the stone runs out of the bucket where it goes, and dragging over what\'s down back-drags the high spots into the lows. Empty bucket, it goes back to the pile on its own. Thin spots settle, and the pile is only so big.'},
   base:{name:'Compact',win:[0,1],soft:1,
    desc:'Run the plate compactor over all of the gravel in overlapping passes, two passes everywhere. Watch it tighten up and drop. Soft spots settle and crack the slab later.'},
   form:{name:'Set forms',win:[0,1],soft:1,
@@ -3461,7 +3461,7 @@ function scrWave(P,n){if(!WV.on||STR.on||(LV&&LV.bridge)||(M2.on&&!scrStrip()))r
     const pr=Math.pow(Math.min(1,t/.2),.6)*Math.pow(1-t,1.7)/.68,rip=1+.08*Math.sin(al*.85+b*2.1)+.04*Math.sin(al*2.3-b*3.7);
     P[k*3+1]+=c*.06*pr*rip*(vMode[k]===2?.55:1)}}
 function updateGeo(){
-  if(typeof soilMode==='function'&&soilMode()){soilGeo();return}
+  if(typeof soilMode==='function'&&soilMode()){const nw=performance.now();if(nw-FRESH.sT<30){FRESH.sP=1;return}FRESH.sT=nw;FRESH.sP=0;soilGeo();return}/* v421: the pit rebuild (normals over the whole mesh) runs at most ~30 times a second while digging */
   if(STR.on){strGeo();return}
   const p=slabGeo.attributes.position,n=p.count,P=p.array,D0=-DEPTH-.4,D1=-DEPTH+.1,E=EXf()/12,HOLD=BKE.value>.5&&STAGES[stage]&&STAGES[stage].key!=='pour';// v294: painted site after the pour: a hole stays a low concrete spot, not a window onto the backdrop
   // v250: was ~6 ms a call (it runs every frame a tool is moving): bilinear lookups inlined, normals straight from the grid neighbours
@@ -6255,7 +6255,7 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   else if(k==='shape')shapeSeg(p.x,p.y,p.x+.01,p.y);
   else if(k==='slip'){}
   else if(k==='cure')cureSeg(ptr.x,ptr.y,p.x,p.y);
-  else if(k==='mark')markTrace(p,true);else if(k==='strip')stripSeg(p.x,p.y,p.x,p.y);else if(k==='dig')digSeg(p.x,p.y,p.x,p.y);else if(k==='gravel')gravSeg(p.x,p.y,p.x,p.y);else if(k==='base'){compPassId++;compDir=null;compactSeg(p.x,p.y,p.x,p.y)}else if(k==='form')formTrace(p.x,p.y);else if(k==='rebar')rebDown(p.wx,p.wz);
+  else if(k==='mark')markTrace(p,true);else if(k==='strip')stripSeg(p.x,p.y,p.x,p.y);else if(k==='dig'||k==='gravel'){}/* v421: the bucket does the work where it goes (updateExcavator) */else if(k==='base'){compPassId++;compDir=null;compactSeg(p.x,p.y,p.x,p.y)}else if(k==='form')formTrace(p.x,p.y);else if(k==='rebar')rebDown(p.wx,p.wz);
   if(!(RIDE.drive&&rideLive()))toolPos.set(wx(p.x),0,wz(p.y));
 });
 cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
@@ -6279,7 +6279,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='cure')cureSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='trowel')trowelSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='joint')jointMove(p);
-  else if(k==='mark')markTrace(p);else if(k==='strip')stripSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='dig')digSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='gravel')gravSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='base')compactSeg(ptr.x,ptr.y,p.x,p.y);
+  else if(k==='mark')markTrace(p);else if(k==='strip')stripSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='dig'||k==='gravel'){}else if(k==='base')compactSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='form'){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.6));for(let q=1;q<=n;q++)formTrace(ptr.x+dx*q/n,ptr.y+dy*q/n)}
   else if(k==='tube'){const ox=wx(ptr.x),oz=wz(ptr.y),n=Math.max(1,Math.ceil(Math.hypot(p.wx-ox,p.wz-oz)/.5));for(let q=1;q<=n;q++)tubeAt(ox+(p.wx-ox)*q/n,oz+(p.wz-oz)*q/n)}
   else if(k==='rebar')rebMove(p.wx,p.wz);
@@ -7889,8 +7889,8 @@ function hud(t){
   else if(k==='strip')r=`Stripped ${Math.round(stripPct()*100)}% · spoil ${(spoilVol/27).toFixed(1)} yd³`;
   else if(k==='mark')r=`Painted ${Math.round(markPct()*100)}% of the outline · trace the dotted line`;
   else if(k==='rebar'){const ph=rebPh();r=ph==='bar'?`Bars ${REB.runs.filter(b=>b.on).length} of ${REB.runs.length} · sweep across the glowing lanes`+(rebLayer()?' · top layer':' · bottom layer'):`Ties ${rebTied()} of ${rebNeed()} · drag along the bars over the ${LV&&LV.bridge?'blue':'orange'} rings`}
-  else if(k==='dig')r=`Dug ${Math.round(digPct()*100)}% to subgrade · `+(cabOn?`bucket ${Math.round(exLoad*100)}%`:`spoil ${(spoilVol/27).toFixed(1)} yd³`);
-  else if(k==='gravel')r=`Spread ${Math.round(gravPct()*100)}% · `+(cabOn?`bucket ${Math.round(exLoad*100)}% · `:`${Math.round(GTf()*12)} in lift · `)+`pile ${Math.round(gravLeft*100)}% left`;
+  else if(k==='dig')r=`Dug ${Math.round(digPct()*100)}% to subgrade · bucket ${Math.round(exLoad*100)}% · `+`${(spoilVol/27).toFixed(1)} yd³ out`;
+  else if(k==='gravel')r=`Spread ${Math.round(gravPct()*100)}% · bucket ${Math.round(exLoad*100)}% · pile ${Math.round(gravLeft*100)}% left`;
   else if(k==='base')r=`Compacted ${Math.round(compPct()*100)}% · `+(compTool==='roller'?'one pass with the roller, then plate the edges':'two passes everywhere');
   else if(k==='slip'){const dz=CZ.d0-sl.s;r=`${Math.round(sl.s)} of ${Math.round(CLT)} ft · hopper ${Math.round(sl.hop*100)}% · ${(sl.v).toFixed(1)} ft/s`+(dz>0&&dz<25?` · DRIVEWAY in ${Math.ceil(dz)} ft`:sl.s>=CZ.d0&&sl.s<=CZ.d1?' · DRIVEWAY: drop it!':'')+(sl.stops?` · ${sl.stops} stop${sl.stops>1?'s':''}`:'')}
   else if(k==='cure'){const c=cureStats();r=`Cured ${Math.round(c.cov*100)}% white`+(c.ov>.05?' · puddling in spots':'')}
@@ -8070,9 +8070,9 @@ const tIcon=k=>`<svg viewBox="0 0 48 48" aria-hidden="true">${TOOLICON[k]||''}</
 // each drill: target on the job's own progress meter, gold/silver times in seconds
 const PRACTICE=[
  {k:'cab',sec:'Machines',ic:'truck',n:'Load the truck',d:'Fill the dump truck from the cab',lv:'patio',st:'dig',prep:1,cab:1,goal:'Heap the truck box',tgt:1,gold:110,silver:180,prog:()=>Math.min(1,dumpT.userData.load/Math.max(1,dumpT.userData.cap*1.1))},
- {k:'dig',sec:'Machines',ic:'excav',n:'Dig to grade',d:'Strip the sod, dig to subgrade',lv:'drive1',st:'dig',prep:1,goal:'Dig 100% to subgrade',tgt:1,gold:45,silver:80},
+ {k:'dig',sec:'Machines',ic:'excav',n:'Dig to grade',d:'Strip the sod, dig to subgrade',lv:'drive1',st:'dig',prep:1,goal:'Dig 100% to subgrade',tgt:1,gold:50,silver:85},
  {k:'strip',sec:'Machines',ic:'excav',n:'Strip asphalt',d:'Break up the old driveway, load it out',lv:'drive1',st:'strip',prep:1,goal:'Strip 100% of the asphalt',tgt:1,gold:40,silver:70},
- {k:'grav',sec:'Machines',ic:'gravel',n:'Spread the base',d:'Gravel out even, edge to edge',lv:'drive1',st:'gravel',prep:1,goal:'Spread it all',tgt:1,gold:40,silver:70},
+ {k:'grav',sec:'Machines',ic:'gravel',n:'Spread the base',d:'Gravel out even, edge to edge',lv:'drive1',st:'gravel',prep:1,goal:'Spread it all',tgt:1,gold:50,silver:80},
  {k:'pack',sec:'Machines',ic:'pack',n:'Pack it',d:'Roller and plate, no soft spots',lv:'drive1',st:'base',prep:1,goal:'Compact 100%',tgt:1,gold:30,silver:55},
  {k:'slip',sec:'Machines',ic:'slip',n:'Slipform curb',d:'Drive and keep the hopper fed',lv:'curb',st:'slip',goal:'Run the whole curb',tgt:1,gold:60,silver:100},
  {k:'form',sec:'Placing',ic:'forms',n:'Set forms',d:'Trace the boards and stakes',lv:'patio',st:'form',prep:1,goal:'Set 100% of the forms',tgt:1,gold:20,silver:40},
@@ -8990,7 +8990,7 @@ function step(t,dt){
   try{if(cab.fov==null&&BUG.fov==null&&RIDE.fov==null){let nn=.5;if(!(typeof BKD!=='undefined'&&BKD.on)&&(Math.hypot(PAN.x,PAN.z)>1||Math.abs(PAN.yaw)>.05||Math.abs(PAN.pitch)>.05)){const d=camPos.distanceTo(lookC),h=Math.max(.5,camera.position.y-ELV()),f=camera.fov*Math.PI/360,el=Math.asin(Math.min(1,h/Math.max(d,.1)));nn=Math.max(.5,Math.min(d*.45,.85*h/Math.sin(Math.min(1.5,el+f*1.3))*Math.cos(f)))}{/* v248: pull the near plane IN at once (zooming in left it stuck far out and cut a hole in the ground); push it out gently */let nw=nn<camera.near?nn:camera.near+(nn-camera.near)*Math.min(1,dt*2.5);if(Math.abs(nw-nn)<.03)nw=nn;if(Math.abs(nw-camera.near)>.01){camera.near=nw;camera.updateProjectionMatrix()}}}}catch(e){} // cut branches/fences right at the lens without opening a hole in the ground // v166: orbited/slid views hide houses and sheds standing between the lens and the slab
   if(arrive&&running){try{arriveStep(dt,t)}catch(e){console.warn('arrive',e);arrive=null}}
   try{barkTick(dt);siteTick(dt)}catch(e){console.warn('bark',e)}
-  if(!cabCamera()&&cab.fov!=null){camera.fov=cab.fov;camera.near=.5;camera.updateProjectionMatrix();cab.fov=null}
+  if(!cabCamera(dt)&&cab.fov!=null){camera.fov=cab.fov;camera.near=.5;camera.updateProjectionMatrix();cab.fov=null}
   try{bugCamera(dt)}catch(e){console.warn('bugcam',e)}
   try{rideCamera(dt)}catch(e){console.warn('ridecam',e)}
   {const sa=Math.max(shakeA,RUM.cam);if(sa>.004){camera.position.x+=(Math.random()-.5)*sa;camera.position.y+=(Math.random()-.5)*sa*.7;camera.position.z+=(Math.random()-.5)*sa}if(shakeA>.004)shakeA*=Math.pow(.004,dt);else shakeA=0}
@@ -9926,7 +9926,7 @@ function robinTick(dt,t){const ok=running&&lawnOn&&!weather.night&&!(RT().snow)&
 
 /* ---------- site prep: excavate, spread gravel, compact, forms ---------- */
 const crackD=new Float32Array(N),AR={ch:[],cell:null,im:null,gv:null,tot:0,sc:0,vol:0,act:[],pf:0,pool:[],hit:0,dust:0,ex:0,hamOn:null,ham:null,tw:new THREE.Vector3(),dirty:false};let ARA3=-1.3;
-const digD=new Float32Array(N),stripD=new Float32Array(N),mixD=new Float32Array(N),compF=new Float32Array(N),gravF=new Float32Array(N);let spoilVol=0,gravLeft=1,formGhost=null,layerT=0,layerDirty=true;
+const freshD=new Float32Array(N),digD=new Float32Array(N),stripD=new Float32Array(N),mixD=new Float32Array(N),compF=new Float32Array(N),gravF=new Float32Array(N);let spoilVol=0,gravLeft=1,formGhost=null,layerT=0,layerDirty=true;
 let PM=new Uint8Array(N),PZc=new Uint8Array(N),PZN=1,zoneZ=null,zoneI=null,pVU=new Float32Array(1),pVV=new Float32Array(1),pIn=[],pOut=[];
 const ASPH_JOBS=/^(drive1|drive2|drivewalk|heated|freeze|stampdrive)$/;
 const PORCH=()=>!!LV&&LV.id==='porch';
@@ -10113,15 +10113,15 @@ function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&ST
      for(let i=0;i<markPts.length;i++){if(!markDone[i])continue;markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
   const on=k==='mark'&&ptr.down&&running;sprayCan.visible=on;if(on&&markLast){sprayCan.position.set(markLast[0],prepSurfY(markLast[0],markLast[1])+1.1,markLast[1]);sprayCan.userData.mist.material.opacity=.25+Math.random()*.2}}
 
-function prepReset(){digD.fill(0);stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed});
+function prepReset(){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed});
   pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});
   layerInit();slipReset();exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{markBuild()}catch(e){console.warn(e)}}
 // v97: going back a step in prep restarts that step and everything after it (forms come off, gravel goes back to the pile, and so on)
 function unwindPrep(){if(!isPrep()||placed>0)return;const k=STAGES[stage]&&STAGES[stage].key,ord=['mark','break','strip','dig','gravel','base','form','rebar'],i=ord.indexOf(k);if(i<0)return;const from=n=>i<=ord.indexOf(n);
   if(from('strip')&&S.strip!=null){crackD.fill(0);try{arBuild()}catch(e){console.warn(e)}stripD.fill(0);flags.stripSq=0;flags.hauled=0;spoilVol=0;exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
-  if(from('dig')){digD.fill(0);spoilVol=0;pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;
+  if(from('dig')){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;spoilVol=0;pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;
     try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
-  if(from('gravel')){gravF.fill(0);gravLeft=1}
+  if(from('gravel')){gravF.fill(0);gravLeft=1;exCyc=null;exTip0=null;exLoad=0}
   if(from('base'))compF.fill(0);
   if(from('form'))formPieces.forEach(f=>f.placed=false);
   if(from('rebar')){try{rebarReset()}catch(e){}}
@@ -10144,7 +10144,7 @@ function soilGeo(){const pg=pitMesh.geometry;if(!pg.attributes||!pg.attributes.p
   const p=pg.attributes.position,c=pg.attributes.color,n=p.count;
   for(let v=0;v<n;v++){const d=Math.min(1,bil(digD,pVU[v],pVV[v])),e=sstep(d),ec=Math.max(e,S.strip!=null?Math.min(1,Math.max(bil(stripD,pVU[v],pVV[v]),bil(crackD,pVU[v],pVV[v]))):0),hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);
     p.setY(v,pitY(d)+(n2-.5)*.06*e*(1-e*.5));
-    const r=.66+.36*ec+(n2-.5)*.08,g=.64+.35*ec+(n2-.5)*.07,b=.62+.34*ec+(n2-.5)*.06;c.setXYZ(v,r,g,b)}
+    const fr=e>.02?bil(freshD,pVU[v],pVV[v])*Math.min(1,e*3):0,wt=1-.24*fr,r=(.66+.36*ec+(n2-.5)*.08)*wt,g=(.64+.35*ec+(n2-.5)*.07)*wt,b=(.62+.34*ec+(n2-.5)*.06)*(wt+.03*fr);c.setXYZ(v,r,g,b)}/* v421: fresh-cut soil reads damp and darker, then dries */
   p.needsUpdate=true;c.needsUpdate=true;pg.computeVertexNormals();pg.computeBoundingSphere();layerDirty=true}
 function prepBrush(x0,y0,x1,y1,rft,fn){const W=rft*12/CELL_IN,dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1e-6,ux=dx/len,uy=dy/len;
   for(let cy=Math.max(0,Math.floor(Math.min(y0,y1)-W));cy<=Math.min(GH-1,Math.ceil(Math.max(y0,y1)+W));cy++)for(let cx=Math.max(0,Math.floor(Math.min(x0,x1)-W));cx<=Math.min(GW-1,Math.ceil(Math.max(x0,x1)+W));cx++){
@@ -10233,14 +10233,14 @@ function arTick(dt,t,k,P){
   if(exG.visible&&running){AR.ex-=dt;if(AR.ex<=0){AR.ex=ptr.down?.07:.2;exHouse.localToWorld(AR.tw.set(-.55,3.3,-2.3));arPuff(AR.tw.x,AR.tw.y,AR.tw.z,0x2c2c2e,.45,1.5,1.8,ptr.down?.42:.22)}}
   for(const p of AR.pool){if(!p.on)continue;p.age+=dt;const f=p.age/p.life;if(f>=1){p.on=false;p.s.visible=false;continue}
     p.s.position.x+=p.vx*dt;p.s.position.z+=p.vz*dt;p.s.position.y+=p.rise*dt;p.s.scale.setScalar(p.size*(.4+f*2.2));p.s.material.opacity=p.o*(1-f)*Math.min(1,f*8)}}
-function gravSeg(x0,y0,x1,y1,wk){if(gravLeft<=0){say('That\'s the whole load. Spread what\'s down.','info','gEmpty',0);return}
-  let got=0;prepBrush(x0,y0,x1,y1,1.6*EXS*BUCKETS[exBkt].w*(wk||1),(i,f)=>{const a=Math.min(.12*Math.min(1,f*(wk?1.4:1)),1.15-gravF[i]);if(a>0){gravF[i]+=a;got+=a}});
-  gravLeft=Math.max(0,gravLeft-got/(PZN*1.55));/* v331: a bit more stone on the truck: a careful spread with some spill used to run out at ~96% */geoDirty=true;layerDirty=true;if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(5)}}
+function gravSeg(x0,y0,x1,y1,wk,amt){if(gravLeft<=0){say('That\'s the whole load. Spread what\'s down.','info','gEmpty',0);return}
+  let got=0;prepBrush(x0,y0,x1,y1,1.6*EXS*BUCKETS[exBkt].w*(wk||1),(i,f)=>{const a=Math.min((amt||.12)*Math.min(1,f*(wk?1.4:1)),1.15-gravF[i]);if(a>0){gravF[i]+=a;got+=a}});
+  gravLeft=Math.max(0,gravLeft-got/(PZN*1.55));/* v331: a bit more stone on the truck: a careful spread with some spill used to run out at ~96% */layerDirty=true;/* v421: stone only changes the gravel layer, not the pit, so no pit rebuild */if(got>.05&&performance.now()-buzzT>90){buzzT=performance.now();buzz(5)}}
 let compPassId=1,compDir=null;const compPass=new Uint32Array(N);
 function compactSeg(x0,y0,x1,y1){const ro=compTool==='roller',dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy);
   if(l>.15){const d=[dx/l,dy/l];if(compDir&&d[0]*compDir[0]+d[1]*compDir[1]<-.3)compPassId++;compDir=d}
   prepBrush(x0,y0,x1,y1,ro?1.4:1,(i,f)=>{if(gravF[i]<=.4||compPass[i]===compPassId)return;compPass[i]=compPassId;const edge=ro&&nearPitEdge(i),k=ro?(edge?.3:1.05):.56;compF[i]=Math.max(compF[i],Math.min(edge?.55:1.2,compF[i]+k))});
-  geoDirty=true;layerDirty=true;if(performance.now()-buzzT>70){buzzT=performance.now();buzz(4)}}
+  layerDirty=true;if(performance.now()-buzzT>70){buzzT=performance.now();buzz(4)}}
 function formTrace(x,y){const X=wx(x),Z=wz(y);let bs=-1,bd=1e9,bt=0;
   if(LV.wall){let any=false;formPieces.forEach(f=>{const s=SEGS[f.seg],px=s.a[0]+s.dx*f.t,pz=s.a[1]+s.dz*f.t;if(Math.hypot(px-X,pz-Z)<s.L*f.hl+1.6){formGhost=[px,pz,Math.atan2(-s.dz,s.dx)];if(!f.placed){f.placed=true;f.m.visible=true;any=true}}});
     if(any){thump();buzz(12);const done={};formPieces.forEach(f=>{if(!(f.seg in done))done[f.seg]=true;if(!f.placed)done[f.seg]=false});formStakes.forEach(st=>{if(done[st.seg])st.m.visible=true})}return}
@@ -10431,6 +10431,7 @@ const bitDm=new THREE.Object3D();
 function updateBits(dt){let n=0;for(const b of bits){if(!b.on)continue;b.vy-=28*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;b.r+=dt*6;if(b.y<-.75){b.on=false;continue}
   bitDm.position.set(b.x,b.y,b.z);bitDm.rotation.set(b.r,b.r*.7,0);bitDm.scale.set(b.s,b.s*.75,b.s);bitDm.updateMatrix();bitsIM.setMatrixAt(n++,bitDm.matrix)}
   bitsIM.count=n;bitsIM.instanceMatrix.needsUpdate=true}
+const _exV=new THREE.Vector3();let exSwV=0;
 let exIdle=null,exBusy=false,exBuckets=0,exPark=null,exPos=[0,0],exTY=0,exHY=0,exT=null,exA3=-2.2,exRest=true,exLoad=0,exDumpT=0,exPrevDown=false;
 function exOk(x,z,drive){if(!blkFree(x,z,3.2*EXS))return false;if(drive){if(Math.abs(x-RCX)>RW/2+40||Math.abs(z-RCZ)>RD/2+40)return false;return !obst.some(o=>x>o[0]-3&&x<o[2]+3&&z>o[1]-3&&z<o[3]+3)}const q=nearestOnPoly(x,z),cl=(LV&&LV.wall?(LV.zoneOff!=null?LV.zoneOff:2)+3.8:3.7)*(.55+.45*EXS);if(pointInPoly(x,z,SHAPE)||q[2]<cl||(zoneI&&pointInPoly(x,z,zoneI)))return false;return !obst.some(o=>x>o[0]-3&&x<o[2]+3&&z>o[1]-3&&z<o[3]+3)}
 // anything solid on the lot (house, garage, trees, shed, parked trucks) as 2D boxes, so machines and piles never land inside it
@@ -10481,38 +10482,77 @@ function exSolve(tx,ty,tz,a3){const hy=exHY,fx=Math.sin(hy),fz=Math.cos(hy),dx=t
 function exPose(dt,t,snap){exG.position.set(exPos[0],exY=exGround(),exPos[1]);exUnder.rotation.y=exTY;exHouse.rotation.y=exHY;
   if(!exT){const f=[Math.sin(exHY),Math.cos(exHY)];exT=[exPos[0]+f[0]*7.5*EXS,.6,exPos[1]+f[1]*7.5*EXS]}
   return exSolve(exT[0],exT[1],exT[2],exA3)}
+/* v421: quick mode runs like a real machine. The dirt comes out where the bucket teeth are (not under your finger), the bucket fills as it drags,
+   and when it's full it curls, swings over the truck, dumps and comes back to your finger on its own. Gravel: the bucket carries a load from the
+   pile, the stone runs out of it where it goes, it swings back to the pile for more, and dragging over the base back-drags the high spots into the lows. */
+let exCyc=null,exTip0=null,exLug=0,exK=null;
+const QDIG={rate:2.8,rateStill:.7,near:2.3},QGRAV={rate:2.4,load:.22,lev:2.4};
+function qCap(){return cabCap()*1.5}
+function exHeadTo(x,z){const dd=Math.hypot(x-exPos[0],z-exPos[1])||1;return Math.atan2(x-exPos[0],z-exPos[1])-Math.asin(Math.max(-.5,Math.min(.5,XC.BX*EXS/dd)))}
+function digCellV(){return(CELL_IN*CELL_IN/144)*(PORCH()?TOPf()-SUBY():-SUBY()-.3)}
+// one frame of the bucket cutting along its own path (world coords); returns ft3 taken
+function digCut(x0,z0,x1,z1,amt){if(exLoad>=1)return 0;let got=0;const room=(1-exLoad)*qCap()/digCellV();
+  prepBrush(gu(x0),gv(z0),gu(x1),gv(z1),1.5*EXS*BUCKETS[exBkt].w,(i,f)=>{if(got>=room)return;const a=Math.min(amt*f,1-digD[i],room-got);if(a>0){digD[i]+=a;got+=a;freshD[i]=1}});
+  const v=got*digCellV();spoilVol+=v;exLoad=Math.min(1,exLoad+v/qCap());
+  if(got>0&&!flags.digSq&&digPct()>.96){flags.digSq=1;let add=0;for(let i=0;i<N;i++)if(PM[i]&&digD[i]<1){add+=1-digD[i];digD[i]=1;freshD[i]=1}spoilVol+=add*digCellV();say('Crew squared up the corners with shovels.','good','digsq',0)}
+  if(got>0){geoDirty=true;layerDirty=true;if(performance.now()-buzzT>110){buzzT=performance.now();buzz(5)}}return v}
+// back-drag: under the bucket the stone is pulled level, high spots fill the lows next to them
+function gravLevel(x,z,k){const W=1.7*EXS*BUCKETS[exBkt].w;let s=0,n=0;const cs=[];
+  prepBrush(gu(x),gv(z),gu(x),gv(z),W,(i,f)=>{if(gravF[i]<=.05&&f<.7)return;cs.push(i,f);s+=gravF[i];n++});if(n<3)return;const m=s/n;let moved=0;
+  for(let j=0;j<cs.length;j+=2){const i=cs[j],d=(m-gravF[i])*Math.min(1,k*cs[j+1]);gravF[i]+=d;moved+=Math.abs(d)}if(moved>.02)layerDirty=true}
 function updateExcavator(dt,t,k){
-  const down=ptr.down&&running&&!exBusy,grav=k==='gravel';let des,a3;
-  if(down){const X=wx(ptr.x),Z=wz(ptr.y),i=cellAt(X,Z);
-    if(grav){const y=gravY(gravF[i]||0,0)+.55+.12*Math.sin(t*.006);des=[X,y,Z];a3=-1.05+.3*Math.sin(t*.005);exLoad=gravLeft>0?Math.max(.25,exLoad):0}
+  if(exK!==k){exK=k;exCyc=null;exTip0=null;if(k==='dig'||k==='gravel')exLoad=0}
+  const held=ptr.down&&running&&!exBusy,grav=k==='gravel',dig=k==='dig',qk=(dig||grav)&&running;let des,a3;
+  // start a cycle: a full bucket goes to the truck; an empty gravel bucket goes to the pile; letting go with dirt in it dumps it
+  if(qk&&!exCyc){if(dig&&exLoad>=.97)exCyc={ph:'out',t:0};else if(dig&&!held&&exPrevDown&&exLoad>.06)exCyc={ph:'out',t:0};
+    else if(grav&&held&&exLoad<=.02&&gravLeft>.004)exCyc={ph:'load',t:0,go:true}}
+  if(!qk)exCyc=null;
+  const down=held&&!exCyc;
+  if(exCyc){const c=exCyc;c.t+=dt;
+    if(c.ph==='out'||c.ph==='dump'){const u=dumpT.userData,tk=dumpT.visible&&u.phase==='park',bp=tk?dumpT.localToWorld(_exV.set(0,0,u.bz)):null,px=bp?bp.x:spoilPile.position.x,pz=bp?bp.z:spoilPile.position.z,top=tk?(u.by+u.bh)*u.k+1.3:1.5;
+      if(c.ph==='out'){des=[px,top+1.2,pz];a3=-2.6;if(exLoad>.3&&Math.random()<dt*5){const tp=exT||des;spawnBits(tp[0],tp[1]+.3,tp[2],1,.7*EXS)}// a little spills over the lip on the swing
+        const tipNow=exT||des,dh=Math.abs(angDiff(exHY,exHeadTo(px,pz))),dd=Math.hypot(tipNow[0]-px,tipNow[2]-pz);
+        if((dh<.14&&dd<3.2*EXS&&tipNow[1]>top-.2)||c.t>3.2){c.ph='dump';c.t=0;c.tk=tk}}
+      else{des=[px,top+.9,pz];const o=Math.min(1,c.t/.38);a3=-2.6+o*2.15;
+        if(c.t>.18&&exLoad>0){const dq=Math.min(exLoad,dt*2.8);exLoad-=dq;const tp=exT||des;if(c.tk)dumpAdd(dq*qCap());spawnBits(tp[0],tp[1]-.2,tp[2],3,1.1*EXS);
+          if(!c.thud&&c.t>.3){c.thud=1;shake(.05);buzz(c.tk?18:12);arPuff(tp[0],tp[1]-1,tp[2],0x9c8a74,1.6*EXS,1.1,1.2,.42);}}
+        if(c.t>.8){exLoad=0;exBuckets++;exCyc=null;exTip0=null}}}
+    else if(c.ph==='load'){const gp=gravPile.position,r=(gravPile.userData.r||3),dx=gp.x-exPos[0],dz=gp.z-exPos[1],dl=Math.hypot(dx,dz)||1,fx=gp.x-dx/dl*r*.35,fz=gp.z-dz/dl*r*.35,arr=Math.abs(angDiff(exHY,exHeadTo(fx,fz)))<.16&&exT&&Math.hypot(exT[0]-fx,exT[2]-fz)<2.6*EXS;
+      if(c.go){des=[fx,r*.55+.9,fz];a3=-1.15;if(arr||c.t>3){c.go=false;c.t=0}}
+      else{const s=c.t;des=[fx+dx/dl*s*.9,r*.25-.1+Math.max(0,s-.45)*2.4,fz+dz/dl*s*.9];a3=s<.4?-1.1:-1.1-(s-.4)*4.2;if(s>.3&&Math.random()<dt*18)spawnBits(des[0],des[1]+.3,des[2],1,.8);
+        if(s>.62&&exLoad<1){exLoad=1;buzz(10);shake(.02)}if(s>.82){exCyc=null;exTip0=null}}}}
+  else if(down){const X=wx(ptr.x),Z=wz(ptr.y),i=cellAt(X,Z);
+    if(grav){const y=gravY(gravF[i]||0,0)+(exLoad>0?.55:.12)+.06*Math.sin(t*.006);des=[X,y,Z];a3=exLoad>0?-.95+.25*Math.sin(t*.005)*(1-exLoad):-1.35}
     else if(k==='break'){des=[X,pitY(0)+.03+.07*Math.abs(Math.sin(t*.05)),Z];a3=ARA3;exLoad=0}
+    else if(dig){const y=pitY(Math.min(1,digD[i]+.08))+.02;des=[X,y,Z];a3=-1.05-1.35*exLoad+.08*Math.sin(t*.009)}// teeth in and open, curling shut as it fills
     else{const y=pitY(Math.min(1,digD[i]+.06))+.04+.12*Math.sin(t*.007+1);des=[X,y,Z];a3=-1.8+.55*Math.sin(t*.007)}
     exRest=false;exDumpT=0;exIdle=null}
-  else{if(exPrevDown)exDumpT=grav?1.6:(exLoad>.05?1.8:0);exDumpT=Math.max(0,exDumpT-dt);
-    const pile=grav?gravPile:spoilPile,pr=Math.hypot(pile.position.x-exPos[0],pile.position.z-exPos[1]);
-    if(exDumpT>0&&pr<15){const ph=grav?1-exDumpT/1.6:1-exDumpT/1.8;
-      if(grav){des=[pile.position.x,-.1+ph*.9,pile.position.z];a3=ph<.5?-1.2:-2.5;if(ph>.45)exLoad=1}
-      else{const dt2=dumpT.visible&&dumpT.userData.phase==='park'?dumpT.localToWorld(new THREE.Vector3(0,0,dumpT.userData.bz)):null;des=dt2?[dt2.x,(dumpT.userData.by+dumpT.userData.bh)*dumpT.userData.k+1.6+Math.min(1,ph*3)*.6,dt2.z]:[pile.position.x,1.6+Math.min(1,ph*3)*1.2,pile.position.z];a3=ph<.4?-2.6:-.45;if(ph>.55&&exLoad>0){if(dt2)dumpAdd(dt*2.5*Math.max(8,digVolTot()/14));spawnBits(...exSolve(des[0],des[1],des[2],a3),4,.8);exLoad=Math.max(0,exLoad-dt*2.5)}}}
-    else{if(!exIdle){const f=[Math.sin(exHY),Math.cos(exHY)];exIdle=[exPos[0]+f[0]*7*EXS,.5,exPos[1]+f[1]*7*EXS,exHY]}des=exIdle.slice(0,3);a3=-2.3;if(!grav)exLoad=0}}
-  exPrevDown=down;
+  else if(qk){exDumpT=0;if(!exIdle){const f=[Math.sin(exHY),Math.cos(exHY)];exIdle=[exPos[0]+f[0]*7*EXS,.5,exPos[1]+f[1]*7*EXS,exHY]}des=exIdle.slice(0,3);a3=grav&&exLoad>0?-2.1:-2.3;exTip0=null}
+  else{if(exPrevDown)exDumpT=exLoad>.05?1.8:0;exDumpT=Math.max(0,exDumpT-dt);
+    const pile=spoilPile,pr=Math.hypot(pile.position.x-exPos[0],pile.position.z-exPos[1]);
+    if(exDumpT>0&&pr<15){const ph=1-exDumpT/1.8;
+      const dt2=dumpT.visible&&dumpT.userData.phase==='park'?dumpT.localToWorld(new THREE.Vector3(0,0,dumpT.userData.bz)):null;des=dt2?[dt2.x,(dumpT.userData.by+dumpT.userData.bh)*dumpT.userData.k+1.6+Math.min(1,ph*3)*.6,dt2.z]:[pile.position.x,1.6+Math.min(1,ph*3)*1.2,pile.position.z];a3=ph<.4?-2.6:-.45;if(ph>.55&&exLoad>0){if(dt2)dumpAdd(dt*2.5*Math.max(8,digVolTot()/14));spawnBits(...exSolve(des[0],des[1],des[2],a3),4,.8);exLoad=Math.max(0,exLoad-dt*2.5)}}
+    else{if(!exIdle){const f=[Math.sin(exHY),Math.cos(exHY)];exIdle=[exPos[0]+f[0]*7*EXS,.5,exPos[1]+f[1]*7*EXS,exHY]}des=exIdle.slice(0,3);a3=-2.3;exLoad=0}}
+  exPrevDown=held;
   // track: drive so the target stays within reach, never onto the pad or into the house
   const hx=des[0]-exPos[0],hz=des[2]-exPos[1],hd=Math.hypot(hx,hz)||1e-6;
   // v230: a target right under the cab used to give a random direction (and it never got off); back straight up along the tracks instead
   let ux=hx/hd,uz=hz/hd;if(hd<1.6*EXS){ux=Math.sin(exTY);uz=Math.cos(exTY)}
-  if(down&&(hd>10.4*EXS||hd<5.2*EXS)){const want=hd>10.4*EXS?hd-9*EXS:hd-6.5*EXS,step=Math.sign(want)*Math.min(Math.abs(want),6.5*dt),nx=exPos[0]+ux*step,nz=exPos[1]+uz*step;
+  if((down||exCyc)&&(hd>10.4*EXS||hd<5.2*EXS)){const want=hd>10.4*EXS?hd-9*EXS:hd-6.5*EXS,step=Math.sign(want)*Math.min(Math.abs(want),6.5*dt),nx=exPos[0]+ux*step,nz=exPos[1]+uz*step;
     if(exOk(nx,nz,1)){const mv=Math.atan2(nx-exPos[0],nz-exPos[1]),fwd=Math.abs(angDiff(exTY,mv))<Math.PI/2;exTY+=Math.max(-2*dt,Math.min(2*dt,angDiff(exTY,fwd?mv:mv+Math.PI)));exPos=[nx,nz];trackTex.offset.y+=(fwd?1:-1)*Math.abs(step)*.6}
     else{// slide along the pad instead of stopping dead
       const tx=-hz/hd,tz=hx/hd,s2=Math.sign(tx*(des[0]-exPos[0])+tz*(des[2]-exPos[1])||1)*6.5*dt*.6;if(exOk(exPos[0]+tx*s2,exPos[1]+tz*s2,1)){exPos=[exPos[0]+tx*s2,exPos[1]+tz*s2];trackTex.offset.y+=Math.abs(s2)*.6}}}
   // v230: let go while it's sitting on dirt still to dig (or base still to spread) and it tracks back off to its parking spot so you can see underneath
-  exUpT=down?0:exUpT+dt;
-  if(!down&&exUpT>.7&&!(exDumpT>0)&&exPark&&pointInPoly(exPos[0],exPos[1],SHAPE)){const c=Math.cos(exTY),s2=Math.sin(exTY);let todo=false;
+  exUpT=held?0:exUpT+dt;
+  if(!held&&!exCyc&&exUpT>.7&&!(exDumpT>0)&&exPark&&pointInPoly(exPos[0],exPos[1],SHAPE)){const c=Math.cos(exTY),s2=Math.sin(exTY);let todo=false;
     for(const [lx,lz] of [[0,0],[1.9,2.2],[-1.9,2.2],[1.9,-2.2],[-1.9,-2.2],[0,3.2],[0,-3.2]]){const x=exPos[0]+(lx*c+lz*s2)*EXS,z=exPos[1]+(-lx*s2+lz*c)*EXS,i=cellAt(x,z);if(!PM[i])continue;if(grav?(gravF[i]||0)<.9:(digD[i]||0)<.9){todo=true;break}}
     if(todo){const gx=exPark[0]-exPos[0],gz=exPark[1]-exPos[1],gd=Math.hypot(gx,gz);if(gd>.4){const st=Math.min(gd,5*dt),nx=exPos[0]+gx/gd*st,nz=exPos[1]+gz/gd*st;
       if(exOk(nx,nz,1)){const mv=Math.atan2(gx,gz),fwd=Math.abs(angDiff(exTY,mv))<Math.PI/2;exTY+=Math.max(-1.6*dt,Math.min(1.6*dt,angDiff(exTY,fwd?mv:mv+Math.PI)));exPos=[nx,nz];trackTex.offset.y+=(fwd?1:-1)*st*.6;exIdle=null}}}}
-  // swing: the upper house turns toward the bucket's line, with the boom offset to the right of centre
-  const dd=Math.hypot(des[0]-exPos[0],des[2]-exPos[1])||1;let want=Math.atan2(des[0]-exPos[0],des[2]-exPos[1])-Math.asin(Math.max(-.5,Math.min(.5,XC.BX*EXS/dd)));
-  if(exIdle&&!down&&!(exDumpT>0))want=exIdle[3];// parked: the house holds its heading until you use it
-  exHY+=Math.max(-2.4*dt,Math.min(2.4*dt,angDiff(exHY,want)));
+  // swing: the upper house turns toward the bucket's line, with the boom offset to the right of centre. v421: it eases in and out of a swing
+  // (hydraulic swing motor: builds speed, then slows into the stop) instead of turning at full speed from a standstill
+  let want=exHeadTo(des[0],des[2]);
+  if(exIdle&&!down&&!exCyc&&!(exDumpT>0))want=exIdle[3];// parked: the house holds its heading until you use it
+  {const err=angDiff(exHY,want),vmax=2.4,vw=Math.sign(err)*Math.min(vmax,Math.sqrt(2*5.5*Math.abs(err))*.95);exSwV=(exSwV||0)+Math.max(-7*dt,Math.min(7*dt,vw-(exSwV||0)));if(Math.abs(err)<.004&&Math.abs(exSwV)<.05)exSwV=0;exHY+=Math.abs(exSwV*dt)>Math.abs(err)?err:exSwV*dt}
   if(!exT)exT=des.slice();const kk=1-Math.pow(.004,dt);
   {// v229: swing the target round the machine (radius, angle, height) instead of sliding it straight across the cab
    const ox=exPos[0],oz=exPos[1],r0=Math.hypot(exT[0]-ox,exT[2]-oz),r1=Math.hypot(des[0]-ox,des[2]-oz),a0=Math.atan2(exT[0]-ox,exT[2]-oz),a1=Math.atan2(des[0]-ox,des[2]-oz);
@@ -10530,10 +10570,17 @@ function updateExcavator(dt,t,k){
      const ap=armPts(a1,a2);for(let j=1;j<ap.length;j++){const q=ap[j];v=Math.max(v,fl(q[0],q[2])+.25*EXS-q[1])}// skip the boom foot over the machine
      if(!(v>.002)||v>pv-.01)break;pv=v;lift=Math.min(4*EXS,lift+v+.02);exT[1]=y0+lift;tip=exPose(0,t)}
    exT[1]=y0;exLift=lift}
+  // v421: the work happens at the teeth. Dig: cut along the bucket's own path once it has reached your finger. Gravel: stone runs out of the bucket where it is
+  if(down&&(dig||grav)){const X=wx(ptr.x),Z=wz(ptr.y),near=Math.hypot(tip[0]-X,tip[2]-Z)<QDIG.near*EXS,p0=exTip0||tip,mv=Math.hypot(tip[0]-p0[0],tip[2]-p0[2]);
+    if(near&&dig){const r=mv>.04?QDIG.rate:QDIG.rateStill,v=digCut(p0[0],p0[2],tip[0],tip[2],r*dt);exLug=Math.min(1,exLug+v*2);if(v>0&&Math.random()<dt*7)spawnBits(tip[0],tip[1]+.5,tip[2],1,.9)}
+    if(near&&grav){if(exLoad>0&&gravLeft>0){const g0=gravLeft;gravSeg(gu(p0[0]),gv(p0[2]),gu(tip[0]),gv(tip[2]),1,QGRAV.rate*dt);exLoad=Math.max(0,exLoad-(g0-gravLeft)/QGRAV.load);if(Math.random()<dt*30)spawnBits(tip[0],tip[1]+.25,tip[2],2,1.4)}
+      gravLevel(tip[0],tip[2],QGRAV.lev*dt*(mv>.04?1:.35))}
+    exTip0=near?[tip[0],tip[1],tip[2]]:null}
+  exLug=Math.max(0,exLug-dt*2.5);
   const ld=bucketG.userData.load;ld.visible=exLoad>.05;ld.material=grav?gravPileM:pileDirtM;ld.scale.set(.88,.42*Math.max(.3,Math.min(1,exLoad)),.6);
   bitsIM.material=grav?gravPileM:pileDirtM;
-  if(down&&grav&&gravLeft>0&&Math.random()<dt*40)spawnBits(tip[0],tip[1]+.3,tip[2],2,1.6);
-  if(down&&!grav&&Math.random()<dt*6)spawnBits(tip[0],tip[1]+.8,tip[2],1,.9)}
+  if(!qk){if(down&&grav&&gravLeft>0&&Math.random()<dt*40)spawnBits(tip[0],tip[1]+.3,tip[2],2,1.6);
+  if(down&&!grav&&Math.random()<dt*6)spawnBits(tip[0],tip[1]+.8,tip[2],1,.9)}}
 const compG=new THREE.Group();
 { // forward plate compactor: steel base plate with upturned nose, orange water tank and belt guard, black engine in a roll cage, folding handle
  const L=h=>new THREE.Color(h),orM=new THREE.MeshStandardMaterial({color:L(0xe8601a),map:metalTex,roughness:.42}),blM=new THREE.MeshStandardMaterial({color:L(0x1a1b1d),roughness:.5,metalness:.2}),
@@ -11579,7 +11626,7 @@ let cabPov='cab';try{cabPov=localStorage.getItem('bts-cabcam')||'cab'}catch(e){}
 const cab={vk:0,tp:null,tl:null,r:7,y:.8,a3:-2.2,js:[{x:0,y:0},{x:0,y:0}],used:false,drive:null,spT:0,init:false,fov:null};
 function cabAvail(){const k=STAGES[stage]&&STAGES[stage].key;return isPrep()&&(k==='dig'||k==='gravel')}
 function cabCap(){return 14*Math.pow(EXS,2.2)*BUCKETS[exBkt].c}
-function setCab(on){cabOn=!!on;try{localStorage.setItem('bts-cab',cabOn?'1':'0')}catch(e){}cab.init=false;cabUI();
+function setCab(on){if(!!on!==cabOn&&running)try{bkdFade()}catch(e){}cabOn=!!on;try{localStorage.setItem('bts-cab',cabOn?'1':'0')}catch(e){}cab.init=false;cabUI();
   if(cabOn)say('Cab view. Push forward to lower the boom or reach the stick out, pull back to raise or draw it in. Tap ISO / SAE to switch patterns. Tap the ground to track the machine.','info','cabhint',0);
   else if(cab.fov){camera.fov=cab.fov;camera.near=.5;camera.updateProjectionMatrix();cab.fov=null}}
 function cabUI(){const av=cabAvail()&&running,seg=$('cabSeg');if(seg){seg.hidden=!(cabAvail());$('cabPat').hidden=!cabOn;seg.style.gridTemplateColumns=cabOn?'1fr 1.2fr 1fr 1fr':'1fr 1.2fr 1fr'}$('cabQuick').setAttribute('aria-pressed',String(!cabOn));$('cabView').setAttribute('aria-pressed',String(cabOn));$('cabPad').hidden=!(av&&cabOn)}
@@ -11595,7 +11642,7 @@ function cabLabels(){$('cabPat').textContent=cabPat.toUpperCase()+' controls';co
 $('cabPat').addEventListener('click',()=>{cabPat=cabPat==='iso'?'sae':'iso';try{localStorage.setItem('bts-cabpat',cabPat)}catch(e){}cabLabels();say(cabPat==='sae'?'SAE: left stick swing and boom, right stick runs the stick and bucket. Push forward = boom down, stick out.':'ISO: left stick runs swing and the stick, right stick runs boom and bucket. Push forward = boom down, stick out.','info','cabpat',0)});cabLabels();
 const CPOV={cab:['Cab','third'],third:['Behind','high'],high:['High','cab']};
 function cabCamUI(){const b=$('cabCam');if(b)b.querySelector('b').textContent=(CPOV[cabPov]||CPOV.cab)[0]}
-$('cabCam').addEventListener('click',e=>{e.stopPropagation();cabPov=(CPOV[cabPov]||CPOV.cab)[1];cab.tp=null;cab.off=null;try{localStorage.setItem('bts-cabcam',cabPov)}catch(_){}cabCamUI();buzz(8);
+$('cabCam').addEventListener('click',e=>{e.stopPropagation();try{bkdFade()}catch(_){}cabPov=(CPOV[cabPov]||CPOV.cab)[1];cab.tp=null;cab.off=null;cab.ct=0;try{localStorage.setItem('bts-cabcam',cabPov)}catch(_){}cabCamUI();buzz(8);
   say(cabPov==='cab'?'Cab view. You\'re in the seat.':cabPov==='third'?'Third person. Camera rides behind the machine and swings with the house.':'High view. Camera up over the machine so you can see the whole dig.','info','cabcam',0)});cabCamUI();
 $('cabQuick').addEventListener('click',()=>setCab(false));$('cabView').addEventListener('click',()=>setCab(true));
 // joysticks
@@ -11726,18 +11773,23 @@ function updateDump(dt){const k=STAGES[stage]&&STAGES[stage].key,on=isPrep()&&(k
   u.heap.visible=f>.8;u.heap.scale.y=Math.max(.01,(f-.8)/.35*1.8);
   let off=0;if(u.phase==='in'){u.t=Math.max(0,u.t-dt*.35);off=u.t*26;if(u.t<=0)u.phase='park'}else if(u.phase==='out'){u.t+=dt*.3;off=-u.t*40;if(u.t>=1.2){u.phase='in';u.t=1;u.load=0;u.hauling=0;u.home=null}}
   dumpT.position.set(H.x+Math.sin(H.ry)*off,-.3,H.z+Math.cos(H.ry)*off);dumpT.rotation.y=H.ry}
-function updateCab(dt,t,k){const grav=k==='gravel',L=cab.js[0],R=cab.js[1],cap=cabCap(),rk=RPMS[cabRpm].k;
+function updateCab(dt,t,k){const now0=performance.now(),grav=k==='gravel',L=cab.js[0],R=cab.js[1],cap=cabCap(),rk=RPMS[cabRpm].k;
   if(!cab.init){cab.init=true;exHY=Math.atan2(RCX-exPos[0],RCZ-exPos[1]);exPose(0,t);cab.a1=-boomG.rotation.x;cab.a2=-stickG.rotation.x;cab.a3=-bucketG.rotation.x;if(cab.a1>.9)cab.a1=.6}
   {const pad=$('cabPad'),want=!(running&&!coachOpen);if(pad.hidden!==want)pad.hidden=want}
   const act=running&&!coachOpen,iso=cabPat==='iso';
   // industry patterns. stick forward = boom down / dipper out. ISO: left = swing + dipper, right = boom + bucket. SAE: left = swing + boom, right = dipper + bucket.
   const dip=iso?L.y:R.y,boom=iso?R.y:L.y,swing=L.x,bkt=R.x;
   const p0=[cab.a1,cab.a2,cab.a3,exHY];
-  if(act){exHY-=swing*.95*rk*dt;
-    cab.a1=Math.max(-.6,Math.min(1.2,cab.a1+boom*.55*rk*dt));
-    const q2=Math.max(-2.85,Math.min(-.3,cab.a2-cab.a1-dip*.95*rk*dt));const q3=Math.max(-1.95,Math.min(1.35,cab.a3-cab.a2+bkt*1.7*rk*dt));
-    cab.a2=cab.a1+q2;cab.a3=cab.a2+q3}
-  const mov=(Math.abs(swing)+Math.abs(boom)+Math.abs(dip)+Math.abs(bkt))*rk;if(mov>.15&&act)cab.used=true;cab.mov=mov;
+  /* v421: hydraulics, not a light switch. A gentle curve on the sticks for fine work near centre, each function ramps up and settles
+     (the swing carries a little and brakes), the cylinders cushion into the end of their stroke, and the arm slows while the bucket's biting */
+  {const crv=v=>Math.sign(v)*Math.pow(Math.abs(v),1.4),ld=1-.32*(cab.dg||0),tg=act?[crv(swing)*rk,crv(boom)*rk*ld,crv(dip)*rk*ld,crv(bkt)*rk*ld]:[0,0,0,0],up=[3.6,6,6,7.5],dn=[4.2,8.5,8.5,9.5];
+   const hv=cab.hv||(cab.hv=[0,0,0,0]);for(let i=0;i<4;i++){const d=tg[i]-hv[i],r=(Math.abs(tg[i])>Math.abs(hv[i])&&Math.sign(tg[i])===Math.sign(hv[i]||tg[i])?up[i]:dn[i])*dt;hv[i]+=Math.max(-r,Math.min(r,d));if(Math.abs(hv[i])<1e-3&&!tg[i])hv[i]=0}
+   const cush=(v,x,lo,hi)=>{const e=v>0?hi-x:x-lo;return v*Math.max(.12,Math.min(1,e/.16))};
+   exHY-=hv[0]*.95*dt;
+   cab.a1=Math.max(-.6,Math.min(1.2,cab.a1+cush(hv[1]*.55,cab.a1,-.6,1.2)*dt));
+   const r2=cab.a2-cab.a1,r3=cab.a3-cab.a2,q2=Math.max(-2.85,Math.min(-.3,r2+cush(-hv[2]*.95,r2,-2.85,-.3)*dt)),q3=Math.max(-1.95,Math.min(1.35,r3+cush(hv[3]*1.7,r3,-1.95,1.35)*dt));
+   cab.a2=cab.a1+q2;cab.a3=cab.a2+q3}
+  const mov=(Math.abs(cab.hv[0])+Math.abs(cab.hv[1])+Math.abs(cab.hv[2])+Math.abs(cab.hv[3]));if(mov>.15&&act)cab.used=true;cab.mov=mov;
   // tracks
   if(cab.drive&&act){const dx=cab.drive[0]-exPos[0],dz=cab.drive[1]-exPos[1],d=Math.hypot(dx,dz);if(d<7.5*EXS){cab.drive=null}else{const st=Math.min(d-7*EXS,6*rk*dt),nx=exPos[0]+dx/d*st,nz=exPos[1]+dz/d*st;
       if(exOk(nx,nz,1)){const mv=Math.atan2(dx,dz),fwd=Math.abs(angDiff(exTY,mv))<Math.PI/2;exTY+=Math.max(-2*dt,Math.min(2*dt,angDiff(exTY,fwd?mv:mv+Math.PI)));exPos=[nx,nz];trackTex.offset.y+=(fwd?1:-1)*st*.6}else cab.drive=null}}
@@ -11756,14 +11808,16 @@ function updateCab(dt,t,k){const grav=k==='gravel',L=cab.js[0],R=cab.js[1],cap=c
   // dig: wherever the bucket is below grade the dirt goes into the bucket right away, so the bucket never sits under the grass
   if(canCut){let got=0;const bw=.5*EXS*BUCKETS[exBkt].w*XC.BW*.5,floorY=pitY(1);
     for(const q of bucketPts(cab.a1,cab.a2,cab.a3)){if(exLoad+got*cab.vk>=1)break;const gx=gu(q[0]),gy=gv(q[2]),ty=Math.max(floorY,q[1]-.04);
-      prepBrush(gx,gy,gx,gy,bw,(i,f)=>{if(f<.15)return;const cy=pitY(digD[i]);if(cy<=ty+.01)return;const nd=Math.max(digD[i],digFor(ty));got+=nd-digD[i];digD[i]=nd})}
+      prepBrush(gx,gy,gx,gy,bw,(i,f)=>{if(f<.15)return;const cy=pitY(digD[i]);if(cy<=ty+.01)return;const nd=Math.max(digD[i],digFor(ty));got+=nd-digD[i];digD[i]=nd;freshD[i]=1})}
+    cab.dg=(cab.dg||0)+((got>0?1:0)-(cab.dg||0))*Math.min(1,dt*8);
     if(got>0){const v=got*(CELL_IN*CELL_IN/144)*(-SUBY()-.3);exLoad=Math.min(1,exLoad+v/cap);geoDirty=layerDirty=true;
       if(performance.now()-buzzT>90){buzzT=performance.now();buzz(7);if(Math.random()<.6)spawnBits(X,Y+.4,Z,1,.7)}}
     cab.vk=(CELL_IN*CELL_IN/144)*(-SUBY()-.3)/cap;
     if(exLoad>=1)say('Bucket\'s full. Curl it, boom up, swing over the truck box and dump.','info','cabfull',4000)}
+  if(!canCut)cab.dg=Math.max(0,(cab.dg||0)-dt*6);
   let inGnd=false;if(!grav)for(const q of bucketPts(cab.a1,cab.a2,cab.a3))if(q[1]<surfAt(q[0],q[2],grav)+.05){inGnd=true;break}
   if(!grav&&openA&&!inGnd&&exLoad>0&&act){const dq=Math.min(exLoad,dt*1.6*spF*spF);exLoad-=dq;spawnBits(X,Y+.2,Z,2,.9);
-    if(dumpBoxAt(X,Y,Z))dumpAdd(dq*cap);
+    if(dumpBoxAt(X,Y,Z)){dumpAdd(dq*cap);if(now0-(cab.puT||0)>900){cab.puT=now0;arPuff(X,Y-1,Z,0x9c8a74,1.6*EXS,1.1,1.2,.4);buzz(14)}}
     else if(inPit){const gx=gu(X),gy=gv(Z);prepBrush(gx,gy,gx,gy,1.2,(i,f)=>{digD[i]=Math.max(0,digD[i]-dq*.8*f)});geoDirty=layerDirty=true;say('That\'s going back in the hole. Dump it in the truck.','bad','cabspill')}
     else say('Dump it in the truck box, not on the lawn.','bad','cablawn');spoilVol+=dq*cap}
   if(grav&&act){const gp=Math.hypot(gravPile.position.x-X,gravPile.position.z-Z);
@@ -11775,33 +11829,63 @@ function updateCab(dt,t,k){const grav=k==='gravel',L=cab.js[0],R=cab.js[1],cap=c
   if(t-(cab.padT||0)>400){cab.padT=t;const pad=$('cabPad'),hb=$('hudBot');if(pad&&hb){const v=(Math.max(hb.getBoundingClientRect().height,44)+14)+'px';if(pad.style.bottom!==v)pad.style.bottom=v}}}
 
 function cabUnhide(){exUnder.visible=true;if(cab.hid){cab.hid.forEach(o=>o.visible=true);cab.hid=null}}
-function cabCamera(){if(!cabOn||!cabAvail()||!exG.visible){cabUnhide();return false}if(cab.fov==null){cab.fov=camera.fov;camera.near=.08}
-  const wantF=cabPov==='cab'?64:cabPov==='high'?50:56;if(camera.fov!==wantF){camera.fov=wantF;camera.updateProjectionMatrix()}
-  exG.updateMatrixWorld(true);
-  if(cabPov!=='cab'){// third person: chase cam over the machine's shoulder, swings with the house
-    const hi=cabPov==='high',tip=bucketG.getWorldPosition(new THREE.Vector3()),
-      lk=exHouse.localToWorld(new THREE.Vector3(0,0,9)).multiplyScalar(.2).add(tip.multiplyScalar(.8));
+/* v421: excavator cameras. All three ease on real time (no frame-rate dependent lerps), the field of view is set across the screen so a
+   portrait phone sees as wide as a cab window, and each view tilts itself so the bucket sits in the clear part of the screen between the top bar
+   and the joysticks. Cab: the seat shakes gently with the engine and harder when the bucket's biting, and your head sways a touch on a hard swing.
+   Behind / High: the camera follows the house's swing with a soft lag instead of being bolted to it, so a fast swing doesn't whip the view round. */
+const _cv=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],_cUP=new THREE.Vector3(0,1,0);
+function cabBand(){const now=performance.now();if(cab.band&&now-cab.bandT<500)return cab.band;cab.bandT=now;const r=cv.getBoundingClientRect();let top=r.top,bot=r.bottom;
+  for(const id of['hudTop','drillHud']){const el=$(id);if(!el||el.hidden)continue;const b=el.getBoundingClientRect();if(b.height&&b.bottom>top&&b.bottom<r.top+r.height*.6)top=b.bottom}
+  {const j=$('jsL'),b=j&&!$('cabPad').hidden?j.getBoundingClientRect():null;if(b&&b.height&&b.top>top+80)bot=b.top;else{const h=$('hudBot').getBoundingClientRect();if(h.height)bot=h.top}}
+  return cab.band=[r.top,r.height,top,bot]}
+// pitch the camera about its own side axis so world point P lands at screen height ty (smoothed through cab.pt)
+function cabAim(P,frac,dt,lo,hi){const [rt,rh,top,bot]=cabBand(),ty=top+(bot-top)*frac;let want=0;
+  for(let it=0;it<3;it++){camera.updateMatrixWorld();const v=_cv[3].copy(P).project(camera);if(v.z>1||!isFinite(v.y))break;const sy=rt+(1-(v.y+1)/2)*rh,e=(sy-ty)/rh;if(Math.abs(e)<.002)break;
+    const d=-e*camera.fov*Math.PI/180*.9;camera.rotateX(d);want+=d}
+  camera.rotateX(-want);// measured: now ease the tilt in, and keep it within sane limits
+  cab.pt=cab.pt==null?want:cab.pt+(want-cab.pt)*(1-Math.exp(-dt*7));cab.pt=Math.max(lo,Math.min(hi,cab.pt));camera.rotateX(cab.pt)}
+function cabCamera(fdt){if(!cabOn||!cabAvail()||!exG.visible){cabUnhide();cab.ct=0;return false}if(cab.fov==null){cab.fov=camera.fov;camera.near=.08}
+  const now=performance.now(),dt=cab.ct?(fdt!=null?Math.min(.1,fdt):Math.min(.1,Math.max(0,(now-cab.ct)/1000))):1;cab.ct=now;
+  {// field of view set across the screen: portrait phones get a properly wide view instead of a slot
+   const asp=Math.max(.3,camera.aspect||1),hf=cabPov==='cab'?60:cabPov==='high'?52:54,lim=cabPov==='cab'?[64,90]:cabPov==='high'?[50,76]:[56,80];
+   const wantF=Math.max(lim[0],Math.min(lim[1],2*Math.atan(Math.tan(hf*Math.PI/360)/asp)*180/Math.PI));if(Math.abs(camera.fov-wantF)>.05){camera.fov=wantF;camera.updateProjectionMatrix()}}
+  exG.updateMatrixWorld(true);const tip=bucketG.getWorldPosition(_cv[0]);
+  if(cabPov!=='cab'){// third person: chase cam over the machine's shoulder, swings with the house (with a soft lag)
+    const hi=cabPov==='high',lk=exHouse.localToWorld(_cv[1].set(0,0,9)).multiplyScalar(.2).addScaledVector(tip,.8);
     {// pick a chase spot with a clear view: back off / climb until nothing (house, tree, truck) is in the way
-     const now=performance.now();if(!cab.bx||now-cab.bxT>4000){cab.bxT=now;const own=new Set();exG.traverse(o=>own.add(o));cab.bx=[];
+     if(!cab.bx||now-cab.bxT>4000){cab.bxT=now;const own=new Set();exG.traverse(o=>own.add(o));cab.bx=[];
        scene.traverse(o=>{if(!o.isMesh||own.has(o)||!o.geometry||o.userData.fmn)return;let v=o;while(v){if(!v.visible&&!(cab.hid&&cab.hid.has(v)))return;v=v.parent}const b=new THREE.Box3().setFromObject(o),z=b.getSize(new THREE.Vector3());
          if(z.y<1.2||z.x>150||z.z>150)return;b.expandByScalar(.4);b.o=o;b.soft=/Icosa|Dodeca|Sphere|Cylinder|Cone|Octa/.test(o.geometry.type)&&z.x<14;cab.bx.push(b)})}
-     if(!cab.off||cab.offPov!==cabPov||now-(cab.offT||0)>300){cab.offT=now;cab.offPov=cabPov;
+     if(!cab.off||cab.offPov!==cabPov||now-(cab.offT||0)>300){cab.offT=now;const fresh=cab.offPov!==cabPov;cab.offPov=cabPov;
        const C=[],seg=new THREE.Ray(),hit=new THREE.Vector3(),mp=exHouse.localToWorld(new THREE.Vector3(0,1.5,0)),
          blk=(w,tg,soft)=>{const L=w.distanceTo(tg);seg.origin.copy(w);seg.direction.copy(tg).sub(w).normalize();return cab.bx.filter(b=>b.soft===soft&&(b.containsPoint(w)||(seg.intersectBox(b,hit)&&hit.distanceTo(w)<L-.5)))},clear=(w,tg)=>!blk(w,tg,false).length;
-       const backs=hi?[12,9,6]:[13,10,7,4],ups=hi?[19,23,27]:[13,16,19,22];
-       for(const sw of [0,.6,-.6,1.2,-1.2])for(const u of ups)for(const bk of backs){const v=hi?new THREE.Vector3(3*bk/backs[0],u,-bk):new THREE.Vector3(bk*.85,u-4,-bk*.55);v.applyAxisAngle(new THREE.Vector3(0,1,0),sw);C.push(v)}       let pick=C[0];for(const c of C){const w=exHouse.localToWorld(c.clone());w.y=Math.max(w.y,prepSurfY(w.x,w.z)+2.5);if(clear(w,lk)&&clear(w,mp)){pick=c;break}}
-       cab.off=cab.off&&cab.offPov===cabPov?cab.off.lerp(pick,.35):pick.clone();
+       const backs=hi?[11,8.5,6]:[12,9.5,7,4.5],ups=hi?[20,24,28]:[11,13.5,16,19];
+       for(const sw of [0,.5,-.5,1.1,-1.1])for(const u of ups)for(const bk of backs){const v=hi?new THREE.Vector3(2.4*bk/backs[0],u,-bk):new THREE.Vector3(-bk*.42,u-2,-bk*.85)/* v421: over the boom-side shoulder, so the cab never hides the bucket */;v.applyAxisAngle(_cUP,sw);C.push(v)}let pick=C[0];for(const c of C){const w=exHouse.localToWorld(c.clone());w.y=Math.max(w.y,prepSurfY(w.x,w.z)+2.5);if(clear(w,lk)&&clear(w,mp)){pick=c;break}}
+       cab.off=cab.off&&!fresh?cab.off.lerp(pick,.35):pick.clone();
        {const w=exHouse.localToWorld(cab.off.clone()),nh=new Set([...blk(w,lk,true),...blk(w,mp,true),...blk(w,lk,false),...blk(w,mp,false)].map(b=>b.o));// trees in the way go see-through
         (cab.hid||new Set()).forEach(o=>{if(!nh.has(o))o.visible=true});nh.forEach(o=>o.visible=false);cab.hid=nh}}
     }
-    const want=exHouse.localToWorld(cab.off.clone());want.y=Math.max(want.y,prepSurfY(want.x,want.z)+2.5);
-    if(!cab.tp||cab.tp.distanceTo(want)>60){cab.tp=want.clone();cab.tl=lk.clone()}
-    cab.tp.lerp(want,.12);cab.tl.lerp(lk,.18);camera.position.copy(cab.tp);camera.lookAt(cab.tl);return true}
-  cab.tp=null;cabUnhide();exUnder.visible=false;const eye=exHouse.localToWorld(new THREE.Vector3(1.15,3.15,.2)),fwd=exHouse.localToWorld(new THREE.Vector3(.4,-3.4,10)),tip=bucketG.getWorldPosition(new THREE.Vector3());
-  const look=fwd.multiplyScalar(.62).add(tip.multiplyScalar(.38));look.y=Math.min(look.y,eye.y-2.2*EXS);camera.position.copy(eye);camera.lookAt(look);return true}
+    // the camera's own heading trails the house's by a soft spring, so a quick swing reads as a swing, not a jolt
+    if(cab.cy==null||dt>=1)cab.cy=exHY;else cab.cy+=angDiff(cab.cy,exHY)*(1-Math.exp(-dt/.32));
+    const want=_cv[2].set(cab.off.x,cab.off.y+XC.HY,cab.off.z).multiplyScalar(EXS).applyAxisAngle(_cUP,cab.cy).add(exG.position);want.y=Math.max(want.y,prepSurfY(want.x,want.z)+2.5);
+    if(!cab.tp||cab.tp.distanceTo(want)>60||dt>=1){cab.tp=want.clone();cab.tl=lk.clone();cab.pt=null}
+    cab.tp.lerp(want,1-Math.exp(-dt*5.5));cab.tl.lerp(lk,1-Math.exp(-dt*7));camera.position.copy(cab.tp);camera.lookAt(cab.tl);
+    cabAim(tip,hi?.5:.46,dt,-.5,.5);return true}
+  cab.tp=null;cab.cy=null;cabUnhide();exUnder.visible=false;
+  const eye=exHouse.localToWorld(_cv[1].set(1.15,3.15,.2)),fwd=exHouse.localToWorld(_cv[2].set(.4,-3.4,10));
+  {// engine through the seat: a fine shake at idle, more at full revs, a hard judder while the bucket's biting; a sway on a hard swing
+   const t=now/1000,rk=RPMS[cabRpm].k,a=(.006+.008*rk+.035*(cab.dg||0))*EXS,sw=(cab.hv?cab.hv[0]:0);
+   eye.x+=(Math.sin(t*61)*.6+Math.sin(t*97+1.3)*.4)*a;eye.y+=(Math.sin(t*73+.7)*.7+Math.sin(t*41)*.3)*a;eye.z+=Math.sin(t*53+2.1)*a*.5;
+   cab.sway=(cab.sway||0)+((sw-(cab.swp||0))/Math.max(dt,.008)*.012-(cab.sway||0))*(1-Math.exp(-dt*6));cab.swp=sw;cab.sway=Math.max(-.08,Math.min(.08,cab.sway));
+   eye.addScaledVector(_cv[3].set(Math.cos(exHY),0,-Math.sin(exHY)),cab.sway*EXS)}
+  // eyes on the work: look between straight ahead and the bucket, eased so the view doesn't twitch with every stick nudge
+  const look=fwd.multiplyScalar(.5).addScaledVector(tip,.5);if(!cab.lk||dt>=1)cab.lk=look.clone();else cab.lk.lerp(look,1-Math.exp(-dt*8));
+  camera.position.copy(eye);camera.lookAt(cab.lk);cabAim(tip,.48,dt,-.6,.45);return true}
 
 function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);updateBlankets(dt);updateCure();updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
-  exG.visible=on;if(on&&exPark){if(cabOn)updateCab(dt,t,k);else updateExcavator(dt,t,k)}updateBits(dt);try{pileDirtM.color.setHex(k==='strip'||k==='break'||dumpT.userData.hauling?0x55565c:0xffffff)}catch(e){}try{arTick(dt,t,k,P)}catch(e){if(!AR.err){AR.err=1;console.warn('arTick',e)}}
+  exG.visible=on;if(on&&exPark){if(cabOn)updateCab(dt,t,k);else updateExcavator(dt,t,k)}
+  if(FRESH.sP&&performance.now()-FRESH.sT>=30)geoDirty=true;
+  if(P&&(FRESH.t+=dt)>.4){const st=FRESH.t;FRESH.t=0;let any=false;for(let i=0;i<N;i++)if(freshD[i]>0){freshD[i]=Math.max(0,freshD[i]-st/28);any=true}if(any&&soilMode())geoDirty=true}updateBits(dt);try{pileDirtM.color.setHex(k==='strip'||k==='break'||dumpT.userData.hauling?0x55565c:0xffffff)}catch(e){}try{arTick(dt,t,k,P)}catch(e){if(!AR.err){AR.err=1;console.warn('arTick',e)}}
   spoilPile.visible=P&&spoilVol>1&&stage>=(S.strip!=null?S.strip:S.dig)&&stage<=S.form;if(spoilPile.visible){const r=Math.cbrt(spoilVol)*.62;spoilPile.scale.set(r*1.3,r*.62,r)}
   updateDump(dt);
   gravPile.visible=P&&k==='gravel'&&gravLeft>.01;if(gravPile.visible){const r=Math.max(2.2,Math.cbrt(RN*CELL_IN*CELL_IN/144*GTf()*1.1*gravLeft+.3)*1.05)*(.75+.25*EXS);gravPile.scale.set(r*1.3,r*.6,r);gravPile.userData.r=r}
