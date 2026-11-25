@@ -8877,7 +8877,8 @@ function loadCurtain(on){let d=loadCurtain.d;if(!d){d=loadCurtain.d=document.cre
   clearTimeout(loadCurtain.t);if(on){d.style.transition='none';d.style.opacity='1';loadCurtain.on=true;loadCurtain.n=0;loadCurtain.t=setTimeout(()=>loadCurtain(false),5000)}else if(loadCurtain.on){loadCurtain.on=false;d.style.transition='opacity .3s ease-out';d.style.opacity='0'}}
 // v367: the training pad's photo has a smaller form set inside the real one; a 3D gravel bed under the pour hides it until the mud covers it
 const APR={m:null,L:null};
-function aprTick(){const C=BKD.on&&LV&&LV.paint&&LV.paint.base;if(!C){if(APR.m)APR.m.visible=false;return}
+function aprTick(){const k=STAGES[stage]&&STAGES[stage].key,early=isPrep()&&/^(strip|break|mark|dig|gravel|base)$/.test(k||'');// v423: never over the lawn / pit / base while you're laying out, digging, spreading or compacting (it showed gravel from the start of a full job)
+  const C=BKD.on&&LV&&LV.paint&&LV.paint.base&&!early;if(!C){if(APR.m)APR.m.visible=false;return}
   if(!APR.m||APR.L!==LV){if(APR.m){scene.remove(APR.m);APR.m.geometry.dispose();APR.m.material.dispose()}
     // v412: no map until the photo has arrived; an unloaded map draws black (first visit to a new link)
     const tx=new THREE.TextureLoader().load('tex/gravel.jpg',()=>{try{const mm=APR.m&&APR.m.material;if(mm&&mm.userData.tx===tx){mm.map=tx;mm.color.set(0xd9d2c6);mm.needsUpdate=true}}catch(e){}});tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(.45,.45);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
