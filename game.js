@@ -8889,7 +8889,7 @@ function aprTick(){const k=STAGES[stage]&&STAGES[stage].key,early=isPrep()&&/^(s
 // v371: something standing in the photo between the camera and the pad (the training pad's wheelbarrow) covers the slab. A flat piece
 // of the photo itself, cut to that object's outline (fgOcc, photo screen coords) and set fgD ft from the camera, sits in front of the 3D slab.
 const FGO={m:null,L:null};
-function fgoTick(){const C=BKD.on&&!BKD.yr&&BKD.L&&bkdC(BKD.L);if(!C||!C.fgOcc||!BKD.tex||!BKD.o){if(FGO.m)FGO.m.visible=false;return}
+function fgoTick(){const C=BKD.on&&!BKD.yr&&BKD.L&&bkdC(BKD.L);if(!C||!C.fgOcc||!BKD.tex||!BKD.o||(isPrep()&&C.imgPrep)/* v424: a full job shows the 'before' photo, which has lawn (no wheelbarrow) there, so the cut-out drew a patch of grass over the dig */){if(FGO.m)FGO.m.visible=false;return}
   if(!FGO.m||FGO.L!==BKD.L||FGO.m.material.map!==BKD.tex){if(FGO.m){scene.remove(FGO.m);FGO.m.geometry.dispose();FGO.m.material.dispose()}
     const cam=BKD.o;cam.position.fromArray(C.cam);cam.fov=C.fov||70;cam.aspect=C.asp||.75;cam.updateProjectionMatrix();cam.lookAt(new THREE.Vector3().fromArray(C.look));cam.updateMatrixWorld(true);
     let P=C.fgOcc;{let cx=0,cy=0;P.forEach(q=>{cx+=q[0];cy+=q[1]});cx/=P.length;cy/=P.length;P=P.map(q=>[cx+(q[0]-cx)*1.1,cy+(q[1]-cy)*1.1])}
