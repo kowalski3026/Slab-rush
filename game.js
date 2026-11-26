@@ -243,7 +243,7 @@ const LEVELS=[
     soffit:'Form the underside of the new deck. Drag over each orange bay to hang 3/4 HDO ply between the girder flanges on 4x4 runners, then the overhangs on both sides: steel brackets every 4 ft, edge form, walkway and the screed rail the Bid-Well rides on.',
     rebar:'The bottom mat is tied on the soffit. Sweep across the glowing lanes to drop the top mat, then drag along the bars to tie every orange ring.',
     pour:'The boom pump reaches up from the shoulder. Start at the far end, right in front of the Bid-Well, and work back down the span. Once 15 ft is placed, tap Start Bid-Well: it strikes off and finishes right behind you, and only stops if it runs out of mud. Keep the pour 15 to 20 ft ahead of it.',
-    screed:'Hold and drag along the span to walk the Bid-Well down the rails. The carriage runs back and forth across the deck: the augers cut it to grade and roll the extra ahead, the drum behind them closes and finishes the top. The pump keeps feeding mud in front of the augers while it rolls. Make passes until it reads flat: this deck carries the 400.',
+    screed:'Hold and drag along the span to walk the Bid-Well down the rails. The carriage runs back and forth across the deck: the augers cut it to grade and roll the extra ahead, the drum behind them closes and finishes the top. The pump keeps feeding mud in front of the augers while it rolls. It makes one pass down the span and the deck\'s finished: this deck carries the 400.',
     burlap:'Wet cure, the way the MTO wants it. As soon as the drum finish won\'t mark, roll the soaked burlap out across the deck in rows, each one lapping the last. No bare concrete.',
     poly:'Sheet white poly over the burlap, lapped, so the water stays in for the seven-day cure.'},
    wTxt:'24 ft',pTxt:'48 ft',maxPanel:99,minPanel:1,truck:{x:-40,z:22,ry:0},sunFlip:true,mix:'50 MPa HPC, silica fume, 5-8% air',
@@ -2276,7 +2276,7 @@ function bwEff(){return set<.5?.96:Math.max(.15,.96-(set-.5)*3)}
 // one column under the Bid-Well: augers cut the high spots and roll the excess ahead, the drum fills the lows and closes the top
 function bwCol(c){if(c<RX0||c>=RX1)return;const eff=bwEff();let moved=0;
   for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(!inR[i])continue;const v=h[i];
-    if(set<.5&&has(i)){/* v353: the Bid-Well finishes the deck in one pass */const t=(Math.random()-.5)*.004;h[i]=t;moved+=Math.abs(v-t);if(typeof struck!=='undefined')struck[i]=1;closed[i]=Math.min(1,closed[i]+.6);continue}
+    if(set<.5&&has(i)){/* v353: the Bid-Well finishes the deck in one pass */const t=(Math.random()-.5)*.004;h[i]=t;moved+=Math.abs(v-t);if(typeof struck!=='undefined')struck[i]=1;closed[i]=1;continue}/* v430: one pass, grade and drum finish both done */
     if(v>0){const t=v*eff;h[i]-=t;carry[r]+=t;moved+=t}else if(v<0){const f=Math.min(carry[r],-v*eff);h[i]+=f;carry[r]-=f;moved+=f}
     if(has(i)){h[i]+=(Math.random()-.5)*.01;closed[i]=Math.min(1,closed[i]+.6*eff)}}
   const nc=new Float32Array(GH);for(let r=RY0;r<RY1;r++){const a=carry[Math.max(RY0,r-1)],b=carry[Math.min(RY1-1,r+1)];nc[r]=carry[r]*.5+a*.25+b*.25}carry=nc;
@@ -2315,10 +2315,13 @@ function brgTick(dt){if(!BRG.on)return;const k=STAGES[stage]&&STAGES[stage].key,
   // all the way down the span, only holding up when there isn't mud ahead of the augers. On the Bid-Well step you can also drive it by hand.
   if(BRG.bw){const live=running&&(k==='pour'||k==='screed');let sp=0,want=0;BW.wait=false;
     const lowAhead=(sd,n)=>{const c0=Math.floor(BW.x);let lo=0;for(let dc=1;dc<=n;dc++){const c=c0+sd*dc;if(c<RX0||c>=RX1)continue;for(let r=RY0;r<RY1;r++){const i=r*GW+c;if(inR[i]&&h[i]<lo)lo=h[i]}}return lo};
-    if(live&&k==='screed'&&ptr.down){BW.auto=false;BW.hand=true;BW.tx=Math.max(RX0-3,Math.min(RX1+3,ptr.x));const d=BW.tx-BW.x;
+    if(live&&k==='screed'&&ptr.down&&BW.done){say('The Bid-Well makes one pass and the deck\'s finished. It doesn\'t go back over it. Hit Next.','info','bwOne',4000)}
+    else if(live&&k==='screed'&&ptr.down){BW.auto=false;BW.hand=true;BW.tx=Math.max(RX0-3,Math.min(RX1+3,ptr.x));let d=BW.tx-BW.x;const sd=-BW.s;
+      if(d*sd<0){d=0;say('A Bid-Well only rolls one way down the span: one pass and it\'s finished. Drag ahead of it.','info','bwBack',4000)}
+      {const end=sd<0?RX0-.5:RX1+.5;if(sd*(end-BW.x)<=0&&!BW.done){BW.done=true;say('Bid-Well\'s walked off the end of the span. One pass, deck\'s struck and finished.','good','bwDone',0)}}
       if(Math.abs(d)>.05){if(!stowChute&&placed+wasted<LOAD_M3)BW.wait=lowAhead(Math.sign(d),3)<-1.5;want=Math.sign(d)*Math.min(Math.abs(d),(BW.wait?.25:1.0)*dt*(12/CELL_IN))}}
     else if(live&&BW.auto){const sd=-BW.s,end=sd<0?RX0-3.2:RX1+3.2;if(sd*(end-BW.x)>0){BW.wait=lowAhead(sd,3)<-1.5;if(!BW.wait)want=sd*Math.min(Math.abs(end-BW.x),.5*dt*(12/CELL_IN))}
-      else{BW.auto=false;BW.done=true;say('Bid-Well\'s walked off the end of the span. Deck\'s struck and finished.','good','bwDone',0)}}
+      else{BW.auto=false;BW.done=true;say('Bid-Well\'s walked off the end of the span. One pass, deck\'s struck and finished.','good','bwDone',0)}}
     if(want){const x0=BW.x,x1=BW.x+want;BW.dir=Math.sign(want);const c0=Math.floor(x0),c1=Math.floor(x1);if(BW.dir!==BW.ld)BW.last=null;BW.ld=BW.dir;
       for(let c=c0;BW.dir>0?c<=c1:c>=c1;c+=BW.dir){if(c===BW.last)continue;BW.last=c;bwCol(c)}try{m2Stamp({t:2,A:[wx(x0),wx(x1),BW.dir,1],B:[2,wz(RY0)-.05,wz(RY1)+.05,0],C:[1,0,0,0]})}catch(e){}BW.x=x1;sp=Math.abs(want)/dt}
     if(live){boardX=BW.x;lastDir=BW.dir;if(BW.wait&&BW.auto&&k==='pour')say('Bid-Well\'s waiting on mud. Keep the pour 15 to 20 ft ahead of it.','info','bwWait',6000)}
@@ -2357,13 +2360,13 @@ function brgHud(k){if(!BRG.on)return null;
   if(k==='soffit'){const b=BRG.pan.filter(p=>!p.ov),o=BRG.pan.filter(p=>p.ov);return`Soffit panels ${b.filter(p=>p.placed).length}/${b.length} · overhang ${o.filter(p=>p.placed).length}/${o.length} · drag over the orange bays`}
   if(k==='pour'&&(BW.auto||BW.done)){const ft=Math.max(0,Math.min(48,(BW.s<0?BW.x-RX0:RX1-BW.x)*CELL_IN/12));return`Placed ${placed.toFixed(1)} of ${NEED_M3.toFixed(1)} m³ · Bid-Well ${BW.done?'finished the span':Math.round(ft)+' of 48 ft'+(BW.wait?' · WAITING ON MUD':' · rolling')}`}
   if(k==='pour'&&!BW.auto){const a=brgAheadFt();if(a<15)return`Placed ${placed.toFixed(1)} of ${NEED_M3.toFixed(1)} m³ · start at the Bid-Well end · ${Math.round(a)} of 15 ft ahead of the machine`}
-  if(k==='screed'){const ft=Math.max(0,Math.min(48,(BW.s<0?BW.x-RX0:RX1-BW.x)*CELL_IN/12));return`Bid-Well ${Math.round(ft)} of 48 ft · ±${rms().toFixed(2)} in · `+(BW.wait?'waiting on the pump':BW.feed?'pump feeding the augers':BW.auto?'rolling':ptr.down?'carriage running':'drag to make another pass')}
+  if(k==='screed'){const ft=Math.max(0,Math.min(48,(BW.s<0?BW.x-RX0:RX1-BW.x)*CELL_IN/12));return`Bid-Well ${Math.round(ft)} of 48 ft · ±${rms().toFixed(2)} in · `+(BW.wait?'waiting on the pump':BW.feed?'pump feeding the augers':BW.auto?'rolling':ptr.down?'carriage running':BW.done?'one pass, finished':'drag ahead of it down the span')}
   return null}
 function brgNextSay(k){if(!BRG.on)return;
   if(k==='soffit')say('Hang the soffit: drag over each orange bay between the girders and along both overhangs. Brackets, walkway and screed rail go up with the overhang panels.','info','nSof',0);
   if(k==='rebar')say('Bottom mat\'s tied on the soffit. Set the top mat and tie it.','info','nRebB',4500);
   if(k==='pour'&&BRG.on)say('Start pouring at the far end, right in front of the Bid-Well. Once there\'s 15 ft of mud ahead of it, tap Start Bid-Well and it finishes right behind you.','info','nBwP',0);
-  if(k==='screed'&&BW.done)say('Bid-Well\'s done the span. Drag along it for a touch-up pass, or hit Next to get the wet burlap on.','info','nBwD',0);else if(k==='screed')say('Hold and drag along the span. The Bid-Well walks the rails, the carriage runs across, augers cut it down and the drum finishes it. The pump keeps mud ahead of it.','info','nBw',0)}
+  if(k==='screed'&&BW.done)say('Bid-Well\'s done the span in one pass. Deck\'s finished, hit Next to get the wet burlap on.','info','nBwD',0);else if(k==='screed')say('Hold and drag along the span. The Bid-Well walks the rails, the carriage runs across, augers cut it down and the drum finishes it. The pump keeps mud ahead of it.','info','nBw',0)}
 const BRGPROG={demo:()=>brgDemoPct(),soffit:()=>brgPct(BRG.pan),screed:()=>{let s=0,n=0;for(let i=0;i<N;i++)if(inR[i]){n++;s+=Math.min(1,closed[i])}return clamp01(1-(rms()-.15)/1.4)*.6+(n?s/n:0)*.4}};
 function brgSC(q,tm){if(!BRG.on)return{};return{
   demo:()=>{const c=brgDemoPct();return['Tear out',c,`${Math.round(c*100)}% of the old deck broken off the girders and loaded out.`+(c<.97?' Old concrete left on the flanges means a bad bond to the new deck.':' Flanges clean, studs exposed.')]},
