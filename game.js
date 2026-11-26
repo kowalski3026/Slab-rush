@@ -12075,7 +12075,9 @@ $('evBtn').addEventListener('click',()=>{if(!ev||(ev.phase!=='warn'&&ev.phase!==
 /* ---------- before-and-after photo ---------- */
 let photoB=null,photoA=null;
 // v198: a year later the yard's back: sod right up to the concrete, no dug ring, gravel or clods
-function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){hid.push(o);o.visible=false}});if(!lawnOn||LV.bridge)return()=>{hid.forEach(o=>o.visible=true)};
+function yearGrass(){const hid=[];[tape,tapeCase].forEach(o=>{if(o&&o.visible){hid.push(o);o.visible=false}});
+  /* v425: photo jobs: the dug pit (and its photo lid) is put away, so the band round the slab is the 'before' photo's lawn instead of a strip of dirt below the slab */
+  if(typeof BKD!=='undefined'&&BKD.on&&!LV.bridge&&!LV.wall&&!LV.slip)[pitMesh,BKD.lid].forEach(o=>{if(o&&o.visible){hid.push(o);o.visible=false}});if(!lawnOn||LV.bridge)return()=>{hid.forEach(o=>o.visible=true)};
   siteG.traverse(o=>{if(o!==siteG&&/^(ring|gravel|wall|splat)$/.test(o.userData.kind||'')){o.userData.yrHide=1;if(o.visible){hid.push(o);o.visible=false}}});
   [turfL,gravL].forEach(o=>{if(o&&o.visible){hid.push(o);o.visible=false}});
   let m=null;try{const E=ELV()&&(LV.wall||LV.slip||isPrep())?ELV():0,out=offsetPolyNF(SHAPE,LV.ringOuter?1.4:4.5,-.02),sh=new THREE.Shape();out.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));
