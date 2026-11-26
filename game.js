@@ -4730,8 +4730,8 @@ function rumbleTarget(){
   if(pouring&&truck.visible)add(.05,.55,3);
   if(pouring&&pumpG.visible)add(.06,.6,2.5);
   if(exG.visible){const cw=typeof cabOn!=='undefined'&&cabOn&&typeof cab!=='undefined'&&cabAvail(),cm=cw?Math.min(1,cab.mov||0):1;if(cw?cm>.1:d)add((.04+.04*cm)*cabK,.35+.3*cm,5)}
-  if(compG.visible&&d&&toolSpeed>.5)add(.13,.9,12);
-  if(rollG.visible&&d&&toolSpeed>.5)add(.08,.65,6);
+  if(compG.visible&&PLT.vib>.4)add(.13*PLT.vib,.9,12);
+  if(rollG.visible&&RLR.vib>.4)add(.08*RLR.vib,.65,6);
   if(k==='vibe'&&d)add(.05,.85,14);
   if(k==='power'&&d&&toolSpeed>1)add(.05,.7,10);
   if(k==='expose'&&d&&wandG.visible)add(.008+.03*EXW.blast,.3+.35*EXW.blast,11);
@@ -6255,7 +6255,7 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   else if(k==='shape')shapeSeg(p.x,p.y,p.x+.01,p.y);
   else if(k==='slip'){}
   else if(k==='cure')cureSeg(ptr.x,ptr.y,p.x,p.y);
-  else if(k==='mark')markTrace(p,true);else if(k==='strip')stripSeg(p.x,p.y,p.x,p.y);else if(k==='dig'||k==='gravel'){}/* v421: the bucket does the work where it goes (updateExcavator) */else if(k==='base'){compPassId++;compDir=null;compactSeg(p.x,p.y,p.x,p.y)}else if(k==='form')formTrace(p.x,p.y);else if(k==='rebar')rebDown(p.wx,p.wz);
+  else if(k==='mark')markTrace(p,true);else if(k==='strip')stripSeg(p.x,p.y,p.x,p.y);else if(k==='dig'||k==='gravel'){}/* v421: the bucket does the work where it goes (updateExcavator) */else if(k==='base'){}/* v426: the machine packs where it sits (plTick/rlTick) */else if(k==='form')formTrace(p.x,p.y);else if(k==='rebar')rebDown(p.wx,p.wz);
   if(!(RIDE.drive&&rideLive()))toolPos.set(wx(p.x),0,wz(p.y));
 });
 cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
@@ -6279,7 +6279,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='cure')cureSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='trowel')trowelSeg(ptr.x,ptr.y,p.x,p.y);
   else if(k==='joint')jointMove(p);
-  else if(k==='mark')markTrace(p);else if(k==='strip')stripSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='dig'||k==='gravel'){}else if(k==='base')compactSeg(ptr.x,ptr.y,p.x,p.y);
+  else if(k==='mark')markTrace(p);else if(k==='strip')stripSeg(ptr.x,ptr.y,p.x,p.y);else if(k==='dig'||k==='gravel'){}else if(k==='base'){}
   else if(k==='form'){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.6));for(let q=1;q<=n;q++)formTrace(ptr.x+dx*q/n,ptr.y+dy*q/n)}
   else if(k==='tube'){const ox=wx(ptr.x),oz=wz(ptr.y),n=Math.max(1,Math.ceil(Math.hypot(p.wx-ox,p.wz-oz)/.5));for(let q=1;q<=n;q++)tubeAt(ox+(p.wx-ox)*q/n,oz+(p.wz-oz)*q/n)}
   else if(k==='rebar')rebMove(p.wx,p.wz);
@@ -7957,7 +7957,7 @@ $('next').addEventListener('click',e=>{
     if(k==='release')say('Drag to shake the release on. One even coat over all of it.','info','nRel',0);
     if(k==='stamp')say(SP.g?'Draw along the form to lay a row of mats, then drag across them to tamp. Work in rows.':'Start at the front form and work in rows.','info','nSt',0);
     if(k==='gravel')say(digPct()<.9?'Some of it isn\'t dug out yet. Gravel\'s on site anyway, spread it.':'Pit\'s dug. Gravel\'s dumped, spread it out with the bucket.','info','nGrav',0);
-    if(k==='base')say('Gravel\'s spread. Run the plate compactor over all of it.','info','nBase',0);
+    if(k==='base')say('Gravel\'s spread. Hold your thumb out ahead of the machine and walk it over everything, overlapping each pass.','info','nBase',0);
     if(k==='slip')say('Slide the travel lever to start. The truck feeds itself: go slow enough that the hopper never runs dry.','info','nSlip',0);
     if(k==='shape')say('Mule time. Drag it along the whole curb, both legs.','info','nShape',0);
     if(k==='form')say('Trace around the outside to snap the form boards in.','info','nForm',0);
@@ -8073,7 +8073,7 @@ const PRACTICE=[
  {k:'dig',sec:'Machines',ic:'excav',n:'Dig to grade',d:'Strip the sod, dig to subgrade',lv:'drive1',st:'dig',prep:1,goal:'Dig 100% to subgrade',tgt:1,gold:40,silver:70},
  {k:'strip',sec:'Machines',ic:'excav',n:'Strip asphalt',d:'Break up the old driveway, load it out',lv:'drive1',st:'strip',prep:1,goal:'Strip 100% of the asphalt',tgt:1,gold:40,silver:70},
  {k:'grav',sec:'Machines',ic:'gravel',n:'Spread the base',d:'Gravel out even, edge to edge',lv:'drive1',st:'gravel',prep:1,goal:'Spread it all',tgt:1,gold:50,silver:80},
- {k:'pack',sec:'Machines',ic:'pack',n:'Pack it',d:'Roller and plate, no soft spots',lv:'drive1',st:'base',prep:1,goal:'Compact 100%',tgt:1,gold:30,silver:55},
+ {k:'pack',sec:'Machines',ic:'pack',n:'Pack it',d:'Roller and plate, no soft spots',lv:'drive1',st:'base',prep:1,goal:'Compact 100%',tgt:1,gold:55,silver:90},
  {k:'slip',sec:'Machines',ic:'slip',n:'Slipform curb',d:'Drive and keep the hopper fed',lv:'curb',st:'slip',goal:'Run the whole curb',tgt:1,gold:60,silver:100},
  {k:'form',sec:'Placing',ic:'forms',n:'Set forms',d:'Trace the boards and stakes',lv:'patio',st:'form',prep:1,goal:'Set 100% of the forms',tgt:1,gold:20,silver:40},
  {k:'rebar',sec:'Placing',ic:'forms',n:'Rebar mat',d:'Lay bars, tie the mat',lv:'patio',st:'rebar',prep:1,goal:'Lay the bars, then tie the mat',tgt:1,gold:35,silver:60},
@@ -8131,7 +8131,7 @@ $('ddRetry').addEventListener('click',()=>{const p=(drill&&drill.p)||practice;$(
 $('ddNext').addEventListener('click',()=>{const p=(drill&&drill.p)||practice,k=PRACTICE.indexOf(p),n=PRACTICE[(k+1)%PRACTICE.length];$('drillDone').hidden=true;startPractice(n)});
 $('ddYard').addEventListener('click',()=>{$('drillDone').hidden=true;drillStop();endPractice();$('intro').hidden=false;renderPractice();$('practice').hidden=false});
 function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){markN=markPts.length}else if(k==='break'){arBreakAll();geoDirty=layerDirty=true}else if(k==='strip'){arBreakAll();arScoopAll();spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
-  else if(k==='gravel'){for(let i=0;i<N;i++)if(PM[i])gravF[i]=1.1;gravLeft=0;geoDirty=layerDirty=true}else if(k==='base'){for(let i=0;i<N;i++)if(PM[i])compF[i]=1.1;layerDirty=true}
+  else if(k==='gravel'){for(let i=0;i<N;i++)if(PM[i])gravF[i]=1.1;gravLeft=0;geoDirty=layerDirty=true}else if(k==='base'){for(let i=0;i<N;i++)if(PM[i])compF[i]=1.1;try{pkFill(1.2)}catch(e){}layerDirty=true}
   else if(k==='form'){formPieces.forEach(f=>{f.placed=true;f.m.visible=true})}
   else if(k==='rebar'){rebarAll();REBX.forEach((q,k2)=>{if(q.need&&!q.t){q.t=1;rebN++;rebM(rebTieIM,k2,q.x,-.135,q.z,Math.PI/2,0,Math.PI/4,1,1,1)}});rebMarks()}
   else if(k==='pour'){for(let i=0;i<N;i++)if(inR[i]){const x=i%GW,y=(i/GW)|0;h[i]=TG[i]+.35+.9*Math.sin(x*.45+1.3)*Math.sin(y*.6)+(Math.random()-.5)*.5}placed=NEED_M3;geoDirty=surfDirty=true}
@@ -10072,7 +10072,7 @@ function updateLayers(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,soil
   if(stage>=S.gravel){const pos=gravL.userData.pos,col=gravL.userData.col,n=pos.length/3;
     for(let v=0;v<n;v++){const g=bil(gravF,pVU[v],pVV[v]),c=bil(compF,pVU[v],pVV[v]),d=bil(digD,pVU[v],pVV[v]);
       let y=gravY(g,c);if(d<.5)y=Math.max(y,TOPf()+.012);const hs=Math.sin(pVU[v]*12.9898+pVV[v]*78.233)*43758.5453,n2=hs-Math.floor(hs);pos[v*3+1]=y+(1-Math.min(1,c))*(n2-.5)*.035;
-      const cc=Math.min(1,c),sh=1.04-.26*cc+(n2-.5)*.1*(1-cc);col[v*3]=sh;col[v*3+1]=sh;col[v*3+2]=sh*.985}
+      const cc=Math.min(1,c),sh=1.02+(n2-.5)*.1*(1-cc);/* v426: packed darkening is per-texel in the shader (packMat) */col[v*3]=sh;col[v*3+1]=sh;col[v*3+2]=sh*.985}
     gravL.geometry.attributes.position.needsUpdate=true;gravL.geometry.attributes.color.needsUpdate=true;gravL.geometry.computeVertexNormals();gravL.geometry.computeBoundingSphere();
     fillMask(gravMask,gravF,1);gravL.visible=true}else gravL.visible=false;
   if(k==='dig'){const show=digPct()>.2;siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='ring')o.visible=show})}}
@@ -10114,7 +10114,7 @@ function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&ST
      for(let i=0;i<markPts.length;i++){if(!markDone[i])continue;markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
   const on=k==='mark'&&ptr.down&&running;sprayCan.visible=on;if(on&&markLast){sprayCan.position.set(markLast[0],prepSurfY(markLast[0],markLast[1])+1.1,markLast[1]);sprayCan.userData.mist.material.opacity=.25+Math.random()*.2}}
 
-function prepReset(){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;try{dumpT.userData.n=0}catch(e){}stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed});
+function prepReset(){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;try{dumpT.userData.n=0}catch(e){}stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);try{pkReset()}catch(e){}gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed});
   pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});
   layerInit();slipReset();exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{markBuild()}catch(e){console.warn(e)}}
 // v97: going back a step in prep restarts that step and everything after it (forms come off, gravel goes back to the pile, and so on)
@@ -10123,7 +10123,7 @@ function unwindPrep(){if(!isPrep()||placed>0)return;const k=STAGES[stage]&&STAGE
   if(from('dig')){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;spoilVol=0;pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;
     try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
   if(from('gravel')){gravF.fill(0);gravLeft=1;exCyc=null;exTip0=null;exLoad=0}
-  if(from('base'))compF.fill(0);
+  if(from('base')){compF.fill(0);try{pkReset()}catch(e){}}
   if(from('form'))formPieces.forEach(f=>f.placed=false);
   if(from('rebar')){try{rebarReset()}catch(e){}}
   if(from('dig'))try{layerInit()}catch(e){}
@@ -10703,7 +10703,7 @@ function cpmLoad(){if(!THREE.GLTFLoader)return;
       const W=new THREE.Group(),I=new THREE.Group(),cx=(ax[0]+ax[1])/2;I.position.set(-cx,-y0,0);I.add(body);const md=[];
       dr.forEach((ix,k)=>{const G=new THREE.Group();G.position.set(ax[k],ay,0);const m=new THREE.Mesh(sub(ix),ms.material);m.castShadow=m.receiveShadow=true;m.position.set(-ax[k],-ay,0);G.add(m);I.add(G);md.push(G)});
       const k=3.6/(ax[1]-ax[0]);W.add(I);W.rotation.y=-Math.PI/2;W.scale.setScalar(k);// hood (model +x) forward to +z like the coded one
-      rollG.children.forEach(c=>c.visible=false);rollG.add(W);const u=rollG.userData;u.md=md;u.mR=r*k;CPM.roll.on=true;
+      rollG.children.forEach(c=>c.visible=false);rollG.add(W);const u=rollG.userData;u.md=md;u.mR=r*k;u.mW=2*zw*k;CPM.roll.on=true;
       cpmDecal(W,body,rollG.localToWorld(new THREE.Vector3(5,2.3,1.6)),new THREE.Vector3(-1,0,0),.95);cpmDecal(W,body,rollG.localToWorld(new THREE.Vector3(-5,2.3,1.6)),new THREE.Vector3(1,0,0),.95)
     }catch(e){CPM.roll.err=String(e);console.warn('roller glb',e)}},undefined,e=>{CPM.roll.err=String(e&&e.message||e)})}}
 function rollerOK(){return !!LV&&!LV.wall&&!LV.steps.includes('slip')&&sqftOf(LV)>=180}
@@ -10711,6 +10711,133 @@ function setCompTool(t,quiet){compTool=t==='roller'&&rollerOK()?'roller':'plate'
   if(!quiet)say(compTool==='roller'?'Roller for the open field. It can\'t get tight to the forms, so finish the edges with the plate.':'Plate packer gets right up against the edges.','info','ctool',0)}
 $('cPlate').addEventListener('click',()=>setCompTool('plate'));$('cRoller').addEventListener('click',()=>setCompTool('roller'));
 function nearPitEdge(i){const x=i%GW;for(const d of [-2,2]){const a=x+d;if(a<0||a>=GW||!PZc[i+d])return true;const b=i+d*GW;if(b<0||b>=N||!PZc[b])return true}return false}
+/* v426: the packer step, machine-driven. A fine pack map (8×8 texels per prep cell) is the source of truth: the plate or the roller
+   works the stone under its real footprint, by time under it (a slow pass packs more than a fast one), and compF is the cell
+   average of it. The gravel shader reads the map, so plate strips, overlaps and roller lanes show crisp: packed stone is tighter,
+   flatter and a shade darker with the fines up, and a ridge of loose stone runs along each strip edge. */
+const PKS={W:GW*8,H:GH*8,zk:null,dirty:false,upT:0,syncT:0,sDirty:false};
+PKS.a=new Float32Array(PKS.W*PKS.H);PKS.ins=new Uint8Array(PKS.W*PKS.H);PKS.ed=new Float32Array(PKS.W*PKS.H);PKS.bytes=new Uint8Array(PKS.W*PKS.H);
+PKS.tex=new THREE.DataTexture(PKS.bytes,PKS.W,PKS.H,THREE.RedFormat,THREE.UnsignedByteType);PKS.tex.magFilter=PKS.tex.minFilter=THREE.LinearFilter;PKS.tex.generateMipmaps=false;PKS.tex.needsUpdate=true;
+const pkTW=()=>SLAB_W/PKS.W,pkX=X=>(X+SLAB_W/2)/SLAB_W*PKS.W,pkZ=Z=>(Z+SLAB_D/2)/SLAB_D*PKS.H;
+function pkInAt(X,Z){const x=Math.floor(pkX(X)),y=Math.floor(pkZ(Z));if(x<0||y<0||x>=PKS.W||y>=PKS.H)return false;return !!PKS.ins[y*PKS.W+x]}
+function pkBuild(){const W=PKS.W,H=PKS.H,ins=PKS.ins,ed=PKS.ed,tw=pkTW();PKS.zk=zoneZ;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=y*W+x,i=(y>>3)*GW+(x>>3);ins[t]=PM[i]&&zoneIn(-SLAB_W/2+(x+.5)*tw,-SLAB_D/2+(y+.5)*tw)?1:0}
+  // distance to the pit wall, in texels (two-pass chamfer), then feet
+  for(let t=0;t<W*H;t++)ed[t]=ins[t]?1e6:0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=y*W+x;if(!ed[t])continue;let v=ed[t];v=Math.min(v,x>0?ed[t-1]+1:1,y>0?ed[t-W]+1:1);if(y>0){if(x>0)v=Math.min(v,ed[t-W-1]+1.414);if(x<W-1)v=Math.min(v,ed[t-W+1]+1.414)}ed[t]=v}
+  for(let y=H-1;y>=0;y--)for(let x=W-1;x>=0;x--){const t=y*W+x;if(!ed[t])continue;let v=ed[t];v=Math.min(v,x<W-1?ed[t+1]+1:1,y<H-1?ed[t+W]+1:1);if(y<H-1){if(x<W-1)v=Math.min(v,ed[t+W+1]+1.414);if(x>0)v=Math.min(v,ed[t+W-1]+1.414)}ed[t]=v}
+  for(let t=0;t<W*H;t++)ed[t]*=tw}
+function pkUp(){const a=PKS.a,b=PKS.bytes;for(let t=0;t<a.length;t++){const v=a[t];b[t]=v>=1.2?255:v<=0?0:(v*212.5)|0}PKS.tex.needsUpdate=true;PKS.dirty=false;PKS.upT=performance.now()}
+function pkFill(v){PKS.a.fill(v);pkUp()}
+function pkSync(){const W=PKS.W,a=PKS.a,ins=PKS.ins;for(let i=0;i<N;i++){if(!PM[i])continue;const cx=(i%GW)*8,cy=((i/GW)|0)*8;let s=0,n=0,s2=0;
+    for(let y=cy;y<cy+8;y++){let t=y*W+cx;for(let x=0;x<8;x++,t++){const v=Math.min(1,a[t]);s2+=v;if(ins[t]){s+=v;n++}}}compF[i]=n?s/n:s2/64}
+  PKS.sDirty=false;PKS.syncT=performance.now();layerDirty=true}
+// work the stone under one footprint (centre, heading, half width, half length); rate is this frame's gain; the roller can't get
+// tight to the pit wall, so inside capR ft of it its gain stops at cap
+function pkStamp(cx,cz,th,hw,hl,rate,cap,capR){const W=PKS.W,H=PKS.H,a=PKS.a,ins=PKS.ins,ed=PKS.ed,tw=pkTW(),c=Math.cos(th),s=Math.sin(th),R=Math.hypot(hw,hl)+tw;
+  const x0=Math.max(0,Math.floor(pkX(cx-R))),x1=Math.min(W-1,Math.ceil(pkX(cx+R))),y0=Math.max(0,Math.floor(pkZ(cz-R))),y1=Math.min(H-1,Math.ceil(pkZ(cz+R)));let sum=0,n=0;
+  for(let y=y0;y<=y1;y++){const Z=-SLAB_D/2+(y+.5)*tw-cz;for(let x=x0;x<=x1;x++){const t=y*W+x;if(!ins[t]||gravF[(y>>3)*GW+(x>>3)]<=.4)continue;const X=-SLAB_W/2+(x+.5)*tw-cx;
+    const lx=X*c-Z*s,lz=X*s+Z*c,w=Math.min(1,Math.max(0,(hw-Math.abs(lx))/tw+.5))*Math.min(1,Math.max(0,(hl-Math.abs(lz))/tw+.5));if(w<=0)continue;
+    const lim=cap!=null&&ed[t]<capR?cap:1.2;if(rate>0&&a[t]<lim)a[t]=Math.min(lim,a[t]+rate*w);sum+=Math.min(1,a[t])*w;n+=w}}
+  if(rate>0){PKS.dirty=PKS.sDirty=true}return n?sum/n:1}
+// keeping a machine on the stone: the pit-wall distance field (ed, ft) is sampled at a few discs along the machine; any disc that
+// gets closer to the wall than its radius pushes the machine straight back out along the field's slope, so it slides along walls
+// and round corners without catching or shuddering
+function pkEd(X,Z){const fx=pkX(X)-.5,fz=pkZ(Z)-.5,x=Math.floor(fx),z=Math.floor(fz),W=PKS.W,H=PKS.H,ed=PKS.ed;if(x<0||z<0||x>=W-1||z>=H-1)return 0;const u=fx-x,v=fz-z,t=z*W+x;
+  return(ed[t]*(1-u)+ed[t+1]*u)*(1-v)+(ed[t+W]*(1-u)+ed[t+W+1]*u)*v}
+function pkDiscs(M,offs){const fx=Math.sin(M.th),fz=Math.cos(M.th);return offs.map(o=>[M.x+fx*o,M.z+fz*o])}
+function pkFitsM(M,offs,r){for(const d of pkDiscs(M,offs))if(pkEd(d[0],d[1])<r-.01)return false;return true}
+function pkPush(M,offs,r){let moved=0;for(let it=0;it<4;it++){let worst=null,we=1e9;for(const d of pkDiscs(M,offs)){const e=pkEd(d[0],d[1]);if(e<we){we=e;worst=d}}if(we>=r-.005)break;
+    const h=pkTW()*1.5,gx=pkEd(worst[0]+h,worst[1])-pkEd(worst[0]-h,worst[1]),gz=pkEd(worst[0],worst[1]+h)-pkEd(worst[0],worst[1]-h),gl=Math.hypot(gx,gz);if(gl<1e-5)break;
+    const k=Math.min(.35,r-we+.004);M.x+=gx/gl*k;M.z+=gz/gl*k;moved+=k}return moved}
+// one step: turn, roll forward (step<0 = toward local -z), then slide out of any wall it touched; returns how freely it went
+function pkMove(M,nth,step,offs,r){M.th=nth;M.x+=Math.sin(nth)*step;M.z+=Math.cos(nth)*step;const p=pkPush(M,offs,r),a=Math.abs(step);return !a?1:p>a*.8?.3:p>a*.3?.7:1}
+// unload it at the end of the pit nearest the camera, pointed into the work
+function pkPark(M,offs,r,along){const cx=camera.position.x,cz=camera.position.z;let best=null,bd=1e9;const T={x:0,z:0,th:0};
+  for(let i=0;i<N;i++){if(!PZc[i])continue;T.x=wx(i%GW+.5);T.z=wz(((i/GW)|0)+.5);T.th=along!=null?along:Math.atan2(T.x,T.z);if(!pkFitsM(T,offs,r))continue;const d=(T.x-cx)**2+(T.z-cz)**2;if(d<bd){bd=d;best=[T.x,T.z,T.th]}}
+  if(!best){T.x=0;T.z=0;T.th=along||0;pkPush(T,offs,r);best=[T.x,T.z,T.th]}M.x=best[0];M.z=best[1];M.th=best[2]}
+
+// ---- plate packer: walks to your finger at a working pace, pivots on the handle, packs where its plate sits ----
+const PLT={on:0,x:0,z:0,th:0,v:0,vib:0,still:0,warn:0,dT:0,bT:0,under:0},PLV=7.5,PLHW=.92,PLHL=.84,PLOFF=[0],PLR=.93,PLDC=new THREE.Color(.7,.7,.68);
+function plTick(dt,t,k,P){const on=P&&running&&k==='base'&&compTool==='plate';compG.visible=on;if(!on){PLT.on=0;PLT.vib=0;return}
+  if(PKS.zk!==zoneZ)pkBuild();if(!PLT.on){PLT.on=1;PLT.v=0;PLT.still=0;pkPark(PLT,PLOFF,PLR)}
+  const hold=ptr.down&&!coachOpen;PLT.vib+=((hold?1:0)-PLT.vib)*Math.min(1,dt*(hold?7:3));let vt=0,th=PLT.th;
+  if(hold){const dx=toolTarget.x-PLT.x,dz=toolTarget.z-PLT.z,d=Math.hypot(dx,dz);
+    if(d>.5){const td=Math.atan2(-dx,-dz),e0=Math.atan2(Math.sin(td-th),Math.cos(td-th)),tr=(PLT.v>3?2.2:3.6)*dt;th+=Math.max(-tr,Math.min(tr,e0));
+      const e=Math.atan2(Math.sin(td-th),Math.cos(td-th)),ce=Math.max(0,Math.cos(e));vt=PLV*ce*ce*ce*Math.min(1,(d-.45)/1.3)}}
+  PLT.px=PLT.x;PLT.pz=PLT.z;PLT.v+=(vt-PLT.v)*Math.min(1,dt*(vt>PLT.v?5:9));const st=Math.max(0,PLT.v)*dt;
+  PLT.v*=pkMove(PLT,th,-st,PLOFF,PLR)<1?.85:1;/* plate nose is local -z */
+  if(PLT.vib>.4){PLT.under=pkStamp(PLT.x,PLT.z,PLT.th,PLHW,PLHL,.6*PLV/(2*PLHL)*dt*PLT.vib)}else PLT.under=pkStamp(PLT.x,PLT.z,PLT.th,PLHW,PLHL,0);
+  // a plate left vibrating in one spot shakes the stone out from under itself
+  {const mv=Math.hypot(PLT.x-PLT.px,PLT.z-PLT.pz)/Math.max(dt,1e-3);if(PLT.vib>.6&&mv<.3)PLT.still+=dt;else PLT.still=Math.max(0,PLT.still-dt*3)}
+  
+  if(PLT.still>1.4)say('Keep the plate moving. Sitting in one spot shakes a hole in the stone.','bad','plStill',5000);
+  if(PLT.still>2.2){prepBrush(gu(PLT.x),gv(PLT.z),gu(PLT.x),gv(PLT.z),.8,(i,f)=>{if(gravF[i]>.92)gravF[i]=Math.max(.92,gravF[i]-dt*.07*f)});layerDirty=true}
+  const j=PLT.vib,G=compG;G.position.set(PLT.x+(Math.random()-.5)*.03*j,prepSurfY(PLT.x,PLT.z)+Math.abs(Math.sin(t*.06))*.05*j,PLT.z+(Math.random()-.5)*.03*j);
+  G.rotation.set((Math.random()-.5)*.014*j,PLT.th,(Math.random()-.5)*.014*j);
+  pkFx(dt,PLT.x,PLT.z,PLT.th,PLHW,PLHL,PLT.vib,PLT.under,1)}
+
+// ---- ride-on roller: drives forward or back to your finger and steers on its articulation, no sliding sideways ----
+const RLR={on:0,x:0,z:0,th:0,v:0,vib:0,dir:1,under:0},RLV=9.5;
+function rlDims(){const u=rollG.userData;return CPM.roll.on&&u.mW?{ax:1.8,hw:u.mW/2,R:u.mR}:{ax:1.55,hw:1.165,R:.875}}
+function rlTick(dt,t,k,P){const on=P&&running&&k==='base'&&compTool==='roller';rollG.visible=on;if(!on){RLR.on=0;RLR.vib=0;return}
+  if(PKS.zk!==zoneZ)pkBuild();const D=rlDims(),hl=D.ax+D.R*.75,ro=Math.max(D.hw+.06,.95),offs=[-(hl-ro),0,hl-ro],u=rollG.userData;
+  if(!RLR.on){RLR.on=1;RLR.v=0;pkPark(RLR,offs,ro,(RX1-RX0)>=(RY1-RY0)?Math.PI/2:0);u.last.set(RLR.x,0,RLR.z)}
+  const hold=ptr.down&&!coachOpen;RLR.vib+=((hold?1:0)-RLR.vib)*Math.min(1,dt*(hold?5:2.5));let vt=0,th=RLR.th;
+  if(hold){const fx=Math.sin(th),fz=Math.cos(th),dx=toolTarget.x-RLR.x,dz=toolTarget.z-RLR.z,al=dx*fx+dz*fz,lat=dx*fz-dz*fx,d=Math.hypot(dx,dz);
+    if(Math.abs(al)>.6)RLR.dir=al>=0?1:-1;
+    if(d>.7){const td=RLR.dir>0?Math.atan2(dx,dz):Math.atan2(-dx,-dz),e=Math.atan2(Math.sin(td-th),Math.cos(td-th)),tr=Math.min(1.5,.2+Math.abs(RLR.v)*.2)*dt;th+=Math.max(-tr,Math.min(tr,e));
+      vt=RLR.dir*RLV*Math.min(1,Math.max(Math.abs(al),Math.abs(lat)*.6)/2.5)*(.45+.55*Math.max(0,Math.cos(e)))}}
+  RLR.v+=(vt-RLR.v)*Math.min(1,dt*3);const st=RLR.v*dt;
+  RLR.v*=pkMove(RLR,th,st,offs,ro)<1?.8:1;
+  const fx=Math.sin(RLR.th),fz=Math.cos(RLR.th),rate=RLR.vib>.4?.53*RLV/.56*dt*RLR.vib:0;/* one pass at full speed: two drums of .53 */let g=0;
+  for(const s of [1,-1])g+=pkStamp(RLR.x+fx*D.ax*s,RLR.z+fz*D.ax*s,RLR.th,D.hw,.28,rate,.55,.65)/2;RLR.under=g;
+  rollG.position.set(RLR.x,prepSurfY(RLR.x,RLR.z)+Math.abs(Math.sin(t*.09))*.025*RLR.vib,RLR.z);rollG.rotation.y=RLR.th;
+  const dd=rollG.position.distanceTo(u.last);if(dd<3){const sg=Math.sign(fx*(rollG.position.x-u.last.x)+fz*(rollG.position.z-u.last.z))||1;u.drums.forEach(q=>q.rotation.x+=sg*dd/u.R);if(u.md)u.md.forEach(q=>q.rotation.z-=sg*dd/u.mR)}u.last.copy(rollG.position);
+  pkFx(dt,RLR.x,RLR.z,RLR.th,D.hw,hl,RLR.vib*.6,RLR.under,0)}
+
+// ---- dust off dry loose stone and stones chattering at the edge of the plate ----
+const PKB={n:40,b:[],im:null};{PKB.im=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),gravPileM,PKB.n);PKB.im.count=0;PKB.im.frustumCulled=false;PKB.im.castShadow=true;scene.add(PKB.im);for(let i=0;i<PKB.n;i++)PKB.b.push({on:0})}
+function pkFx(dt,X,Z,th,hw,hl,vib,under,plate){const loose=Math.max(0,1-under);
+  if(vib>.4){PLT.dT-=dt;if(PLT.dT<=0&&loose>.06){PLT.dT=.09+.3*(1-loose);const side=Math.random()<.5?-1:1,c=Math.cos(th),s=Math.sin(th),u=(Math.random()-.5)*2*hl,lx=side*(hw+.12);
+      const x=X+lx*c+u*s,z=Z-lx*s+u*c,i=CDUST.i;cdustPuff(x,prepSurfY(x,z),z,PLDC,false);CDUST.a0[i]=.18+.32*loose}
+    if(plate){PLT.bT-=dt;if(PLT.bT<=0&&loose>.1){PLT.bT=.035+.12*(1-loose);const b=PKB.b.find(q=>!q.on);if(b){const side=Math.random()*2-1,c=Math.cos(th),s=Math.sin(th),edge=Math.random()<.6,lx=edge?(Math.random()<.5?-1:1)*(hw+.03):side*hw,lz=edge?side*hl:-(hl+.03);
+      Object.assign(b,{on:1,x:X+lx*c+lz*s,z:Z-lx*s+lz*c,y:0,vy:1.2+Math.random()*1.6*loose,vx:(Math.random()-.5)*.8,vz:(Math.random()-.5)*.8,s:.025+Math.random()*.035,r:Math.random()*6});b.g=prepSurfY(b.x,b.z);b.y=b.g+.02}}}}
+  let n=0;for(const b of PKB.b){if(!b.on)continue;b.vy-=30*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;b.r+=dt*9;if(b.y<b.g){b.on=0;continue}
+    _ao.position.set(b.x,b.y,b.z);_ao.rotation.set(b.r,b.r*.7,0);_ao.scale.set(b.s,b.s*.8,b.s);_ao.updateMatrix();PKB.im.setMatrixAt(n++,_ao.matrix)}
+  PKB.im.count=n;if(n)PKB.im.instanceMatrix.needsUpdate=true}
+
+// ---- upload, cell sync, the gauge over the thumb, missed-spot glow, milestones ----
+const PKUI={ring:null,miss:null,mT:0,ms:0};
+function pkTick(dt,t,k,P){const on=P&&running&&k==='base';
+  if(PKS.dirty&&performance.now()-PKS.upT>66)pkUp();if(PKS.sDirty&&performance.now()-PKS.syncT>120)pkSync();
+  if(!on){if(PKUI.ring)PKUI.ring.style.display='none';if(PKUI.miss)PKUI.miss.visible=false;PKB.im.count=0;return}
+  const M=compTool==='roller'?RLR:PLT,pc=compPct();
+  {let R=PKUI.ring;const show=ptr.down&&rpCX!=null&&!cabOn;if(!R&&show){R=PKUI.ring=document.createElement('div');R.style.cssText='position:fixed;left:0;top:0;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;pointer-events:none;z-index:6;box-shadow:0 2px 8px rgba(0,0,0,.45)';
+      R.innerHTML='<b style="position:absolute;inset:7px;border-radius:50%;background:rgba(14,13,11,.82);display:grid;place-items:center;font:800 11px system-ui;color:#fff;letter-spacing:.02em"></b>';document.body.appendChild(R)}
+    if(R){R.style.display=show?'block':'none';if(show){const u=Math.max(0,Math.min(1,M.under||0)),tight=u>.97,col=tight?'#5fd068':u>.5?'#e8c547':'#c9ccd1';R.style.left=rpCX+'px';R.style.top=(rpCY-96)+'px';
+      R.style.background=`conic-gradient(${col} ${Math.round(u*100)}%,rgba(255,255,255,.18) 0)`;const tx=tight?'TIGHT':u>.5?'PASS 2':'PASS 1',b=R.firstChild;if(b.textContent!==tx)b.textContent=tx}}}
+  let G=PKUI.miss;if(!G){const g=new THREE.RingGeometry(.55,1,20);g.rotateX(-Math.PI/2);G=PKUI.miss=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:.7,depthWrite:false}),N);G.frustumCulled=false;G.count=0;G.renderOrder=6;scene.add(G)}
+  const showM=pc>.72&&pc<.999;G.visible=showM;if(showM){G.material.opacity=.45+.35*Math.sin(t*.008);if((PKUI.mT-=dt)<=0){PKUI.mT=.35;const cs=SLAB_W/GW;let n=0;
+    for(let y=0;y<GH;y+=2)for(let x=0;x<GW;x+=2){let lo=-1;for(let q=0;q<4&&lo<0;q++){const xx=x+(q&1),yy=y+(q>>1),i=yy*GW+xx;if(xx<GW&&yy<GH&&PZc[i]&&compF[i]<.95)lo=i}if(lo<0)continue;
+      const X=wx(x+1),Z=wz(y+1);_ao.position.set(X,prepSurfY(X,Z)+.12,Z);_ao.rotation.set(0,0,0);_ao.scale.setScalar(cs*1.25);_ao.updateMatrix();G.setMatrixAt(n++,_ao.matrix)}G.count=n;G.instanceMatrix.needsUpdate=true}}
+  // milestones, and the crew finishes the corners a machine can't reach with a hand tamper
+  const mk=pc>=.999?4:pc>=.75?3:pc>=.5?2:pc>=.25?1:0;if(mk>PKUI.ms){PKUI.ms=mk;const P3=[M.x,prepSurfY(M.x,M.z)+1.2,M.z];if(mk<4)digPopShow(P3,(mk*25)+'% packed');else{digPopShow(P3,'Packed tight!');pop('Base packed');shake(.08);buzz(25)}}
+  if(!flags.compSq&&pc>.955&&pc<.999&&(PKUI.cT=(PKUI.cT||0)-dt)<=0){PKUI.cT=.4;let near=true;const a=PKS.a,ins=PKS.ins,ed=PKS.ed;for(let q=0;q<a.length&&near;q++)if(ins[q]&&a[q]<1&&ed[q]>2.2)near=false;
+    if(near){flags.compSq=1;for(let q=0;q<a.length;q++)if(ins[q]&&a[q]<1)a[q]=1;PKS.dirty=PKS.sDirty=true;pkSync();say('Crew hit the corners with a hand tamper.','good','compsq',0)}}}
+function pkReset(){PKS.a.fill(0);pkUp();PLT.on=RLR.on=0;PKUI.ms=0}
+
+// gravel shader: reads the pack map over the prep grid (cuv)
+(function packMat(m){const prev=m.onBeforeCompile,pk=m.customProgramCacheKey;
+  m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);if(sh.fragmentShader.indexOf('pkMap')>=0)return;sh.uniforms.pkMap={value:PKS.tex};
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D pkMap;\nfloat pkS_=0.;')
+      .replace('#include <color_fragment>','#include <color_fragment>\n{vec2 o_=vec2(1.5/'+PKS.W.toFixed(1)+',1.5/'+PKS.H.toFixed(1)+');float p_=texture2D(pkMap,vCuv).r*1.2;pkS_=smoothstep(.04,1.,p_);'+
+        'float gx_=texture2D(pkMap,vCuv+vec2(o_.x,0.)).r-texture2D(pkMap,vCuv-vec2(o_.x,0.)).r,gy_=texture2D(pkMap,vCuv+vec2(0.,o_.y)).r-texture2D(pkMap,vCuv-vec2(0.,o_.y)).r;float sm_=smoothstep(.05,.22,length(vec2(gx_,gy_)));\n'+
+        '#ifdef USE_MAP\nvec3 av_=texture2D(map,vMapUv,4.).rgb*diffuse;\n#ifdef USE_COLOR\nav_*=vColor.rgb;\n#endif\n#else\nvec3 av_=diffuseColor.rgb;\n#endif\n'+
+        'diffuseColor.rgb=mix(diffuseColor.rgb,mix(diffuseColor.rgb,av_,.5)*vec3(.85,.855,.865),pkS_);diffuseColor.rgb*=1.+sm_*.16*(1.-pkS_*.4);}')
+      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor*=1.-.14*pkS_;')
+      .replace('#include <clearcoat_normal_fragment_begin>','normal=normalize(mix(normal,nonPerturbedNormal,.55*pkS_));\n#include <clearcoat_normal_fragment_begin>')};
+  m.customProgramCacheKey=function(){return(pk?pk.call(this):'')+'|pk'};m.needsUpdate=true})(gravM);
 
 const boardGhost=new THREE.Mesh(new THREE.BoxGeometry(2,FH,FT),new THREE.MeshStandardMaterial({map:wood,transparent:true,opacity:.6}));boardGhost.visible=false;scene.add(boardGhost);
 function exGround(){// average the ground under both tracks so the machine settles into the dig
@@ -11920,11 +12047,7 @@ function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);updateBlankets
   updateDump(dt);
   gravPile.visible=P&&k==='gravel'&&gravLeft>.01;if(gravPile.visible){const r=Math.max(2.2,Math.cbrt(RN*CELL_IN*CELL_IN/144*GTf()*1.1*gravLeft+.3)*1.05)*(.75+.25*EXS);gravPile.scale.set(r*1.3,r*.6,r);gravPile.userData.r=r}
   if(layerDirty&&performance.now()-layerT>90){layerT=performance.now();layerDirty=false;updateLayers()}
-  if(P&&running)cpmLoad();/* v360: fetched during the dig, ready before the stone goes down */if(running)tlmLoad();compG.visible=P&&k==='base'&&ptr.down&&compTool==='plate';{const rv=P&&k==='base'&&compTool==='roller';rollG.visible=rv;if(rv){const u=rollG.userData,tx=ptr.down?toolPos.x:rollG.position.x,tz=ptr.down?toolPos.z:rollG.position.z;if(!u.on){u.on=1;rollG.position.set(toolPos.x,0,toolPos.z);rollG.rotation.y=(RX1-RX0)>=(RY1-RY0)?Math.PI/2:0}
-    {const fw=new THREE.Vector3(Math.sin(rollG.rotation.y),0,Math.cos(rollG.rotation.y)),dx=tx-rollG.position.x,dz=tz-rollG.position.z,al=dx*fw.x+dz*fw.z,lx=dx-fw.x*al,lz=dz-fw.z*al,lk=Math.min(1,dt*3);
-     const sp=Math.hypot(ptr.vx,ptr.vy);if(ptr.down&&sp>1.2){let tg=Math.atan2(-ptr.vx,-ptr.vy),d=Math.atan2(Math.sin(tg-rollG.rotation.y),Math.cos(tg-rollG.rotation.y));if(Math.abs(d)>Math.PI/2)d-=Math.sign(d)*Math.PI;rollG.rotation.y+=Math.max(-.5*dt,Math.min(.5*dt,d))}
-     const nx=rollG.position.x+fw.x*al+lx*lk,nz=rollG.position.z+fw.z*al+lz*lk;rollG.position.set(nx,prepSurfY(nx,nz)+(ptr.down?Math.abs(Math.sin(t*.09))*.025:0),nz)}
-    const dd=rollG.position.distanceTo(u.last);if(dd<3){const fw=new THREE.Vector3(Math.sin(rollG.rotation.y),0,Math.cos(rollG.rotation.y)),sg=Math.sign(fw.dot(rollG.position.clone().sub(u.last))||1);u.drums.forEach(g=>g.rotation.x+=sg*dd/u.R);if(u.md)u.md.forEach(g=>g.rotation.z-=sg*dd/u.mR)}u.last.copy(rollG.position)}else rollG.userData.on=0}if(!compG.visible)compG.userData.y0=0;if(compG.visible){compG.position.set(toolPos.x,prepSurfY(toolPos.x,toolPos.z)+Math.abs(Math.sin(t*.06))*.05,toolPos.z);{const sp=Math.hypot(ptr.vx,ptr.vy);if(!compG.userData.y0){compG.userData.y0=1;compG.rotation.y=Math.atan2(camDir.x,camDir.z)}if(sp>1.5)compG.rotation.y=lerpAng(compG.rotation.y,Math.atan2(-ptr.vx,-ptr.vy),1-Math.pow(.02,dt))}}
+  if(P&&running)cpmLoad();/* v360: fetched during the dig, ready before the stone goes down */if(running)tlmLoad();try{plTick(dt,t,k,P);rlTick(dt,t,k,P);pkTick(dt,t,k,P)}catch(e){if(!PLT.err){PLT.err=1;console.warn('pack',e)}}/* v426: plate and roller are driven machines that pack under their own footprint */
   boardGhost.visible=P&&k==='form'&&ptr.down&&!!formGhost;if(boardGhost.visible){boardGhost.position.set(formGhost[0],FY+.3,formGhost[1]);boardGhost.rotation.y=formGhost[2]}}
 
 /* ---------- weather events: rain (tarp it), wind and sun (sets faster) ---------- */
