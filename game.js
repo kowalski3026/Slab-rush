@@ -66,7 +66,7 @@ const DEFS={
   break:{name:'Break up',win:[0,1],soft:1,desc:'The hammer is on the excavator. Press and drag over the old asphalt: it cracks into slabs and the machine tracks along to keep up. Work every edge and corner. The bucket comes next.'},
   strip:{name:'Strip asphalt',win:[0,1],soft:1,desc:'Dig the bucket into the old asphalt. The leading edge crumbles and pops into slabs and the bucket scoops them up as it goes. Drag where you want it and the machine tracks along to keep up. Let go and it dumps in the truck to be hauled off. Get every corner, because old asphalt left under a slab cracks it. The clock doesn\'t start until the truck shows.'},
   mark:{name:'Lay out',win:[0,1],soft:1,
-   desc:'Lay it out. The dotted line shows where the pad goes. Trace it with your finger to spray orange marking paint all the way around, so you can see where to dig on the grass. The clock doesn\'t start until the truck shows.'},
+   desc:'Lay it out. Tap each orange ring to drive a pin and the string pulls tight between them. Then trace the string to spray orange marking paint all the way around, so you can see where to dig on the grass. The clock doesn\'t start until the truck shows.'},
   dig:{name:'Excavate',win:[0,1],soft:1,
    desc:'Dig it out. Drag where you want the bucket: the teeth bite where the bucket goes, stripping the {SURF} down to subgrade, and the machine tracks along to keep up. When the bucket\'s full it swings over the truck, dumps and comes back to your finger. Let go and it dumps what it\'s carrying. Get every corner. Anything left under a slab rots and settles. The clock doesn\'t start until the truck shows.'},
   gravel:{name:'Spread gravel',win:[0,1],soft:1,
@@ -74,7 +74,7 @@ const DEFS={
   base:{name:'Compact',win:[0,1],soft:1,
    desc:'Run the plate compactor over all of the gravel in overlapping passes, two passes everywhere. Watch it tighten up and drop. Soft spots settle and crack the slab later.'},
   form:{name:'Set forms',win:[0,1],soft:1,
-   desc:'Set the form boards. Trace around the outside of the pad: each board snaps onto the string line and gets staked. Leave a gap and the concrete runs out under it.'},
+   desc:'Set the form boards. Trace around the outside of the pad and each board drops in on the pink string line. Then drag over the orange stakes to drive them with the sledge. Leave a gap and the concrete runs out under it.'},
   tube:{name:'Heat tubing',win:[0,1],soft:1,
    desc:'Before the truck backs in, lay the PEX snowmelt loop on the rebar. Drag your finger over the slab: each amber square you touch snaps in a section of loop at 12 in on center. Cover every square so there are no cold strips. The clock doesn\'t start until you tap Next.'},
   expose:{name:'Wash off',win:[.52,.76],soft:.1,
@@ -1550,6 +1550,18 @@ const rebarM=new THREE.MeshStandardMaterial({color:0x4a3a30,roughness:.7,metalne
 const kick=(x,z,dx,dz)=>{const L=.72,an=.5,hz=Math.cos(an)*L/2,vy=Math.sin(an)*L/2,k=new THREE.Mesh(new THREE.BoxGeometry(.11,.07,L),stakeM);k.position.set(x+dx*(.07+hz),.01-vy,z+dz*(.07+hz));k.rotation.y=Math.atan2(dx,dz);k.rotateX(an);k.castShadow=true;siteG.add(k);
   const g=new THREE.Mesh(new THREE.BoxGeometry(.1,.42,.1),stakeM);g.position.set(x+dx*(.12+2*hz),-.27,z+dz*(.12+2*hz));g.castShadow=true;siteG.add(g)};
 const NAILG=new THREE.CylinderGeometry(.022,.022,.02,8).rotateX(Math.PI/2);
+/* v427: rebar that reads as rebar: dark mill scale with orange rust patches and the ribs, spaced by real length even on stretched instanced bars */
+(function(m){const prev=m.onBeforeCompile,pk=m.customProgramCacheKey;m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);if(sh.vertexShader.indexOf('vRbY')>=0)return;
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vRbY;varying float vRbA;varying vec3 vRbW;')
+    .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nvRbY=position.y*length(instanceMatrix[1].xyz);vRbW=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvRbY=position.y;vRbW=(modelMatrix*vec4(position,1.)).xyz;\n#endif\nvRbA=atan(position.z,position.x);');
+  sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vRbY;varying float vRbA;varying vec3 vRbW;float rbRust_=0.;\nfloat rbH_(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat rbN_(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(rbH_(i),rbH_(i+vec3(1,0,0)),f.x),mix(rbH_(i+vec3(0,1,0)),rbH_(i+vec3(1,1,0)),f.x),f.y),mix(mix(rbH_(i+vec3(0,0,1)),rbH_(i+vec3(1,0,1)),f.x),mix(rbH_(i+vec3(0,1,1)),rbH_(i+vec3(1,1,1)),f.x),f.y),f.z);}')
+    .replace('#include <color_fragment>','#include <color_fragment>\n{float n_=rbN_(vRbW*2.3)*.65+rbN_(vRbW*9.)*.35;rbRust_=smoothstep(.42,.78,n_);vec3 mill_=vec3(.16,.15,.145)*(.85+.3*rbN_(vRbW*20.));vec3 rust_=mix(vec3(.36,.17,.07),vec3(.52,.27,.11),rbN_(vRbW*14.));diffuseColor.rgb=mix(mill_,rust_,rbRust_);'+
+      'float rib_=smoothstep(.55,.9,abs(fract(vRbY/.055+vRbA*.159)-.5)*2.),lng_=smoothstep(.9,.985,abs(cos(vRbA)));diffuseColor.rgb*=1.-.42*max(rib_,lng_*.8);}')
+    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(.5,.92,rbRust_);')
+    .replace('#include <metalnessmap_fragment>','#include <metalnessmap_fragment>\nmetalnessFactor*=1.-.8*rbRust_;')};
+  m.customProgramCacheKey=function(){return(pk?pk.call(this):'')+'|rb'};m.needsUpdate=true})(rebarM);
+const chairM2=new THREE.MeshStandardMaterial({color:0x9a9c98,roughness:.55}),CHAIRG=new THREE.LatheGeometry([[.085,-.08],[.08,-.068],[.036,-.02],[.03,.04],[.05,.066],[.056,.08]].map(p=>new THREE.Vector2(p[0],p[1])),8);/* v427: grey plastic bar chair with a cup on top */
+
 const stake=(x,z,rotY)=>{const k=new THREE.Mesh(new THREE.BoxGeometry(.15,.72,.12),stakeM);k.position.set(x,-.34,z);k.rotation.y=rotY||0;k.castShadow=true;siteG.add(k);
   [.24,.06].forEach((y,i)=>{const nl=new THREE.Mesh(NAILG,EDGE.nailM);nl.position.set((i?.03:-.03),y,.065);k.add(nl)})};
 function flatShape(P,mat,y,H){const sh=new THREE.Shape();P.forEach((p,i)=>i?sh.lineTo(p[0],-p[1]):sh.moveTo(p[0],-p[1]));if(H){const hp=new THREE.Path();H.forEach((p,i)=>i?hp.lineTo(p[0],-p[1]):hp.moveTo(p[0],-p[1]));sh.holes.push(hp)}const g=new THREE.ShapeGeometry(sh);g.rotateX(-Math.PI/2);
@@ -1557,7 +1569,7 @@ function flatShape(P,mat,y,H){const sh=new THREE.Shape();P.forEach((p,i)=>i?sh.l
 function digPhotoTex(rep){const[c,g]=mk(4,4);g.fillStyle='#4b3b2d';g.fillRect(0,0,4,4);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;photoTex(t,'dig',rep);return t}
 const dirtRingM=layerM(new THREE.MeshStandardMaterial({map:digPhotoTex(2),roughness:.95}),4);/* v327: the dug-out spill ring is the same fresh subsoil as the pit */
 const gravelRingM=layerM(new THREE.MeshStandardMaterial({map:(()=>{const t=stoneTex(1,'#857d72');t.repeat.set(1,1);return t})(),roughness:1}),2);
-let formPieces=[],formStakes=[];
+let formPieces=[],formStakes=[],FSU=[];/* v427: FSU = stake units (stake, kicker, ground stake) driven one at a time */
 const tagNew=(n0,ud)=>{for(let k=n0;k<siteG.children.length;k++)Object.assign(siteG.children[k].userData,ud)};
 /* ---------- v167 Front Steps: formed stairs. Each tread is its own level. h stays relative to that tread's finished
    height (so every tool, score and readout works like a flat slab), and the slab mesh, surfY and the pointer lift it by
@@ -2531,7 +2543,7 @@ function edgeSplatTick(dt){const im=EDGE.splat;if(!im||!im.parent)return;EDGE.sp
   EDGE.splatAt.forEach((p,i)=>{let on=false;try{const c=Math.floor(gu(p.x)),r=Math.floor(gv(p.z));if(c>=0&&r>=0&&c<GW&&r<GH){const k=r*GW+c;on=inR[k]&&h[k]>-DEPTH+.6}}catch(e){}
     if(on!==p.on){p.on=on;im.setMatrixAt(i,on?p.m:Z);ch=true}});if(ch)im.instanceMatrix.needsUpdate=true}
 function buildSite(){
-  siteG.children.slice().forEach(o=>{siteG.remove(o);o.traverse(c=>{if(c.geometry)c.geometry.dispose()})});formPieces=[];formStakes=[];
+  siteG.children.slice().forEach(o=>{siteG.remove(o);o.traverse(c=>{if(c.geometry)c.geometry.dispose()})});formPieces=[];formStakes=[];FSU=[];
   const x0=wx(RX0),x1=wx(RX1),z0=wz(RY0),z1=wz(RY1),cx=(x0+x1)/2,cz=(z0+z1)/2,W=x1-x0,D=z1-z0,o=FT+.07;
   const PP=isPrep(),EE=ELV();
   // in a prep job the yard over the lot is a grid that meets the dug zone on exactly the same edge as the pit
@@ -2567,7 +2579,7 @@ function buildSite(){
     if(ELV()){const E=ELV();const wTop=-DEPTH/12+.05,wBot=-.95-E,w=new THREE.Mesh(new THREE.BoxGeometry(s.L+.6,wTop-wBot,.7),foundM);w.rotation.y=Math.atan2(-s.dz,s.dx);w.position.set(mx+s.nx*.3,(wTop+wBot)/2,mz+s.nz*.3);w.castShadow=w.receiveShadow=true;siteG.add(w);return}
     // a stake and kicker every 3.5 ft along the run
     const n0=siteG.children.length;
-    let t=run;while(t<s.L){const px=s.a[0]+s.dx*t/s.L+s.nx*o,pz=s.a[1]+s.dz*t/s.L+s.nz*o;stake(px,pz,Math.atan2(-s.dz,s.dx));kick(px,pz,s.nx,s.nz);t+=3.5}
+    let t=run;while(t<s.L){const px=s.a[0]+s.dx*t/s.L+s.nx*o,pz=s.a[1]+s.dz*t/s.L+s.nz*o,u0=siteG.children.length;stake(px,pz,Math.atan2(-s.dz,s.dx));kick(px,pz,s.nx,s.nz);const ms=siteG.children.slice(u0);FSU.push({seg:si,x:px,z:pz,ms,y0:ms.map(m=>m.position.y),on:1,a:0});t+=3.5}
     for(let k=n0;k<siteG.children.length;k++){siteG.children[k].userData={kind:'stake',seg:si};formStakes.push({m:siteG.children[k],seg:si})}
     run=t-s.L});
   // 10M rebar at 18 in on chairs, clipped to the outline
@@ -2579,12 +2591,12 @@ function buildSite(){
   const dm=new THREE.Object3D();runs.sort((a,b)=>(a[0]===a[2])-(b[0]===b[2]));// bottom layer (bars running across x) first, then the top layer
   const rb=new THREE.InstancedMesh(new THREE.CylinderGeometry(.022,.022,1,6),rebarM,Math.max(1,runs.length));rb.count=runs.length;rb.castShadow=true;rb.userData.kind='rebar';siteG.add(rb);
   const chs=[];cgrid(z0,z1,3,.75).forEach(z=>cgrid(x0,x1,3,.75).forEach(x=>{if(inside(x,z))chs.push([x,z])}));
-  const ch=new THREE.InstancedMesh(new THREE.ConeGeometry(.07,.16,4),chairM,Math.max(1,chs.length));ch.count=chs.length;ch.userData.kind='rebar';siteG.add(ch);
+  const ch=new THREE.InstancedMesh(CHAIRG,chairM2,Math.max(1,chs.length));ch.castShadow=true;ch.count=chs.length;ch.userData.kind='rebar';siteG.add(ch);
   {// crossings, ties, and stage markers (chair spots, bar lanes, crossings to tie)
    const xs=[...new Set(runs.filter(r=>r[0]===r[2]).map(r=>r[0]))].sort((a,b)=>a-b),zs=[...new Set(runs.filter(r=>r[1]===r[3]).map(r=>r[1]))].sort((a,b)=>a-b);
    REBX=[];zs.forEach((z,j)=>xs.forEach((x,i)=>{if(!inside(x,z))return;const hasH=runs.some(r=>r[1]===r[3]&&r[1]===z&&x>=r[0]-.01&&x<=r[2]+.01),hasV=runs.some(r=>r[0]===r[2]&&r[0]===x&&z>=r[1]-.01&&z<=r[3]+.01);if(!hasH||!hasV)return;
      const edge=!inside(x-1.5,z)||!inside(x+1.5,z)||!inside(x,z-1.5)||!inside(x,z+1.5);REBX.push({x,z,t:0,need:edge||(i+j)%2===0,edge})}));rebN=0;
-   rebTieIM=new THREE.InstancedMesh(new THREE.TorusGeometry(.06,.016,5,10),new THREE.MeshStandardMaterial({color:0x2a2a2a,roughness:.5,metalness:.6}),Math.max(1,REBX.length));
+   rebTieIM=new THREE.InstancedMesh(new THREE.TorusGeometry(.042,.008,5,12,Math.PI*1.7),new THREE.MeshStandardMaterial({color:0x5a5b5d,roughness:.45,metalness:.75}),Math.max(1,REBX.length));/* v427: thin wire twist, not a ring */
    rebDotIM=new THREE.InstancedMesh(new THREE.RingGeometry(.11,.17,16).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xff8a1a,transparent:true,opacity:.95,depthWrite:false}),Math.max(1,REBX.length,chs.length));
    const lane=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.01,.2),new THREE.MeshBasicMaterial({color:0xff9a2a,transparent:true,opacity:.85,depthWrite:false}),Math.max(1,runs.length));
    const hold=new THREE.Mesh(new THREE.CircleGeometry(.2,20).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffd77a,transparent:true,opacity:.8,depthWrite:false}));hold.visible=false;
@@ -4796,9 +4808,10 @@ function showResultStars(n,goalsOut,rankUp){const el=$('rStars');const ST='<svg 
 /* ---------- rebar, like the real job: set chairs, lay the bottom bars then the top bars, then tie. Press and hold a crossing to twist a tie: every crossing on the edge, every other one inside ---------- */
 const REBHOLD=.32;
 function rebM(im,k,x,y,z,rx,ry,rz,sx,sy,sz){const d=rebM.d||(rebM.d=new THREE.Object3D());d.position.set(x,y,z);d.rotation.set(rx,ry,rz);d.scale.set(sx,sy,sz);d.updateMatrix();im.setMatrixAt(k,d.matrix);im.instanceMatrix.needsUpdate=true}
-function rebBar(k,f){const b=REB.runs[k],[ax,az,bx,bz]=b.r,L=Math.hypot(bx-ax,bz-az),hz=b.hz,cx=(ax+bx)/2,cz=(az+bz)/2;f=Math.max(0,Math.min(1,f));
-  // slides in from its near end
-  const ox=hz?0:-(1-f)*L/2,oz=hz?-(1-f)*L/2:0;rebM(REB.rb,k,cx+ox,hz?-.15:-.17,cz+oz,hz?Math.PI/2:0,0,hz?0:Math.PI/2,f?1:0,L*f||1e-4,f?1:0)}
+function rebBar(k,f){const b=REB.runs[k],[ax,az,bx,bz]=b.r,L=Math.hypot(bx-ax,bz-az),hz=b.hz,cx=(ax+bx)/2,cz=(az+bz)/2;
+  // v427: dropped onto the chairs from about knee height, one end first, with a small bounce
+  f=Math.max(0,Math.min(1.6,f));const e=Math.min(1,f),dy=f<1?.75*(1-e*e):.035*Math.sin((f-1)/.6*Math.PI),tl=f<1?.12*(1-e):0;
+  rebM(REB.rb,k,cx,(hz?-.15:-.17)+dy,cz,hz?Math.PI/2+tl:0,0,hz?0:Math.PI/2+tl,f?1:0,L,f?1:0)}
 function rebLayer(){const lo=REB.runs.filter(b=>!b.hz);return lo.every(b=>b.on)?1:0}
 function rebPh(){if(!REB)return'tie';if(REB.runs.some(b=>!b.on))return'bar';return'tie'}
 function rebMarks(){if(!REB)return;const ph=REB.ph=rebPh(),L=rebLayer();let k=0;
@@ -4819,7 +4832,7 @@ function rebLay(X,Z){const lay=rebLayer();let hit=0;
   if(rebPh()==='tie'||(lay===0&&rebLayer()))REB.lock=1;
   if(rebPh()==='tie'){REB.combo=0;say('Mat\'s laid. Ties hold it together: every crossing on the outside edge, every other one inside like a checkerboard. Drag along the bars over the orange rings.','good','rebbar',0)}
   else if(lay===0&&rebLayer()){REB.combo=0;say('Bottom layer\'s down. Top bars go the other way, sitting on top so every crossing touches. Sweep across the new lanes.','good','reblay',0)}}
-function rebTieAt(X,Z){let hit=0;REBX.forEach((q,k)=>{if(q.t||!q.need||(q.x-X)**2+(q.z-Z)**2>.25)return;q.t=1;rebN++;hit++;rebM(rebTieIM,k,q.x,-.135,q.z,Math.PI/2,Math.random()*3,Math.PI/4,1,1,1)});
+function rebTieAt(X,Z){let hit=0;REBX.forEach((q,k)=>{if(q.t||!q.need||(q.x-X)**2+(q.z-Z)**2>.25)return;q.t=1;rebN++;hit++;q.r=Math.random()*3;q.a=performance.now();rebM(rebTieIM,k,q.x,-.135,q.z,Math.PI/2,q.r,Math.PI/4,.4,.4,.4)});
   if(!hit)return;REB.combo=(REB.combo||0)+hit;buzz(9);rebClick(1800+Math.min(10,REB.combo)*90);rebMarks();
   if(REB.combo>0&&REB.combo%8===0)pop(REB.combo+' ties!');
   const t=rebTied(),n=rebNeed();
@@ -4830,11 +4843,13 @@ function rebMove(X,Z){if(!REB||REB.lock)return;const [x0,z0]=REB.last||[X,Z],n=M
   for(let i=1;i<=n&&!REB.lock;i++){const x=x0+(X-x0)*i/n,z=z0+(Z-z0)*i/n;if(rebPh()==='bar')rebLay(x,z);else rebTieAt(x,z)}REB.last=[X,Z]}
 function rebUp(){if(REB){REB.last=null;REB.combo=0}}
 function rebTick(dt){if(!REB)return;const now=performance.now();
-  REB.runs.forEach((b,k)=>{if(b.on&&b.a){const f=(now-b.a)/260;rebBar(k,f);if(f>=1)b.a=0}});
+  REB.runs.forEach((b,k)=>{if(b.on&&b.a){const f=(now-b.a)/240;if(f<0)return;rebBar(k,f);if(f>=1&&!b.cl){b.cl=1;rebClick(320+Math.random()*120)}if(f>=1.6){rebBar(k,1.6);b.a=0;b.cl=0}}});
+  // ties twist on: the wire spins up tight in a fifth of a second
+  REBX.forEach((q,k)=>{if(!q.a)return;const e=(now-q.a)/200;if(e>=1){q.a=0;rebM(rebTieIM,k,q.x,-.135,q.z,Math.PI/2,q.r||0,Math.PI/4,1,1,1);return}rebM(rebTieIM,k,q.x,-.135+.03*(1-e),q.z,Math.PI/2,(q.r||0)+(1-e)*9,Math.PI/4,.4+.6*e,.4+.6*e,.4+.6*e)});
 }
-function rebarAll(){if(!REB)return;REB.chs.forEach((c,k)=>{c.on=1;rebM(REB.ch,k,c.x,-.255,c.z,0,0,0,1,1,1)});REB.runs.forEach((b,k)=>{b.on=1;b.a=0;rebBar(k,1)});rebMarks()}
+function rebarAll(){if(!REB)return;REB.chs.forEach((c,k)=>{c.on=1;rebM(REB.ch,k,c.x,-.255,c.z,0,0,0,1,1,1)});REB.runs.forEach((b,k)=>{b.on=1;b.a=0;rebBar(k,1.6)});rebMarks()}
 function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.visible=false;
-  REBX.forEach((q,k)=>{q.t=0;rebM(rebTieIM,k,q.x,-.135,q.z,0,0,0,0,0,0)});
+  REBX.forEach((q,k)=>{q.t=0;q.a=0;rebM(rebTieIM,k,q.x,-.135,q.z,0,0,0,0,0,0)});
   let stg=false;try{stg=STAGES.some(x=>x.key==='rebar')}catch(e){}
   if(!stg){rebarAll();return}
   REB.chs.forEach((c,k)=>{c.on=1;rebM(REB.ch,k,c.x,-.255,c.z,0,Math.random()*3,0,1,1,1)});REB.runs.forEach((b,k)=>{b.on=0;b.a=0;rebBar(k,0)});rebMarks()}
@@ -7887,7 +7902,7 @@ function hud(t){
   else if(k==='release'){const b=bleed(set);r=`Release ${Math.round(clamp01(avg(SP.relC))*100)}% covered · ${b>.05?'bleed water up':set>.86?'getting stiff':'shake it on even'}`}
   else if(k==='break')r=`Broken up ${Math.round(breakPct()*100)}% · hold the hammer on the asphalt`;
   else if(k==='strip')r=`Stripped ${Math.round(stripPct()*100)}% · spoil ${(spoilVol/27).toFixed(1)} yd³`;
-  else if(k==='mark')r=`Painted ${Math.round(markPct()*100)}% of the outline · trace the dotted line`;
+  else if(k==='mark')r=`${LO.pinN<LO.pins.length?`Pins ${LO.pinN} of ${LO.pins.length} · `:''}Painted ${Math.round((markPts.length?markN/markPts.length:1)*100)}% · ${LO.pinN<LO.pins.length?'tap the rings, then trace the string':'trace the string'}`;
   else if(k==='rebar'){const ph=rebPh();r=ph==='bar'?`Bars ${REB.runs.filter(b=>b.on).length} of ${REB.runs.length} · sweep across the glowing lanes`+(rebLayer()?' · top layer':' · bottom layer'):`Ties ${rebTied()} of ${rebNeed()} · drag along the bars over the ${LV&&LV.bridge?'blue':'orange'} rings`}
   else if(k==='dig')r=`Dug ${Math.round(digPct()*100)}% to subgrade · bucket ${Math.round(exLoad*100)}% · `+`${(spoilVol/27).toFixed(1)} yd³ out`;
   else if(k==='gravel')r=`Spread ${Math.round(gravPct()*100)}% · bucket ${Math.round(exLoad*100)}% · pile ${Math.round(gravLeft*100)}% left`;
@@ -7895,7 +7910,7 @@ function hud(t){
   else if(k==='slip'){const dz=CZ.d0-sl.s;r=`${Math.round(sl.s)} of ${Math.round(CLT)} ft · hopper ${Math.round(sl.hop*100)}% · ${(sl.v).toFixed(1)} ft/s`+(dz>0&&dz<25?` · DRIVEWAY in ${Math.ceil(dz)} ft`:sl.s>=CZ.d0&&sl.s<=CZ.d1?' · DRIVEWAY: drop it!':'')+(sl.stops?` · ${sl.stops} stop${sl.stops>1?'s':''}`:'')}
   else if(k==='cure'){const c=cureStats();r=`Cured ${Math.round(c.cov*100)}% white`+(c.ov>.05?' · puddling in spots':'')}
   else if(k==='shape'){const st=shapeStats();r=`Profile ±${st.r.toFixed(2)} in · ran ${Math.round(st.c*100)}% of the curb`}
-  else if(k==='form')r=`Forms set ${formPieces.filter(f=>f.placed).length} of ${formPieces.length} boards · trace around the outside`;
+  else if(k==='form')r=`Boards ${formPieces.filter(f=>f.placed).length} of ${formPieces.length}`+(FSU.length&&!LV.wall?` · stakes ${FSU.filter(u=>u.on).length} of ${FSU.length}`:'')+(boardPct()<1?' · trace around the outside':' · drag over the orange stakes');
   else if(k==='tube')r=`Loop ${Math.round(tubeLen)} ft laid · heats ${Math.round(tubeCovPct()*100)}% of the slab`+(tubeCross?` · crossed ${tubeCross}×`:'');
   else if(k==='expose')r=`Stone bared ${Math.round(avg(expo)*100)}% · ${set<.5?'too soft yet':set>.78?'paste setting up':EXW.haze>.08?'slurry drying on it':'washing clean'}`;
   else if(k==='power')r=pwRead();
@@ -7960,7 +7975,8 @@ $('next').addEventListener('click',e=>{
     if(k==='base')say('Gravel\'s spread. Hold your thumb out ahead of the machine and walk it over everything, overlapping each pass.','info','nBase',0);
     if(k==='slip')say('Slide the travel lever to start. The truck feeds itself: go slow enough that the hopper never runs dry.','info','nSlip',0);
     if(k==='shape')say('Mule time. Drag it along the whole curb, both legs.','info','nShape',0);
-    if(k==='form')say('Trace around the outside to snap the form boards in.','info','nForm',0);
+    if(k==='form')say('Trace around the outside to drop the boards in on the string, then drag over the stakes to drive them.','info','nForm',0);
+    if(k==='mark')say('Tap each orange ring to drive a pin. Then trace the string to paint the outline.','info','nMark',0);
     if(k==='pour')backupBeep(6);
     if(k==='pour'&&isPrep()&&S.tube==null)say('Rebar\'s tied on chairs. Truck\'s backing in.','good','nPrepPour',0);
     if(k==='tube'&&isPrep())say('Forms are set and the rebar\'s tied. Lay the heating loop.','good','nPrepTube',0);
@@ -8014,7 +8030,7 @@ function truckEtaUI(){const el=$('truckEta');if(!running){if(!el.hidden){el.hidd
 /* ---------- v220: prep stopwatch. Layout, dig, base and forms are timed against a par; beating par with clean work pays ---------- */
 const PREPT={t:0,st:{},par:{},on:false,best:0,
   reset(){this.t=0;this.st={};this.par={};this.on=false;const el=$('prepClk');if(el)el.hidden=true}};
-const PREPPAR={break:[16,0,.07],strip:[20,0,.09],mark:[14,.32,0],dig:[28,0,.13],gravel:[18,0,.07],base:[14,0,.055],form:[16,.42,0],rebar:[24,0,.1],tube:[28,0,.11],sform:[30,0,0],riser:[30,0,0],sbar:[34,0,0],demo:[45,0,.05],soffit:[50,0,.05]};
+const PREPPAR={break:[16,0,.07],strip:[20,0,.09],mark:[20,.36,0],dig:[28,0,.13],gravel:[18,0,.07],base:[18,0,.1],form:[20,.6,0],rebar:[24,0,.1],tube:[28,0,.11],sform:[30,0,0],riser:[30,0,0],sbar:[34,0,0],demo:[45,0,.05],soffit:[50,0,.05]};
 function prepSq(){return RN*CELL_IN*CELL_IN/144}
 function prepPar(k){const p=PREPPAR[k];if(!p)return 0;let v=p[0]+p[1]*PER+p[2]*prepSq();if(k==='dig'&&cabOn)v*=1.7;return Math.round(Math.max(18,Math.min(260,v)))}
 const fmtPT=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -8130,9 +8146,9 @@ function practiceFinish(){const p=practice;if(!p)return;
 $('ddRetry').addEventListener('click',()=>{const p=(drill&&drill.p)||practice;$('drillDone').hidden=true;if(p)startPractice(p)});
 $('ddNext').addEventListener('click',()=>{const p=(drill&&drill.p)||practice,k=PRACTICE.indexOf(p),n=PRACTICE[(k+1)%PRACTICE.length];$('drillDone').hidden=true;startPractice(n)});
 $('ddYard').addEventListener('click',()=>{$('drillDone').hidden=true;drillStop();endPractice();$('intro').hidden=false;renderPractice();$('practice').hidden=false});
-function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){markN=markPts.length}else if(k==='break'){arBreakAll();geoDirty=layerDirty=true}else if(k==='strip'){arBreakAll();arScoopAll();spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
+function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){try{markAuto()}catch(e){markN=markPts.length}}else if(k==='break'){arBreakAll();geoDirty=layerDirty=true}else if(k==='strip'){arBreakAll();arScoopAll();spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
   else if(k==='gravel'){for(let i=0;i<N;i++)if(PM[i])gravF[i]=1.1;gravLeft=0;geoDirty=layerDirty=true}else if(k==='base'){for(let i=0;i<N;i++)if(PM[i])compF[i]=1.1;try{pkFill(1.2)}catch(e){}layerDirty=true}
-  else if(k==='form'){formPieces.forEach(f=>{f.placed=true;f.m.visible=true})}
+  else if(k==='form'){formPieces.forEach(f=>{f.placed=true;f.m.visible=true;f.a=0});FSU.forEach(u=>{u.on=1;u.a=0})}
   else if(k==='rebar'){rebarAll();REBX.forEach((q,k2)=>{if(q.need&&!q.t){q.t=1;rebN++;rebM(rebTieIM,k2,q.x,-.135,q.z,Math.PI/2,0,Math.PI/4,1,1,1)}});rebMarks()}
   else if(k==='pour'){for(let i=0;i<N;i++)if(inR[i]){const x=i%GW,y=(i/GW)|0;h[i]=TG[i]+.35+.9*Math.sin(x*.45+1.3)*Math.sin(y*.6)+(Math.random()-.5)*.5}placed=NEED_M3;geoDirty=surfDirty=true}
   else if(k==='screed'){for(let i=0;i<N;i++)if(inR[i])h[i]=TG[i]+.02+(Math.random()-.5)*.04;geoDirty=surfDirty=true}
@@ -8281,7 +8297,7 @@ function buildSC(){
     shape:()=>{const st=shapeStats();return['Shape curb',st.c*clamp01(1-(st.r-.3)/1.6)*(.6+.4*q('shape')),`Profile within ±${st.r.toFixed(2)} in, ${Math.round(st.c*100)}% of the run shaped.`+(st.r>.8?' The face and gutter are out of shape.':' Clean face, gutter will drain.')]},
     gravel:()=>{const c=gravPct();let s=0,s2=0,n=0;for(let i=0;i<N;i++)if(inR[i]){const v=Math.min(1.2,gravF[i]);s+=v;s2+=v*v;n++}const m=n?s/n:0,sd=Math.sqrt(Math.max(0,(n?s2/n:0)-m*m));return['Gravel',c*(1-Math.min(.4,sd*.8)),`${Math.round(c*100)}% of the pit at full depth, ${sd<.12?'even':sd<.25?'a little lumpy':'lumpy'}.`+(c<.9?' Thin spots will settle.':'')]},
     base:()=>{const c=compPct();return['Compact',c,`${Math.round(c*100)}% compacted.`+(c<.85?' Soft spots will settle under the slab.':' Tight and hard.')]},
-    form:()=>{const c=formPct();return['Forms',c,`${Math.round(c*100)}% of the form boards set.`+(c<1?' Concrete ran out under the gaps.':' Square and staked.')]},
+    form:()=>{const c=formPct(),b=boardPct(),k=stakePct();return['Forms',c,`${Math.round(b*100)}% of the boards set, ${Math.round(k*100)}% staked.`+(b<1?' Concrete ran out under the gaps.':k<1?' Loose boards bow when the mud hits.':' Square and staked.')]},
     tube:()=>{const c=tubeCovPct();return['Heat tubing',c*(1-Math.min(.5,tubeCross*.05)),`${Math.round(c*100)}% of the slab is within reach of the loop, ${Math.round(tubeLen)} ft laid.`+(tubeCross?` It crosses itself ${tubeCross} times.`:'')+(c<.9?' Cold strips will stay icy.':'')]},
     expose:()=>{try{exwAgg()}catch(e){}const c=avg(expo);let ov=0,n=0;for(let i=0;i<N;i++)if(inR[i]){ov+=EXW.bl[i];n++}ov=n?ov/n:0;const hz=EXW.haze;
       return['Wash off',c*(.3+.7*q('expose'))*(1-Math.min(.6,ov*1.5))*(1-.25*hz),`${Math.round(c*100)}% of the stone bared. `+(ov>.03?'Some spots got blasted too deep. ':'')+(hz>.08?'Slurry dried on the stone in spots. ':'')+tm('expose')]},
@@ -8948,7 +8964,7 @@ function frame0(t){
   if(t-(frame.hb||0)>5000){frame.hb=t;if(!document.hidden)try{localStorage.setItem('bts-alive',JSON.stringify({j:LV&&LV.name,s:running&&STAGES[stage]?STAGES[stage].name:'menu',c:!!(typeof cabOn!=='undefined'&&cabOn)}))}catch(e){}}
   const dt=Math.min(.05,(t-last)/1000);last=t;
   try{if(PKT.root.parent)PKT.tick(dt,t/1000)}catch(e){}
-  try{if(STAGES[stage]&&STAGES[stage].key==='rebar')rebTick(dt)}catch(e){}
+  try{rebTick(dt)}catch(e){}/* v427: always, so a bar or tie mid-animation finishes if you hit Next */
   const menuOpen=!introEl.hidden||!resEl.hidden||!edEl.hidden||!lbEl.hidden;document.body.classList.toggle('menu',menuOpen);
   if(menuOpen){ // menus: slow orbit at half rate, no simulation
     if(bootDone.d){const w=document.getElementById('world');if(w&&!w.hidden&&!document.body.classList.contains('more'))return}
@@ -10088,33 +10104,94 @@ const sprayCan=new THREE.Group();{const cM=new THREE.MeshStandardMaterial({color
   const cap=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.08,10),wM);cap.position.y=.4;sprayCan.add(cap);sprayCan.rotation.x=Math.PI;
   const mist=new THREE.Mesh(new THREE.ConeGeometry(.22,.6,14,1,true),new THREE.MeshBasicMaterial({color:0xff7a2a,transparent:true,opacity:.35,depthWrite:false}));mist.position.y=-.6;sprayCan.add(mist);sprayCan.userData.mist=mist;
   sprayCan.visible=false;scene.add(sprayCan)}
-function markBuild(){[markIM,dotIM].forEach(m=>{if(m){scene.remove(m);m.geometry.dispose()}});markIM=dotIM=null;markPts=[];markN=0;markLast=null;
+/* v427: lay out like the real job. Drive a pin at every corner (and every so often round a curve) and the string pulls tight
+   between each pair, then walk the marking wand along the string. Paint goes down where the nozzle actually is (it's drawn toward
+   the line once you're close) as soft overlapping dabs with overspray, so a steady hand shows in the line. */
+const LO={pins:[],spans:[],pinN:0,dabs:0,DMAX:1800,nz:null,mistT:0,wand:null,pinIM:null,flagIM:null,ringIM:null,strIM:null,
+  pinM:new THREE.MeshStandardMaterial({color:0x3a3632,roughness:.55,metalness:.5}),flagM:new THREE.MeshBasicMaterial({color:0xff5a14,side:THREE.DoubleSide}),
+  strM:new THREE.MeshBasicMaterial({color:0xffe33a}),ringM:new THREE.MeshBasicMaterial({color:0xff8a1a,transparent:true,opacity:.95,depthWrite:false})};
+{// marking wand: upside-down can on a stick, nozzle at the bottom
+  const W=LO.wand=new THREE.Group(),cM=new THREE.MeshStandardMaterial({color:0xff5a0a,roughness:.35,metalness:.25}),sM=new THREE.MeshStandardMaterial({color:0x2c2c2c,roughness:.5,metalness:.6}),gM=new THREE.MeshStandardMaterial({color:0xf2c400,roughness:.6});
+  const can=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.62,14),cM);can.position.y=.5;W.add(can);const dome=new THREE.Mesh(new THREE.SphereGeometry(.11,14,8,0,Math.PI*2,0,Math.PI/2),cM);dome.rotation.x=Math.PI;dome.position.y=.19;W.add(dome);
+  const tip=new THREE.Mesh(new THREE.CylinderGeometry(.03,.035,.07,8),sM);tip.position.y=.07;W.add(tip);
+  const cage=new THREE.Mesh(new THREE.TorusGeometry(.14,.012,6,16),sM);cage.rotation.x=Math.PI/2;cage.position.y=.6;W.add(cage);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,2.5,8),sM);shaft.position.y=1.95;W.add(shaft);
+  const grip=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.4,10),gM);grip.position.y=3.05;W.add(grip);
+  const trig=new THREE.Mesh(new THREE.BoxGeometry(.04,.16,.06),sM);trig.position.set(0,2.85,.06);W.add(trig);
+  W.traverse(o=>{if(o.isMesh)o.castShadow=true});W.visible=false;scene.add(W)}
+function markBuild(){[markIM,dotIM,LO.pinIM,LO.flagIM,LO.ringIM,LO.strIM].forEach(m=>{if(m){scene.remove(m);m.geometry.dispose()}});
+  markIM=dotIM=LO.pinIM=LO.flagIM=LO.ringIM=LO.strIM=null;markPts=[];markN=0;markLast=null;LO.pins=[];LO.spans=[];LO.pinN=0;LO.dabs=0;LO.nz=null;
   if(!isPrep()||S.mark==null||!zoneZ){markDone=new Uint8Array(0);return}
-  [zoneZ,zoneI].forEach(P=>{if(!P)return;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz),n=Math.max(1,Math.ceil(L/.5));
-    for(let j=0;j<n;j++){const t=(j+.5)/n;markPts.push({x:a[0]+dx*t,z:a[1]+dz*t,ang:Math.atan2(dz,dx)})}}});
+  [zoneZ,zoneI].forEach(P=>{if(!P)return;const n=P.length;
+    for(let k=0;k<n;k++){const a=P[k],b=P[(k+1)%n],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz),m=Math.max(1,Math.ceil(L/.5));
+      for(let j=0;j<m;j++){const t=(j+.5)/m;markPts.push({x:a[0]+dx*t,z:a[1]+dz*t,ang:Math.atan2(dz,dx)})}}
+    // pins: every real corner, plus one each time a curve has turned about 23 degrees, plus one in any run over 40 ft
+    const turn=k=>{const a=P[(k-1+n)%n],b=P[k],c=P[(k+1)%n],a1=Math.atan2(b[1]-a[1],b[0]-a[0]),a2=Math.atan2(c[1]-b[1],c[0]-b[0]);return Math.abs(Math.atan2(Math.sin(a2-a1),Math.cos(a2-a1)))};
+    let k0=0,bt=-1;for(let k=0;k<n;k++){const t=turn(k);if(t>bt){bt=t;k0=k}}
+    const first=LO.pins.length;let acc=0,dist=0;
+    for(let j=0;j<n;j++){const k=(k0+j)%n,b=P[k],a=P[(k-1+n)%n],t=turn(k);if(j){dist+=Math.hypot(b[0]-a[0],b[1]-a[1]);acc+=t}
+      if(j===0||t>.35||acc>.4||dist>40){if(LO.pins.length>first){const q=LO.pins[LO.pins.length-1];if(Math.hypot(q.x-b[0],q.z-b[1])<1.2)continue}LO.pins.push({x:b[0],z:b[1],on:0,a:0});acc=0;dist=0}}
+    if(LO.pins.length-first<3){LO.pins.length=first;for(let q=0;q<4;q++){const b=P[Math.floor(q*n/4)];LO.pins.push({x:b[0],z:b[1],on:0,a:0})}}
+    const m=LO.pins.length;for(let q=first;q<m;q++)LO.spans.push({a:q,b:q+1<m?q+1:first,a0:0})});
   markDone=new Uint8Array(markPts.length);
-  const pg=new THREE.PlaneGeometry(.62,.26);pg.rotateX(-Math.PI/2);markIM=new THREE.InstancedMesh(pg,sprayM,markPts.length);
+  const pg=new THREE.PlaneGeometry(.5,.3);pg.rotateX(-Math.PI/2);markIM=new THREE.InstancedMesh(pg,sprayM,LO.DMAX);markIM.count=0;
   const dg=new THREE.CircleGeometry(.13,10);dg.rotateX(-Math.PI/2);dotIM=new THREE.InstancedMesh(dg,dotM,markPts.length);
-  const o=new THREE.Object3D();markPts.forEach((p,i)=>{p.y=prepSurfY(p.x,p.z)+.05;o.position.set(p.x,p.y,p.z);o.rotation.set(0,-p.ang,0);o.scale.setScalar(i%2?0:1);o.updateMatrix();dotIM.setMatrixAt(i,o.matrix);o.scale.setScalar(0);o.updateMatrix();markIM.setMatrixAt(i,o.matrix)});
-  markIM.userData.bold=false;markIM.frustumCulled=dotIM.frustumCulled=false;markIM.renderOrder=dotIM.renderOrder=4;scene.add(markIM,dotIM)}
-const markPct=()=>markPts.length?markN/markPts.length:1;
-function markTrace(p,fresh){if(!markIM)return;const cur=[p.wx,p.wz],from=fresh||!markLast?cur:markLast;markLast=cur;
-  const L=Math.hypot(cur[0]-from[0],cur[1]-from[1]),n=Math.max(1,Math.ceil(L/.3)),o=new THREE.Object3D();let hit=0;
-  for(let s=0;s<=n;s++){const x=from[0]+(cur[0]-from[0])*s/n,z=from[1]+(cur[1]-from[1])*s/n;
-    markPts.forEach((q,i)=>{if(markDone[i])return;if((q.x-x)**2+(q.z-z)**2<1.3){markDone[i]=1;markN++;hit++;o.position.set(q.x,q.y+.002*(i%3),q.z);o.rotation.set(0,-q.ang+(Math.random()-.5)*.12,0);o.scale.set(1+Math.random()*.25,1,.8+Math.random()*.5);o.updateMatrix();markIM.setMatrixAt(i,o.matrix);
-      o.scale.setScalar(0);o.updateMatrix();dotIM.setMatrixAt(i,o.matrix)}})}
-  if(hit){markIM.instanceMatrix.needsUpdate=dotIM.instanceMatrix.needsUpdate=true;if(performance.now()-buzzT>60){buzzT=performance.now();buzz(5)}
-    if(markPct()>=.995&&!flags.markDone){flags.markDone=1;say('Outline\'s painted. Hit Next and dig it out to the paint.','good','markd',0);try{chime()}catch(e){}}}
-  else if(fresh){let bd=1e9;markPts.forEach(q=>{const d=(q.x-cur[0])**2+(q.z-cur[1])**2;if(d<bd)bd=d});if(bd>9)say('Trace right on the dotted line.','info','markoff')}}
-function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key;
+  const o=new THREE.Object3D();markPts.forEach((p,i)=>{p.y=prepSurfY(p.x,p.z)+.05;o.position.set(p.x,p.y,p.z);o.rotation.set(0,-p.ang,0);o.scale.setScalar(i%2?0:1);o.updateMatrix();dotIM.setMatrixAt(i,o.matrix)});
+  markIM.userData.bold=false;markIM.frustumCulled=dotIM.frustumCulled=false;markIM.renderOrder=dotIM.renderOrder=4;scene.add(markIM,dotIM);
+  const np=Math.max(1,LO.pins.length),ns=Math.max(1,LO.spans.length);
+  LO.pinIM=new THREE.InstancedMesh(new THREE.CylinderGeometry(.028,.028,1.25,6),LO.pinM,np);
+  const fg=new THREE.PlaneGeometry(.26,.17);fg.translate(.13,0,0);LO.flagIM=new THREE.InstancedMesh(fg,LO.flagM,np);
+  LO.ringIM=new THREE.InstancedMesh(new THREE.RingGeometry(.2,.3,18).rotateX(-Math.PI/2),LO.ringM,np);LO.ringIM.renderOrder=5;
+  LO.strIM=new THREE.InstancedMesh(new THREE.CylinderGeometry(.011,.011,1,4),LO.strM,ns);
+  [LO.pinIM,LO.flagIM,LO.ringIM,LO.strIM].forEach(m=>{m.frustumCulled=false;scene.add(m)});LO.pinIM.castShadow=true;
+  LO.pins.forEach(p=>p.y=prepSurfY(p.x,p.z));loDraw(performance.now())}
+// pins go in with three blows; a string goes up once both its pins are in
+function loPinY(p,now){if(!p.on)return .9;if(!p.a)return 0;const e=(now-p.a)/110;if(e>=3){p.a=0;return 0}return .75*(1-Math.min(3,Math.floor(e)+Math.min(1,(e%1)*3))/3)}
+function loDraw(now){if(!LO.pinIM)return;const o=new THREE.Object3D();
+  LO.pins.forEach((p,i)=>{const h=loPinY(p,now),y=p.y-.17+h;o.position.set(p.x,y,p.z);o.rotation.set(0,0,0);o.scale.setScalar(p.on?1:0);o.updateMatrix();LO.pinIM.setMatrixAt(i,o.matrix);
+    o.position.set(p.x+.03,y+.53,p.z);o.rotation.set(0,i*1.7,0);o.updateMatrix();LO.flagIM.setMatrixAt(i,o.matrix);
+    o.position.set(p.x,p.y+.06,p.z);o.rotation.set(0,0,0);o.scale.setScalar(p.on?0:1+.12*Math.sin(now*.008+i));o.updateMatrix();LO.ringIM.setMatrixAt(i,o.matrix)});
+  LO.spans.forEach((s,i)=>{const A=LO.pins[s.a],B=LO.pins[s.b],up=A.on&&B.on&&!A.a&&!B.a;if(up&&!s.a0)s.a0=now;if(!up)s.a0=0;
+    const f=up?Math.min(1,(now-s.a0)/160):0,y0=A.y+.36,y1=B.y+.36,ex=A.x+(B.x-A.x)*f,ez=A.z+(B.z-A.z)*f,ey=y0+(y1-y0)*f,L=Math.hypot(ex-A.x,ey-y0,ez-A.z);
+    o.position.set((A.x+ex)/2,(y0+ey)/2,(A.z+ez)/2);o.scale.set(1,Math.max(1e-4,L),1);o.lookAt(ex,ey,ez);o.rotateX(Math.PI/2);if(!f)o.scale.set(0,0,0);o.updateMatrix();LO.strIM.setMatrixAt(i,o.matrix)});
+  [LO.pinIM,LO.flagIM,LO.ringIM,LO.strIM].forEach(m=>m.instanceMatrix.needsUpdate=true)}
+const markPct=()=>{const paint=markPts.length?markN/markPts.length:1;return LO.pins.length?.2*LO.pinN/LO.pins.length+.8*paint:paint};
+function loDab(x,z,ang){if(!markIM||LO.dabs>=LO.DMAX)return;const o=new THREE.Object3D(),i=LO.dabs++;o.position.set(x,prepSurfY(x,z)+.05+.002*(i%3),z);o.rotation.set(0,-ang+(Math.random()-.5)*.25,0);
+  o.scale.set(.85+Math.random()*.4,1,.75+Math.random()*.55);if(markIM.userData.bold){o.scale.z*=2.4;o.position.y+=.2}o.updateMatrix();markIM.setMatrixAt(i,o.matrix);markIM.count=LO.dabs;markIM.instanceMatrix.needsUpdate=true}
+function markCover(x,z,r2){let hit=0;const o=new THREE.Object3D();markPts.forEach((q,i)=>{if(markDone[i]||(q.x-x)**2+(q.z-z)**2>r2)return;markDone[i]=1;markN++;hit++;o.scale.setScalar(0);o.updateMatrix();dotIM.setMatrixAt(i,o.matrix)});
+  if(hit)dotIM.instanceMatrix.needsUpdate=true;return hit}
+function markDoneCheck(){if(markPct()>=.995&&!flags.markDone){flags.markDone=1;say('Outline\'s laid out. Hit Next and dig it out to the paint.','good','markd',0);try{chime()}catch(e){}}}
+function markTrace(p,fresh){if(!markIM)return;const cur=[p.wx,p.wz],from=fresh||!markLast?cur:markLast;markLast=cur;const now=performance.now();
+  // pins under the finger
+  let drove=0;LO.pins.forEach(q=>{if(q.on||(q.x-cur[0])**2+(q.z-cur[1])**2>.9)return;q.on=1;q.a=now;LO.pinN++;drove++});
+  if(drove){thump();buzz(14);setTimeout(()=>{try{buzz(8)}catch(e){}},110);setTimeout(()=>{try{buzz(8)}catch(e){}},220);
+    if(LO.pinN===LO.pins.length)say('Pins are in and the string\'s tight. Walk the paint along the string.','good','lopins',0);markDoneCheck()}
+  // the nozzle: where your finger is, drawn toward the line once you're within about a foot of it
+  const L=Math.hypot(cur[0]-from[0],cur[1]-from[1]),n=Math.max(1,Math.ceil(L/.15));let hit=0,near=1e9;
+  for(let s=fresh?0:1;s<=n;s++){const x=from[0]+(cur[0]-from[0])*s/n,z=from[1]+(cur[1]-from[1])*s/n;let bd=1e9,bq=null;markPts.forEach(q=>{const d=(q.x-x)**2+(q.z-z)**2;if(d<bd){bd=d;bq=q}});near=Math.min(near,bd);
+    let nx=x,nz=z;if(bq&&bd<1.1){const pull=.72*(1-Math.sqrt(bd)/1.05);nx+=(bq.x-x)*Math.max(0,pull);nz+=(bq.z-z)*Math.max(0,pull)}
+    const pv=LO.nz;if(!pv||fresh&&s===0){LO.nz={x:nx,z:nz,d:0};loDab(nx,nz,bq?bq.ang:0)}else{const d=Math.hypot(nx-pv.x,nz-pv.z);pv.d+=d;const ang=Math.atan2(nz-pv.z,nx-pv.x);pv.x=nx;pv.z=nz;if(pv.d>=.17){pv.d=0;loDab(nx,nz,d>.01?ang:(bq?bq.ang:0))}}
+    hit+=markCover(nx,nz,.42)}
+  if(hit){if(now-buzzT>60){buzzT=now;buzz(5)}markDoneCheck()}
+  else if(fresh&&near>9&&!drove)say('Paint right along the string line.','info','markoff')}
+function markAuto(){LO.pins.forEach(q=>{if(!q.on){q.on=1;q.a=0;LO.pinN++}});markPts.forEach((q,i)=>{if(!markDone[i])loDab(q.x,q.z,q.ang)});markCover(0,0,1e12);loDraw(performance.now())}
+function updateMark(dt,t){if(!markIM)return;const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,now=performance.now(),onMark=running&&P&&k==='mark';
   markIM.visible=P&&S.mark!=null&&stage<=(S.dig!=null?S.dig:S.gravel!=null?S.gravel:S.pour!=null?S.pour-1:99);// paint is gone once the hole's dug
-  dotIM.visible=running&&P&&k==='mark';
+  dotIM.visible=onMark;
+  // pins and string come out before the machine goes in
+  const pv=P&&k==='mark';[LO.pinIM,LO.flagIM,LO.strIM].forEach(m=>{if(m)m.visible=pv});if(LO.ringIM)LO.ringIM.visible=onMark;if(pv)loDraw(now);
   {// once digging starts the paint gets wider and sits proud of the grass so it reads from the cab
    const bold=markIM.visible&&k!=='mark';if(bold!==!!markIM.userData.bold){markIM.userData.bold=bold;const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),f=bold?2.4:1/2.4,dy=bold?.2:-.2;
-     for(let i=0;i<markPts.length;i++){if(!markDone[i])continue;markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
-  const on=k==='mark'&&ptr.down&&running;sprayCan.visible=on;if(on&&markLast){sprayCan.position.set(markLast[0],prepSurfY(markLast[0],markLast[1])+1.1,markLast[1]);sprayCan.userData.mist.material.opacity=.25+Math.random()*.2}}
+     for(let i=0;i<LO.dabs;i++){markIM.getMatrixAt(i,m);m.decompose(p,q,sc);sc.z*=f;p.y+=dy;m.compose(p,q,sc);markIM.setMatrixAt(i,m)}markIM.instanceMatrix.needsUpdate=true}}
+  const on=onMark&&ptr.down,W=LO.wand;W.visible=on&&!!LO.nz;sprayCan.visible=false;
+  if(W.visible){const x=LO.nz.x,z=LO.nz.z,y=prepSurfY(x,z)+.24,cx=camera.position.x-x,cz=camera.position.z-z,cl=Math.hypot(cx,cz)||1;W.position.set(x,y,z);
+    W.quaternion.setFromUnitVectors(_up0,_v1.set(cx/cl*.38,1,cz/cl*.38).normalize());
+    if((LO.mistT-=dt)<=0&&ptr.down){LO.mistT=.05;const i=CDUST.i;cdustPuff(x,y-.3,z,_paintC,false);CDUST.s0[i]=.06;CDUST.s1[i]=.3+Math.random()*.25;CDUST.life[i]=.5+Math.random()*.4;CDUST.a0[i]=.32;
+      CDUST.vel[i*3]*=.15;CDUST.vel[i*3+2]*=.15;CDUST.vel[i*3+1]=.1}}
+  else if(!ptr.down)LO.nz=null}
+const _up0=new THREE.Vector3(0,1,0),_v1=new THREE.Vector3(),_paintC=new THREE.Color(1,.42,.08);
 
-function prepReset(){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;try{dumpT.userData.n=0}catch(e){}stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);try{pkReset()}catch(e){}gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed});
+function prepReset(){digD.fill(0);freshD.fill(0);exCyc=null;exTip0=null;try{dumpT.userData.n=0}catch(e){}stripD.fill(0);crackD.fill(0);try{arBuild()}catch(e){console.warn('ar',e)}compF.fill(0);try{pkReset()}catch(e){}gravF.fill(0);spoilVol=0;gravLeft=1;formPieces.forEach(f=>{f.placed=!isPrep();f.m.visible=f.placed;f.a=0});FSU.forEach(u=>{u.on=isPrep()?0:1;u.a=0});try{FRM.said={};FRM.allSaid=0}catch(e){}
   pitTex.repeat.set(1,1);const sf=SURF();siteG.children.forEach(o=>{if(o.userData&&o.userData.kind==='wall')o.material=wallM(sf)});
   layerInit();slipReset();exRest=true;exLoad=0;exDumpT=0;exBusy=false;exBuckets=0;try{markBuild()}catch(e){console.warn(e)}}
 // v97: going back a step in prep restarts that step and everything after it (forms come off, gravel goes back to the pile, and so on)
@@ -10124,7 +10201,7 @@ function unwindPrep(){if(!isPrep()||placed>0)return;const k=STAGES[stage]&&STAGE
     try{const u=dumpT.userData;u.load=0;u.phase='in';u.t=0;u.home=null;u.fill&&(u.fill.visible=false);u.heap&&(u.heap.visible=false)}catch(e){}}
   if(from('gravel')){gravF.fill(0);gravLeft=1;exCyc=null;exTip0=null;exLoad=0}
   if(from('base')){compF.fill(0);try{pkReset()}catch(e){}}
-  if(from('form'))formPieces.forEach(f=>f.placed=false);
+  if(from('form')){formPieces.forEach(f=>{f.placed=false;f.a=0});FSU.forEach(u=>{u.on=0;u.a=0});try{FRM.said={};FRM.allSaid=0}catch(e){}}
   if(from('rebar')){try{rebarReset()}catch(e){}}
   if(from('dig'))try{layerInit()}catch(e){}
   geoDirty=true;layerDirty=true}
@@ -10246,11 +10323,46 @@ function formTrace(x,y){const X=wx(x),Z=wz(y);let bs=-1,bd=1e9,bt=0;
   if(LV.wall){let any=false;formPieces.forEach(f=>{const s=SEGS[f.seg],px=s.a[0]+s.dx*f.t,pz=s.a[1]+s.dz*f.t;if(Math.hypot(px-X,pz-Z)<s.L*f.hl+1.6){formGhost=[px,pz,Math.atan2(-s.dz,s.dx)];if(!f.placed){f.placed=true;f.m.visible=true;any=true}}});
     if(any){thump();buzz(12);const done={};formPieces.forEach(f=>{if(!(f.seg in done))done[f.seg]=true;if(!f.placed)done[f.seg]=false});formStakes.forEach(st=>{if(done[st.seg])st.m.visible=true})}return}
   SEGS.forEach((s,si)=>{if(s.nf)return;let t=((X-s.a[0])*s.dx+(Z-s.a[1])*s.dz)/(s.L*s.L);t=Math.max(0,Math.min(1,t));const d=(s.a[0]+s.dx*t-X)**2+(s.a[1]+s.dz*t-Z)**2;if(d<bd){bd=d;bs=si;bt=t}});
+  try{frmDrive(X,Z)}catch(e){}
   if(bs<0||Math.sqrt(bd)>3.2){formGhost=null;return}const s=SEGS[bs];formGhost=[s.a[0]+s.dx*bt+s.nx*FT/2,s.a[1]+s.dz*bt+s.nz*FT/2,Math.atan2(-s.dz,s.dx)];
-  formPieces.forEach(f=>{if(f.seg!==bs||f.placed)return;if(Math.abs(f.t-bt)<=f.hl+.9/s.L){f.placed=true;f.m.visible=true;thump();buzz(12)}});
+  formPieces.forEach(f=>{if(f.seg!==bs||f.placed)return;if(Math.abs(f.t-bt)<=f.hl+.9/s.L){f.placed=true;f.m.visible=true;thump();buzz(12);try{frmBoardSet(f,bs)}catch(e){}}});
   // stakes go in as soon as a whole run is set
   if(formPieces.every(f=>f.seg!==bs||f.placed))formStakes.forEach(st=>{if(st.seg===bs&&!st.m.visible){st.m.visible=true}})}
-const formPct=()=>formPieces.length?formPieces.filter(f=>f.placed).length/formPieces.length:1;
+/* v427: setting forms like the real job. A pink string line runs at top-of-form all the way round. Boards drop in onto the base
+   along the string. Once a run's boards are in, its stakes stand ready (orange, sticking up) and you drag over them to drive them
+   with the sledge: three blows each, then the nails and the kicker go on. Forms are 70% boards, 30% staked. */
+const FSG=new THREE.MeshStandardMaterial({color:0xff8a2a,transparent:true,opacity:.55,depthWrite:false,roughness:.8});
+const FRM={sl:null,slK:null,ham:null,hamU:null,said:{},allSaid:0};
+{// sledge: hickory handle, steel head; origin at the strike face
+  const H=FRM.ham=new THREE.Group(),hM=new THREE.MeshStandardMaterial({color:0xb08a5a,roughness:.7}),sM=new THREE.MeshStandardMaterial({color:0x26282b,roughness:.4,metalness:.7});
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.2,.46,.2),sM);head.position.set(0,.23,0);H.add(head);const hd=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,2.6,8),hM);hd.position.set(0,.23,1.38);hd.rotation.x=Math.PI/2;H.add(hd);
+  H.traverse(o=>{if(o.isMesh)o.castShadow=true});H.visible=false;scene.add(H)}
+const stakePct=()=>FSU.length?FSU.filter(u=>u.on).length/FSU.length:1;
+const boardPct=()=>formPieces.length?formPieces.filter(f=>f.placed).length/formPieces.length:1;
+function frmSegDone(){const d={};formPieces.forEach(f=>{if(!(f.seg in d))d[f.seg]=true;if(!f.placed)d[f.seg]=false});return d}
+function frmDrive(X,Z){if(!isPrep()||LV.wall)return;const d=frmSegDone(),now=performance.now();let n=0;
+  FSU.forEach(u=>{if(u.on||d[u.seg]===false||(u.x-X)**2+(u.z-Z)**2>.75)return;u.on=1;u.a=now+n*90;n++;FRM.hamU=u});
+  if(!n)return;thump();buzz(16);setTimeout(()=>{try{buzz(9);rebClick(900)}catch(e){}},120);setTimeout(()=>{try{buzz(9);rebClick(1100)}catch(e){}},240);
+  if(stakePct()>=1&&boardPct()>=1&&!FRM.allSaid){FRM.allSaid=1;pop('Forms set');say('Forms are set to the string and staked solid. Hit Next.','good','frmall',0);try{chime(1)}catch(e){}}}
+function frmBoardSet(f,seg){f.a=performance.now();f.d=0;const d=frmSegDone();if(d[seg]&&!FRM.said[seg]&&FSU.some(u=>u.seg===seg&&!u.on)){FRM.said[seg]=1;if(!FRM.said.any){FRM.said.any=1;say('Run\'s in. Drag over the orange stakes to drive them with the sledge.','info','frmstk',0)}}}
+function frmStringBuild(){if(FRM.sl){scene.remove(FRM.sl);FRM.sl.geometry.dispose();FRM.sl=null}FRM.slK=SEGS;const segs=SEGS.filter(s=>!s.nf);if(!segs.length||LV.wall||LV.slip||LV.stair||LV.bridge)return;
+  const im=new THREE.InstancedMesh(new THREE.CylinderGeometry(.01,.01,1,4),new THREE.MeshBasicMaterial({color:0xff4fa8}),segs.length),o=new THREE.Object3D(),y=FY+FH/2+.035;
+  segs.forEach((s,i)=>{const ax=s.a[0]+s.nx*.32,az=s.a[1]+s.nz*.32,bx=s.b[0]+s.nx*.32,bz=s.b[1]+s.nz*.32;o.position.set((ax+bx)/2,y,(az+bz)/2);o.scale.set(1,Math.hypot(bx-ax,bz-az)+.2,1);o.lookAt(bx,y,bz);o.rotateX(Math.PI/2);o.updateMatrix();im.setMatrixAt(i,o.matrix)});
+  im.frustumCulled=false;im.visible=false;FRM.sl=im;scene.add(im)}
+function frmTick(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,now=performance.now();
+  if(FRM.slK!==SEGS)frmStringBuild();if(FRM.sl)FRM.sl.visible=running&&P&&k==='form';
+  if(!P||LV.wall){FSU.forEach(u=>{if(u.ms[0].material===FSG)u.ms[0].material=stakeM;u.ms.forEach((m,j)=>m.position.y=u.y0[j])});FRM.ham.visible=false;return}
+  // boards drop in and settle
+  formPieces.forEach(f=>{if(!f.a)return;const e=(now-f.a)/220;let y=FY;if(e<1)y=FY+1.1*(1-e*e);else if(e<1.7)y=FY+.05*Math.sin((e-1)/.7*Math.PI);else f.a=0;f.m.position.y=y;
+    if(e>=1&&!f.d){f.d=1;const p=f.m.position;try{cdustPuff(p.x,prepSurfY(p.x,p.z),p.z,_dirtC,false);CDUST.s1[(CDUST.i+CDUST.N-1)%CDUST.N]=.7;CDUST.a0[(CDUST.i+CDUST.N-1)%CDUST.N]=.3}catch(e2){}}});
+  const d=frmSegDone(),formed=S.form!=null&&stage>S.form;let ham=null;
+  FSU.forEach(u=>{const show=d[u.seg]!==false&&(formed||k==='form'),ghost=show&&!u.on&&k==='form';
+    let dy=0;if(u.on&&u.a){const e=(now-u.a)/120;if(e<0)dy=.5;else if(e>=3)u.a=0;else{dy=.5*(1-Math.min(3,Math.floor(e)+Math.min(1,(e%1)*3))/3);if(u===FRM.hamU)ham=[u,e]}}else if(ghost)dy=.5;
+    u.ms.forEach((m,j)=>{if(j===0){m.visible=show&&(u.on||ghost);const want=u.on?stakeM:FSG;if(m.material!==want)m.material=want;m.children.forEach(c=>c.visible=u.on&&!u.a);m.position.y=u.y0[0]+dy}else m.visible=show&&u.on&&!u.a})});
+  const H=FRM.ham;H.visible=!!ham;if(ham){const [u,e]=ham,ph=e%1,lift=ph<.6?.9*(ph/.6):.9*(1-(ph-.6)/.4),top=u.y0[0]+.36+.5*(1-Math.min(3,Math.floor(e)+1)/3);
+    const cx=camera.position.x-u.x,cz=camera.position.z-u.z,cl=Math.hypot(cx,cz)||1;H.position.set(u.x,top+lift,u.z);_v1.set(u.x+cx/cl*2.3,top+1.4,u.z+cz/cl*2.3);H.lookAt(_v1)}}
+const _dirtC=new THREE.Color(.42,.33,.25);
+const formPct=()=>{const b=boardPct();return(!FSU.length||LV.wall)?b:.7*b+.3*stakePct()};
 const digPct=()=>{let a=0;for(let i=0;i<N;i++)if(PZc[i]&&digD[i]>=.85)a++;return a/PZN};
 const gravPct=()=>{let a=0;for(let i=0;i<N;i++)if(PZc[i]&&gravF[i]>=.85)a++;return a/PZN};
 const compPct=()=>{let a=0;for(let i=0;i<N;i++)if(PZc[i])a+=Math.min(1,compF[i]);return a/PZN};
@@ -12039,7 +12151,7 @@ function cabCamera(fdt){if(!cabOn||!cabAvail()||!exG.visible){cabUnhide();cab.ct
   const look=fwd.multiplyScalar(.5).addScaledVector(tip,.5);if(!cab.lk||dt>=1)cab.lk=look.clone();else cab.lk.lerp(look,1-Math.exp(-dt*8));
   camera.position.copy(eye);camera.lookAt(cab.lk);cabAim(tip,.48,dt,-.6,.45);return true}
 
-function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);updateBlankets(dt);updateCure();updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
+function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);try{frmTick()}catch(e){if(!FRM.err){FRM.err=1;console.warn('frm',e)}}updateBlankets(dt);updateCure();updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
   exG.visible=on;if(on&&exPark){if(cabOn)updateCab(dt,t,k);else updateExcavator(dt,t,k)}try{exUiTick(dt,t,k)}catch(e){if(!EXUI.err){EXUI.err=1;console.warn('exUi',e)}}
   if(FRESH.sP&&performance.now()-FRESH.sT>=30)geoDirty=true;
   if(P&&(FRESH.t+=dt)>.4){const st=FRESH.t;FRESH.t=0;let any=false;for(let i=0;i<N;i++)if(freshD[i]>0){freshD[i]=Math.max(0,freshD[i]-st/28);any=true}if(any&&soilMode())geoDirty=true}updateBits(dt);try{pileDirtM.color.setHex(k==='strip'||k==='break'||dumpT.userData.hauling?0x55565c:0xffffff)}catch(e){}try{arTick(dt,t,k,P)}catch(e){if(!AR.err){AR.err=1;console.warn('arTick',e)}}
