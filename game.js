@@ -10406,7 +10406,10 @@ function frmStringBuild(){if(FRM.sl){scene.remove(FRM.sl);FRM.sl.geometry.dispos
   im.frustumCulled=false;im.visible=false;FRM.sl=im;scene.add(im)}
 function frmTick(){const P=isPrep(),k=STAGES[stage]&&STAGES[stage].key,now=performance.now();
   if(FRM.slK!==SEGS)frmStringBuild();if(FRM.sl)FRM.sl.visible=running&&P&&k==='form';
-  if(!P||LV.wall){FSU.forEach(u=>{if(u.ms[0].material===FSG)u.ms[0].material=stakeM;u.ms.forEach((m,j)=>m.position.y=u.y0[j])});FRM.ham.visible=false;return}
+  if(!P||LV.wall){FSU.forEach(u=>{if(u.ms[0].material===FSG)u.ms[0].material=stakeM;u.ms.forEach((m,j)=>m.position.y=u.y0[j]);if(!P){u.on=1;u.a=0}});FRM.ham.visible=false;
+    /* v431: a pour-only job always has every board set. Boards left unplaced (or mid-drop) by an earlier full-job attempt on the same site
+       stayed hidden while the stakes showed (Kris, training pad). Enforced every frame so no call order can leave a gap. */
+    if(!P&&!LV.wall&&!LV.slip&&!LV.stair)formPieces.forEach(f=>{if(!f.placed||!f.m.visible||f.a||f.m.position.y!==FY){f.placed=true;f.m.visible=true;f.a=0;f.m.position.y=FY}});return}
   // boards drop in and settle
   formPieces.forEach(f=>{if(!f.a)return;const e=(now-f.a)/220;let y=FY;if(e<1)y=FY+1.1*(1-e*e);else if(e<1.7)y=FY+.05*Math.sin((e-1)/.7*Math.PI);else f.a=0;f.m.position.y=y;
     if(e>=1&&!f.d){f.d=1;const p=f.m.position;try{cdustPuff(p.x,prepSurfY(p.x,p.z),p.z,_dirtC,false);CDUST.s1[(CDUST.i+CDUST.N-1)%CDUST.N]=.7;CDUST.a0[(CDUST.i+CDUST.N-1)%CDUST.N]=.3}catch(e2){}}});
