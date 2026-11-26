@@ -4739,8 +4739,9 @@ const RUM={cam:0,h:0,hz:6,t:0,err:0};
 function rumbleTarget(){
   const k=STAGES[stage]&&STAGES[stage].key,d=!!ptr.down,cabK=(typeof cabOn!=='undefined'&&cabOn)?.3:1;let c=0,h=0,hz=6;
   const add=(cc,hh,z)=>{if(cc>c)c=cc;if(hh>h){h=hh;hz=z}};
-  if(pouring&&truck.visible)add(.05,.55,3);
-  if(pouring&&pumpG.visible)add(.06,.6,2.5);
+  if(PFL.f>.1&&truck.visible)add(.05*PFL.f,.55*PFL.f,3);
+  if(PFL.f>.1&&pumpG.visible)add(.06*PFL.f,.6*PFL.f,2.5);
+  if(k==='joint'&&SAWR.on)add(.035,.8,16);
   if(exG.visible){const cw=typeof cabOn!=='undefined'&&cabOn&&typeof cab!=='undefined'&&cabAvail(),cm=cw?Math.min(1,cab.mov||0):1;if(cw?cm>.1:d)add((.04+.04*cm)*cabK,.35+.3*cm,5)}
   if(compG.visible&&PLT.vib>.4)add(.13*PLT.vib,.9,12);
   if(rollG.visible&&RLR.vib>.4)add(.08*RLR.vib,.65,6);
@@ -4855,7 +4856,7 @@ function rebarReset(){if(!REB)return;rebN=0;REB.held=REB.stroke=null;REB.hold.vi
   REB.chs.forEach((c,k)=>{c.on=1;rebM(REB.ch,k,c.x,-.255,c.z,0,Math.random()*3,0,1,1,1)});REB.runs.forEach((b,k)=>{b.on=0;b.a=0;rebBar(k,0)});rebMarks()}
 function rebarTrace(){}// kept for old callers
 /* ---------- state init ---------- */
-function reset(){try{M2.clr=1}catch(e){}try{spClear()}catch(e){}setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
+function reset(){try{M2.clr=1}catch(e){}try{finReset()}catch(e){}try{spClear()}catch(e){}setStageUI.sawT=null;try{PREPT.reset()}catch(e){}try{strReset()}catch(e){}try{rebarReset()}catch(e){}try{brgReset()}catch(e){console.warn('brg',e)}try{runClear()}catch(e){}try{BUG.on=BUG.drive=BUG.used=BUG.carry=BUG.dump=false;BUG.tilt=0}catch(e){}try{truckFar(false)}catch(e){}
   flInit();h.set(FL);shaped.fill(0);shCarry=0;hard.fill(0);struck.fill(0);rkA.fill(0);scA.fill(0);closed.fill(0);edged.fill(0);trow.fill(0);bcov.fill(0);bxv.fill(0);byv.fill(0);weak.fill(0);rpit.fill(0);carry.fill(0);DUST.fill(0);TEAR.fill(0);PST.fill(0);MKS.dirty=1;try{payReset()}catch(e){console.warn('pay',e)}
   for(let i=0;i<N;i++)mott[i]=(Math.random()-.5)*10;
   {const nz=new Float32Array(N);for(let i=0;i<N;i++)nz[i]=Math.random();
@@ -4892,7 +4893,7 @@ function pourStep(dt){
   if(lateT&&lateT.phase==='wait'){pouring=false;say('No mud until truck two shows. Rake the edge to keep it live.','info','latew');return}
   if(XT.wait>0){pouring=false;say(`Extra truck's on the way, ${Math.ceil(XT.wait)} s out. Rake or screed what you've got; you'll be brought back when it lands.`,'info','xtw',4000);return}
   // the chute swings to where you tapped before the gate opens, so mud doesn't land all along the way
-  {const lag=Math.hypot(tip.x-tipTarget.x,tip.z-tipTarget.z);if(pourStep.hold){if(lag>.8)return;pourStep.hold=false}else if(lag>3)return}
+  pourStep.go=false;{const lag=Math.hypot(tip.x-tipTarget.x,tip.z-tipTarget.z);if(pourStep.hold&&pouring){if(lag>.8)return;pourStep.hold=false}else if(lag>3)return}pourStep.go=true;if(dt<=0)return;
   if(placed+wasted>=LOAD_M3){pouring=false;if(!stowChute){stowChute=true;say(placed<NEED_M3*.97?`Drum's empty and you're about ${Math.max(.25,NEED_M3-placed).toFixed(2)} m³ short. Tap Truck to call another one, or rake it out.`:'Drum\'s empty. Chute\'s swung clear. Rake it out, then hit Next.','info','empty',0)}return}
   const rate=.075*(LS>2.6?Math.min(Math.pow(LS,1.6),2.2):Math.min(Math.pow(LS,.35),1.25))*dt*(usePump()?1.35:1)*(gear('truck')?1.25:1)*planPourK()*(STR.on&&STR.vol>1?STR.vol:1); // m3 per step. v157: capped for big lots, a pump puts out about a yard every few seconds, not cubic metres a second
   const cx=(tip.x+SLAB_W/2)/SLAB_W*GW,cy=(tip.z+SLAB_D/2)/SLAB_D*GH;
@@ -5947,9 +5948,10 @@ function broomDrag(p){if(!bLock)broomDown(p);const L=bLock;
   const a=(p.x-L.x)*L.ux+(p.y-L.y)*L.uy;if(Math.abs(a-L.a)<.12)return;broomSeg(L.x+L.ux*L.a,L.y+L.uy*L.a,L.x+L.ux*a,L.y+L.uy*a);L.a=a}
 function broomSeg0(x0,y0,x1,y1){
   const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy);if(len<.15)return;
-  const ux=dx/len,uy=dy/len,nx=-uy,ny=ux,W=(TRD.on?1.5:3.2)/LS,eff=broomEff(),early=set<.5;
+  const ux=dx/len,uy=dy/len,nx=-uy,ny=ux,W=(TRD.on?1.5:3.2)/LS,eff=broomEff(),early=set<.5,dirt=TRD.on?0:BRM.dirt;
+  if(!TRD.on){BRM.dirt=Math.min(1,BRM.dirt+len*SLAB_W/GW*.005*(early?1.6:1));if(BRM.dirt>.65&&!BRM.warn){BRM.warn=1;say('Broom\'s loading up with paste and dragging clumps. Rinse it in the bucket.','info','brDirty',0)}}
   const th=Math.atan2(uy,ux),c2=Math.cos(2*th),s2=Math.sin(2*th);let work=0;
-  {const cs=SLAB_W/GW,qa=Math.round(th/.035)*.035,L=len*cs,X0=wx(x0),Z0=wz(y0);{const nw=performance.now();if(nw-(M2.bt||0)>300)M2.bs=Math.random()*50;M2.bt=nw}m2Stamp({t:4,A:[X0,Z0,X0+Math.cos(qa)*L,Z0+Math.sin(qa)*L],B:[4,W*cs,Math.min(1,.35+eff),M2.bs||0],C:[Math.max(0,Math.min(1,(.5-set)/.12)),Math.max(0,Math.min(1,(set-.74)/.14)),0,0]})}
+  {const cs=SLAB_W/GW,qa=Math.round(th/.035)*.035,L=len*cs,X0=wx(x0),Z0=wz(y0);{const nw=performance.now();if(nw-(M2.bt||0)>300)M2.bs=Math.random()*50;M2.bt=nw}m2Stamp({t:4,A:[X0,Z0,X0+Math.cos(qa)*L,Z0+Math.sin(qa)*L],B:[4,W*cs,Math.min(1,.35+eff)*(1-.3*dirt),(M2.bs||0)+dirt*Math.random()*20],C:[Math.max(0,Math.min(1,(.5-set)/.12)),Math.max(0,Math.min(1,(set-.74)/.14)),0,0]})}
   const minx=Math.max(0,Math.floor(Math.min(x0,x1)-W)),maxx=Math.min(GW-1,Math.ceil(Math.max(x0,x1)+W));
   const miny=Math.max(0,Math.floor(Math.min(y0,y1)-W)),maxy=Math.min(GH-1,Math.ceil(Math.max(y0,y1)+W));
   for(let cy=miny;cy<=maxy;cy++)for(let cx=minx;cx<=maxx;cx++){
@@ -5963,11 +5965,12 @@ function broomSeg0(x0,y0,x1,y1){
   bctx.lineCap=brx.lineCap='round';
   bctx.lineCap=brx.lineCap='butt';
   for(const B of BRISTLES){
-    const o=B.o*hw,a=(early?.38:.2)*Math.min(1.5,eff)*B.a;
+    const o=B.o*hw,a=(early?.38:.2)*Math.min(1.5,eff)*B.a*(1+dirt*(Math.random()*1.4-.4));
     bctx.lineWidth=brx.lineWidth=(early?2.6:1.1)*B.w;
     bctx.strokeStyle=`rgba(40,37,32,${a})`;bctx.beginPath();bctx.moveTo(P0x+nx*o,P0y+ny*o);bctx.lineTo(P1x+nx*o,P1y+ny*o);bctx.stroke();
     bctx.strokeStyle=`rgba(232,226,214,${a*.6})`;bctx.beginPath();bctx.moveTo(P0x+nx*(o+1.6),P0y+ny*(o+1.6));bctx.lineTo(P1x+nx*(o+1.6),P1y+ny*(o+1.6));bctx.stroke();
     brx.strokeStyle=`rgba(255,255,255,${a*1.6})`;brx.beginPath();brx.moveTo(P0x+nx*o,P0y+ny*o);brx.lineTo(P1x+nx*o,P1y+ny*o);brx.stroke()}
+  if(dirt>.25&&Math.random()<.5*dirt){bctx.fillStyle=`rgba(62,58,51,${.18+.3*dirt})`;bctx.beginPath();bctx.ellipse(P1x+(Math.random()-.5)*hw*1.6,P1y+(Math.random()-.5)*hw*1.6,2+Math.random()*5*dirt,1.5+Math.random()*2.5,Math.atan2(uy,ux),0,6.283);bctx.fill()}
   if(early&&Math.random()<.35){bctx.fillStyle='rgba(58,54,48,.3)';bctx.beginPath();bctx.arc(P1x+(Math.random()-.5)*hw,P1y+(Math.random()-.5)*hw,2+Math.random()*4,0,6.283);bctx.fill()}
   surfDirty=true;
   if(early)say('Too wet. The broom is tearing the paste.','bad','broomWet');
@@ -6036,6 +6039,7 @@ function jointMove(p){
     jHead=Math.max(curJ.a,Math.min(curJ.b-.01,curJ.o==='x'?p.y:p.x));
   }
   if(!curJ)return;
+  if(sawJob()){SAWR.tgt=Math.max(curJ.a,Math.min(curJ.b-.01,curJ.o==='x'?p.y:p.x));return}/* v428: the saw walks to your finger at its own pace (sawTick) */
   const h0=jHead,h1=Math.max(curJ.a,Math.min(curJ.b-.01,curJ.o==='x'?p.y:p.x));jDir=h1>=h0?1:-1;
   jHead=h1;jointCut(h0,h1);
 }
@@ -7701,11 +7705,11 @@ function updateTruck(dt,t){
   chute.position.copy(PIVOT);chute.lookAt(tip);const len=PIVOT.distanceTo(tip);chute.scale.set(1,1,len);
   const nb=Math.floor(len/4);
   bands.forEach((b,i)=>{b.visible=i<nb;if(i<nb){b.position.copy(PIVOT).lerp(tip,(i+1)*4/len);b.quaternion.copy(chute.quaternion)}})}
-  const flowing=pouring||RUN.flow;stream.visible=flowing;
-  if(flowing){stream.position.set(tip.x,tip.y-.05,tip.z);stream.scale.y=Math.max(.2,tip.y-gy);sTex.offset.y-=dt*3;try{streamLumps(stream.scale.y,t)}catch(e){}
-    for(const s of sparts){if(s.life<=0&&Math.random()<.3){const a=Math.random()*6.283,sp=1.2+Math.random()*3.8;s.p.set(tip.x+Math.cos(a)*.18,gy+.05,tip.z+Math.sin(a)*.18);s.v.set(Math.cos(a)*sp,1.4+Math.random()*2.8,Math.sin(a)*sp);s.life=.5+Math.random()*.5;s.sz=.5+Math.random()*.9}}}
+  const flowing=PFL.f>.04||RUN.flow;stream.visible=flowing;
+  if(flowing){const sw=RUN.flow?1:.3+.7*PFL.f;stream.position.set(tip.x,tip.y-.05,tip.z);stream.scale.set(sw,Math.max(.2,tip.y-gy),sw);sTex.offset.y-=dt*3;try{streamLumps(stream.scale.y,t)}catch(e){}
+    for(const s of sparts){if(s.life<=0&&Math.random()<.3*(RUN.flow?1:PFL.f)){const a=Math.random()*6.283,sp=1.2+Math.random()*3.8;s.p.set(tip.x+Math.cos(a)*.18,gy+.05,tip.z+Math.sin(a)*.18);s.v.set(Math.cos(a)*sp,1.4+Math.random()*2.8,Math.sin(a)*sp);s.life=.5+Math.random()*.5;s.sz=.5+Math.random()*.9}}}
   lparts.forEach((l,i)=>{
-    if(l.life<=0&&(pouring||RUN.flow)&&Math.random()<.5){l.p.set(tip.x+(Math.random()-.5)*.35,tip.y-.1,tip.z+(Math.random()-.5)*.35);l.v=-1-Math.random()*2;l.life=2;l.s=.6+Math.random()*1.1}
+    if(l.life<=0&&(PFL.f>.15||RUN.flow)&&Math.random()<.5*(RUN.flow?1:PFL.f)){l.p.set(tip.x+(Math.random()-.5)*.35,tip.y-.1,tip.z+(Math.random()-.5)*.35);l.v=-1-Math.random()*2;l.life=2;l.s=.6+Math.random()*1.1}
     if(l.life>0){l.v-=20*dt;l.p.y+=l.v*dt;if(l.p.y<gy){l.life=0;if(l.s>1.45&&performance.now()-(updateTruck.kt||0)>260){updateTruck.kt=performance.now();shake(.035);try{buzz(6)}catch(e){}}}}
     dummy.position.copy(l.p);dummy.rotation.set(l.p.y*3,i,0);const sc=l.life>0?l.s:.0001;dummy.scale.set(sc,sc,sc);dummy.updateMatrix();lumps.setMatrixAt(i,dummy.matrix)});
   lumps.instanceMatrix.needsUpdate=true;
@@ -7775,6 +7779,7 @@ function updateTools(dt,t){
     if(!pointInPoly(guide.position.x,guide.position.z,SHAPE))guide.visible=false;
     guide.material.opacity=jDrag&&jDrag.cutting?.3:.9;cutLine.visible=false;
     placeArm(tv2.set(grooverG.position.x,Y+.2,grooverG.position.z),grooverG.rotation.y);
+    try{sawFx(dt,t)}catch(e){}
   }
   muleG.visible=k==='shape'&&ptr.down;if(muleG.visible){const sp=Math.hypot(ptr.vx,ptr.vy);if(sp>1)muleYaw=lerpAng(muleYaw,Math.atan2(ptr.vx,ptr.vy),1-Math.pow(.01,dt));muleG.position.set(X,ELV()-.05,Z);muleG.rotation.y=muleYaw+Math.PI/2}
   if(k==='power'&&!rideLive()){powerG.position.set(X,Y,Z);powerG.rotation.y=Math.atan2(camDir.x,camDir.z);pBlades.rotation.y+=dt*28}
@@ -8989,7 +8994,7 @@ function step(t,dt){
     const evm=evStep(dt);try{prepTick(dt)}catch(e){}if(!PREPK.has(STAGES[stage].key)&&!coachOpen&&!practice&&!arrive)set=Math.min(1,set+dt*weather.rate/Math.pow(LS,.9)*(LV.clk||1)*ff*evm*siteK()*(stage===S.pour?.35:1)*(stage===S.stamp&&SP.g?spClock():1)*(LV.tut?.55:1)*planClockK());if(!PREPK.has(STAGES[stage].key)){if(set>.8&&!flags.w80&&stage<STAGES.length-1){flags.w80=1;say('It\'s getting stiff. Not much working time left, keep moving.','bad','w80',0);buzz(30)}if(set>.92&&!flags.w92){flags.w92=1;say('Almost set up! Finish this step or it calls the job.','bad','w92',0);buzz([40,60,40])}}
     if(set>=1&&!(LV.saw&&STAGES[stage].key==='joint')){if(!flags.endT){flags.endT=t;say('It\'s set up. That\'s the job, let\'s walk it.','bad','setup',0);buzz(80)}else if(t-flags.endT>2400){flags.endT=0;finish(STAGES[stage].key!=='blanket')}}
     if(waitHeld&&[.46,.72].some(m=>s0<m&&set>=m)){holdT=0;buzz(25)}
-    if(pouring)pourStep(dt);try{runTick(dt,t)}catch(e){console.warn('run',e)}
+    {const go=pouring&&pourStep.go;PFL.f+=((go?1:0)-PFL.f)*Math.min(1,dt*(go?2.8:3.4));if(!pouring&&PFL.f<.02)PFL.f=0;if(pouring||PFL.f>0)pourStep(dt*Math.max(PFL.f,0))}/* v428 */try{runTick(dt,t)}catch(e){console.warn('run',e)}
     if(set<.28){if(stage===S.pour&&mudOn())mudFlow(dt);else relax(stage===S.pour?3:1,.12)}
   }
   if((surfDirty&&t-surfT>(lowQ?180:110))||(t-surfT>1200&&!PREPK.has(STAGES[stage].key))){updateSurface();slabTex.needsUpdate=true;roughTex.needsUpdate=true;bumpTex.needsUpdate=true;ccTex.needsUpdate=true;surfDirty=false;surfT=t}
@@ -11443,10 +11448,10 @@ function updateSlip(dt,t){const k=STAGES[stage]&&STAGES[stage].key,on=!!(LV&&LV.
 const slipStats=()=>{let n=0;for(let i=0;i<N;i++)if(inR[i]&&sl.ext[i])n++;return{cov:RN?n/RN:0,voids:RN?sl.voids/RN:0,stops:sl.stops,spill:sl.spill,r:0,off:0}};
 /* white curing compound */
 const cure=new Float32Array(N);
-function cureSeg(x0,y0,x1,y1){const W=1.5*12/CELL_IN,dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1e-6,ux=dx/len,uy=dy/len;let got=0;
+function cureSeg(x0,y0,x1,y1){const W=1.5*12/CELL_IN*(.5+.5*CUR.p),dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy)||1e-6,ux=dx/len,uy=dy/len;let got=0;
   for(let cy=Math.max(0,Math.floor(Math.min(y0,y1)-W));cy<=Math.min(GH-1,Math.ceil(Math.max(y0,y1)+W));cy++)for(let cx=Math.max(0,Math.floor(Math.min(x0,x1)-W));cx<=Math.min(GW-1,Math.ceil(Math.max(x0,x1)+W));cx++){
     const i=cy*GW+cx;if(!inR[i])continue;let t=((cx+.5-x0)*ux+(cy+.5-y0)*uy)/len;t=Math.max(0,Math.min(1,t));const d=Math.hypot(cx+.5-(x0+ux*len*t),cy+.5-(y0+uy*len*t));if(d>W)continue;
-    const a=.3*(1-d/W*.6);cure[i]=Math.min(2.2,cure[i]+a);got+=a}
+    const a=.3*(1-d/W*.6)*(.3+.7*CUR.p);if(CUR.p<.04)continue;cure[i]=Math.min(2.2,cure[i]+a);got+=a}
   if(got>0){surfDirty=true;const kk=S.cure;acc[kk].w+=got*.05;acc[kk].q+=got*.05*winQ(set,STAGES[kk]);if(performance.now()-buzzT>80){buzzT=performance.now();buzz(3)}}}
 const cureStats=()=>{let c=0,ov=0;for(let i=0;i<N;i++)if(inR[i]){c+=Math.min(1,cure[i]);if(cure[i]>1.8)ov++}return{cov:RN?c/RN:0,ov:RN?ov/RN:0}};
 const cureG=new THREE.Group();{const m=new THREE.MeshStandardMaterial({color:0x9a9da0,metalness:.8,roughness:.3}),p=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,2.6,8),m);p.position.y=1.3;cureG.add(p);
@@ -11454,6 +11459,61 @@ const cureG=new THREE.Group();{const m=new THREE.MeshStandardMaterial({color:0x9
   const mist=new THREE.Mesh(new THREE.ConeGeometry(.6,1,16,1,true),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.35,depthWrite:false,side:THREE.DoubleSide}));mist.position.y=-.5;cureG.add(mist);cureG.userData.mist=mist;
   const tank=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,1.1,14),new THREE.MeshStandardMaterial({color:0xe8e8e2,roughness:.5}));tank.position.set(.9,-.2,.4);cureG.add(tank);cureG.visible=false;scene.add(cureG)}
 function updateCure(){const k=STAGES[stage]&&STAGES[stage].key,on=k==='cure'&&ptr.down&&running;cureG.visible=on;if(on){const X=wx(ptr.x),Z=wz(ptr.y),i=cellAt(X,Z);cureG.position.set(X,ELV()+(inR[i]?h[i]/12:0)+1.15,Z);cureG.rotation.z=.25;cureG.userData.mist.material.opacity=.25+Math.random()*.15}}
+/* ---------- v428: pour and finishing realism ----------
+   PFL  the chute gate opens over about half a second once the chute is on the spot, and mud keeps sliding off for a moment after
+        you let go; the stream thickens and thins with it
+   SAWR saw-cut jobs get a real walk-behind saw: blade spinning under its guard, dust off the cut, and it cuts at the saw's pace
+        behind your finger instead of jumping to it
+   BRM  the broom loads up with paste the further you pull it: marks go streaky and clumpy until you rinse it in the bucket
+   CUR  a pump-up sprayer: the wand, a flat fan, drift, and pressure that drops as you spray; pump it back up */
+const PFL={f:0},BRM={dirt:0,warn:0},CUR={p:1,warn:0},SAWR={tgt:null,on:0,dT:0};
+const AUX={el:null,btn:null,k:''};
+function auxUI(k){try{if(!AUX.el){const d=document.createElement('div');d.className='seg';d.id='auxSeg';d.hidden=true;d.style.gridTemplateColumns='1fr';const b=document.createElement('button');b.setAttribute('aria-pressed','false');d.appendChild(b);
+      const ref=$('compSeg');ref.parentNode.insertBefore(d,ref.nextSibling);AUX.el=d;AUX.btn=b;
+      b.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();auxPress()})}
+    const show=running&&(k==='cure'||k==='broom'&&STAGES[stage]&&!TRD.on);AUX.el.hidden=!show;if(!show)return;AUX.k=k;
+    const v=k==='cure'?CUR.p:1-BRM.dirt,bars=Math.round(v*5),tx=(k==='cure'?'Pump it up ':'Rinse broom ')+'▮'.repeat(bars)+'▯'.repeat(5-bars);if(AUX.btn.textContent!==tx)AUX.btn.textContent=tx;
+    AUX.btn.style.color=v<.3?'#ffb24a':''}catch(e){}}
+function auxPress(){if(AUX.k==='cure'){CUR.p=Math.min(1,CUR.p+.17);CUR.warn=0;buzz(20);try{rebClick(260)}catch(e){}}
+  else if(AUX.k==='broom'){if(BRM.dirt<.05)return;BRM.dirt=0;BRM.warn=0;buzz([12,30,12]);say('Broom\'s rinsed. Clean, even lines again.','good','brRinse',0)}}
+function finReset(){PFL.f=0;BRM.dirt=0;BRM.warn=0;CUR.p=1;CUR.warn=0;SAWR.tgt=null;SAWR.on=0}
+// ---- saw model: walk-behind joint saw, blade on the right, guard over it, handle bars back toward you ----
+const sawG=new THREE.Group();{const red=new THREE.MeshStandardMaterial({color:0xc8301f,roughness:.45,metalness:.3}),blk=new THREE.MeshStandardMaterial({color:0x1d1e20,roughness:.55,metalness:.4}),
+  stl=new THREE.MeshStandardMaterial({color:0x8d9196,roughness:.35,metalness:.8}),bl=new THREE.MeshStandardMaterial({color:0x6f7378,roughness:.3,metalness:.9});
+  const B=(w,h,d,m,x,y,z,p)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);(p||sawG).add(o);return o},C=(r,h,m,x,y,z,rx,rz,p,s)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,s||16),m);o.position.set(x,y,z);o.rotation.set(rx||0,0,rz||0);(p||sawG).add(o);return o};
+  // the cut line is the group's z axis; blade sits on it, frame to the left (-x)
+  B(.82,.08,1.55,blk,-.45,.28,.05);/* deck */C(.26,.42,red,-.48,.53,.25,0,0,sawG,20);C(.27,.05,blk,-.48,.76,.25,0,0,sawG,20);C(.09,.16,blk,-.48,.85,.25);/* engine shroud, cap, air cleaner */
+  B(.36,.22,.34,red,-.48,.52,-.38);C(.07,.06,blk,-.48,.66,-.38);/* fuel tank and cap */
+  [[-.82,.62],[-.1,.62]].forEach(([x,z])=>C(.13,.08,blk,x,.13,z,0,Math.PI/2));[[-.82,-.6],[-.1,-.6]].forEach(([x,z])=>C(.1,.07,blk,x,.1,z,0,Math.PI/2));
+  const blade=C(.62,.012,bl,.06,.45,-.02,0,Math.PI/2,sawG,40);sawG.userData.blade=blade;/* 15 in blade, about 1.5 in into the slab */
+  B(.12,.66,1.38,red,.06,.78,-.02);B(.14,.05,1.4,blk,.06,.46,-.02);/* upper blade guard with a black skirt; the lower front of the blade shows */
+  B(.03,.03,.75,stl,.06,.18,-.95);B(.05,.1,.05,red,.06,.13,-1.32);/* pointer arm and wheel out front */
+  [-.78,-.14].forEach(x=>C(.024,1.75,stl,x,1.05,1.2,-.78,0));B(.76,.05,.05,blk,-.46,1.72,1.88);/* handle bars and grip */
+  sawG.traverse(o=>{if(o.isMesh)o.castShadow=true});sawG.visible=false;scene.add(sawG)}
+const sawJob=()=>!!(LV&&LV.saw)||!!(curJ&&curJ.saw);
+// the saw walks the cut at its own pace: about 2.4 ft/s
+function sawTick(dt){if(!SAWR.tgt||!curJ||!jDrag||!jDrag.cutting||!ptr.down){SAWR.on=0;return}const v=2.4*12/CELL_IN*dt,h0=jHead,d=SAWR.tgt-h0;if(Math.abs(d)<.02){SAWR.on=0;return}
+  const h1=h0+Math.sign(d)*Math.min(Math.abs(d),v);jDir=h1>=h0?1:-1;jHead=h1;SAWR.on=1;jointCut(h0,h1)}
+function sawFx(dt,t){const k=STAGES[stage]&&STAGES[stage].key,on=running&&k==='joint'&&sawJob()&&ptr.down;sawG.visible=on;if(!on)return;
+  grooverG.visible=false;const o=jMode,x=grooverG.position.x,z=grooverG.position.z;sawG.position.set(x,grooverG.position.y,z);handG.visible=forearm.visible=wrist.visible=false;sawG.rotation.y=(o==='x'?0:Math.PI/2)+(jDir>0?Math.PI:0);/* pointer wheel (local -z) leads */
+  sawG.userData.blade.rotation.x-=dt*(SAWR.on?60:25);sawG.position.y+=(Math.random()-.5)*.01;
+  if(SAWR.on&&(SAWR.dT-=dt)<=0){SAWR.dT=.06;const fx=Math.sin(sawG.rotation.y),fz=Math.cos(sawG.rotation.y),i=CDUST.i;cdustPuff(x+fx*.55,Math.max(0,surfY(x,z))+.05,z+fz*.55,_sawC,false);CDUST.a0[i]=.42;CDUST.vel[i*3]+=fx*1.2;CDUST.vel[i*3+2]+=fz*1.2}}
+const _sawC=new THREE.Color(.78,.77,.74);
+// ---- cure sprayer: wand with trigger, flat-fan tip, hose back to the tank ----
+function cureModel(){const g=cureG;g.children.slice().forEach(c=>{g.remove(c);if(c.geometry)c.geometry.dispose()});
+  const al=new THREE.MeshStandardMaterial({color:0xb9bcc0,metalness:.85,roughness:.3}),blk=new THREE.MeshStandardMaterial({color:0x1b1b1b,roughness:.6}),yl=new THREE.MeshStandardMaterial({color:0xf2c400,roughness:.5});
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,1.9,8),al);w.position.y=.95;g.add(w);const tip=new THREE.Mesh(new THREE.CylinderGeometry(.035,.025,.09,8),yl);tip.position.y=.02;g.add(tip);
+  const hd=new THREE.Mesh(new THREE.BoxGeometry(.09,.32,.12),blk);hd.position.set(0,2.0,.02);g.add(hd);const tr=new THREE.Mesh(new THREE.BoxGeometry(.04,.14,.05),yl);tr.position.set(0,1.92,.1);g.add(tr);
+  const hose=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0,1.85,0),new THREE.Vector3(.1,1.3,.5),new THREE.Vector3(.2,.6,1.6),new THREE.Vector3(.3,.05,3.2)]),24,.022,6),blk);g.add(hose);
+  const mist=new THREE.Mesh(new THREE.ConeGeometry(.6,1,20,1,true),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3,depthWrite:false,side:THREE.DoubleSide}));mist.position.y=-.5;g.add(mist);g.userData.mist=mist;
+  g.traverse(o=>{if(o.isMesh&&o!==mist)o.castShadow=true});g.userData.v428=1}
+const _cureC=new THREE.Color(.95,.95,.93);
+function cureFx(dt){const k=STAGES[stage]&&STAGES[stage].key,on=k==='cure'&&ptr.down&&running;if(!cureG.userData.v428)cureModel();if(!on)return;
+  const g=cureG,cx=camera.position.x-g.position.x,cz=camera.position.z-g.position.z,cl=Math.hypot(cx,cz)||1;g.rotation.set(0,Math.atan2(cx,cz),0);g.rotateX(.28);
+  const m=g.userData.mist,pw=.45+.55*CUR.p;m.scale.set(1.35*pw,1,.38);m.material.opacity=(.18+Math.random()*.12)*pw;
+  if((CUR.dT=(CUR.dT||0)-dt)<=0&&CUR.p>.05){CUR.dT=.05;const i=CDUST.i,x=g.position.x+(Math.random()-.5)*1.2*pw,z=g.position.z+(Math.random()-.5)*.4;cdustPuff(x,g.position.y-1.05,z,_cureC,false);CDUST.s0[i]=.1;CDUST.s1[i]=.5+Math.random()*.4;CDUST.a0[i]=.22*pw;CDUST.life[i]=1+Math.random()*.6;CDUST.vel[i*3]=.35+Math.random()*.2;CDUST.vel[i*3+2]=.1;CDUST.vel[i*3+1]=.15}
+  CUR.p=Math.max(0,CUR.p-dt*.055);if(CUR.p<.3&&!CUR.warn){CUR.warn=1;say('Losing pressure. Pump the sprayer back up so it lays an even coat.','info','curP',0)}}
+function finTick(dt,t){const k=STAGES[stage]&&STAGES[stage].key;try{sawTick(dt)}catch(e){}try{sawFx(dt,t)}catch(e){}try{cureFx(dt)}catch(e){}auxUI(k)}
 
 // crew: hi-vis vests and hard hats, standing where they'd really be
 // rounded figures: tapered limbs, hi-vis with reflective tape, boots, gloves, safety glasses, proper hard hats
@@ -12151,7 +12211,7 @@ function cabCamera(fdt){if(!cabOn||!cabAvail()||!exG.visible){cabUnhide();cab.ct
   const look=fwd.multiplyScalar(.5).addScaledVector(tip,.5);if(!cab.lk||dt>=1)cab.lk=look.clone();else cab.lk.lerp(look,1-Math.exp(-dt*8));
   camera.position.copy(eye);camera.lookAt(cab.lk);cabAim(tip,.48,dt,-.6,.45);return true}
 
-function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);try{frmTick()}catch(e){if(!FRM.err){FRM.err=1;console.warn('frm',e)}}updateBlankets(dt);updateCure();updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
+function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);try{frmTick()}catch(e){if(!FRM.err){FRM.err=1;console.warn('frm',e)}}updateBlankets(dt);updateCure();try{finTick(dt,t)}catch(e){if(!AUX.err){AUX.err=1;console.warn('fin',e)}}updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
   exG.visible=on;if(on&&exPark){if(cabOn)updateCab(dt,t,k);else updateExcavator(dt,t,k)}try{exUiTick(dt,t,k)}catch(e){if(!EXUI.err){EXUI.err=1;console.warn('exUi',e)}}
   if(FRESH.sP&&performance.now()-FRESH.sT>=30)geoDirty=true;
   if(P&&(FRESH.t+=dt)>.4){const st=FRESH.t;FRESH.t=0;let any=false;for(let i=0;i<N;i++)if(freshD[i]>0){freshD[i]=Math.max(0,freshD[i]-st/28);any=true}if(any&&soilMode())geoDirty=true}updateBits(dt);try{pileDirtM.color.setHex(k==='strip'||k==='break'||dumpT.userData.hauling?0x55565c:0xffffff)}catch(e){}try{arTick(dt,t,k,P)}catch(e){if(!AR.err){AR.err=1;console.warn('arTick',e)}}
