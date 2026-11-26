@@ -81,6 +81,10 @@ const DEFS={
    desc:'Retarder kept the top paste soft. Hold the wand down and sweep it over the slab to wash the paste off and bare the stone. Start on the side nearest you and work away so the slurry is pushed ahead and off the far edge; slurry left to dry on washed stone leaves a haze. Too early and stones wash out of the slab. Too late and the paste won\'t come off. Parked in one spot, the wand blasts the stones out.'},
   power:{name:'Power trowel',win:[.54,.95],soft:.1,
    desc:'Pans on first, when your thumb barely prints: they float it flat and work the cream up (swirls are normal). Then pull the pans and go to blades, more pitch each pass as it firms up, to burnish it to a mirror. Too much pitch too soon digs in; too flat when it\'s hard just skates.'},
+  burlap:{name:'Wet burlap',win:[.45,1],soft:.25,
+   desc:'Wet cure. As soon as the deck won\'t mark, drag along it to roll out the soaked burlap, one row at a time, each lapping the last. Cover every row.'},
+  poly:{name:'White poly',win:[.45,1],soft:.25,
+   desc:'Sheet the white poly over the wet burlap so the water stays in for the cure. Drag along the deck to roll out each sheet, lapping the last.'},
   blanket:{name:'Blankets',win:[.72,1],soft:.25,
    desc:'Frost tonight. Once the finish is firm enough not to mark, drag along the slab to roll out each insulated blanket. Each one unrolls the full length in its own row, overlapping the last. Cover every row.'}
 };
@@ -234,17 +238,18 @@ const LEVELS=[
    slab:'44 × 28 ft apron, 8 in thick',finish:'Broom, joints at 15 ft'},
   {id:'bridge',name:'Highway 400 Bridge Deck',tag:'48 × 24 ft · night · Bid-Well',ls:2.4,elev:20,depth:9,pump:true,bridge:true,wx:'night',
    wxNote:'Night pour: lanes closed under the bridge from 10 to 5. Work lights on the deck, traffic still moving below.',
-   shape:[[-24,-12,1],[24,-12,1],[24,12,1],[-24,12,1]],steps:['pour','screed','cure'],names:{screed:'Bid-Well',demo:'Tear out',soffit:'Soffit forms',rebar:'Deck steel'},win:{screed:[0,.55]},
+   shape:[[-24,-12,1],[24,-12,1],[24,12,1],[-24,12,1]],steps:['pour','screed','burlap','poly'],names:{screed:'Bid-Well',demo:'Tear out',soffit:'Soffit forms',rebar:'Deck steel'},win:{screed:[0,.55]},
    desc:{demo:'The old deck comes off first. Drag the hoe ram over the deck and break it up, chunk by chunk, right down to the steel girders. Clean flanges, no old concrete left on the studs.',
     soffit:'Form the underside of the new deck. Drag over each orange bay to hang 3/4 HDO ply between the girder flanges on 4x4 runners, then the overhangs on both sides: steel brackets every 4 ft, edge form, walkway and the screed rail the Bid-Well rides on.',
     rebar:'The bottom mat is tied on the soffit. Sweep across the glowing lanes to drop the top mat, then drag along the bars to tie every orange ring.',
     pour:'The boom pump reaches up from the shoulder. Start at the far end, right in front of the Bid-Well, and work back down the span. Once 15 ft is placed, tap Start Bid-Well: it strikes off and finishes right behind you, and only stops if it runs out of mud. Keep the pour 15 to 20 ft ahead of it.',
     screed:'Hold and drag along the span to walk the Bid-Well down the rails. The carriage runs back and forth across the deck: the augers cut it to grade and roll the extra ahead, the drum behind them closes and finishes the top. The pump keeps feeding mud in front of the augers while it rolls. Make passes until it reads flat: this deck carries the 400.',
-    cure:'Spray the white curing compound over the whole deck, even coats, no bare spots. It has to cure slow and hard.'},
+    burlap:'Wet cure, the way the MTO wants it. As soon as the drum finish won\'t mark, roll the soaked burlap out across the deck in rows, each one lapping the last. No bare concrete.',
+    poly:'Sheet white poly over the burlap, lapped, so the water stays in for the seven-day cure.'},
    wTxt:'24 ft',pTxt:'48 ft',maxPanel:99,minPanel:1,truck:{x:-40,z:22,ry:0},sunFlip:true,mix:'50 MPa HPC, silica fume, 5-8% air',
    scene:()=>bridgeSite(),dress:()=>bridgeDress(),
    lede:'One span of the new deck on the Highway 400 extension in Barrie, poured at night with the lanes closed underneath. Tear the old deck off the girders, hang the soffit, tie the steel, then pump it and let the Bid-Well strike off and finish the whole deck before the sun comes up. Kris\'s biggest job, now yours.',
-   slab:'48 × 24 ft bridge deck span, 9 in thick',finish:'Bid-Well strike-off and drum finish, white cure'},
+   slab:'48 × 24 ft bridge deck span, 9 in thick',finish:'Bid-Well strike-off and drum finish, wet burlap and white poly'},
   {id:'bcsteps',reg:'bc',name:'Hillside Steps',tag:'5 steps + landing · North Shore',stair:{c:[8,11,14,17,20,23,35],rise:7},ls:.8,depth:8,clk:.45,
    shape:[[-5.3333,-2.6667],[3.6667,-2.6667,1],[3.6667,2.6667],[-5.3333,2.6667]],steps:['sform','riser','sbar','pour','vibe','tread'],
    wTxt:'5 ft 4 in',pTxt:'12 in',maxPanel:99,minPanel:1,truck:{x:6.5,z:11,ry:Math.PI},mix:'32 MPa, 5-8% air, 20 mm stone',
@@ -2358,7 +2363,7 @@ function brgNextSay(k){if(!BRG.on)return;
   if(k==='soffit')say('Hang the soffit: drag over each orange bay between the girders and along both overhangs. Brackets, walkway and screed rail go up with the overhang panels.','info','nSof',0);
   if(k==='rebar')say('Bottom mat\'s tied on the soffit. Set the top mat and tie it.','info','nRebB',4500);
   if(k==='pour'&&BRG.on)say('Start pouring at the far end, right in front of the Bid-Well. Once there\'s 15 ft of mud ahead of it, tap Start Bid-Well and it finishes right behind you.','info','nBwP',0);
-  if(k==='screed'&&BW.done)say('Bid-Well\'s done the span. Drag along it for a touch-up pass, or hit Next to cure.','info','nBwD',0);else if(k==='screed')say('Hold and drag along the span. The Bid-Well walks the rails, the carriage runs across, augers cut it down and the drum finishes it. The pump keeps mud ahead of it.','info','nBw',0)}
+  if(k==='screed'&&BW.done)say('Bid-Well\'s done the span. Drag along it for a touch-up pass, or hit Next to get the wet burlap on.','info','nBwD',0);else if(k==='screed')say('Hold and drag along the span. The Bid-Well walks the rails, the carriage runs across, augers cut it down and the drum finishes it. The pump keeps mud ahead of it.','info','nBw',0)}
 const BRGPROG={demo:()=>brgDemoPct(),soffit:()=>brgPct(BRG.pan),screed:()=>{let s=0,n=0;for(let i=0;i<N;i++)if(inR[i]){n++;s+=Math.min(1,closed[i])}return clamp01(1-(rms()-.15)/1.4)*.6+(n?s/n:0)*.4}};
 function brgSC(q,tm){if(!BRG.on)return{};return{
   demo:()=>{const c=brgDemoPct();return['Tear out',c,`${Math.round(c*100)}% of the old deck broken off the girders and loaded out.`+(c<.97?' Old concrete left on the flanges means a bad bond to the new deck.':' Flanges clean, studs exposed.')]},
@@ -4651,7 +4656,7 @@ function exSfxLoad(){if(!AC||au.exLoading)return;au.exLoading=1;const out={};
   .then(()=>{au.exb=out;const mk=k=>{const b=out[k],s=AC.createBufferSource();s.buffer=b;s.loop=true;s.loopStart=.06;s.loopEnd=Math.max(.5,b.duration-.06);const g=AC.createGain();g.gain.value=0;s.connect(g);g.connect(au.master);s.start(0,.06+Math.random()*b.duration*.5);return{s,g}};
     au.exl={idle:mk('idle'),high:mk('high'),hyd:mk('hyd')}}).catch(()=>{au.exLoading=0})}
 function exSfxStart(){hap([70,40,120],2);shake(.05);if(!au.exb||!soundOn||!AC)return;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=au.exb.start;g.gain.value=.95;s.connect(g);g.connect(au.master);s.start();au.exStartT=AC.currentTime}catch(e){}}
-const FREQ={slip:140,shape:600,dig:110,gravel:95,base:75,form:900,tube:320,expose:6500,power:140,blanket:220,pour:420,screed:650,float:480,edge:2300,trowel:2900,joint:1900,broom:5200,color:3800,stamp:300},GAIN={slip:.45,shape:.25,dig:.5,gravel:.45,base:.55,form:.06,tube:.05,expose:.3,power:.5,blanket:.1,pour:.38,screed:.4,float:.28,edge:.22,trowel:.26,joint:.2,broom:.32,color:.12,stamp:0};
+const FREQ={slip:140,shape:600,dig:110,gravel:95,base:75,form:900,tube:320,expose:6500,power:140,blanket:220,burlap:220,poly:220,pour:420,screed:650,float:480,edge:2300,trowel:2900,joint:1900,broom:5200,color:3800,stamp:300},GAIN={slip:.45,shape:.25,dig:.5,gravel:.45,base:.55,form:.06,tube:.05,expose:.3,power:.5,blanket:.1,pour:.38,screed:.4,float:.28,edge:.22,trowel:.26,joint:.2,broom:.32,color:.12,stamp:0};
 function updAudio(){
   if(!AC)return;const t=AC.currentTime,on=soundOn&&running?1:0,k=STAGES[stage].key,sp=k==='expose'&&ptr.down?.72+.28*Math.min(1,toolSpeed/10):Math.min(1,toolSpeed/10);
   au.scrape.f.frequency.setTargetAtTime((FREQ[k]||1000)*(.85+sp*.3)*(1-.45*TFEEL.suck+.5*TFEEL.chat),t,.05);
@@ -6266,7 +6271,7 @@ cv.addEventListener('pointerdown',e=>{BK.touch=performance.now();rpCX=e.clientX;
   else if(k==='color')colorAt(p.x,p.y);
   else if(k==='release')releaseAt(p.x,p.y);
   else if(k==='stamp'){if(SP.g)spDown(p);else{stampDrag=new Set();stampAt(p.wx,p.wz)}}
-  else if(k==='blanket'){blk.minx=blk.maxx=blk.lastx=p.x;blk.sy=p.y;blk.n=1}
+  else if(k==='blanket'||k==='burlap'||k==='poly'){blk.minx=blk.maxx=blk.lastx=p.x;blk.sy=p.y;blk.n=1}
   else if(k==='edge')edgeTrace(p.x,p.y);
   else if(k==='joint')jointDown(p,toCell(e,true)||p);
   else if(k==='tube'){tubeDrag.clear();tubeAt(p.wx,p.wz)}
@@ -6290,7 +6295,7 @@ cv.addEventListener('pointermove',e=>{rpCX=e.clientX;rpCY=e.clientY;
   else if(k==='screed'){if(scrStrip()){const [LA,LB]=SCR.lanes[0];const nb=SCR.bx+(p.x-ptr.x)*.85;if(Math.abs(Math.round(nb-scrBL()/2)-Math.round(SCR.bx-scrBL()/2))>=1){lastRow=null}SCR.bx=nb;if(scr.ok)screedMoveY(ptr.y,Math.max(LA-2,Math.min(LB+2,p.y)))}else screedMove(ptr.x,Math.max(RX0-1.5,Math.min(RX1+1.5,p.x)))}
   else if(k==='stamp'){if(SP.g)spMove(p);else stampAt(p.wx,p.wz)}
   else if(k==='release'){const st=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.8));for(let i=1;i<=st;i++)releaseAt(ptr.x+dx*i/st,ptr.y+dy*i/st)}
-  else if(k==='blanket'){blk.minx=Math.min(blk.minx,p.x);blk.maxx=Math.max(blk.maxx,p.x);blk.lastx=p.x;blk.sy+=p.y;blk.n++}
+  else if(k==='blanket'||k==='burlap'||k==='poly'){blk.minx=Math.min(blk.minx,p.x);blk.maxx=Math.max(blk.maxx,p.x);blk.lastx=p.x;blk.sy+=p.y;blk.n++}
   else if(k==='color'){const st=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.8));for(let i=1;i<=st;i++)colorAt(ptr.x+dx*i/st,ptr.y+dy*i/st)}
   else if(k==='broom')broomDrag(p);
   else if(k==='shape')shapeSeg(ptr.x,ptr.y,p.x,p.y);
@@ -6314,7 +6319,7 @@ function up(){
   if(!ptr.down)return;ptr.down=false;pouring=false;const k=curK();
   if(k==='screed'&&!LV.bridge)screedDrop();
   if(k==='pour'&&pourTool==='rake')rakeEnd();
-  if(k==='blanket'&&running)layBlanket();
+  if(k==='blanket'&&running)layBlanket();else if((k==='burlap'||k==='poly')&&running)layCover(k);
   if(k==='joint'&&running)jointUp();
   if(k==='rebar')rebUp();
   if(k==='stamp'&&SP.g)spUp();
@@ -7632,7 +7637,7 @@ const blanketTex=(()=>{const[c,g]=mk(512,256);drawCureBlanket(c,g);const t=new T
   try{document.fonts&&document.fonts.ready.then(()=>{drawCureBlanket(c,g);t.needsUpdate=true})}catch(e){}return t})();
 const blkRollGeo=(()=>{const g=new THREE.CylinderGeometry(1,1,1,18,1);g.rotateX(Math.PI/2);return g})();
 const blanketM=new THREE.MeshStandardMaterial({map:blanketTex,roughness:.88,side:THREE.DoubleSide});blanketM.shadowSide=THREE.DoubleSide;
-function clearBlankets(){blankets.forEach(m=>{scene.remove(m);m.geometry.dispose();if(m.userData.roll){scene.remove(m.userData.roll);m.userData.roll=null}});blankets.length=0;covered.fill(0);if(typeof laneUsed!=='undefined')laneUsed.clear()}
+function clearBlankets(){blankets.forEach(m=>{scene.remove(m);m.geometry.dispose();if(m.userData.roll){scene.remove(m.userData.roll);m.userData.roll=null}});blankets.length=0;covered.fill(0);if(typeof laneUsed!=='undefined')laneUsed.clear();try{clearCovers()}catch(e){}}
 function blanketLanes(){const HWc=7.2/LS,pitch=13.2/LS,L=[];let c=RY0+HWc;for(;;){const cc=Math.min(c,RY1-HWc);L.push(cc);if(cc>=RY1-HWc-.01)break;c+=pitch}return L}
 const laneUsed=new Set();
 function layBlanket(){
@@ -7653,8 +7658,45 @@ function layBlanket(){
   m.position.set(wx((x0+x1)/2),ELV(),wz(cy));m.scale.x=.02;m.castShadow=m.receiveShadow=true;scene.add(m);blankets.push(m);
   {const r=new THREE.Mesh(blkRollGeo,blanketM);r.castShadow=true;r.scale.set(.6,.6,D);r.position.set(m.position.x,ELV()+.65+lay,m.position.z);m.userData.roll=r;m.userData.lay=lay;scene.add(r)}
 }
+/* v429: bridge deck wet cure, the way it's done on the 400: pre-soaked burlap rolled out across the deck in overlapping rows as
+   soon as it won't mark, then white poly sheeted over the top so it holds the water in. Same roll-out gesture as the blankets. */
+const covB=new Uint8Array(N),covP=new Uint8Array(N),usedB=new Set(),usedP=new Set();
+function drawBurlap(c,g){const w=c.width,h=c.height;g.fillStyle='#5a4329';g.fillRect(0,0,w,h);
+  for(let y=0;y<h;y+=4){g.fillStyle=`rgba(${(y/4)%2?30:120},${(y/4)%2?22:92},${(y/4)%2?12:58},.35)`;g.fillRect(0,y,w,2)}
+  for(let x=0;x<w;x+=4){g.fillStyle=`rgba(${(x/4)%2?28:110},${(x/4)%2?20:84},${(x/4)%2?10:52},.3)`;g.fillRect(x,0,2,h)}
+  for(let i=0;i<700;i++){g.fillStyle=Math.random()<.5?'rgba(20,14,8,.25)':'rgba(140,110,70,.18)';g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*3,1)}
+  for(let i=0;i<40;i++){const x=Math.random()*w,y=Math.random()*h,r=10+Math.random()*30,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(15,10,5,.3)');gr.addColorStop(1,'rgba(15,10,5,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}}
+const burlapTex=(()=>{const[c,g]=mk(256,256);drawBurlap(c,g);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t})();
+const burlapM=new THREE.MeshStandardMaterial({map:burlapTex,roughness:.55,metalness:0,side:THREE.DoubleSide});/* soaked: dark, a little sheen */
+const polyM=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.32,metalness:0,transparent:true,opacity:.9,side:THREE.DoubleSide});
+const COVK={burlap:{cov:covB,used:usedB,hw:6.6,pitch:12,mat:burlapM,uvW:3,wav:.02,lay:.02,soft:.45,name:'burlap'},poly:{cov:covP,used:usedP,hw:24,pitch:44,mat:polyM,uvW:20,wav:.06,lay:.1,soft:.45,name:'poly'}};
+function covLanes(K){const HWc=K.hw/LS,pitch=K.pitch/LS,L=[];let c=RY0+HWc;for(;;){const cc=Math.min(c,RY1-HWc);L.push(cc);if(cc>=RY1-HWc-.01)break;c+=pitch}return L}
+const covPct=k=>{const K=COVK[k];let cv=0;for(let i=0;i<N;i++)if(inR[i]&&K.cov[i])cv++;return RN?cv/RN:0};
+function polyOverBurlap(){let a=0,b=0;for(let i=0;i<N;i++)if(inR[i]&&covP[i]){a++;if(covB[i])b++}return a?b/a:1}
+function layCover(k){const K=COVK[k],len=blk.maxx-blk.minx;if(len<4){say(`Drag along the deck to roll the ${K.name} out.`,'info','covShort');return}
+  const cyRaw=blk.sy/blk.n,lanes=covLanes(K);let li=0;lanes.forEach((c,q)=>{if(Math.abs(c-cyRaw)<Math.abs(lanes[li]-cyRaw))li=q});
+  if(K.used.has(li)){const free=lanes.map((c,q)=>q).filter(q=>!K.used.has(q));if(!free.length){say('Every row is covered.','info','covAll');return}li=free.reduce((a,q)=>Math.abs(lanes[q]-cyRaw)<Math.abs(lanes[a]-cyRaw)?q:a,free[0])}
+  K.used.add(li);const cy=lanes[li],HW=K.hw/LS,soft=set<K.soft;let x0=1e9,x1=-1e9,bare=0;
+  for(let y=Math.max(RY0,Math.floor(cy-HW));y<=Math.min(RY1-1,Math.ceil(cy+HW)-1);y++)for(let x=RX0;x<RX1;x++){const i=y*GW+x;if(!inR[i])continue;x0=Math.min(x0,x);x1=Math.max(x1,x+1);K.cov[i]=1;if(k==='poly'&&!covB[i])bare++;if(soft)weak[i]=Math.min(1,weak[i]+.05)}
+  if(x1<x0)return;
+  if(soft){for(let q=0;q<16;q++){const x=(x0+Math.random()*(x1-x0))*CPX,y=(cy-HW+Math.random()*HW*2)*CPX;bctx.strokeStyle='rgba(48,44,38,.28)';bctx.lineWidth=2+Math.random()*3;
+      bctx.beginPath();bctx.moveTo(x,y);bctx.quadraticCurveTo(x+20,y+(Math.random()-.5)*30,x+40+Math.random()*60,y+(Math.random()-.5)*20);bctx.stroke()}
+    say(`Too early. The ${K.name} is marking the finish.`,'bad','covSoft')}
+  else if(k==='poly'&&bare>0)say('That poly\'s over bare concrete. Burlap goes down first, poly holds the water in it.','bad','polyBare');
+  else{const n=K.used.size,t=lanes.length;say(n>=t?(k==='burlap'?'Last row of burlap\'s down and soaking. Sheet it with poly.':'Poly\'s over the lot. That deck will cure slow and hard.'):(k==='burlap'?`Burlap row ${n} of ${t}. Next row over, lap it.`:`Poly sheet ${n} of ${t}. Lap the next one over it.`),'good','cov'+k+n,0)}
+  acc[S[k]].w+=1;acc[S[k]].q+=winQ(set,STAGES[S[k]])*(k==='poly'&&bare?.5:1);surfDirty=true;buzz(16);
+  const W=(x1-x0)/GW*SLAB_W+(k==='poly'?3:1),D=HW*2/GH*SLAB_D,nx=Math.max(2,Math.round(W*2)),nz=k==='poly'?14:6,g=new THREE.PlaneGeometry(W,D,nx,nz);g.rotateX(-Math.PI/2);
+  {const uv=g.attributes.uv;for(let i=0;i<uv.count;i++){uv.setX(i,uv.getX(i)*W/K.uvW);uv.setY(i,uv.getY(i)*D/K.uvW)}}
+  const p=g.attributes.position,lay=K.lay+blankets.filter(m=>m.userData.ck===k).length*.012;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),ex=Math.max(0,Math.abs(x)-(W/2-.6)),ez=k==='poly'?Math.max(0,Math.abs(z)-(D/2-.8)):0;
+    const wr=k==='poly'?K.wav*(Math.sin(x*.9+z*.3)*.6+Math.sin(x*2.3-z*1.7)*.4)*(1+Math.sin(z*.7)):K.wav*Math.sin(x*1.7+z);p.setY(i,.04+lay+wr-ex*.55-ez*.4)}g.computeVertexNormals();
+  let by=ELV();for(let x=x0;x<=x1;x+=1)by=Math.max(by,surfY(wx(x+.5),wz(cy)));/* sits on the deck's real surface (the bridge deck is well above ELV) */
+  const m=new THREE.Mesh(g,K.mat);const fromL=Math.abs(blk.lastx-x0)>Math.abs(blk.lastx-x1);m.userData={grow:0,W,cx:wx((x0+x1)/2),dir:fromL?1:-1,ck:k,by};
+  m.position.set(wx((x0+x1)/2),by,wz(cy));m.scale.x=.02;m.castShadow=k!=='poly';m.receiveShadow=true;scene.add(m);blankets.push(m);
+  {const r=new THREE.Mesh(blkRollGeo,K.mat);r.castShadow=true;r.scale.set(.5,.5,D);r.position.set(m.position.x,by+.55+lay,m.position.z);m.userData.roll=r;m.userData.lay=lay;scene.add(r)}}
+function clearCovers(){covB.fill(0);covP.fill(0);usedB.clear();usedP.clear()}
 function updateBlankets(dt){blankets.forEach(m=>{const u=m.userData;if(u.grow==null||u.grow>=1){if(u.roll){scene.remove(u.roll);u.roll=null}return}u.grow=Math.min(1,u.grow+dt*1.1);const k=1-Math.pow(1-u.grow,3);m.scale.x=Math.max(.02,k);m.position.x=u.cx-u.dir*(1-k)*u.W/2;
-  if(u.roll){const rr=.18+.42*Math.pow(1-k,.6),lead=m.position.x+u.dir*k*u.W/2;u.roll.scale.x=u.roll.scale.y=rr;u.roll.position.set(lead,ELV()+.07+(u.lay||0)+rr,m.position.z);u.roll.rotation.z=-u.dir*k*u.W/rr;if(u.grow>=1){scene.remove(u.roll);u.roll=null}}})}
+  if(u.roll){const rr=.18+.42*Math.pow(1-k,.6),lead=m.position.x+u.dir*k*u.W/2;u.roll.scale.x=u.roll.scale.y=rr;u.roll.position.set(lead,(u.by!=null?u.by:ELV())+.07+(u.lay||0)+rr,m.position.z);u.roll.rotation.z=-u.dir*k*u.W/rr;if(u.grow>=1){scene.remove(u.roll);u.roll=null}}})}
 /* ---------- per-frame visuals ---------- */
 const wx=x=>x/GW*SLAB_W-SLAB_W/2, wz=y=>y/GH*SLAB_D-SLAB_D/2;
 function surfY(wxp,wzp){const u=gu(wxp),v=gv(wzp);
@@ -7873,7 +7915,7 @@ let hudT=0;
 function stageProg(k){try{if(STR.on&&STRPROG[k])return STRPROG[k]();if(BRG.on&&BRGPROG[k])return BRGPROG[k]();switch(k){case'pour':return placed/NEED_M3;case'screed':return clamp01(1-(rms()-.15)/1.4);case'float':return avg(closed);case'edge':return avg(edged,band);
   case'trowel':return avg(trow,band,true);case'broom':return broomStats().cov;case'color':return avg(hard);case'release':return clamp01(avg(SP.relC));case'stamp':{const st=stampStats();return st.tot?st.n/st.tot:0}
   case'mark':return markPct();case'break':return breakPct();case'strip':return stripPct();case'dig':return digPct();case'gravel':return gravPct();case'base':return compPct();case'form':return formPct();case'rebar':return rebProg();case'tube':return tubeCovPct();case'expose':return avg(expo);case'power':return avg(trow);
-  case'slip':return slipStats().cov;case'cure':return cureStats().cov;case'shape':return shapeStats().c;default:return 0}}catch(e){return 0}}
+  case'slip':return slipStats().cov;case'cure':return cureStats().cov;case'burlap':return covPct('burlap');case'poly':return covPct('poly');case'shape':return shapeStats().c;default:return 0}}catch(e){return 0}}
 const POPS=[[.25,'Good start'],[.5,'Halfway there'],[.75,'Almost there'],[.97,'Nailed it ✓']];let popStage=-1,popLvl=0,popT=0;
 function pop(txt,big){if(big&&/Nailed/.test(txt)){try{nailed()}catch(e){}return}const el=$('pop');if(!el)return;el.textContent=txt;el.classList.toggle('big',!!big);el.classList.remove('go');void el.offsetWidth;el.classList.add('go');chime(big?2:1)}
 function starHit(i){if(!AC||!soundOn)return;try{const t=AC.currentTime,M=au.master,o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(45,t+.2);g.gain.setValueAtTime(.45,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(M);o.start(t);o.stop(t+.32);
@@ -7913,6 +7955,7 @@ function hud(t){
   else if(k==='gravel')r=`Spread ${Math.round(gravPct()*100)}% · bucket ${Math.round(exLoad*100)}% · pile ${Math.round(gravLeft*100)}% left`;
   else if(k==='base')r=`Compacted ${Math.round(compPct()*100)}% · `+(compTool==='roller'?'one pass with the roller, then plate the edges':'two passes everywhere');
   else if(k==='slip'){const dz=CZ.d0-sl.s;r=`${Math.round(sl.s)} of ${Math.round(CLT)} ft · hopper ${Math.round(sl.hop*100)}% · ${(sl.v).toFixed(1)} ft/s`+(dz>0&&dz<25?` · DRIVEWAY in ${Math.ceil(dz)} ft`:sl.s>=CZ.d0&&sl.s<=CZ.d1?' · DRIVEWAY: drop it!':'')+(sl.stops?` · ${sl.stops} stop${sl.stops>1?'s':''}`:'')}
+  else if(k==='burlap'||k==='poly'){r=`${k==='burlap'?'Burlap':'Poly'} over ${Math.round(covPct(k)*100)}% · ${set<.45?'still soft, thumb-test':'drag along the deck to roll it out'}`}
   else if(k==='cure'){const c=cureStats();r=`Cured ${Math.round(c.cov*100)}% white`+(c.ov>.05?' · puddling in spots':'')}
   else if(k==='shape'){const st=shapeStats();r=`Profile ±${st.r.toFixed(2)} in · ran ${Math.round(st.c*100)}% of the curb`}
   else if(k==='form')r=`Boards ${formPieces.filter(f=>f.placed).length} of ${formPieces.length}`+(FSU.length&&!LV.wall?` · stakes ${FSU.filter(u=>u.on).length} of ${FSU.length}`:'')+(boardPct()<1?' · trace around the outside':' · drag over the orange stakes');
@@ -7988,6 +8031,8 @@ $('next').addEventListener('click',e=>{
     if(k==='pour'&&S.tube!=null)say('Loop\'s tied off at the manifold. Truck\'s backing in.','good','nTube',0);
     if(k==='expose')say(set<.5?'Let it firm up first. Thumb-test.':'Start on the side nearest you and work away, pushing the slurry off the far edge. Keep the wand moving.','info','nEx',0);
     if(k==='power')say(set<.52?'Too soft for the machine yet. Hold fast-forward and thumb-test.':'Pans on first. Float it and work the cream up, then pull the pans and step the pitch up each pass. The green dot shows what the mud wants.','info','nPw',0);
+    if(k==='burlap')say(set<.45?'Wait until it won\'t mark, then get the wet burlap on. Thumb-test first.':'Drag along the deck to roll out the soaked burlap.','info','nBur',0);
+    if(k==='poly')say('Now sheet it with white poly to hold the water in.','info','nPoly',0);
     if(k==='blanket')say(set<.72?'Wait until it won\'t mark. Thumb-test first.':'Drag along the slab to roll out each blanket.','info','nBl',0);
   }else finish(false);
 });
@@ -8151,7 +8196,7 @@ function practiceFinish(){const p=practice;if(!p)return;
 $('ddRetry').addEventListener('click',()=>{const p=(drill&&drill.p)||practice;$('drillDone').hidden=true;if(p)startPractice(p)});
 $('ddNext').addEventListener('click',()=>{const p=(drill&&drill.p)||practice,k=PRACTICE.indexOf(p),n=PRACTICE[(k+1)%PRACTICE.length];$('drillDone').hidden=true;startPractice(n)});
 $('ddYard').addEventListener('click',()=>{$('drillDone').hidden=true;drillStop();endPractice();$('intro').hidden=false;renderPractice();$('practice').hidden=false});
-function practiceAuto(k){if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){try{markAuto()}catch(e){markN=markPts.length}}else if(k==='break'){arBreakAll();geoDirty=layerDirty=true}else if(k==='strip'){arBreakAll();arScoopAll();spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
+function practiceAuto(k){if(k==='burlap'||k==='poly'){const K=COVK[k];for(let i=0;i<N;i++)if(inR[i])K.cov[i]=1;covLanes(K).forEach((c,q)=>K.used.add(q))}else if(BRG.on&&BRGAUTO[k])BRGAUTO[k]();else if(k==='mark'){try{markAuto()}catch(e){markN=markPts.length}}else if(k==='break'){arBreakAll();geoDirty=layerDirty=true}else if(k==='strip'){arBreakAll();arScoopAll();spoilVol=Math.max(spoilVol,10);geoDirty=layerDirty=true}else if(k==='dig'){for(let i=0;i<N;i++)if(PM[i])digD[i]=1;spoilVol=Math.max(spoilVol,40);geoDirty=layerDirty=true}
   else if(k==='gravel'){for(let i=0;i<N;i++)if(PM[i])gravF[i]=1.1;gravLeft=0;geoDirty=layerDirty=true}else if(k==='base'){for(let i=0;i<N;i++)if(PM[i])compF[i]=1.1;try{pkFill(1.2)}catch(e){}layerDirty=true}
   else if(k==='form'){formPieces.forEach(f=>{f.placed=true;f.m.visible=true;f.a=0});FSU.forEach(u=>{u.on=1;u.a=0})}
   else if(k==='rebar'){rebarAll();REBX.forEach((q,k2)=>{if(q.need&&!q.t){q.t=1;rebN++;rebM(rebTieIM,k2,q.x,-.135,q.z,Math.PI/2,0,Math.PI/4,1,1,1)}});rebMarks()}
@@ -8214,7 +8259,7 @@ const BARKS={
   idle:['We getting paid to stand around?','She ain\'t gonna finish herself!','Clock\'s ticking, boss.','Coffee break\'s over!','Truck driver\'s laughing at us...'],
   bleed:['Bleed water\'s up. Hands off!','Let it bleed. Don\'t you touch it.'],ready:['Thumb print\'s holding. Go go go!','She\'s ready, let\'s get on it!'],
   late:['She\'s getting hard, move it!','We\'re losing her! Hustle!'],rain:['Grab the poly! Rain\'s coming!']};
-const IDLEK=new Set(['screed','float','edge','trowel','joint','broom','power','stamp','color','release','cure','expose']);
+const IDLEK=new Set(['screed','float','edge','trowel','joint','broom','power','stamp','color','release','cure','expose','burlap','poly']);
 function bark(text,ms,who,obj){if(!running||!text)return;const e=$('bark');$('barkT').textContent=text;BK.obj=obj||null;BK.who=who||'';$('barkWho').textContent=BK.who||speaker().n;BK.t=0;BK.dur=(ms||0)/1000||Math.min(4.2,1.8+text.length*.035);BK.last=performance.now();e.classList.add('on');barkPos()}
 function barkStage(k){if(!running||practice)return;const L=BARKS[k];if(!L||BK.said['st'+k])return;BK.said['st'+k]=1;bark(pick(L))}
 function speaker(){if(BK.obj&&BK.obj.visible)return{o:BK.obj,n:BK.who};
@@ -8298,6 +8343,8 @@ function buildSC(){
     strip:()=>{const c=stripPct();return['Strip asphalt',c,`${Math.round(c*100)}% of the old asphalt broken up and hauled off.`+(c<.97?' Asphalt left under the slab will crack it.':' Clean to the base.')]},
     dig:()=>{const c=digPct();return['Excavate',c,`${Math.round(c*100)}% dug to subgrade, ${(spoilVol/27).toFixed(1)} yd³ hauled.`+(c<.97?(PORCH()?' Old fill left under the slab will settle.':' Sod left under the slab will rot and settle.'):'')]},
     slip:()=>{const st=slipStats(),cx=curbXScore();return['Slipform',cx.k*st.cov*clamp01(1-st.voids*2.5)*Math.max(.5,1-st.stops*.06)*clamp01(1-st.spill*.6)*(.6+.4*q('slip')),cx.note+`${Math.round(st.cov*100)}% of the run slipformed`+(st.stops?`, ${st.stops} stop mark${st.stops>1?'s':''}`:', one smooth run')+(st.voids>.02?'. Torn where the hopper ran dry.':'. Hopper stayed fed.')+(st.spill>.3?' Mud spilled on the street.':'')]},
+    burlap:()=>{const c=covPct('burlap');return['Wet burlap',c*(.3+.7*q('burlap')),`${Math.round(c*100)}% under wet burlap.`+(c>=.97?' Soaked and covered.':' Bare spots dry out and craze.')]},
+    poly:()=>{const c=covPct('poly'),ob=polyOverBurlap();return['White poly',c*(.3+.7*q('poly'))*(.6+.4*ob),`${Math.round(c*100)}% sheeted.`+(ob<.95?' Some poly went on bare concrete.':c>=.97?' Holding the water in.':' Uncovered burlap dries out.')]},
     cure:()=>{const c=cureStats();return['Cure',c.cov*(1-Math.min(.3,c.ov))*(.4+.6*q('cure')),`${Math.round(c.cov*100)}% coated white.`+(c.cov<.9?' Bare spots will dry out and dust.':c.ov>.08?' Puddled in spots.':' Even coat.')]},
     shape:()=>{const st=shapeStats();return['Shape curb',st.c*clamp01(1-(st.r-.3)/1.6)*(.6+.4*q('shape')),`Profile within ±${st.r.toFixed(2)} in, ${Math.round(st.c*100)}% of the run shaped.`+(st.r>.8?' The face and gutter are out of shape.':' Clean face, gutter will drain.')]},
     gravel:()=>{const c=gravPct();let s=0,s2=0,n=0;for(let i=0;i<N;i++)if(inR[i]){const v=Math.min(1.2,gravF[i]);s+=v;s2+=v*v;n++}const m=n?s/n:0,sd=Math.sqrt(Math.max(0,(n?s2/n:0)-m*m));return['Gravel',c*(1-Math.min(.4,sd*.8)),`${Math.round(c*100)}% of the pit at full depth, ${sd<.12?'even':sd<.25?'a little lumpy':'lumpy'}.`+(c<.9?' Thin spots will settle.':'')]},
@@ -11745,7 +11792,7 @@ const leaves=[];let leafT=4,leafStains=0;
 function fallDay(){return weather===WEATHER.cool||weather===WEATHER.cold}
 function updateLeaves(dt,t){const k=STAGES[stage]&&STAGES[stage].key;
   // v163: no more cool-morning ground fog at the start of a job (Kris: leave the haze out); distance fog stays as set by buildEnv
-  const active=running&&!practice&&fallDay()&&S.pour!=null&&stage>S.pour&&!PREPK.has(k)&&k!=='blanket'&&set<.92;
+  const active=running&&!practice&&fallDay()&&S.pour!=null&&stage>S.pour&&!PREPK.has(k)&&k!=='blanket'&&k!=='burlap'&&k!=='poly'&&set<.92;
   if(active){leafT-=dt;if(leafT<=0&&leaves.filter(l=>!l.gone).length<6){leafT=6+Math.random()*8;let i=-1;for(let tries=0;tries<40&&i<0;tries++){const c=Math.floor(Math.random()*N);if(inR[c])i=c}
     if(i>=0){const tx=wx(i%GW+.5),tz=wz(((i/GW)|0)+.5),m=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.1),leafTexs[Math.random()*4|0]);m.castShadow=true;scene.add(m);
       leaves.push({m,tx,tz,sx:tx-8+Math.random()*3,sz:tz-6+Math.random()*12,t:0,landed:false,ph:Math.random()*6});say('Leaves blowing onto the slab. Tap them off before they set in.','info','leaf',5000)}}}
@@ -12433,7 +12480,7 @@ async function shareCard(){const blob=await makeCard();if(!blob)return;const sc=
   try{if(navigator.share){await navigator.share({text:txt+' https://kowalskicc.ca',title:'Slab Rush'});return}}catch(e){if(e&&e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(txt+' https://kowalskicc.ca');say('Copied your score. Paste it anywhere, and save the photo to post with it.','good','shr',0)}catch(e){say('Sharing isn\'t available here. Save the photo instead.','info','shr',0)}}
 const REPLAY=[];let capT=0,capEvery=1100,rpCX=0,rpCY=0,burst=null,burstDone={};const [capC,capG]=mk(240,426);
-const BURST_K=new Set(['dig','gravel','base','pour','screed','float','edge','trowel','broom','power','stamp','expose','slip','cure','joint','blanket','tube','color','release']);
+const BURST_K=new Set(['dig','gravel','base','pour','screed','float','edge','trowel','broom','power','stamp','expose','slip','cure','joint','blanket','burlap','poly','tube','color','release']);
 function capFrame(slow){try{const W=cv.width,H=cv.height,port=H>=W,cw0=port?240:426,ch0=port?426:240;if(capC.width!==cw0||capC.height!==ch0){capC.width=cw0;capC.height=ch0}
   if(slow){// close-up crop around the finger so the slow-mo shows the tool working
     const r=cv.getBoundingClientRect(),sx=W/r.width,sy=H/r.height,cw=W*.62,ch=H*.62,cx=Math.max(cw/2,Math.min(W-cw/2,(rpCX-r.left)*sx)),cy=Math.max(ch/2,Math.min(H-ch/2,(rpCY-r.top)*sy-H*.06));
