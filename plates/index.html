@@ -28,17 +28,17 @@ textarea{width:100%;font:14px/1.4 ui-monospace,monospace;height:96px;border-radi
 </style></head><body>
 <header>
 <h1>Slab Rush <b>photo sheet</b></h1>
-<p class="how">Higgsfield app → Image → <b>Nano Banana 2</b> · <b>3:4</b> · <b>2K</b> · 1 image. Tap <b>Save</b> under each image, attach them in that order, copy the prompt, generate. Do not change anything else. Tick Done. I pick them up from your history.</p>
+<p class="how">Higgsfield app → Image → <b>Nano Banana 2</b> · <b>3:4</b> · <b>2K</b> · 1 image. Tap <b>Save</b> under the plate, attach it, copy the prompt, generate. Do not change anything else. Tick Done. I pick them up from your history.</p>
 <div class="bar"><i id="pb"></i></div><div class="sub" id="pt"></div>
 <div class="tabs" id="tabs"></div>
 </header>
 <main id="list"><p class="empty">Loading…</p></main>
 <script>
 {
-const KEY='sr-plates-done';let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const KEY='sr-plates-done2';let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}};
-const TABS=[['p1','1 · New regions'],['p2','2 · Extra angles'],['todo','Not done'],['all','All']];
-let tab='p1',J=[];try{tab=localStorage.getItem('sr-plates-tab')||'p1'}catch(e){}
+const TABS=[['p1','Rockies · Atlantic · North'],['todo','Not done']];
+let tab='p1',J=[];try{tab=localStorage.getItem('sr-plates-tab2')||'p1'}catch(e){}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // plates come packed in zips (same-origin, rewritten to the CDN); "zip:<pack>/<file>" -> blob URL
 const ZIPS={},BLOB={};
@@ -64,7 +64,7 @@ function draw(){
  hydrate();
 }
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
- if(b.dataset.t){tab=b.dataset.t;try{localStorage.setItem('sr-plates-tab',tab)}catch(e){}draw();scrollTo(0,0);return}
+ if(b.dataset.t){tab=b.dataset.t;try{localStorage.setItem('sr-plates-tab2',tab)}catch(e){}draw();scrollTo(0,0);return}
  if(b.dataset.c){const t=document.getElementById('t'+b.dataset.c);const ok=()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy prompt',1500)};
   if(navigator.clipboard)navigator.clipboard.writeText(t.value).then(ok,()=>{t.select();document.execCommand('copy');ok()});else{t.select();document.execCommand('copy');ok()}return}
  if(b.dataset.d){const k=b.dataset.d;if(done[k])delete done[k];else done[k]=1;save();draw()}});
