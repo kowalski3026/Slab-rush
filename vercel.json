@@ -253,7 +253,19 @@
     },
     {
       "source": "/plates/p1.zip",
-      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/398077a5-c4b9-40b2-a4c4-3012f6b1014e.zip"
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/2e934fea-6561-493d-822c-62959ee98868.zip"
+    },
+    {
+      "source": "/plates/rk.zip",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/752a16fd-d537-4111-ab8d-308cf325862d.zip"
+    },
+    {
+      "source": "/plates/at.zip",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/5924ccca-1661-4e8a-ba16-a335996280f1.zip"
+    },
+    {
+      "source": "/plates/nt.zip",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/5549ef6d-3821-4b57-a813-deaa2cbc4208.zip"
     }
   ],
   "images": {
