@@ -8679,9 +8679,11 @@ function bkdGo(k,yb){const C=LV&&LV.paint;if(!C||!C.views||!BKD.load)return;try{
     BKD.load={L:LV,src,ok:true};BKD.tex=t;BKD.L=null;if(old&&old!==t)bkdDrop(old);
     // warm the browser cache for the two neighbouring sides so the next turn is quick
     [1,-1].forEach(s=>{const W=Object.assign({},C,C.views[((k+s)%C.views.length+C.views.length)%C.views.length]);try{fetch(formPrep()&&W.imgPrep?W.imgPrep:W.img)}catch(e){}})})}
-function bkdTurn(step){const C=LV&&LV.paint;if(!C||!C.views||BKD.want!=null)return;const n=C.views.length;bkdGo((((BKD.vi|0)+step)%n+n)%n,(BKD.yb||0)-step*Math.PI/2);try{buzz(8)}catch(e){}}
-function bkdViewTick(){const C=LV&&LV.paint,on=!!(C&&C.views&&BKD.on);{const e=$('vTurn');if(e&&e.hidden===on)e.hidden=!on}
-  if(!C||!C.views||!BKD.load||BKD.load.L!==LV||BKD.want!=null||performance.now()<(BKD.cool||0))return;
+function bkdTurn(step){const C=LV&&LV.paint;if(!C||!C.views||BKD.want!=null||!bkdCanTurn(C))return;const n=C.views.length;bkdGo((((BKD.vi|0)+step)%n+n)%n,(BKD.yb||0)-step*Math.PI/2);try{buzz(8)}catch(e){}}
+/* v436: on a full job (prep) an angle needs its own "before" photo; angles made without one only open on pour-only jobs */
+function bkdCanTurn(C){return !formPrep()||C.views.some((v,i)=>i&&v.imgPrep)}
+function bkdViewTick(){const C=LV&&LV.paint,on=!!(C&&C.views&&BKD.on&&bkdCanTurn(C));{const e=$('vTurn');if(e&&e.hidden===on)e.hidden=!on}
+  if(!on||!BKD.load||BKD.load.L!==LV||BKD.want!=null||performance.now()<(BKD.cool||0))return;
   if(PAN.yaw===0&&BKD.yb){bkdGo(0,0);return}// zoom reset: back to the first side
   const d=-(PAN.yaw-(BKD.yb||0));if(Math.abs(d)<.3)return;// about a 17 degree twist turns to the next side
   bkdTurn(d>0?1:-1)}
@@ -8815,7 +8817,7 @@ function bkdCoping(){const C=BKD.L&&bkdC(BKD.L);if(!C||!C.keepOut||!BKD.tex){if(
     const m=new THREE.Mesh(g,C.copSolid?new THREE.MeshStandardMaterial({color:0xe2e5e8,roughness:.8,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}):new THREE.MeshBasicMaterial({map:BKD.tex,side:THREE.DoubleSide,fog:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
     if(C.copSolid)m.receiveShadow=true;m.renderOrder=3;m.raycast=()=>{};m.userData.L=BKD.L;m.userData.tex=BKD.tex;m.userData.C=C;scene.add(m);BKD.cop=m}
   BKD.cop.visible=true}
-function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);{const ys=C.imgPrep||null;if(ys&&BKD.yrSrc!==ys){BKD.yrSrc=ys;const o=BKD.yrTex;BKD.yrTex=null;if(o)o.dispose();new THREE.TextureLoader().load(ys,t=>{t.colorSpace=THREE.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;if(BKD.yrSrc===ys)BKD.yrTex=t;else t.dispose()})}}if(L.paint.views&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
+function bkdOn(){const L=LV,C=bkdC(L);BKD.on=true;BKD.L=L;BKD.C=isPrep()?C:null;BKD.top=new Map();bkdBuild(C);{const ys=C.imgPrep||null;if(ys&&BKD.yrSrc!==ys){BKD.yrSrc=ys;const o=BKD.yrTex;BKD.yrTex=null;if(o)o.dispose();new THREE.TextureLoader().load(ys,t=>{t.colorSpace=THREE.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;if(BKD.yrSrc===ys)BKD.yrTex=t;else t.dispose()})}}if(L.paint.views&&bkdCanTurn(L.paint)&&!BKD.hinted){BKD.hinted=1;setTimeout(()=>{try{say('Tap the turn arrows (or twist two fingers) to walk round the yard.','good','bkdViews',0)}catch(e){}},2500)}camera.layers.enable(4);
   if(!BKD.shM)BKD.shM=new THREE.ShadowMaterial({opacity:.34,color:0x1d1206});try{pfxApply()}catch(e){console.warn('pfx',e)}BKD.gmat=ground.material;BKD.hid=[];bkdHideTick()}
 function bkdOff(){PSH.fill(0);PSH.k=null;MKS.dirty=1;BKD.sunV=null;BKG.tint=null;try{LP.off.set(0,0,0);SHF.r0=1;SHF.lw=0}catch(e){}try{if(BKG.L.length)bkdGrade(false)}catch(e){}BKE.value=0;if(BKD.cop)BKD.cop.visible=false;BKSLAB.value=1e9;BKLID.value=1e9;BKKO.value.set(1e9,1e9,1e9,1e9);try{mixPTick(false)}catch(e){}if(BKD.lid)BKD.lid.visible=false;if(!BKD.on)return;BKD.on=false;BKD.L=null;camera.layers.disable(4);if(BKD.quad)BKD.quad.visible=false;
   BKD.hid.forEach(([o,v])=>o.visible=v);BKD.hid=[];if(ground.material===BKD.shM)ground.material=BKD.gmat||lawnM;[lotGround,pitMesh].forEach(o=>{const m=o.material;if(m&&m.userData&&m.userData.bkClip)o.material=m.userData.orig});if(camera.zoom!==1){camera.zoom=1;camera.updateProjectionMatrix()}}
