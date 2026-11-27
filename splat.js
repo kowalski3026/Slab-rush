@@ -39,7 +39,7 @@ const FS=`precision highp float;in vec4 vCol;in vec2 vPos;out vec4 fc;
 void main(){float A=-dot(vPos,vPos);if(A<-4.)discard;float al=exp(A)*vCol.a;if(al<1./255.)discard;fc=vec4(vCol.rgb,al);}`;
 function build(buf,opt){opt=opt||{};const row=32,N0=buf.byteLength/row|0,f=new Float32Array(buf),u=new Uint8Array(buf);
  const cut=opt.cut;// [x0,z0,x1,z1,yMax]: drop ground splats inside the dig, the 3D pit shows there instead
- const keep=[];for(let i=0;i<N0;i++){const x=f[i*8],y=f[i*8+1],z=f[i*8+2];if(cut&&x>cut[0]&&x<cut[2]&&z>cut[1]&&z<cut[3]&&y<cut[4])continue;keep.push(i)}
+ const keep=[];for(let i=0;i<N0;i++){const x=f[i*8],y=f[i*8+1],z=f[i*8+2];if(cut&&x>cut[0]&&x<cut[2]&&z>cut[1]&&z<cut[3]&&y<cut[4])continue;if(opt.keep&&!opt.keep(x,y,z))continue;keep.push(i)}
  const n=keep.length,W=2048,H=Math.ceil(n*4/W),data=new Float32Array(W*H*4),pos=new Float32Array(n*3);
  for(let k=0;k<n;k++){const i=keep[k],o=k*16;const x=f[i*8],y=f[i*8+1],z=f[i*8+2],sx=f[i*8+3],sy=f[i*8+4],sz=f[i*8+5];
   const q=[(u[i*32+28]-128)/128,(u[i*32+29]-128)/128,(u[i*32+30]-128)/128,(u[i*32+31]-128)/128],ql=Math.hypot(...q)||1,w=q[0]/ql,qx=q[1]/ql,qy=q[2]/ql,qz=q[3]/ql;
