@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slab Rush photo sheet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* VOICE plain job sheet for one guy on a phone · IDEA a site work order · PICTURE the plates themselves
+   COLOUR concrete grey ground, ink text, safety amber accent · TYPE system sans · LAYOUT one column of cards */
+:root{color-scheme:light dark;--bg:light-dark(#e9e7e2,#17181a);--card:light-dark(#fff,#222427);--ink:light-dark(#141414,#efeee9);--mut:light-dark(#5d5d5a,#a6a5a0);--amb:#f39c0b;--ok:#2f9e5b;--line:light-dark(#d5d2cb,#34363a)}
+*{box-sizing:border-box;min-width:0}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 14px 10px}
+h1{font-size:22px;margin:0 0 4px;line-height:1.1}h1 b{color:var(--amb)}
+.how{font-size:14px;color:var(--mut);margin:0 0 8px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--amb);width:0}
+.tabs{display:flex;gap:6px;margin-top:10px;overflow-x:auto}.tabs button{flex:none;font:600 14px system-ui;padding:9px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:40px}
+.tabs button[aria-pressed=true]{background:var(--amb);border-color:var(--amb);color:#111}
+main{padding:12px 12px 80px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:14px;border:1px solid var(--line)}
+.card.done{opacity:.45}.hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.no{font:700 20px system-ui;color:var(--amb)}.ttl{font-weight:700;font-size:17px}.sub{font-size:14px;color:var(--mut)}
+.imgs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.imgs figure{margin:0}.imgs img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:var(--line);display:block}
+.imgs figcaption{font-size:13px;color:var(--mut);margin-top:3px}.imgs a{color:inherit}
+.note{font-size:14px;background:light-dark(#fff4dd,#3a2f19);border-radius:8px;padding:8px 10px;margin:8px 0}
+textarea{width:100%;font:14px/1.4 ui-monospace,monospace;height:96px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;min-height:46px;font:700 16px system-ui;border-radius:10px;border:0;background:var(--amb);color:#111}
+.row button.d{background:var(--line);color:var(--ink)}.card.done .row button.d{background:var(--ok);color:#fff}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+</style></head><body>
+<header>
+<h1>Slab Rush <b>photo sheet</b></h1>
+<p class="how">Higgsfield app → Image → <b>Nano Banana 2</b> · <b>3:4</b> · <b>2K</b> · 1 image. Attach the images shown (long-press → Download image), copy the prompt, generate. Do not change anything else. Tick Done. I pick them up from your history.</p>
+<div class="bar"><i id="pb"></i></div><div class="sub" id="pt"></div>
+<div class="tabs" id="tabs"></div>
+</header>
+<main id="list"><p class="empty">Loading…</p></main>
+<script>
+{
+const KEY='sr-plates-done';let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}};
+const TABS=[['p1','1 · New regions'],['p2','2 · Extra angles'],['todo','Not done'],['all','All']];
+let tab='p1',J=[];try{tab=localStorage.getItem('sr-plates-tab')||'p1'}catch(e){}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// plates come packed in zips (same-origin, rewritten to the CDN); "zip:<pack>/<file>" -> blob URL
+const ZIPS={},BLOB={};
+function zipGet(pack){return ZIPS[pack]||(ZIPS[pack]=fetch(pack+'.zip').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>JSZip.loadAsync(b)))}
+function src(u){if(!u)return Promise.resolve(null);if(!u.startsWith('zip:'))return Promise.resolve(u);if(BLOB[u])return Promise.resolve(BLOB[u]);
+ const [pack,f]=u.slice(4).split('/');return zipGet(pack).then(z=>z.file(f).async('blob')).then(b=>BLOB[u]=URL.createObjectURL(b))}
+function fname(u){return u.startsWith('zip:')?u.split('/').pop():'match-photo.webp'}
+function fig(u,cap){return u?`<figure><img data-src="${esc(u)}" alt=""><figcaption>${esc(cap)} · <a data-save="${esc(u)}" href="#">Save</a></figcaption></figure>`:''}
+function hydrate(){document.querySelectorAll('img[data-src]').forEach(im=>{const u=im.dataset.src;im.removeAttribute('data-src');src(u).then(b=>{if(b)im.src=b}).catch(()=>{im.alt='still uploading — check back soon'})});
+ document.querySelectorAll('a[data-save]').forEach(a=>{const u=a.dataset.save;a.removeAttribute('data-save');src(u).then(b=>{if(b){a.href=b;a.download=fname(u)}}).catch(()=>{})})}
+function draw(){
+ document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button data-t="${k}" aria-pressed="${k===tab}">${l}</button>`).join('');
+ const n=J.filter(j=>done[j.n]).length;document.getElementById('pb').style.width=(J.length?100*n/J.length:0)+'%';
+ document.getElementById('pt').textContent=`${n} of ${J.length} done`;
+ const L=J.filter(j=>tab==='all'||(tab==='todo'?!done[j.n]:j.phase===tab));
+ document.getElementById('list').innerHTML=L.length?L.map(j=>`<div class="card${done[j.n]?' done':''}" id="c${j.n}">
+  <div class="hd"><span class="no">#${j.n}</span><span class="sub">${esc(j.regName)}</span></div>
+  <div class="ttl">${esc(j.name)}</div><div class="sub">${esc(j.what)}</div>
+  <div class="imgs">${fig(j.img1,j.cap1)}${j.img2?fig(j.img2,j.cap2):''}</div>
+  ${j.note?`<div class="note">${esc(j.note)}</div>`:''}
+  <textarea readonly id="t${j.n}">${esc(j.prompt)}</textarea>
+  <div class="row"><button data-c="${j.n}">Copy prompt</button><button class="d" data-d="${j.n}">${done[j.n]?'Done ✓':'Mark done'}</button></div></div>`).join(''):'<p class="empty">Nothing left here.</p>';
+ hydrate();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.t){tab=b.dataset.t;try{localStorage.setItem('sr-plates-tab',tab)}catch(e){}draw();scrollTo(0,0);return}
+ if(b.dataset.c){const t=document.getElementById('t'+b.dataset.c);const ok=()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy prompt',1500)};
+  if(navigator.clipboard)navigator.clipboard.writeText(t.value).then(ok,()=>{t.select();document.execCommand('copy');ok()});else{t.select();document.execCommand('copy');ok()}return}
+ if(b.dataset.d){const k=b.dataset.d;if(done[k])delete done[k];else done[k]=1;save();draw()}});
+fetch('jobs.json?'+Date.now()).then(r=>r.json()).then(d=>{J=d;draw()}).catch(()=>{document.getElementById('list').innerHTML='<p class="empty">Could not load the job list.</p>'});
+}
+</script></body></html>

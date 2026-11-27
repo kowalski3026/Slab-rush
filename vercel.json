@@ -250,6 +250,10 @@
     {
       "source": "/models/k/trowel-worn.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/c5cf58c6-2279-4a45-896a-77e850f74513.glb"
+    },
+    {
+      "source": "/plates/p1.zip",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/398077a5-c4b9-40b2-a4c4-3012f6b1014e.zip"
     }
   ],
   "images": {
