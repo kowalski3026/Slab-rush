@@ -54,12 +54,13 @@ function build(buf,opt){opt=opt||{};const row=32,N0=buf.byteLength/row|0,f=new F
   transparent:true,depthWrite:false,depthTest:true,blending:T.CustomBlending,blendSrc:T.SrcAlphaFactor,blendDst:T.OneMinusSrcAlphaFactor,blendSrcAlpha:T.OneFactor,blendDstAlpha:T.OneMinusSrcAlphaFactor});
  const mesh=new T.Mesh(g,mat);mesh.frustumCulled=false;mesh.renderOrder=10;mesh.userData.live=true;mesh.name='splatWorld';
  const wk=new Worker(URL.createObjectURL(new Blob([SORT_SRC],{type:'text/javascript'})));wk.postMessage({pos,n});let busy=false,last=null;
- wk.onmessage=e=>{idx.array.set(e.data.ord);idx.needsUpdate=true;busy=false};
+ const dbg=mesh.userData.dbg={sent:0,recv:0,err:null};wk.onerror=e=>{dbg.err=String(e.message||e);busy=false};
+ wk.onmessage=e=>{dbg.recv++;idx.array.set(e.data.ord);idx.needsUpdate=true;busy=false};
  const vs=new T.Vector2();
  mesh.onBeforeRender=(r,s,c)=>{r.getDrawingBufferSize(vs);mat.uniforms.uView.value.copy(vs);
    const p=c.projectionMatrix.elements;mat.uniforms.uFocal.value.set(p[0]*vs.x/2,p[5]*vs.y/2);
    const m=new T.Matrix4().multiplyMatrices(c.matrixWorldInverse,mesh.matrixWorld).elements;
-   if(!busy){const k=m[2].toFixed(3)+m[6].toFixed(3)+m[10].toFixed(3)+(m[14]|0);if(k!==last){last=k;busy=true;wk.postMessage({view:Array.from(m)})}}};
+   if(!busy){const k=m[2].toFixed(3)+m[6].toFixed(3)+m[10].toFixed(3)+(m[14]|0);if(k!==last){last=k;busy=true;dbg.sent++;wk.postMessage({view:Array.from(m)})}}};
  mesh.userData.dispose=()=>{wk.terminate();tex.dispose();g.dispose();mat.dispose()};
  return mesh}
 window.SPLAT={load(url,opt){return fetch(url).then(r=>{if(!r.ok)throw new Error('splat '+r.status);return r.arrayBuffer()}).then(b=>build(b,opt))},build};
