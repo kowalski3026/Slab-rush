@@ -770,7 +770,7 @@ function nearSeg(x,z){let best=1e9,bs=null;for(const s of SEGS){let t=((x-s.a[0]
 function maskCountFor(L){if(L._rn)return L._rn;const P=typeof L.shape==='function'?L.shape():L.shape,k=L.ls||1;let n=0;
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++)if(pointInPoly(((x+.5)/GW-.5)*20*k,((y+.5)/GH-.5)*10*k,P))n++;if(typeof L.shape!=='function')L._rn=n;return n}
 
-let tileOk=new Uint8Array(50),sunFlip=1,kDecalM=null,stowChute=false,prepOn=false;try{prepOn=localStorage.getItem('bts-prep')==='1'}catch(e){}
+let tileOk=new Uint8Array(50),sunFlip=1,kDecalM=null,stowChute=false,prepOn=false;/* v439: full-job scope (lay out, dig, gravel, pack, forms, rebar) is paused: every job is pour-only. Flip PREP_PAUSED to bring it back. */const PREP_PAUSED=true;try{if(!PREP_PAUSED)prepOn=localStorage.getItem('bts-prep')==='1'}catch(e){}
 const PREPK=new Set(['mark','dig','gravel','base','form','rebar','tube','dryrun','snap','sform','riser','sbar','demo','soffit','strip','break']);
 const ELV=()=>LV&&LV.elev||0;
 
@@ -6485,7 +6485,7 @@ function renderJobs(){
   const L=LEVELS[jobIdx];applyFinish(L);renderFinish(L);
   $('stampOpts').hidden=!L.steps.includes('stamp');renderStampOpts();$('customBox').hidden=L.id!=='custom';
   const dl=daily&&daily.L===L;$('wxPick').hidden=!!L.wx||dl;$('wxNote').hidden=!L.wx&&!dl;if(dl)$('wxNote').textContent=`Daily challenge: ${({cool:'cool 12°C',mild:'mild 20°C',hot:'hot 31°C'})[daily.wx]}, and the weather has a surprise in store. Same job for everyone today.`;else if(L.wx)$('wxNote').textContent=L.wxNote;
-  renderCareer();renderDaily();try{renderBoard()}catch(e){console.warn('board',e)}$('prepOpt').hidden=false;{const b=$('pumpOpt');b.disabled=!!L.pump;b.setAttribute('aria-pressed',String(!!(L.pump||pumpOn)));b.textContent=L.pump?'Boom pump truck (needed for tall walls)':'Boom pump truck for the pour'}
+  renderCareer();renderDaily();try{renderBoard()}catch(e){console.warn('board',e)}$('prepOpt').hidden=PREP_PAUSED;{const b=$('pumpOpt');b.disabled=!!L.pump;b.setAttribute('aria-pressed',String(!!(L.pump||pumpOn)));b.textContent=L.pump?'Boom pump truck (needed for tall walls)':'Boom pump truck for the pour'}
   renderSpec();
 }
 
@@ -8161,7 +8161,7 @@ const TOOLICON={"excav": "<path d=\"M6 38h22v5H6z\" fill=\"#2b2b2b\"/><circle cx
 const tIcon=k=>`<svg viewBox="0 0 48 48" aria-hidden="true">${TOOLICON[k]||''}</svg>`;
 // each drill: target on the job's own progress meter, gold/silver times in seconds
 const PRACTICE=[
- {k:'cab',sec:'Machines',ic:'truck',n:'Load the truck',d:'Fill the dump truck from the cab',lv:'patio',st:'dig',prep:1,cab:1,goal:'Heap the truck box',tgt:1,gold:110,silver:180,prog:()=>Math.min(1,dumpT.userData.load/Math.max(1,dumpT.userData.cap*1.1))},
+ {k:'cab',sec:'Machines',ic:'truck',n:'Excavator sim',d:'Real cab controls: dig and load the truck',lv:'patio',st:'dig',prep:1,cab:1,goal:'Heap the truck box',tgt:1,gold:110,silver:180,prog:()=>Math.min(1,dumpT.userData.load/Math.max(1,dumpT.userData.cap*1.1))},
  {k:'dig',sec:'Machines',ic:'excav',n:'Dig to grade',d:'Strip the sod, dig to subgrade',lv:'drive1',st:'dig',prep:1,goal:'Dig 100% to subgrade',tgt:1,gold:40,silver:70},
  {k:'strip',sec:'Machines',ic:'excav',n:'Strip asphalt',d:'Break up the old driveway, load it out',lv:'drive1',st:'strip',prep:1,goal:'Strip 100% of the asphalt',tgt:1,gold:40,silver:70},
  {k:'grav',sec:'Machines',ic:'gravel',n:'Spread the base',d:'Gravel out even, edge to edge',lv:'drive1',st:'gravel',prep:1,goal:'Spread it all',tgt:1,gold:50,silver:80},
@@ -8180,7 +8180,7 @@ const PRACTICE=[
  {k:'ride',sec:'Finishing',ic:'power',n:'Ride-on trowel',d:'Drive the twin-rotor over a big pad',lv:'night',st:'power',ride:1,goal:'Trowel 90% of the floor',tgt:1,gold:45,silver:75,prog:()=>Math.min(1,stageProg('power')/.9)},
  {k:'stamp',sec:'Decorative',ic:'stamp',n:'Stamping',d:'Lay the mats in order',lv:'stamp',st:'stamp',goal:'Print every mat',tgt:1,gold:45,silver:80},
  {k:'expose',sec:'Decorative',ic:'wash',n:'Exposed wash',d:'Bare the stone, don\'t blast it',lv:'exposed',st:'expose',goal:'Bare all the stone',tgt:1,gold:30,silver:50},
- {k:'blanket',sec:'Decorative',ic:'blanket',n:'Blankets',d:'Roll them out row by row',lv:'freeze',st:'blanket',goal:'Cover 100%',tgt:1,gold:25,silver:45,prog:()=>{let c=0;for(let i=0;i<N;i++)if(inR[i]&&covered[i])c++;return RN?c/RN:0}}];
+ {k:'blanket',sec:'Decorative',ic:'blanket',n:'Blankets',d:'Roll them out row by row',lv:'freeze',st:'blanket',goal:'Cover 100%',tgt:1,gold:25,silver:45,prog:()=>{let c=0;for(let i=0;i<N;i++)if(inR[i]&&covered[i])c++;return RN?c/RN:0}}].filter(p=>!(PREP_PAUSED&&p.prep&&!p.cab));
 let prMode='drill',drill=null;
 const drillBest=k=>store.get('bts-drill-'+k,null),medalOf=(p,t)=>t<=p.gold?3:t<=p.silver?2:1,MEDAL=['','🥉','🥈','🥇'];
 const fmtT=t=>Math.floor(t/60)+':'+(t%60).toFixed(1).padStart(4,'0');
