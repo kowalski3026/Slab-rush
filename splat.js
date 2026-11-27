@@ -51,7 +51,7 @@ function build(buf,opt){opt=opt||{};const row=32,N0=buf.byteLength/row|0,f=new F
  const g=new T.InstancedBufferGeometry();g.setAttribute('position',new T.BufferAttribute(new Float32Array([-2,-2,0, 2,-2,0, 2,2,0, -2,2,0]),3));g.setIndex([0,1,2,0,2,3]);
  const idx=new T.InstancedBufferAttribute(new Float32Array(n),1);idx.setUsage(T.DynamicDrawUsage);g.setAttribute('sIdx',idx);g.instanceCount=n;
  const mat=new T.RawShaderMaterial({glslVersion:T.GLSL3,vertexShader:VS,fragmentShader:FS,uniforms:{uData:{value:tex},uFocal:{value:new T.Vector2()},uView:{value:new T.Vector2()},uTexW:{value:W}},
-  transparent:true,depthWrite:false,depthTest:true,blending:T.CustomBlending,blendSrc:T.SrcAlphaFactor,blendDst:T.OneMinusSrcAlphaFactor,blendSrcAlpha:T.OneFactor,blendDstAlpha:T.OneMinusSrcAlphaFactor});
+  transparent:true,depthWrite:false,depthTest:true,side:T.DoubleSide,blending:T.CustomBlending,blendSrc:T.SrcAlphaFactor,blendDst:T.OneMinusSrcAlphaFactor,blendSrcAlpha:T.OneFactor,blendDstAlpha:T.OneMinusSrcAlphaFactor});
  const mesh=new T.Mesh(g,mat);mesh.frustumCulled=false;mesh.renderOrder=10;mesh.userData.live=true;mesh.name='splatWorld';
  const wk=new Worker(URL.createObjectURL(new Blob([SORT_SRC],{type:'text/javascript'})));wk.postMessage({pos,n});let busy=false,last=null;
  const dbg=mesh.userData.dbg={sent:0,recv:0,err:null};wk.onerror=e=>{dbg.err=String(e.message||e);busy=false};
