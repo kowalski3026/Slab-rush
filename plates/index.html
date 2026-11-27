@@ -28,7 +28,7 @@ textarea{width:100%;font:14px/1.4 ui-monospace,monospace;height:96px;border-radi
 </style></head><body>
 <header>
 <h1>Slab Rush <b>photo sheet</b></h1>
-<p class="how">Higgsfield app → Image → <b>Nano Banana 2</b> · <b>3:4</b> · <b>2K</b> · 1 image. Attach the images shown (long-press → Download image), copy the prompt, generate. Do not change anything else. Tick Done. I pick them up from your history.</p>
+<p class="how">Higgsfield app → Image → <b>Nano Banana 2</b> · <b>3:4</b> · <b>2K</b> · 1 image. Tap <b>Save</b> under each image, attach them in that order, copy the prompt, generate. Do not change anything else. Tick Done. I pick them up from your history.</p>
 <div class="bar"><i id="pb"></i></div><div class="sub" id="pt"></div>
 <div class="tabs" id="tabs"></div>
 </header>
@@ -42,7 +42,7 @@ let tab='p1',J=[];try{tab=localStorage.getItem('sr-plates-tab')||'p1'}catch(e){}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // plates come packed in zips (same-origin, rewritten to the CDN); "zip:<pack>/<file>" -> blob URL
 const ZIPS={},BLOB={};
-function zipGet(pack){return ZIPS[pack]||(ZIPS[pack]=fetch(pack+'.zip').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>JSZip.loadAsync(b)))}
+function zipGet(pack){return ZIPS[pack]||(ZIPS[pack]=fetch('/plates/'+pack+'.zip').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>JSZip.loadAsync(b)))}
 function src(u){if(!u)return Promise.resolve(null);if(!u.startsWith('zip:'))return Promise.resolve(u);if(BLOB[u])return Promise.resolve(BLOB[u]);
  const [pack,f]=u.slice(4).split('/');return zipGet(pack).then(z=>z.file(f).async('blob')).then(b=>BLOB[u]=URL.createObjectURL(b))}
 function fname(u){return u.startsWith('zip:')?u.split('/').pop():'match-photo.webp'}
@@ -68,6 +68,6 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
  if(b.dataset.c){const t=document.getElementById('t'+b.dataset.c);const ok=()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy prompt',1500)};
   if(navigator.clipboard)navigator.clipboard.writeText(t.value).then(ok,()=>{t.select();document.execCommand('copy');ok()});else{t.select();document.execCommand('copy');ok()}return}
  if(b.dataset.d){const k=b.dataset.d;if(done[k])delete done[k];else done[k]=1;save();draw()}});
-fetch('jobs.json?'+Date.now()).then(r=>r.json()).then(d=>{J=d;draw()}).catch(()=>{document.getElementById('list').innerHTML='<p class="empty">Could not load the job list.</p>'});
+fetch('/plates/jobs.json?'+Date.now()).then(r=>r.json()).then(d=>{J=d;draw()}).catch(()=>{document.getElementById('list').innerHTML='<p class="empty">Could not load the job list.</p>'});
 }
 </script></body></html>
