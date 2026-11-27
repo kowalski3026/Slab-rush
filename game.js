@@ -8133,7 +8133,7 @@ function prepRow(SC){const sp=prepSpeed();if(!sp)return null;const q=prepQual(SC
 function prepCash(crew){const r=PREPT.res;if(!r||!PREPT.on)return 0;const k=Math.max(-.5,Math.min(1,(1-r.r)*2.5));return Math.round(crew*.15*(k>0?k*r.gate:k))}
 // v218: between jobs (job list, plan, results) no hand tools, screed, rake or concrete roll are left standing on the lawn
 function toolsOff(){[screedG,mound,rakeG,rakeMound,workerG,tape,tapeCase,floatG,edgerG,grooverG,broomG,trowelG,guide,wandG,EXFX,powerG,handG,forearm,wrist,stripBand,msBands].forEach(o=>{if(o)o.visible=false});if(typeof dotIM!=='undefined'&&dotIM)dotIM.visible=false}
-function startJob(){try{if(typeof BKD!=='undefined'&&BKD.on){bkdOff();BKD.farDone=false}}catch(e){}/* v332: rebuild the photo layer every start/retry; its clip planes were left over from the last run and hid the dug pit behind the photo's driveway */
+function startJob(){try{if(!(practice&&practice.k==='cab'))splatWorldOff()}catch(e){}try{if(typeof BKD!=='undefined'&&BKD.on){bkdOff();BKD.farDone=false}}catch(e){}/* v332: rebuild the photo layer every start/retry; its clip planes were left over from the last run and hid the dug pit behind the photo's driveway */
   stage=0;toolsOff();rk.used=false;rk.load=0;
   applyLevel(LEVELS[jobIdx]);try{bkdLoad(LV)}catch(e){}try{MUD.age.fill(99)}catch(e){}
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
@@ -8248,9 +8248,21 @@ function practiceAuto(k){if(k==='snap'){try{snpBuild()}catch(e){}SNP.E.forEach(e
   // let the slab sit a little before the next step, like on a real pour
   if(STAGES[stage+1]){const w=STAGES[stage+1].win;set=Math.max(set,w[0]+Math.min(.04,(w[1]-w[0])*.1))}}
 const AUTOSET={float:.1,edge:.56,trowel:.62,joint:.6,broom:.58,color:.5,release:.52,stamp:.6,power:.66};
+/* ---------- v440: Excavator sim splat world ----------
+   The Excavator sim (practice 'cab') swaps the code-built yard for a gaussian splat of a real-looking dig site (splat.js, loaded on demand).
+   The splat file is already in game space (feet, ground y=0, the dirt lot centred on the pad). Its ground splats over the dig are cut away so the
+   3D pit shows there; the excavator, truck, pit, piles and sky stay 3D. Big code-built scenery (houses, terrain, yard ground) is hidden while it's on. */
+const SPW={on:false,mesh:null,hid:[],url:'models/excav-site.splat',t:0};
+function splatWorldOn(){if(SPW.on)return;SPW.on=true;
+  const go=()=>{if(!SPW.on)return;SPLAT.load(SPW.url,{cut:[RCX-RW/2-3,RCZ-RD/2-3,RCX+RW/2+3,RCZ+RD/2+3,4]}).then(m=>{if(!SPW.on){m.userData.dispose();return}SPW.mesh=m;scene.add(m);splatHide()}).catch(e=>{console.warn('splat world',e);SPW.on=false})};
+  if(window.SPLAT)go();else{const s=document.createElement('script');s.src='splat.js';s.onload=go;s.onerror=()=>{SPW.on=false};document.head.appendChild(s)}}
+function splatHide(){const bb=new THREE.Box3(),sz=new THREE.Vector3();scene.children.forEach(o=>{if(!o.visible||o===SPW.mesh||o.isLight||o===exG||o===dumpT||o===siteG||SPW.hid.includes(o))return;
+  bb.setFromObject(o);if(bb.isEmpty())return;bb.getSize(sz);const m=Math.max(sz.x,sz.y,sz.z);if(m>40&&m<355){o.visible=false;SPW.hid.push(o)}})}
+function splatTick(dt){if(!SPW.mesh)return;SPW.t+=dt;if(SPW.t>1){SPW.t=0;SPW.hid.forEach(o=>o.visible=false);splatHide()}}
+function splatWorldOff(){if(!SPW.on&&!SPW.mesh)return;SPW.on=false;SPW.hid.forEach(o=>o.visible=true);SPW.hid=[];if(SPW.mesh){scene.remove(SPW.mesh);try{SPW.mesh.userData.dispose()}catch(e){}SPW.mesh=null}}
 function startPractice(p){if(!practiceSave)practiceSave={prepOn,mode,cabOn,jobIdx};practice=p;daily=null;
   const i=LEVELS.findIndex(L=>L.id===p.lv);if(i<0)return;jobIdx=i;prepOn=!!p.prep;mode='free';if(p.cab)cabOn=true;
-  applyLevel(LEVELS[jobIdx]);reset();setStageUI();try{startJob()}catch(e){window.__showErr('practice: '+e.message);return}careerRun=false;ev=null;lateT=null;
+  applyLevel(LEVELS[jobIdx]);reset();setStageUI();try{startJob()}catch(e){window.__showErr('practice: '+e.message);return}if(p.k==='cab')try{splatWorldOn()}catch(e){console.warn('splat',e)}careerRun=false;ev=null;lateT=null;
   say.mute=1;let guard=0;while(STAGES[stage]&&STAGES[stage].key!==p.st&&stage<STAGES.length-1&&guard++<20){const k=STAGES[stage].key;if(AUTOSET[k])set=Math.max(set,AUTOSET[k]);try{practiceAuto(k)}catch(e){console.warn('auto',k,e)}const st0=stage;$('next').click();if(stage===st0)$('next').click()}
   {const w=STAGES[stage].win;set=Math.max(set,w[0]+Math.min(.04,(w[1]-w[0])*.1))}surfDirty=geoDirty=true;say.mute=0;flags={...flags};
   setStageUI();if(p.buggy){try{bugMode(true)}catch(e){console.warn('buggy',e)}}
@@ -12447,7 +12459,7 @@ function cabCamera(fdt){if(!cabOn||!cabAvail()||!exG.visible){cabUnhide();cab.ct
   const look=fwd.multiplyScalar(.5).addScaledVector(tip,.5);if(!cab.lk||dt>=1)cab.lk=look.clone();else cab.lk.lerp(look,1-Math.exp(-dt*8));
   camera.position.copy(eye);camera.lookAt(cab.lk);cabAim(tip,.48,dt,-.6,.45);return true}
 
-function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);try{frmTick()}catch(e){if(!FRM.err){FRM.err=1;console.warn('frm',e)}}updateBlankets(dt);updateCure();try{specTick(dt,t)}catch(e){}try{ovhTick(dt,t)}catch(e){}try{finTick(dt,t)}catch(e){if(!AUX.err){AUX.err=1;console.warn('fin',e)}}updateSlip(dt,t);updateCrew(dt,t);try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
+function updatePrep(dt,t){try{lzTick()}catch(e){}updateMark(dt,t);try{frmTick()}catch(e){if(!FRM.err){FRM.err=1;console.warn('frm',e)}}updateBlankets(dt);updateCure();try{specTick(dt,t)}catch(e){}try{ovhTick(dt,t)}catch(e){}try{finTick(dt,t)}catch(e){if(!AUX.err){AUX.err=1;console.warn('fin',e)}}updateSlip(dt,t);updateCrew(dt,t);try{splatTick(dt)}catch(e){}try{fmTick(dt)}catch(e){}updateLeaves(dt,t);updatePeds(dt,t);updateLate(dt);updateGear3(dt);const k=STAGES[stage]&&STAGES[stage].key,P=isPrep(),on=P&&(k==='dig'||k==='gravel'||k==='strip'||k==='break');
   exG.visible=on;if(on&&exPark){if(cabOn)updateCab(dt,t,k);else updateExcavator(dt,t,k)}try{exUiTick(dt,t,k)}catch(e){if(!EXUI.err){EXUI.err=1;console.warn('exUi',e)}}
   if(FRESH.sP&&performance.now()-FRESH.sT>=30)geoDirty=true;
   if(P&&(FRESH.t+=dt)>.4){const st=FRESH.t;FRESH.t=0;let any=false;for(let i=0;i<N;i++)if(freshD[i]>0){freshD[i]=Math.max(0,freshD[i]-st/28);any=true}if(any&&soilMode())geoDirty=true}updateBits(dt);try{pileDirtM.color.setHex(k==='strip'||k==='break'||dumpT.userData.hauling?0x55565c:0xffffff)}catch(e){}try{arTick(dt,t,k,P)}catch(e){if(!AR.err){AR.err=1;console.warn('arTick',e)}}

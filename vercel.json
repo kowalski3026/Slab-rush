@@ -250,6 +250,10 @@
     {
       "source": "/models/k/trowel-worn.glb",
       "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/c5cf58c6-2279-4a45-896a-77e850f74513.glb"
+    },
+    {
+      "source": "/models/excav-site.splat",
+      "destination": "https://d2ol7oe51mr4n9.cloudfront.net/user_3H6qFIzqF6BwMNvb5cjV9tnt8Og/ab771c11-680b-4d00-8d2f-b09e4c6e82d3.zip"
     }
   ],
   "images": {
