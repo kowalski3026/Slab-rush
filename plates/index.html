@@ -42,7 +42,7 @@ let tab='p1',J=[];try{tab=localStorage.getItem('sr-plates-tab2')||'p1'}catch(e){
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // plates come packed in zips (same-origin, rewritten to the CDN); "zip:<pack>/<file>" -> blob URL
 const ZIPS={},BLOB={};
-function zipGet(pack){return ZIPS[pack]||(ZIPS[pack]=fetch('/plates/'+pack+'.zip').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>JSZip.loadAsync(b)))}
+function zipGet(pack){return ZIPS[pack]||(ZIPS[pack]=fetch('/plates/'+pack+'.zip?v=2').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>JSZip.loadAsync(b)))}
 function src(u){if(!u)return Promise.resolve(null);if(!u.startsWith('zip:'))return Promise.resolve(u);if(BLOB[u])return Promise.resolve(BLOB[u]);
  const [pack,f]=u.slice(4).split('/');return zipGet(pack).then(z=>z.file(f).async('blob')).then(b=>BLOB[u]=URL.createObjectURL(b))}
 function fname(u){return u.startsWith('zip:')?u.split('/').pop():'match-photo.webp'}
