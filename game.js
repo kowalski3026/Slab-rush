@@ -8256,8 +8256,8 @@ const SPW={on:false,mesh:null,hid:[],url:'models/excav-site.splat',t:0};
 function splatWorldOn(){if(SPW.on)return;SPW.on=true;
   const go=()=>{if(!SPW.on)return;SPLAT.load(SPW.url,{cut:[RCX-RW/2-3,RCZ-RD/2-3,RCX+RW/2+3,RCZ+RD/2+3,4]}).then(m=>{if(!SPW.on){m.userData.dispose();return}SPW.mesh=m;scene.add(m);splatHide()}).catch(e=>{console.warn('splat world',e);SPW.on=false})};
   if(window.SPLAT)go();else{const s=document.createElement('script');s.src='splat.js';s.onload=go;s.onerror=()=>{SPW.on=false};document.head.appendChild(s)}}
-function splatHide(){const bb=new THREE.Box3(),sz=new THREE.Vector3();scene.children.forEach(o=>{if(!o.visible||o===SPW.mesh||o.isLight||o===exG||o===dumpT||o===siteG||SPW.hid.includes(o))return;
-  bb.setFromObject(o);if(bb.isEmpty())return;bb.getSize(sz);const m=Math.max(sz.x,sz.y,sz.z);if(m>40&&m<355){o.visible=false;SPW.hid.push(o)}})}
+function splatHide(){const bb=new THREE.Box3(),sz=new THREE.Vector3(),ct=new THREE.Vector3();scene.children.forEach(o=>{if(!o.visible||o===SPW.mesh||o.isLight||o===exG||o===dumpT||o===siteG||SPW.hid.includes(o))return;
+  bb.setFromObject(o);if(bb.isEmpty())return;bb.getSize(sz);bb.getCenter(ct);const m=Math.max(sz.x,sz.y,sz.z);if((m>40&&m<355)||(m>12&&ct.y<20&&Math.hypot(ct.x-RCX,ct.z-RCZ)>25)){o.visible=false;SPW.hid.push(o)}})}
 function splatTick(dt){if(!SPW.mesh)return;SPW.t+=dt;if(SPW.t>1){SPW.t=0;SPW.hid.forEach(o=>o.visible=false);splatHide()}}
 function splatWorldOff(){if(!SPW.on&&!SPW.mesh)return;SPW.on=false;SPW.hid.forEach(o=>o.visible=true);SPW.hid=[];if(SPW.mesh){scene.remove(SPW.mesh);try{SPW.mesh.userData.dispose()}catch(e){}SPW.mesh=null}}
 function startPractice(p){if(!practiceSave)practiceSave={prepOn,mode,cabOn,jobIdx};practice=p;daily=null;
